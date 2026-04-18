@@ -1,71 +1,50 @@
 import { Router, type IRouter } from "express";
-import { eq, sql, count } from "drizzle-orm";
-import { db } from "@workspace/db";
-import { notificationsTable } from "@workspace/db";
+import { db, notificationsTable, membersTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
+import { SendNotificationBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
 router.get("/notifications", async (req, res): Promise<void> => {
-  const page = Math.max(1, Number(req.query.page) || 1);
-  const limit = Math.min(100, Number(req.query.limit) || 20);
-  const offset = (page - 1) * limit;
-  const unreadOnly = req.query.unreadOnly === "true";
+  const { type, page = "1", limit = "20" } = req.query as Record<string, string>;
+  const pageNum = parseInt(page, 10);
+  const limitNum = parseInt(limit, 10);
 
-  let whereClause = sql`1=1`;
-  if (unreadOnly) whereClause = sql`${notificationsTable.isRead} = false`;
+  const all = await db.select({
+    notif: notificationsTable,
+    recipientName: membersTable.fullName,
+  }).from(notificationsTable)
+    .leftJoin(membersTable, eq(notificationsTable.recipientId, membersTable.id));
 
-  const [totalResult] = await db.select({ count: count() }).from(notificationsTable).where(whereClause);
-  const [unreadCount] = await db.select({ count: count() }).from(notificationsTable).where(eq(notificationsTable.isRead, false));
+  let filtered = all;
+  if (type) filtered = filtered.filter(n => n.notif.type === type);
 
-  const notifications = await db
-    .select()
-    .from(notificationsTable)
-    .where(whereClause)
-    .orderBy(sql`${notificationsTable.createdAt} DESC`)
-    .limit(limit)
-    .offset(offset);
+  const total = filtered.length;
+  const paginated = filtered.slice((pageNum - 1) * limitNum, pageNum * limitNum).map(({ notif, recipientName }) => ({
+    ...notif,
+    recipientName: recipientName ?? "Unknown",
+    sentAt: notif.sentAt?.toISOString() ?? null,
+  }));
 
-  res.json({
-    data: notifications,
-    total: Number(totalResult.count),
-    unreadCount: Number(unreadCount.count),
-    page,
-    limit,
-  });
+  res.json({ data: paginated, total, page: pageNum, limit: limitNum });
 });
 
 router.post("/notifications", async (req, res): Promise<void> => {
-  const { title, message, type, targetAudience } = req.body;
-  if (!title || !message || !type) {
-    res.status(400).json({ error: "title, message, type are required" });
-    return;
-  }
+  const parsed = SendNotificationBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
-  const [notification] = await db.insert(notificationsTable).values({
-    title,
-    message,
-    type,
-    isRead: false,
-    targetAudience,
+  const firstRecipient = parsed.data.recipientIds[0];
+  const [notif] = await db.insert(notificationsTable).values({
+    type: parsed.data.type,
+    recipientId: firstRecipient,
+    subject: parsed.data.subject,
+    message: parsed.data.message,
+    status: "sent",
+    sentAt: new Date(),
   }).returning();
 
-  res.status(201).json(notification);
-});
-
-router.post("/notifications/read-all", async (req, res): Promise<void> => {
-  await db.update(notificationsTable).set({ isRead: true }).where(eq(notificationsTable.isRead, false));
-  res.json({ success: true });
-});
-
-router.post("/notifications/:id/read", async (req, res): Promise<void> => {
-  const id = Number(req.params.id);
-  const [updated] = await db
-    .update(notificationsTable)
-    .set({ isRead: true })
-    .where(eq(notificationsTable.id, id))
-    .returning();
-  if (!updated) { res.status(404).json({ error: "Not found" }); return; }
-  res.json(updated);
+  const [member] = await db.select().from(membersTable).where(eq(membersTable.id, firstRecipient));
+  res.status(201).json({ ...notif, recipientName: member?.fullName ?? "Unknown", sentAt: notif.sentAt?.toISOString() ?? null });
 });
 
 export default router;
