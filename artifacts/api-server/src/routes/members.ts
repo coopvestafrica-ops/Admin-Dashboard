@@ -1,90 +1,130 @@
+/**
+ * Thin proxy over the mobile backend's /api/v2/admin/members endpoints.
+ *
+ * The mobile backend is the source of truth for member data (profiles, KYC,
+ * savings, loans, wallets) so the admin web simply forwards requests here.
+ */
+
 import { Router, type IRouter } from "express";
-import { db, membersTable, organizationsTable } from "@workspace/db";
-import { eq, like, and } from "drizzle-orm";
-import {
-  CreateMemberBody,
-  UpdateMemberBody,
-  UpdateMemberStatusBody,
-} from "@workspace/api-zod";
+import { getMobileApiClient } from "../lib/mobile-api-client";
+import { handleMobileError } from "../lib/mobile-error";
 
 const router: IRouter = Router();
 
+interface MobileProfile {
+  id: string;
+  user_id?: string | null;
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  role?: string | null;
+  is_active?: boolean | null;
+  is_flagged?: boolean | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface MobileMemberListResponse {
+  success: boolean;
+  members: MobileProfile[];
+  pagination: { page: number; limit: number; total: number };
+}
+
+function shapeMember(m: MobileProfile): Record<string, unknown> {
+  return {
+    id: m.id,
+    userId: m.user_id ?? null,
+    fullName: m.name ?? "",
+    email: m.email ?? "",
+    phone: m.phone ?? "",
+    role: m.role ?? "member",
+    status: m.is_active === false ? "inactive" : m.is_flagged ? "flagged" : "active",
+    isActive: m.is_active ?? true,
+    isFlagged: m.is_flagged ?? false,
+    createdAt: m.created_at,
+    updatedAt: m.updated_at,
+    raw: m,
+  };
+}
+
 router.get("/members", async (req, res): Promise<void> => {
-  const { organizationId, status, search, page = "1", limit = "20" } = req.query as Record<string, string>;
-  const pageNum = parseInt(page, 10);
-  const limitNum = parseInt(limit, 10);
-  const offset = (pageNum - 1) * limitNum;
-
-  const members = await db.select({
-    member: membersTable,
-    orgName: organizationsTable.name,
-  }).from(membersTable)
-    .leftJoin(organizationsTable, eq(membersTable.organizationId, organizationsTable.id));
-
-  let filtered = members;
-  if (organizationId) filtered = filtered.filter(m => m.member.organizationId === parseInt(organizationId, 10));
-  if (status) filtered = filtered.filter(m => m.member.status === status);
-  if (search) {
-    const q = search.toLowerCase();
-    filtered = filtered.filter(m => m.member.fullName.toLowerCase().includes(q) || m.member.employeeId.toLowerCase().includes(q) || m.member.email.toLowerCase().includes(q));
+  try {
+    const client = getMobileApiClient();
+    const { search, status, role, page = "1", limit = "20" } = req.query as Record<string, string>;
+    const response = await client.get<MobileMemberListResponse>("/api/v2/admin/members", {
+      q: search,
+      role,
+      isActive: status === "inactive" ? "false" : undefined,
+      isFlagged: status === "flagged" ? "true" : undefined,
+      page,
+      limit,
+    });
+    const { pagination, members = [] } = response;
+    res.json({
+      data: members.map(shapeMember),
+      total: pagination?.total ?? members.length,
+      page: pagination?.page ?? Number(page),
+      limit: pagination?.limit ?? Number(limit),
+    });
+  } catch (err) {
+    handleMobileError(err, res);
   }
-
-  const total = filtered.length;
-  const paginated = filtered.slice(offset, offset + limitNum).map(({ member, orgName }) => ({
-    ...member,
-    organizationName: orgName ?? "",
-    savingsBalance: parseFloat(member.savingsBalance ?? "0"),
-    walletBalance: parseFloat(member.walletBalance ?? "0"),
-    riskScore: parseFloat(member.riskScore ?? "0"),
-  }));
-
-  res.json({ data: paginated, total, page: pageNum, limit: limitNum });
-});
-
-router.post("/members", async (req, res): Promise<void> => {
-  const parsed = CreateMemberBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const [member] = await db.insert(membersTable).values(parsed.data).returning();
-  res.status(201).json({ ...member, savingsBalance: 0, walletBalance: 0, riskScore: 0 });
 });
 
 router.get("/members/:id", async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  const [result] = await db.select({
-    member: membersTable,
-    orgName: organizationsTable.name,
-  }).from(membersTable)
-    .leftJoin(organizationsTable, eq(membersTable.organizationId, organizationsTable.id))
-    .where(eq(membersTable.id, id));
-  if (!result) { res.status(404).json({ error: "Member not found" }); return; }
-  res.json({
-    ...result.member,
-    organizationName: result.orgName ?? "",
-    savingsBalance: parseFloat(result.member.savingsBalance ?? "0"),
-    walletBalance: parseFloat(result.member.walletBalance ?? "0"),
-    riskScore: parseFloat(result.member.riskScore ?? "0"),
-  });
+  try {
+    const client = getMobileApiClient();
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const response = await client.get<{ success: boolean; member: MobileProfile }>(
+      `/api/v2/admin/members/${encodeURIComponent(id)}`,
+    );
+    if (!response?.member) {
+      res.status(404).json({ error: "Member not found" });
+      return;
+    }
+    res.json({ ...shapeMember(response.member), detail: response.member });
+  } catch (err) {
+    handleMobileError(err, res);
+  }
 });
 
 router.put("/members/:id", async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  const parsed = UpdateMemberBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const [member] = await db.update(membersTable).set(parsed.data).where(eq(membersTable.id, id)).returning();
-  if (!member) { res.status(404).json({ error: "Member not found" }); return; }
-  res.json({ ...member, savingsBalance: parseFloat(member.savingsBalance ?? "0"), walletBalance: parseFloat(member.walletBalance ?? "0"), riskScore: parseFloat(member.riskScore ?? "0") });
+  try {
+    const client = getMobileApiClient();
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const response = await client.patch<{ success: boolean; member: MobileProfile }>(
+      `/api/v2/admin/members/${encodeURIComponent(id)}`,
+      req.body,
+    );
+    res.json(shapeMember(response.member));
+  } catch (err) {
+    handleMobileError(err, res);
+  }
 });
 
 router.put("/members/:id/status", async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  const parsed = UpdateMemberStatusBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const [member] = await db.update(membersTable).set({ status: parsed.data.status }).where(eq(membersTable.id, id)).returning();
-  if (!member) { res.status(404).json({ error: "Member not found" }); return; }
-  res.json({ ...member, savingsBalance: parseFloat(member.savingsBalance ?? "0"), walletBalance: parseFloat(member.walletBalance ?? "0"), riskScore: parseFloat(member.riskScore ?? "0") });
+  try {
+    const client = getMobileApiClient();
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const body = req.body as { status?: string };
+    const update: Record<string, unknown> = {};
+    if (body.status === "inactive") update.isActive = false;
+    else if (body.status === "active") update.isActive = true;
+    else if (body.status === "flagged") update.isFlagged = true;
+    const response = await client.patch<{ success: boolean; member: MobileProfile }>(
+      `/api/v2/admin/members/${encodeURIComponent(id)}`,
+      update,
+    );
+    res.json(shapeMember(response.member));
+  } catch (err) {
+    handleMobileError(err, res);
+  }
+});
+
+router.post("/members", async (_req, res): Promise<void> => {
+  res.status(501).json({
+    error: "Member creation is handled by the mobile signup flow. Members cannot be created from the admin dashboard.",
+  });
 });
 
 export default router;

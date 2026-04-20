@@ -65,7 +65,7 @@ router.post("/users", requireAuth, requireSuperAdmin, async (req, res): Promise<
 
 // PATCH /api/users/:id — Super Admin only
 router.patch("/users/:id", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const { name, role, isActive } = req.body as { name?: string; role?: string; isActive?: boolean };
 
   await db.update(usersTable).set({
@@ -79,7 +79,7 @@ router.patch("/users/:id", requireAuth, requireSuperAdmin, async (req, res): Pro
 
 // POST /api/users/:id/reset-password — Super Admin only
 router.post("/users/:id/reset-password", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const { newPassword } = req.body as { newPassword: string };
   if (!newPassword || newPassword.length < 8) {
     res.status(400).json({ error: "New password must be at least 8 characters" });
@@ -92,14 +92,14 @@ router.post("/users/:id/reset-password", requireAuth, requireSuperAdmin, async (
 
 // POST /api/users/:id/unlock — Super Admin only
 router.post("/users/:id/unlock", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   await db.update(usersTable).set({ failedAttempts: 0, lockedUntil: null, updatedAt: new Date() }).where(eq(usersTable.id, id));
   res.json({ success: true });
 });
 
 // DELETE /api/users/:id — Super Admin only (deactivate, never hard delete)
 router.delete("/users/:id", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   if (id === req.session!.userId) {
     res.status(400).json({ error: "You cannot deactivate your own account" });
     return;

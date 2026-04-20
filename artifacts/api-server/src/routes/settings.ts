@@ -58,6 +58,7 @@ router.put("/settings", async (req, res): Promise<void> => {
     if (value !== undefined) {
       return setSettingValue(key, String(value));
     }
+    return Promise.resolve();
   }));
 
   // Return updated settings

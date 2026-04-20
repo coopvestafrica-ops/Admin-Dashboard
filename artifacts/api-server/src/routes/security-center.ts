@@ -35,7 +35,7 @@ router.post("/security/trusted-locations", requireAuth, requireSuperAdmin, async
 
 // PATCH /api/security/trusted-locations/:id
 router.patch("/security/trusted-locations/:id", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const { isAllowed } = req.body as { isAllowed: boolean };
   await db.update(trustedLocationsTable).set({ isAllowed }).where(eq(trustedLocationsTable.id, id));
   res.json({ success: true });
@@ -43,7 +43,7 @@ router.patch("/security/trusted-locations/:id", requireAuth, requireSuperAdmin, 
 
 // DELETE /api/security/trusted-locations/:id
 router.delete("/security/trusted-locations/:id", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   await db.delete(trustedLocationsTable).where(eq(trustedLocationsTable.id, id));
   res.json({ success: true });
 });
@@ -66,7 +66,7 @@ router.post("/security/blocked-ips", requireAuth, requireSuperAdmin, async (req,
 
 // DELETE /api/security/blocked-ips/:id
 router.delete("/security/blocked-ips/:id", requireAuth, requireSuperAdmin, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   await db.delete(blockedIpsTable).where(eq(blockedIpsTable.id, id));
   res.json({ success: true });
 });

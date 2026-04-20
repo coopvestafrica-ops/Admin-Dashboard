@@ -22,7 +22,7 @@ router.get("/excel", requireAuth, async (req, res): Promise<void> => {
 
 // GET /api/excel/:id — get single workbook with data
 router.get("/excel/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const wb = await db.select().from(excelWorkbooksTable).where(eq(excelWorkbooksTable.id, id)).limit(1);
   if (!wb[0]) { res.status(404).json({ error: "Workbook not found" }); return; }
   res.json({ workbook: wb[0] });
@@ -39,15 +39,15 @@ router.post("/excel", requireAuth, async (req, res): Promise<void> => {
     description: description ?? "",
     sheetNames: sheetNames ?? ["Sheet1"],
     data: data ?? { Sheet1: { cells: [] } },
-    createdBy: req.session!.userName,
-    updatedBy: req.session!.userName,
+    createdBy: req.session!.userName ?? "unknown",
+    updatedBy: req.session!.userName ?? "unknown",
   }).returning();
   res.status(201).json({ workbook: wb });
 });
 
 // PUT /api/excel/:id — save workbook
 router.put("/excel/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   const { name, description, sheetNames, data } = req.body as {
     name?: string; description?: string; sheetNames?: string[]; data?: any;
   };
@@ -56,7 +56,7 @@ router.put("/excel/:id", requireAuth, async (req, res): Promise<void> => {
     ...(description !== undefined && { description }),
     ...(sheetNames !== undefined && { sheetNames }),
     ...(data !== undefined && { data }),
-    updatedBy: req.session!.userName,
+    updatedBy: req.session!.userName ?? "unknown",
     updatedAt: new Date(),
   }).where(eq(excelWorkbooksTable.id, id));
   res.json({ success: true });
@@ -64,7 +64,7 @@ router.put("/excel/:id", requireAuth, async (req, res): Promise<void> => {
 
 // DELETE /api/excel/:id
 router.delete("/excel/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
   await db.delete(excelWorkbooksTable).where(eq(excelWorkbooksTable.id, id));
   res.json({ success: true });
 });

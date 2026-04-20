@@ -2,6 +2,14 @@
 
 A full-stack cooperative management platform with enterprise-grade security, real backend authentication, feature flag management, in-browser spreadsheets, user account management, and geo-location access control.
 
+> **Architecture note (2025):** Member-facing data (profiles, loans, wallets,
+> savings, notifications, support tickets, audit logs, dashboard overview) is
+> owned by the mobile backend ([Coopvest-App](https://github.com/coopvestafrica-ops/Coopvest-App),
+> Supabase-backed) and read by this admin API over HTTP at
+> `${MOBILE_API_BASE_URL}/api/v2/admin/*` using a shared service token. The
+> admin's own Postgres only stores admin-only concepts (organizations,
+> payroll, admin users, roles, feature flags, security center, etc.).
+
 ---
 
 ## What's Inside
@@ -38,11 +46,20 @@ pnpm install
 ```
 
 ### 2. Create environment file
-Create `artifacts/api-server/.env`:
+Copy `artifacts/api-server/.env.example` to `artifacts/api-server/.env` and fill
+in the values. Minimum required variables:
 ```env
 DATABASE_URL=postgresql://user:password@host:5432/coopvest
 SESSION_SECRET=a-long-random-string-here-change-this
 PORT=8080
+
+# Mobile backend (Coopvest-App) integration — required for the admin UI's
+# members / loans / wallets / savings / notifications / support / audit /
+# dashboard pages. The admin API proxies these routes over HTTP to
+# `${MOBILE_API_BASE_URL}/api/v2/admin/*`, authenticating with the shared
+# service token. Both values must match the mobile backend's configuration.
+MOBILE_API_BASE_URL=http://localhost:5000
+MOBILE_API_SERVICE_TOKEN=change-me-to-match-mobile-backend
 ```
 
 ### 3. Push database schema

@@ -13,7 +13,7 @@ router.get("/feature-flags", requireAuth, async (req, res): Promise<void> => {
 
 // GET /api/feature-flags/:key — check a single flag (used by frontend guards)
 router.get("/feature-flags/:key", requireAuth, async (req, res): Promise<void> => {
-  const flags = await db.select().from(featureFlagsTable).where(eq(featureFlagsTable.key, req.params.key)).limit(1);
+  const flags = await db.select().from(featureFlagsTable).where(eq(featureFlagsTable.key, Array.isArray(req.params.key) ? req.params.key[0] : req.params.key)).limit(1);
   if (!flags[0]) { res.status(404).json({ error: "Feature flag not found" }); return; }
   res.json({ flag: flags[0] });
 });
@@ -29,7 +29,7 @@ router.patch("/feature-flags/:key", requireAuth, requireSuperAdmin, async (req, 
     isEnabled,
     updatedBy: req.session!.userEmail,
     updatedAt: new Date(),
-  }).where(eq(featureFlagsTable.key, req.params.key));
+  }).where(eq(featureFlagsTable.key, Array.isArray(req.params.key) ? req.params.key[0] : req.params.key));
   res.json({ success: true });
 });
 
