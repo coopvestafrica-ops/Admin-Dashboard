@@ -1,163 +1,117 @@
+/**
+ * Dashboard summary + charts. The member-centric counters are sourced from the
+ * mobile backend's /api/v2/admin/overview endpoint; admin-only concepts
+ * (organizations) continue to come from the admin Postgres.
+ */
+
 import { Router, type IRouter } from "express";
-import { sql, count, sum } from "drizzle-orm";
-import { db } from "@workspace/db";
-import {
-  membersTable,
-  loansTable,
-  contributionsTable,
-  investmentsTable,
-  complianceItemsTable,
-  notificationsTable,
-  supportTicketsTable,
-} from "@workspace/db";
+import { db, organizationsTable, walletsTable } from "@workspace/db";
+import { count, sum } from "drizzle-orm";
+import { getMobileApiClient, MobileApiError } from "../lib/mobile-api-client";
+import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
 
-router.get("/dashboard/summary", async (req, res): Promise<void> => {
-  const [memberCount] = await db.select({ count: count() }).from(membersTable);
-  const [activeLoans] = await db
-    .select({ count: count() })
-    .from(loansTable)
-    .where(sql`${loansTable.status} = 'active'`);
-  const [totalContrib] = await db
-    .select({ total: sum(contributionsTable.amount) })
-    .from(contributionsTable)
-    .where(sql`${contributionsTable.status} = 'paid'`);
-  const [loansDisbursed] = await db
-    .select({ total: sum(loansTable.amount) })
-    .from(loansTable)
-    .where(sql`${loansTable.status} IN ('active', 'repaid')`);
-  const [totalInvested] = await db
-    .select({ total: sum(investmentsTable.currentValue) })
-    .from(investmentsTable);
-  const [pendingCompliance] = await db
-    .select({ count: count() })
-    .from(complianceItemsTable)
-    .where(sql`${complianceItemsTable.status} = 'pending'`);
-  const [openTickets] = await db
-    .select({ count: count() })
-    .from(supportTicketsTable)
-    .where(sql`${supportTicketsTable.status} IN ('open', 'in_progress')`);
-  const [repaidCount] = await db
-    .select({ count: count() })
-    .from(loansTable)
-    .where(sql`${loansTable.status} = 'repaid'`);
+interface MobileOverviewResponse {
+  success: boolean;
+  overview: {
+    members: { total: number; active: number };
+    loans: { count: number; total: number; byStatus: Record<string, number> };
+    tickets: { open: number };
+  };
+}
 
-  const totalLoans = Number(activeLoans.count) + Number(repaidCount.count);
-  const repaymentRate = totalLoans > 0 ? (Number(repaidCount.count) / totalLoans) * 100 : 0;
+router.get("/dashboard/summary", async (_req, res): Promise<void> => {
+  try {
+    const [orgCount] = await db.select({ count: count() }).from(organizationsTable);
 
+    let overview: MobileOverviewResponse["overview"] = {
+      members: { total: 0, active: 0 },
+      loans: { count: 0, total: 0, byStatus: {} },
+      tickets: { open: 0 },
+    };
+    try {
+      const client = getMobileApiClient();
+      const response = await client.get<MobileOverviewResponse>("/api/v2/admin/overview");
+      overview = response.overview;
+    } catch (err) {
+      if (err instanceof MobileApiError) {
+        logger.warn({ status: err.status }, "dashboard/summary: mobile backend unavailable");
+      } else {
+        throw err;
+      }
+    }
+
+    const [walletTotal] = await db.select({ total: sum(walletsTable.balance) }).from(walletsTable);
+
+    res.json({
+      totalOrganizations: orgCount.count,
+      totalMembers: overview.members.total,
+      activeLoans: overview.loans.byStatus.active || 0,
+      totalSavings: 0,
+      loanRepaymentsToday: 0,
+      pendingApprovals: overview.loans.byStatus.pending || 0,
+      overdueLoans: overview.loans.byStatus.defaulted || 0,
+      walletBalances: parseFloat(walletTotal.total ?? "0"),
+      memberGrowthPercent: 0,
+      savingsGrowthPercent: 0,
+      loanDisbursedThisMonth: overview.loans.total || 0,
+      repaymentRate:
+        overview.loans.count > 0
+          ? ((overview.loans.count - (overview.loans.byStatus.defaulted || 0)) / overview.loans.count) * 100
+          : 0,
+      openTickets: overview.tickets.open,
+    });
+  } catch (err) {
+    logger.error({ err }, "dashboard/summary failed");
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+router.get("/dashboard/charts", async (_req, res): Promise<void> => {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const currentMonth = new Date().getMonth();
+  const last6Months = months.slice(Math.max(0, currentMonth - 5), currentMonth + 1);
   res.json({
-    totalMembers: Number(memberCount.count),
-    activeLoans: Number(activeLoans.count),
-    totalContributions: Number(totalContrib.total || 0),
-    loansDisbursed: Number(loansDisbursed.total || 0),
-    repaymentRate: Math.round(repaymentRate * 10) / 10,
-    pendingCompliance: Number(pendingCompliance.count),
-    openSupportTickets: Number(openTickets.count),
-    totalInvestments: Number(totalInvested.total || 0),
-    membersGrowth: 8.5,
-    loansGrowth: 12.3,
-    contributionsGrowth: 6.7,
+    monthlySavings: last6Months.map((m) => ({ month: m, value: 0 })),
+    loanDisbursement: last6Months.map((m) => ({ month: m, value: 0 })),
+    repaymentPerformance: last6Months.map((m) => ({ month: m, value: 0 })),
+    memberGrowth: last6Months.map((m) => ({ month: m, value: 0 })),
   });
 });
 
-router.get("/dashboard/monthly-contributions", async (req, res): Promise<void> => {
-  const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-  ];
-  const result = await db
-    .select({
-      month: sql<string>`TO_CHAR(${contributionsTable.createdAt}, 'Mon')`,
-      value: sum(contributionsTable.amount),
-    })
-    .from(contributionsTable)
-    .where(sql`${contributionsTable.status} = 'paid' AND EXTRACT(YEAR FROM ${contributionsTable.createdAt}) = EXTRACT(YEAR FROM NOW())`)
-    .groupBy(sql`TO_CHAR(${contributionsTable.createdAt}, 'Mon'), EXTRACT(MONTH FROM ${contributionsTable.createdAt})`)
-    .orderBy(sql`EXTRACT(MONTH FROM ${contributionsTable.createdAt})`);
-
-  const dataMap = new Map(result.map(r => [r.month, Number(r.value || 0)]));
-  const now = new Date();
-  const currentMonth = now.getMonth();
-
-  const data = months.slice(0, currentMonth + 1).map(month => ({
-    month,
-    value: dataMap.get(month) || 0,
-  }));
-
-  res.json(data);
-});
-
-router.get("/dashboard/loan-status-breakdown", async (req, res): Promise<void> => {
-  const result = await db
-    .select({
-      status: loansTable.status,
-      count: count(),
-      amount: sum(loansTable.amount),
-    })
-    .from(loansTable)
-    .groupBy(loansTable.status);
-
-  const total = result.reduce((sum, r) => sum + Number(r.count), 0);
-
-  res.json(result.map(r => ({
-    status: r.status,
-    count: Number(r.count),
-    amount: Number(r.amount || 0),
-    percentage: total > 0 ? Math.round((Number(r.count) / total) * 1000) / 10 : 0,
-  })));
-});
-
-router.get("/dashboard/recent-activity", async (req, res): Promise<void> => {
-  const recentContribs = await db
-    .select({
-      id: contributionsTable.id,
-      memberId: membersTable.id,
-      memberName: sql<string>`${membersTable.firstName} || ' ' || ${membersTable.lastName}`,
-      amount: contributionsTable.amount,
-      createdAt: contributionsTable.createdAt,
-    })
-    .from(contributionsTable)
-    .innerJoin(membersTable, sql`${contributionsTable.memberId} = ${membersTable.id}`)
-    .orderBy(sql`${contributionsTable.createdAt} DESC`)
-    .limit(5);
-
-  const recentLoans = await db
-    .select({
-      id: loansTable.id,
-      memberId: membersTable.id,
-      memberName: sql<string>`${membersTable.firstName} || ' ' || ${membersTable.lastName}`,
-      amount: loansTable.amount,
-      status: loansTable.status,
-      createdAt: loansTable.createdAt,
-    })
-    .from(loansTable)
-    .innerJoin(membersTable, sql`${loansTable.memberId} = ${membersTable.id}`)
-    .orderBy(sql`${loansTable.createdAt} DESC`)
-    .limit(5);
-
-  const activities = [
-    ...recentContribs.map(c => ({
-      id: c.id,
-      type: "contribution",
-      description: `Contribution received from ${c.memberName}`,
-      memberName: c.memberName,
-      amount: Number(c.amount),
-      createdAt: c.createdAt,
-    })),
-    ...recentLoans.map(l => ({
-      id: l.id + 1000,
-      type: l.status === "pending" ? "loan_application" : "loan_update",
-      description: l.status === "pending"
-        ? `New loan application from ${l.memberName}`
-        : `Loan ${l.status} for ${l.memberName}`,
-      memberName: l.memberName,
-      amount: Number(l.amount),
-      createdAt: l.createdAt,
-    })),
-  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10);
-
-  res.json(activities);
+router.get("/dashboard/recent-activity", async (_req, res): Promise<void> => {
+  try {
+    const client = getMobileApiClient();
+    const response = await client.get<{
+      success: boolean;
+      logs: Array<{
+        id: string;
+        action: string;
+        target_model?: string | null;
+        target_id?: string | null;
+        metadata?: Record<string, unknown> | null;
+        created_at?: string;
+      }>;
+    }>("/api/v2/admin/audit-logs", { page: "1", limit: "10" });
+    res.json(
+      (response.logs ?? []).map((l) => ({
+        id: l.id,
+        type: l.action,
+        description: `${l.action} ${l.target_model ?? ""}`.trim(),
+        memberName: "",
+        amount: null,
+        createdAt: l.created_at ?? null,
+        metadata: l.metadata ?? null,
+      })),
+    );
+  } catch (err) {
+    if (err instanceof MobileApiError) {
+      res.status(err.status >= 400 && err.status < 600 ? err.status : 502).json({ error: err.message });
+      return;
+    }
+    res.status(500).json({ error: (err as Error).message });
+  }
 });
 
 export default router;

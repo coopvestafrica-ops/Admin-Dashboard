@@ -2,23 +2,39 @@ openapi: 3.1.0
 info:
   title: Api
   version: 0.1.0
-  description: Coopvest Africa Admin Dashboard API
+  description: CoopVest Africa Admin Dashboard API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
+    description: Health operations
   - name: dashboard
+    description: Dashboard overview
+  - name: organizations
+    description: Organization management
   - name: members
+    description: Member management
+  - name: savings
+    description: Savings management
   - name: loans
-  - name: contributions
-  - name: investments
-  - name: compliance
+    description: Loan management
+  - name: payroll
+    description: Payroll deduction
+  - name: wallet
+    description: E-Wallet management
+  - name: risk
+    description: Risk and credit score
   - name: notifications
-  - name: auditLogs
+    description: Notifications system
+  - name: reports
+    description: Reports and analytics
+  - name: audit
+    description: Audit logs
+  - name: roles
+    description: Role management
   - name: support
-  - name: riskScoring
-  - name: interestRates
+    description: Support and messaging
 
 paths:
   /healthz:
@@ -38,7 +54,7 @@ paths:
     get:
       operationId: getDashboardSummary
       tags: [dashboard]
-      summary: Get dashboard KPI summary
+      summary: Get dashboard overview summary
       responses:
         "200":
           description: Dashboard summary
@@ -47,44 +63,27 @@ paths:
               schema:
                 $ref: "#/components/schemas/DashboardSummary"
 
-  /dashboard/monthly-contributions:
+  /dashboard/charts:
     get:
-      operationId: getMonthlyContributions
+      operationId: getDashboardCharts
       tags: [dashboard]
-      summary: Monthly contribution trend (last 12 months)
+      summary: Get dashboard chart data
       responses:
         "200":
-          description: Monthly contributions
+          description: Chart data
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/MonthlyData"
-
-  /dashboard/loan-status-breakdown:
-    get:
-      operationId: getLoanStatusBreakdown
-      tags: [dashboard]
-      summary: Loan portfolio status breakdown
-      responses:
-        "200":
-          description: Loan status breakdown
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/StatusBreakdown"
+                $ref: "#/components/schemas/DashboardCharts"
 
   /dashboard/recent-activity:
     get:
-      operationId: getRecentActivity
+      operationId: getDashboardRecentActivity
       tags: [dashboard]
-      summary: Recent platform activity feed
+      summary: Get recent dashboard activity
       responses:
         "200":
-          description: Recent activities
+          description: Recent activity
           content:
             application/json:
               schema:
@@ -92,17 +91,17 @@ paths:
                 items:
                   $ref: "#/components/schemas/ActivityItem"
 
-  /members:
+  /organizations:
     get:
-      operationId: getMembers
-      tags: [members]
-      summary: List all members
+      operationId: listOrganizations
+      tags: [organizations]
+      summary: List all organizations
       parameters:
         - name: status
           in: query
           schema:
             type: string
-            enum: [active, inactive, suspended, pending]
+            enum: [active, suspended, pending]
         - name: search
           in: query
           schema:
@@ -119,15 +118,141 @@ paths:
             default: 20
       responses:
         "200":
-          description: Members list
+          description: List of organizations
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MembersListResponse"
+                $ref: "#/components/schemas/PaginatedOrganizations"
+    post:
+      operationId: createOrganization
+      tags: [organizations]
+      summary: Create a new organization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrganizationBody"
+      responses:
+        "201":
+          description: Created organization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+
+  /organizations/{id}:
+    get:
+      operationId: getOrganization
+      tags: [organizations]
+      summary: Get organization by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Organization details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+    put:
+      operationId: updateOrganization
+      tags: [organizations]
+      summary: Update organization
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrganizationBody"
+      responses:
+        "200":
+          description: Updated organization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+
+  /organizations/{id}/status:
+    put:
+      operationId: updateOrganizationStatus
+      tags: [organizations]
+      summary: Activate or suspend organization
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [active, suspended]
+              required: [status]
+      responses:
+        "200":
+          description: Updated status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+
+  /members:
+    get:
+      operationId: listMembers
+      tags: [members]
+      summary: List all members
+      parameters:
+        - name: organizationId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, pending, suspended]
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of members
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedMembers"
     post:
       operationId: createMember
       tags: [members]
-      summary: Create a new member
+      summary: Register a new member
       requestBody:
         required: true
         content:
@@ -184,34 +309,55 @@ paths:
               schema:
                 $ref: "#/components/schemas/Member"
 
-  /members/stats:
-    get:
-      operationId: getMemberStats
+  /members/{id}/status:
+    put:
+      operationId: updateMemberStatus
       tags: [members]
-      summary: Member aggregate stats
+      summary: Approve, activate, or suspend member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [active, pending, suspended, approved]
+              required: [status]
       responses:
         "200":
-          description: Member stats
+          description: Updated member status
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MemberStats"
+                $ref: "#/components/schemas/Member"
 
-  /loans:
+  /savings:
     get:
-      operationId: getLoans
-      tags: [loans]
-      summary: List all loans
+      operationId: listSavings
+      tags: [savings]
+      summary: List savings contributions
       parameters:
-        - name: status
-          in: query
-          schema:
-            type: string
-            enum: [pending, active, defaulted, repaid, rejected]
         - name: memberId
           in: query
           schema:
             type: integer
+        - name: organizationId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
         - name: page
           in: query
           schema:
@@ -224,15 +370,101 @@ paths:
             default: 20
       responses:
         "200":
-          description: Loans list
+          description: List of savings contributions
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LoansListResponse"
+                $ref: "#/components/schemas/PaginatedSavings"
+    post:
+      operationId: createSavingsContribution
+      tags: [savings]
+      summary: Record a savings contribution
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSavingsBody"
+      responses:
+        "201":
+          description: Created savings contribution
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavingsContribution"
+
+  /savings/{id}/approve:
+    put:
+      operationId: approveSavings
+      tags: [savings]
+      summary: Approve a savings contribution
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Approved contribution
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavingsContribution"
+
+  /savings/summary:
+    get:
+      operationId: getSavingsSummary
+      tags: [savings]
+      summary: Get savings summary statistics
+      responses:
+        "200":
+          description: Savings summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavingsSummary"
+
+  /loans:
+    get:
+      operationId: listLoans
+      tags: [loans]
+      summary: List all loans
+      parameters:
+        - name: memberId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, active, completed, defaulted, rejected]
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of loans
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedLoans"
     post:
       operationId: createLoan
       tags: [loans]
-      summary: Create loan application
+      summary: Create a loan application
       requestBody:
         required: true
         content:
@@ -266,30 +498,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Loan"
 
-  /loans/{id}/approve:
-    post:
-      operationId: approveLoan
+  /loans/{id}/status:
+    put:
+      operationId: updateLoanStatus
       tags: [loans]
-      summary: Approve a loan
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Loan approved
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Loan"
-
-  /loans/{id}/reject:
-    post:
-      operationId: rejectLoan
-      tags: [loans]
-      summary: Reject a loan
+      summary: Approve, reject, disburse or close a loan
       parameters:
         - name: id
           in: path
@@ -301,42 +514,95 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RejectLoanBody"
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [approved, rejected, active, completed, defaulted]
+                note:
+                  type: string
+              required: [status]
       responses:
         "200":
-          description: Loan rejected
+          description: Updated loan
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Loan"
 
-  /loans/portfolio-summary:
+  /loans/summary:
     get:
-      operationId: getLoanPortfolioSummary
+      operationId: getLoanSummary
       tags: [loans]
-      summary: Loan portfolio aggregates
+      summary: Get loan portfolio summary
       responses:
         "200":
-          description: Loan portfolio summary
+          description: Loan summary
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LoanPortfolioSummary"
+                $ref: "#/components/schemas/LoanSummary"
 
-  /contributions:
+  /payroll:
     get:
-      operationId: getContributions
-      tags: [contributions]
-      summary: List all contributions
+      operationId: listPayrollDeductions
+      tags: [payroll]
+      summary: List payroll deductions
+      parameters:
+        - name: organizationId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, processed, failed]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of payroll deductions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedPayroll"
+    post:
+      operationId: createPayrollDeduction
+      tags: [payroll]
+      summary: Create payroll deduction record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePayrollBody"
+      responses:
+        "201":
+          description: Created payroll deduction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayrollDeduction"
+
+  /wallets:
+    get:
+      operationId: listWallets
+      tags: [wallet]
+      summary: List member wallets
       parameters:
         - name: memberId
           in: query
           schema:
             type: integer
-        - name: month
-          in: query
-          schema:
-            type: string
         - name: page
           in: query
           schema:
@@ -349,49 +615,72 @@ paths:
             default: 20
       responses:
         "200":
-          description: Contributions list
+          description: List of wallets
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ContributionsListResponse"
+                $ref: "#/components/schemas/PaginatedWallets"
+
+  /wallets/{id}/transactions:
+    get:
+      operationId: getWalletTransactions
+      tags: [wallet]
+      summary: Get wallet transaction history
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Wallet transactions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedTransactions"
+
+  /wallets/fund:
     post:
-      operationId: createContribution
-      tags: [contributions]
-      summary: Record a contribution
+      operationId: fundWallet
+      tags: [wallet]
+      summary: Fund a member wallet
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateContributionBody"
-      responses:
-        "201":
-          description: Created contribution
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Contribution"
-
-  /contributions/summary:
-    get:
-      operationId: getContributionSummary
-      tags: [contributions]
-      summary: Contributions aggregate summary
+              $ref: "#/components/schemas/WalletFundBody"
       responses:
         "200":
-          description: Contribution summary
+          description: Funded wallet
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ContributionSummary"
+                $ref: "#/components/schemas/Wallet"
 
-  /investments:
+  /risk-scores:
     get:
-      operationId: getInvestments
-      tags: [investments]
-      summary: List all investments
+      operationId: listRiskScores
+      tags: [risk]
+      summary: List member risk scores
       parameters:
-        - name: status
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high]
+        - name: search
           in: query
           schema:
             type: string
@@ -407,94 +696,42 @@ paths:
             default: 20
       responses:
         "200":
-          description: Investments list
+          description: List of risk scores
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/InvestmentsListResponse"
+                $ref: "#/components/schemas/PaginatedRiskScores"
+
+  /risk-scores/{memberId}/recalculate:
     post:
-      operationId: createInvestment
-      tags: [investments]
-      summary: Create an investment
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateInvestmentBody"
-      responses:
-        "201":
-          description: Created investment
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Investment"
-
-  /investments/portfolio:
-    get:
-      operationId: getInvestmentPortfolio
-      tags: [investments]
-      summary: Investment portfolio overview
-      responses:
-        "200":
-          description: Investment portfolio
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/InvestmentPortfolio"
-
-  /compliance:
-    get:
-      operationId: getComplianceItems
-      tags: [compliance]
-      summary: List compliance items
+      operationId: recalculateRiskScore
+      tags: [risk]
+      summary: Recalculate risk score for a member
       parameters:
-        - name: status
-          in: query
-          schema:
-            type: string
-            enum: [pending, approved, flagged, rejected]
-        - name: page
-          in: query
+        - name: memberId
+          in: path
+          required: true
           schema:
             type: integer
-            default: 1
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 20
       responses:
         "200":
-          description: Compliance items
+          description: Updated risk score
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ComplianceListResponse"
-
-  /compliance/summary:
-    get:
-      operationId: getComplianceSummary
-      tags: [compliance]
-      summary: Compliance summary stats
-      responses:
-        "200":
-          description: Compliance summary
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ComplianceSummary"
+                $ref: "#/components/schemas/RiskScore"
 
   /notifications:
     get:
-      operationId: getNotifications
+      operationId: listNotifications
       tags: [notifications]
       summary: List notifications
       parameters:
-        - name: unreadOnly
+        - name: type
           in: query
           schema:
-            type: boolean
+            type: string
+            enum: [sms, email, in_app]
         - name: page
           in: query
           schema:
@@ -507,43 +744,103 @@ paths:
             default: 20
       responses:
         "200":
-          description: Notifications list
+          description: List of notifications
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/NotificationsListResponse"
+                $ref: "#/components/schemas/PaginatedNotifications"
     post:
-      operationId: createNotification
+      operationId: sendNotification
       tags: [notifications]
-      summary: Send notification
+      summary: Send a notification
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateNotificationBody"
+              $ref: "#/components/schemas/SendNotificationBody"
       responses:
         "201":
-          description: Created notification
+          description: Notification sent
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Notification"
 
+  /reports/savings:
+    get:
+      operationId: getSavingsReport
+      tags: [reports]
+      summary: Get savings report data
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+        - name: organizationId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Savings report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavingsReport"
+
+  /reports/loans:
+    get:
+      operationId: getLoansReport
+      tags: [reports]
+      summary: Get loans report data
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+        - name: organizationId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Loans report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoansReport"
+
   /audit-logs:
     get:
-      operationId: getAuditLogs
-      tags: [auditLogs]
+      operationId: listAuditLogs
+      tags: [audit]
       summary: List audit logs
       parameters:
+        - name: userId
+          in: query
+          schema:
+            type: integer
         - name: action
           in: query
           schema:
             type: string
-        - name: adminId
+        - name: startDate
           in: query
           schema:
-            type: integer
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
         - name: page
           in: query
           schema:
@@ -560,11 +857,43 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AuditLogsListResponse"
+                $ref: "#/components/schemas/PaginatedAuditLogs"
 
-  /support/tickets:
+  /roles:
     get:
-      operationId: getSupportTickets
+      operationId: listRoles
+      tags: [roles]
+      summary: List admin roles
+      responses:
+        "200":
+          description: List of roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Role"
+    post:
+      operationId: createRole
+      tags: [roles]
+      summary: Create a new role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRoleBody"
+      responses:
+        "201":
+          description: Created role
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+
+  /support-tickets:
+    get:
+      operationId: listSupportTickets
       tags: [support]
       summary: List support tickets
       parameters:
@@ -573,11 +902,6 @@ paths:
           schema:
             type: string
             enum: [open, in_progress, resolved, closed]
-        - name: priority
-          in: query
-          schema:
-            type: string
-            enum: [low, medium, high, urgent]
         - name: page
           in: query
           schema:
@@ -594,13 +918,30 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SupportTicketsListResponse"
-
-  /support/tickets/{id}:
-    get:
-      operationId: getSupportTicket
+                $ref: "#/components/schemas/PaginatedSupportTickets"
+    post:
+      operationId: createSupportTicket
       tags: [support]
-      summary: Get support ticket by ID
+      summary: Create a support ticket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSupportTicketBody"
+      responses:
+        "201":
+          description: Created ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportTicket"
+
+  /support-tickets/{id}/messages:
+    get:
+      operationId: getSupportTicketMessages
+      tags: [support]
+      summary: Get messages for a support ticket
       parameters:
         - name: id
           in: path
@@ -609,72 +950,70 @@ paths:
             type: integer
       responses:
         "200":
-          description: Support ticket
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SupportTicket"
-
-  /risk-scoring:
-    get:
-      operationId: getRiskScores
-      tags: [riskScoring]
-      summary: List member risk scores
-      parameters:
-        - name: riskLevel
-          in: query
-          schema:
-            type: string
-            enum: [low, medium, high, critical]
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 20
-      responses:
-        "200":
-          description: Risk scores
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RiskScoresListResponse"
-
-  /interest-rates:
-    get:
-      operationId: getInterestRates
-      tags: [interestRates]
-      summary: List interest rate configurations
-      responses:
-        "200":
-          description: Interest rates
+          description: Ticket messages
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/InterestRate"
+                  $ref: "#/components/schemas/TicketMessage"
     post:
-      operationId: createInterestRate
-      tags: [interestRates]
-      summary: Create interest rate config
+      operationId: sendTicketMessage
+      tags: [support]
+      summary: Send a message on a support ticket
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateInterestRateBody"
+              type: object
+              properties:
+                message:
+                  type: string
+              required: [message]
       responses:
         "201":
-          description: Created interest rate
+          description: Message sent
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/InterestRate"
+                $ref: "#/components/schemas/TicketMessage"
+
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [dashboard]
+      summary: Get system settings
+      responses:
+        "200":
+          description: System settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemSettings"
+    put:
+      operationId: updateSettings
+      tags: [dashboard]
+      summary: Update system settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSettingsBody"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemSettings"
 
 components:
   schemas:
@@ -688,31 +1027,66 @@ components:
     DashboardSummary:
       type: object
       properties:
+        totalOrganizations:
+          type: integer
         totalMembers:
           type: integer
         activeLoans:
           type: integer
-        totalContributions:
+        totalSavings:
           type: number
-        loansDisbursed:
+        loanRepaymentsToday:
+          type: number
+        pendingApprovals:
+          type: integer
+        overdueLoans:
+          type: integer
+        walletBalances:
+          type: number
+        memberGrowthPercent:
+          type: number
+        savingsGrowthPercent:
+          type: number
+        loanDisbursedThisMonth:
           type: number
         repaymentRate:
           type: number
-        pendingCompliance:
-          type: integer
-        openSupportTickets:
-          type: integer
-        totalInvestments:
-          type: number
-        membersGrowth:
-          type: number
-        loansGrowth:
-          type: number
-        contributionsGrowth:
-          type: number
-      required: [totalMembers, activeLoans, totalContributions, loansDisbursed, repaymentRate, pendingCompliance, openSupportTickets, totalInvestments, membersGrowth, loansGrowth, contributionsGrowth]
+      required:
+        - totalOrganizations
+        - totalMembers
+        - activeLoans
+        - totalSavings
+        - loanRepaymentsToday
+        - pendingApprovals
+        - overdueLoans
+        - walletBalances
+        - memberGrowthPercent
+        - savingsGrowthPercent
+        - loanDisbursedThisMonth
+        - repaymentRate
 
-    MonthlyData:
+    DashboardCharts:
+      type: object
+      properties:
+        monthlySavings:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChartDataPoint"
+        loanDisbursement:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChartDataPoint"
+        repaymentPerformance:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChartDataPoint"
+        memberGrowth:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChartDataPoint"
+      required: [monthlySavings, loanDisbursement, repaymentPerformance, memberGrowth]
+
+    ChartDataPoint:
       type: object
       properties:
         month:
@@ -723,19 +1097,6 @@ components:
           type: string
       required: [month, value]
 
-    StatusBreakdown:
-      type: object
-      properties:
-        status:
-          type: string
-        count:
-          type: integer
-        amount:
-          type: number
-        percentage:
-          type: number
-      required: [status, count, amount, percentage]
-
     ActivityItem:
       type: object
       properties:
@@ -745,54 +1106,199 @@ components:
           type: string
         description:
           type: string
+        amount:
+          type: number
         memberName:
           type: string
-        amount:
+        createdAt:
+          type: string
+      required: [id, type, description, createdAt]
+
+    Organization:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+        address:
+          type: string
+        contactPerson:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        payrollOfficer:
+          type: string
+        employeeCount:
+          type: integer
+        status:
+          type: string
+          enum: [active, suspended, pending]
+        totalMembers:
+          type: integer
+        totalSavings:
+          type: number
+        activeLoans:
+          type: integer
+        monthlyDeductions:
           type: number
         createdAt:
           type: string
-          format: date-time
-      required: [id, type, description, createdAt]
+        updatedAt:
+          type: string
+      required:
+        - id
+        - name
+        - type
+        - contactPerson
+        - email
+        - phone
+        - status
+        - createdAt
+
+    CreateOrganizationBody:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        address:
+          type: string
+        contactPerson:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        payrollOfficer:
+          type: string
+        employeeCount:
+          type: integer
+      required: [name, type, contactPerson, email, phone]
+
+    UpdateOrganizationBody:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        address:
+          type: string
+        contactPerson:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        payrollOfficer:
+          type: string
+        employeeCount:
+          type: integer
+
+    PaginatedOrganizations:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Organization"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required: [data, total, page, limit]
 
     Member:
       type: object
       properties:
         id:
           type: integer
-        memberId:
+        fullName:
           type: string
-        firstName:
-          type: string
-        lastName:
+        employeeId:
           type: string
         email:
           type: string
         phone:
           type: string
-        status:
+        organizationId:
+          type: integer
+        organizationName:
           type: string
-          enum: [active, inactive, suspended, pending]
-        joinDate:
+        salaryRange:
           type: string
-          format: date
-        totalContributions:
+        contributionPlan:
+          type: string
+        savingsBalance:
           type: number
-        activeLoan:
+        walletBalance:
           type: number
         riskScore:
-          type: integer
-        address:
+          type: number
+        riskCategory:
           type: string
-        occupation:
+          enum: [low, medium, high]
+        status:
           type: string
-        avatarInitials:
+          enum: [active, pending, suspended, approved]
+        kycStatus:
           type: string
+          enum: [verified, pending, rejected]
         createdAt:
           type: string
-          format: date-time
-      required: [id, memberId, firstName, lastName, email, phone, status, joinDate, totalContributions, activeLoan, riskScore, createdAt]
+        updatedAt:
+          type: string
+      required:
+        - id
+        - fullName
+        - employeeId
+        - email
+        - organizationId
+        - status
+        - createdAt
 
-    MembersListResponse:
+    CreateMemberBody:
+      type: object
+      properties:
+        fullName:
+          type: string
+        employeeId:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        organizationId:
+          type: integer
+        salaryRange:
+          type: string
+        contributionPlan:
+          type: string
+      required: [fullName, employeeId, email, organizationId]
+
+    UpdateMemberBody:
+      type: object
+      properties:
+        fullName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        salaryRange:
+          type: string
+        contributionPlan:
+          type: string
+
+    PaginatedMembers:
       type: object
       properties:
         data:
@@ -807,102 +1313,137 @@ components:
           type: integer
       required: [data, total, page, limit]
 
-    CreateMemberBody:
+    SavingsContribution:
       type: object
       properties:
-        firstName:
+        id:
+          type: integer
+        memberId:
+          type: integer
+        memberName:
           type: string
-        lastName:
+        organizationId:
+          type: integer
+        amount:
+          type: number
+        date:
           type: string
-        email:
-          type: string
-        phone:
-          type: string
-        address:
-          type: string
-        occupation:
-          type: string
-      required: [firstName, lastName, email, phone]
-
-    UpdateMemberBody:
-      type: object
-      properties:
-        firstName:
-          type: string
-        lastName:
-          type: string
-        email:
-          type: string
-        phone:
+        paymentMethod:
           type: string
         status:
           type: string
-          enum: [active, inactive, suspended, pending]
-        address:
+          enum: [pending, approved, rejected]
+        note:
           type: string
-        occupation:
+        createdAt:
           type: string
+      required: [id, memberId, memberName, amount, date, paymentMethod, status, createdAt]
 
-    MemberStats:
+    CreateSavingsBody:
       type: object
       properties:
+        memberId:
+          type: integer
+        amount:
+          type: number
+        date:
+          type: string
+        paymentMethod:
+          type: string
+        note:
+          type: string
+      required: [memberId, amount, date, paymentMethod]
+
+    PaginatedSavings:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SavingsContribution"
         total:
           type: integer
-        active:
+        page:
           type: integer
-        inactive:
+        limit:
           type: integer
-        suspended:
+      required: [data, total, page, limit]
+
+    SavingsSummary:
+      type: object
+      properties:
+        totalSavings:
+          type: number
+        monthlyTotal:
+          type: number
+        pendingContributions:
           type: integer
-        pending:
+        approvedContributions:
           type: integer
-        newThisMonth:
-          type: integer
-      required: [total, active, inactive, suspended, pending, newThisMonth]
+        averageContribution:
+          type: number
+      required: [totalSavings, monthlyTotal, pendingContributions, approvedContributions, averageContribution]
 
     Loan:
       type: object
       properties:
         id:
           type: integer
-        loanId:
-          type: string
         memberId:
           type: integer
         memberName:
           type: string
-        amount:
-          type: number
-        balance:
+        organizationId:
+          type: integer
+        loanAmount:
           type: number
         interestRate:
           type: number
-        tenure:
-          type: integer
-        status:
+        repaymentPlan:
           type: string
-          enum: [pending, active, defaulted, repaid, rejected]
-        purpose:
+        monthlyDeduction:
+          type: number
+        outstandingBalance:
+          type: number
+        disbursedAt:
           type: string
-        disbursedDate:
-          type: string
-          format: date
         dueDate:
           type: string
-          format: date
-        monthlyPayment:
-          type: number
-        nextPaymentDate:
+        status:
           type: string
-          format: date
+          enum: [pending, approved, active, completed, defaulted, rejected]
+        note:
+          type: string
         createdAt:
           type: string
-          format: date-time
-        rejectionReason:
+        updatedAt:
           type: string
-      required: [id, loanId, memberId, memberName, amount, balance, interestRate, tenure, status, purpose, createdAt]
+      required:
+        - id
+        - memberId
+        - memberName
+        - loanAmount
+        - interestRate
+        - repaymentPlan
+        - status
+        - createdAt
 
-    LoansListResponse:
+    CreateLoanBody:
+      type: object
+      properties:
+        memberId:
+          type: integer
+        loanAmount:
+          type: number
+        interestRate:
+          type: number
+        repaymentPlan:
+          type: string
+        note:
+          type: string
+      required: [memberId, loanAmount, interestRate, repaymentPlan]
+
+    PaginatedLoans:
       type: object
       properties:
         data:
@@ -917,50 +1458,33 @@ components:
           type: integer
       required: [data, total, page, limit]
 
-    CreateLoanBody:
+    LoanSummary:
       type: object
       properties:
-        memberId:
+        totalActive:
           type: integer
-        amount:
-          type: number
-        tenure:
-          type: integer
-        purpose:
-          type: string
-        interestRate:
-          type: number
-      required: [memberId, amount, tenure, purpose]
-
-    RejectLoanBody:
-      type: object
-      properties:
-        reason:
-          type: string
-      required: [reason]
-
-    LoanPortfolioSummary:
-      type: object
-      properties:
         totalDisbursed:
           type: number
-        outstanding:
+        totalOutstanding:
           type: number
-        collected:
-          type: number
-        defaulted:
+        pendingApprovals:
+          type: integer
+        overdueLoans:
+          type: integer
+        defaultRate:
           type: number
         repaymentRate:
           type: number
-        activeCount:
-          type: integer
-        defaultedCount:
-          type: integer
-        pendingCount:
-          type: integer
-      required: [totalDisbursed, outstanding, collected, defaulted, repaymentRate, activeCount, defaultedCount, pendingCount]
+      required:
+        - totalActive
+        - totalDisbursed
+        - totalOutstanding
+        - pendingApprovals
+        - overdueLoans
+        - defaultRate
+        - repaymentRate
 
-    Contribution:
+    PayrollDeduction:
       type: object
       properties:
         id:
@@ -969,109 +1493,43 @@ components:
           type: integer
         memberName:
           type: string
-        amount:
+        organizationId:
+          type: integer
+        organizationName:
+          type: string
+        deductionAmount:
           type: number
         month:
           type: string
-        paymentMethod:
-          type: string
         status:
           type: string
-          enum: [paid, pending, overdue]
-        transactionRef:
+          enum: [pending, processed, failed]
+        processedAt:
           type: string
         createdAt:
           type: string
-          format: date-time
-      required: [id, memberId, memberName, amount, month, paymentMethod, status, createdAt]
+      required: [id, memberId, memberName, organizationId, organizationName, deductionAmount, month, status, createdAt]
 
-    ContributionsListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/Contribution"
-        total:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-      required: [data, total, page, limit]
-
-    CreateContributionBody:
+    CreatePayrollBody:
       type: object
       properties:
         memberId:
           type: integer
-        amount:
+        organizationId:
+          type: integer
+        deductionAmount:
           type: number
         month:
           type: string
-        paymentMethod:
-          type: string
-      required: [memberId, amount, month, paymentMethod]
+      required: [memberId, organizationId, deductionAmount, month]
 
-    ContributionSummary:
-      type: object
-      properties:
-        totalCollected:
-          type: number
-        pendingAmount:
-          type: number
-        overdueAmount:
-          type: number
-        thisMonth:
-          type: number
-        collectionRate:
-          type: number
-        totalMembers:
-          type: integer
-        paidThisMonth:
-          type: integer
-      required: [totalCollected, pendingAmount, overdueAmount, thisMonth, collectionRate, totalMembers, paidThisMonth]
-
-    Investment:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        type:
-          type: string
-        amount:
-          type: number
-        currentValue:
-          type: number
-        returns:
-          type: number
-        returnPercentage:
-          type: number
-        status:
-          type: string
-          enum: [active, matured, liquidated, pending]
-        startDate:
-          type: string
-          format: date
-        maturityDate:
-          type: string
-          format: date
-        description:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-      required: [id, name, type, amount, currentValue, returns, returnPercentage, status, startDate, createdAt]
-
-    InvestmentsListResponse:
+    PaginatedPayroll:
       type: object
       properties:
         data:
           type: array
           items:
-            $ref: "#/components/schemas/Investment"
+            $ref: "#/components/schemas/PayrollDeduction"
         total:
           type: integer
         page:
@@ -1080,47 +1538,7 @@ components:
           type: integer
       required: [data, total, page, limit]
 
-    CreateInvestmentBody:
-      type: object
-      properties:
-        name:
-          type: string
-        type:
-          type: string
-        amount:
-          type: number
-        startDate:
-          type: string
-          format: date
-        maturityDate:
-          type: string
-          format: date
-        description:
-          type: string
-      required: [name, type, amount, startDate]
-
-    InvestmentPortfolio:
-      type: object
-      properties:
-        totalInvested:
-          type: number
-        currentValue:
-          type: number
-        totalReturns:
-          type: number
-        returnPercentage:
-          type: number
-        activeCount:
-          type: integer
-        maturedCount:
-          type: integer
-        breakdown:
-          type: array
-          items:
-            $ref: "#/components/schemas/StatusBreakdown"
-      required: [totalInvested, currentValue, totalReturns, returnPercentage, activeCount, maturedCount, breakdown]
-
-    ComplianceItem:
+    Wallet:
       type: object
       properties:
         id:
@@ -1129,194 +1547,24 @@ components:
           type: integer
         memberName:
           type: string
-        type:
-          type: string
-        status:
-          type: string
-          enum: [pending, approved, flagged, rejected]
-        description:
-          type: string
-        submittedAt:
-          type: string
-          format: date-time
-        reviewedAt:
-          type: string
-          format: date-time
-        reviewedBy:
-          type: string
-        notes:
-          type: string
-        riskLevel:
-          type: string
-          enum: [low, medium, high]
-      required: [id, memberId, memberName, type, status, description, submittedAt]
-
-    ComplianceListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/ComplianceItem"
-        total:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-      required: [data, total, page, limit]
-
-    ComplianceSummary:
-      type: object
-      properties:
-        pending:
-          type: integer
-        approved:
-          type: integer
-        flagged:
-          type: integer
-        rejected:
-          type: integer
-        totalThisMonth:
-          type: integer
-        approvalRate:
+        balance:
           type: number
-      required: [pending, approved, flagged, rejected, totalThisMonth, approvalRate]
-
-    Notification:
-      type: object
-      properties:
-        id:
-          type: integer
-        title:
-          type: string
-        message:
-          type: string
-        type:
-          type: string
-          enum: [info, warning, success, error, alert]
-        isRead:
-          type: boolean
-        targetAudience:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-      required: [id, title, message, type, isRead, createdAt]
-
-    NotificationsListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/Notification"
-        total:
-          type: integer
-        unreadCount:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-      required: [data, total, unreadCount, page, limit]
-
-    CreateNotificationBody:
-      type: object
-      properties:
-        title:
-          type: string
-        message:
-          type: string
-        type:
-          type: string
-          enum: [info, warning, success, error, alert]
-        targetAudience:
-          type: string
-      required: [title, message, type]
-
-    AuditLog:
-      type: object
-      properties:
-        id:
-          type: integer
-        adminId:
-          type: integer
-        adminName:
-          type: string
-        action:
-          type: string
-        resource:
-          type: string
-        resourceId:
-          type: string
-        details:
-          type: string
-        ipAddress:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-      required: [id, adminId, adminName, action, resource, createdAt]
-
-    AuditLogsListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/AuditLog"
-        total:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-      required: [data, total, page, limit]
-
-    SupportTicket:
-      type: object
-      properties:
-        id:
-          type: integer
-        ticketId:
-          type: string
-        memberId:
-          type: integer
-        memberName:
-          type: string
-        subject:
-          type: string
-        description:
-          type: string
         status:
           type: string
-          enum: [open, in_progress, resolved, closed]
-        priority:
-          type: string
-          enum: [low, medium, high, urgent]
-        category:
-          type: string
-        assignedTo:
-          type: string
+          enum: [active, frozen, closed]
         createdAt:
           type: string
-          format: date-time
         updatedAt:
           type: string
-          format: date-time
-        resolvedAt:
-          type: string
-          format: date-time
-      required: [id, ticketId, memberId, memberName, subject, status, priority, createdAt]
+      required: [id, memberId, memberName, balance, status, createdAt]
 
-    SupportTicketsListResponse:
+    PaginatedWallets:
       type: object
       properties:
         data:
           type: array
           items:
-            $ref: "#/components/schemas/SupportTicket"
+            $ref: "#/components/schemas/Wallet"
         total:
           type: integer
         page:
@@ -1324,6 +1572,52 @@ components:
         limit:
           type: integer
       required: [data, total, page, limit]
+
+    WalletTransaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        walletId:
+          type: integer
+        type:
+          type: string
+          enum: [credit, debit]
+        amount:
+          type: number
+        description:
+          type: string
+        reference:
+          type: string
+        createdAt:
+          type: string
+      required: [id, walletId, type, amount, description, createdAt]
+
+    PaginatedTransactions:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/WalletTransaction"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required: [data, total, page, limit]
+
+    WalletFundBody:
+      type: object
+      properties:
+        memberId:
+          type: integer
+        amount:
+          type: number
+        description:
+          type: string
+      required: [memberId, amount, description]
 
     RiskScore:
       type: object
@@ -1334,27 +1628,26 @@ components:
           type: integer
         memberName:
           type: string
+        organizationName:
+          type: string
         score:
-          type: integer
-        riskLevel:
-          type: string
-          enum: [low, medium, high, critical]
-        factors:
-          type: array
-          items:
-            type: string
-        lastUpdated:
-          type: string
-          format: date-time
-        loanHistory:
-          type: integer
-        paymentConsistency:
           type: number
-        creditUtilization:
+        category:
+          type: string
+          enum: [low, medium, high]
+        loanHistoryScore:
           type: number
-      required: [id, memberId, memberName, score, riskLevel, lastUpdated]
+        repaymentScore:
+          type: number
+        salaryStabilityScore:
+          type: number
+        contributionScore:
+          type: number
+        calculatedAt:
+          type: string
+      required: [id, memberId, memberName, score, category, calculatedAt]
 
-    RiskScoresListResponse:
+    PaginatedRiskScores:
       type: object
       properties:
         data:
@@ -1369,43 +1662,312 @@ components:
           type: integer
       required: [data, total, page, limit]
 
-    InterestRate:
+    Notification:
       type: object
       properties:
         id:
           type: integer
-        loanType:
+        type:
           type: string
-        minAmount:
-          type: number
-        maxAmount:
-          type: number
-        rate:
-          type: number
-        tenure:
+          enum: [sms, email, in_app]
+        recipientId:
           type: integer
-        description:
+        recipientName:
           type: string
-        isActive:
-          type: boolean
+        subject:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+          enum: [sent, failed, pending]
+        sentAt:
+          type: string
         createdAt:
           type: string
-          format: date-time
-      required: [id, loanType, minAmount, maxAmount, rate, tenure, isActive, createdAt]
+      required: [id, type, recipientId, subject, message, status, createdAt]
 
-    CreateInterestRateBody:
+    SendNotificationBody:
       type: object
       properties:
-        loanType:
+        type:
           type: string
-        minAmount:
-          type: number
-        maxAmount:
-          type: number
-        rate:
-          type: number
-        tenure:
+          enum: [sms, email, in_app]
+        recipientIds:
+          type: array
+          items:
+            type: integer
+        subject:
+          type: string
+        message:
+          type: string
+      required: [type, recipientIds, subject, message]
+
+    PaginatedNotifications:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+        total:
           type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required: [data, total, page, limit]
+
+    SavingsReport:
+      type: object
+      properties:
+        period:
+          type: string
+        totalContributions:
+          type: number
+        totalMembers:
+          type: integer
+        monthlyBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChartDataPoint"
+        organizationBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              amount:
+                type: number
+            required: [name, amount]
+      required: [period, totalContributions, totalMembers, monthlyBreakdown, organizationBreakdown]
+
+    LoansReport:
+      type: object
+      properties:
+        period:
+          type: string
+        totalDisbursed:
+          type: number
+        totalRepaid:
+          type: number
+        defaultRate:
+          type: number
+        monthlyBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChartDataPoint"
+        statusBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              count:
+                type: integer
+              amount:
+                type: number
+            required: [status, count, amount]
+      required: [period, totalDisbursed, totalRepaid, defaultRate, monthlyBreakdown, statusBreakdown]
+
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        userName:
+          type: string
+        action:
+          type: string
+        resource:
+          type: string
+        resourceId:
+          type: integer
+        ipAddress:
+          type: string
+        details:
+          type: string
+        createdAt:
+          type: string
+      required: [id, userId, userName, action, resource, ipAddress, createdAt]
+
+    PaginatedAuditLogs:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLog"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required: [data, total, page, limit]
+
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
         description:
           type: string
-      required: [loanType, minAmount, maxAmount, rate, tenure]
+        permissions:
+          type: array
+          items:
+            type: string
+        userCount:
+          type: integer
+        createdAt:
+          type: string
+      required: [id, name, permissions, createdAt]
+
+    CreateRoleBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+      required: [name, permissions]
+
+    SupportTicket:
+      type: object
+      properties:
+        id:
+          type: integer
+        memberId:
+          type: integer
+        memberName:
+          type: string
+        subject:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [open, in_progress, resolved, closed]
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        assignedTo:
+          type: string
+        messageCount:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, memberId, memberName, subject, status, priority, createdAt]
+
+    CreateSupportTicketBody:
+      type: object
+      properties:
+        memberId:
+          type: integer
+        subject:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+      required: [memberId, subject, description, priority]
+
+    PaginatedSupportTickets:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SupportTicket"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required: [data, total, page, limit]
+
+    TicketMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        ticketId:
+          type: integer
+        senderName:
+          type: string
+        senderRole:
+          type: string
+          enum: [admin, member]
+        message:
+          type: string
+        createdAt:
+          type: string
+      required: [id, ticketId, senderName, senderRole, message, createdAt]
+
+    SystemSettings:
+      type: object
+      properties:
+        defaultInterestRate:
+          type: number
+        maxLoanLimit:
+          type: number
+        minContribution:
+          type: number
+        maxContribution:
+          type: number
+        loanToSavingsRatio:
+          type: number
+        sessionTimeoutMinutes:
+          type: integer
+        mfaEnabled:
+          type: boolean
+        emailNotificationsEnabled:
+          type: boolean
+        smsNotificationsEnabled:
+          type: boolean
+      required:
+        - defaultInterestRate
+        - maxLoanLimit
+        - minContribution
+        - maxContribution
+        - loanToSavingsRatio
+        - sessionTimeoutMinutes
+        - mfaEnabled
+        - emailNotificationsEnabled
+        - smsNotificationsEnabled
+
+    UpdateSettingsBody:
+      type: object
+      properties:
+        defaultInterestRate:
+          type: number
+        maxLoanLimit:
+          type: number
+        minContribution:
+          type: number
+        maxContribution:
+          type: number
+        loanToSavingsRatio:
+          type: number
+        sessionTimeoutMinutes:
+          type: integer
+        mfaEnabled:
+          type: boolean
+        emailNotificationsEnabled:
+          type: boolean
+        smsNotificationsEnabled:
+          type: boolean

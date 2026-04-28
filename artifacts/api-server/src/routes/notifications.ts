@@ -1,71 +1,91 @@
+/**
+ * Thin proxy over the mobile backend's /api/v2/admin/notifications endpoints.
+ */
+
 import { Router, type IRouter } from "express";
-import { eq, sql, count } from "drizzle-orm";
-import { db } from "@workspace/db";
-import { notificationsTable } from "@workspace/db";
+import { getMobileApiClient } from "../lib/mobile-api-client";
+import { handleMobileError } from "../lib/mobile-error";
 
 const router: IRouter = Router();
 
+interface MobileNotification {
+  id: string;
+  profile_id: string;
+  profile?: { id: string; name?: string | null; email?: string | null } | null;
+  title?: string | null;
+  body?: string | null;
+  type?: string | null;
+  read?: boolean;
+  archived?: boolean;
+  created_at?: string;
+}
+
+function shapeNotification(n: MobileNotification): Record<string, unknown> {
+  return {
+    id: n.id,
+    recipientId: n.profile_id,
+    recipientName: n.profile?.name ?? "Unknown",
+    subject: n.title ?? "",
+    message: n.body ?? "",
+    type: n.type ?? "announcement",
+    status: n.read ? "read" : "sent",
+    sentAt: n.created_at ?? null,
+    raw: n,
+  };
+}
+
 router.get("/notifications", async (req, res): Promise<void> => {
-  const page = Math.max(1, Number(req.query.page) || 1);
-  const limit = Math.min(100, Number(req.query.limit) || 20);
-  const offset = (page - 1) * limit;
-  const unreadOnly = req.query.unreadOnly === "true";
-
-  let whereClause = sql`1=1`;
-  if (unreadOnly) whereClause = sql`${notificationsTable.isRead} = false`;
-
-  const [totalResult] = await db.select({ count: count() }).from(notificationsTable).where(whereClause);
-  const [unreadCount] = await db.select({ count: count() }).from(notificationsTable).where(eq(notificationsTable.isRead, false));
-
-  const notifications = await db
-    .select()
-    .from(notificationsTable)
-    .where(whereClause)
-    .orderBy(sql`${notificationsTable.createdAt} DESC`)
-    .limit(limit)
-    .offset(offset);
-
-  res.json({
-    data: notifications,
-    total: Number(totalResult.count),
-    unreadCount: Number(unreadCount.count),
-    page,
-    limit,
-  });
+  try {
+    const client = getMobileApiClient();
+    const { page = "1", limit = "20" } = req.query as Record<string, string>;
+    const response = await client.get<{
+      success: boolean;
+      notifications: MobileNotification[];
+      pagination: { page: number; limit: number; total: number };
+    }>("/api/v2/admin/notifications", { page, limit });
+    res.json({
+      data: (response.notifications ?? []).map(shapeNotification),
+      total: response.pagination?.total ?? 0,
+      page: response.pagination?.page ?? Number(page),
+      limit: response.pagination?.limit ?? Number(limit),
+    });
+  } catch (err) {
+    handleMobileError(err, res);
+  }
 });
 
 router.post("/notifications", async (req, res): Promise<void> => {
-  const { title, message, type, targetAudience } = req.body;
-  if (!title || !message || !type) {
-    res.status(400).json({ error: "title, message, type are required" });
-    return;
+  try {
+    const client = getMobileApiClient();
+    const body = req.body as {
+      type?: string;
+      subject?: string;
+      message?: string;
+      recipientIds?: string[];
+    };
+    if (!body.subject || !body.message) {
+      res.status(400).json({ error: "subject and message are required" });
+      return;
+    }
+    const response = await client.post<{ success: boolean; sent: number }>(
+      "/api/v2/admin/notifications/broadcast",
+      {
+        title: body.subject,
+        message: body.message,
+        type: body.type ?? "announcement",
+        profileIds: body.recipientIds,
+      },
+    );
+    res.status(201).json({
+      status: "sent",
+      sent: response.sent,
+      subject: body.subject,
+      message: body.message,
+      type: body.type ?? "announcement",
+    });
+  } catch (err) {
+    handleMobileError(err, res);
   }
-
-  const [notification] = await db.insert(notificationsTable).values({
-    title,
-    message,
-    type,
-    isRead: false,
-    targetAudience,
-  }).returning();
-
-  res.status(201).json(notification);
-});
-
-router.post("/notifications/read-all", async (req, res): Promise<void> => {
-  await db.update(notificationsTable).set({ isRead: true }).where(eq(notificationsTable.isRead, false));
-  res.json({ success: true });
-});
-
-router.post("/notifications/:id/read", async (req, res): Promise<void> => {
-  const id = Number(req.params.id);
-  const [updated] = await db
-    .update(notificationsTable)
-    .set({ isRead: true })
-    .where(eq(notificationsTable.id, id))
-    .returning();
-  if (!updated) { res.status(404).json({ error: "Not found" }); return; }
-  res.json(updated);
 });
 
 export default router;

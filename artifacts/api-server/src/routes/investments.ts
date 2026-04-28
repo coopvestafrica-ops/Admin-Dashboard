@@ -1,108 +1,188 @@
+/**
+ * Thin proxy over the mobile backend's /api/v2/admin/investments endpoints.
+ *
+ * Investment pools live in the mobile Supabase database; the admin web site
+ * is the only authority that can create, edit, and cancel them.
+ */
+
 import { Router, type IRouter } from "express";
-import { eq, sql, count, sum } from "drizzle-orm";
-import { db } from "@workspace/db";
-import { investmentsTable } from "@workspace/db";
+import { getMobileApiClient } from "../lib/mobile-api-client";
+import { handleMobileError } from "../lib/mobile-error";
+import { requireAuth } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
-router.get("/investments/portfolio", async (req, res): Promise<void> => {
-  const [totalInvested] = await db.select({ total: sum(investmentsTable.amount) }).from(investmentsTable);
-  const [currentValue] = await db.select({ total: sum(investmentsTable.currentValue) }).from(investmentsTable);
-  const [totalReturns] = await db.select({ total: sum(investmentsTable.returns) }).from(investmentsTable);
-  const [activeCount] = await db.select({ count: count() }).from(investmentsTable).where(eq(investmentsTable.status, "active"));
-  const [maturedCount] = await db.select({ count: count() }).from(investmentsTable).where(eq(investmentsTable.status, "matured"));
+interface MobilePool {
+  id: string;
+  pool_id?: string | null;
+  name: string;
+  description?: string | null;
+  category?: string | null;
+  target_amount: string | number;
+  raised_amount?: string | number | null;
+  expected_return_percent?: string | number | null;
+  duration_months?: number | null;
+  risk_level?: string | null;
+  status?: string | null;
+  opens_at?: string | null;
+  closes_at?: string | null;
+  metadata?: Record<string, unknown> | null;
+  created_at?: string;
+  updated_at?: string;
+}
 
-  const invested = Number(totalInvested.total || 0);
-  const current = Number(currentValue.total || 0);
-  const returns = Number(totalReturns.total || 0);
-  const returnPct = invested > 0 ? (returns / invested) * 100 : 0;
+interface MobileParticipation {
+  id: string;
+  pool_id: string;
+  profile_id: string;
+  amount: string | number;
+  expected_return?: string | number | null;
+  actual_return?: string | number | null;
+  status?: string | null;
+  joined_at?: string;
+  matured_at?: string | null;
+  profile?: { id: string; user_id?: string | null; name?: string | null; email?: string | null } | null;
+}
 
-  const breakdown = await db
-    .select({
-      status: investmentsTable.status,
-      count: count(),
-      amount: sum(investmentsTable.currentValue),
-    })
-    .from(investmentsTable)
-    .groupBy(investmentsTable.status);
+interface MobilePoolListResponse {
+  success: boolean;
+  pools: MobilePool[];
+  pagination: { page: number; limit: number; total: number };
+}
 
-  const total = breakdown.reduce((s, b) => s + Number(b.count), 0);
+interface MobilePoolDetailResponse {
+  success: boolean;
+  pool: MobilePool;
+  participants: MobileParticipation[];
+}
 
-  res.json({
-    totalInvested: invested,
-    currentValue: current,
-    totalReturns: returns,
-    returnPercentage: Math.round(returnPct * 10) / 10,
-    activeCount: Number(activeCount.count),
-    maturedCount: Number(maturedCount.count),
-    breakdown: breakdown.map(b => ({
-      status: b.status,
-      count: Number(b.count),
-      amount: Number(b.amount || 0),
-      percentage: total > 0 ? Math.round((Number(b.count) / total) * 1000) / 10 : 0,
-    })),
-  });
-});
+interface MobilePoolMutationResponse {
+  success: boolean;
+  pool: MobilePool;
+}
 
-router.get("/investments", async (req, res): Promise<void> => {
-  const page = Math.max(1, Number(req.query.page) || 1);
-  const limit = Math.min(100, Number(req.query.limit) || 20);
-  const offset = (page - 1) * limit;
-  const status = req.query.status as string | undefined;
+function num(v: string | number | null | undefined): number {
+  if (v === null || v === undefined) return 0;
+  return typeof v === "number" ? v : parseFloat(v);
+}
 
-  let whereClause = sql`1=1`;
-  if (status) whereClause = sql`${investmentsTable.status} = ${status}`;
+function shapePool(p: MobilePool): Record<string, unknown> {
+  return {
+    id: p.id,
+    poolId: p.pool_id ?? null,
+    name: p.name,
+    description: p.description ?? null,
+    category: p.category ?? null,
+    targetAmount: num(p.target_amount),
+    raisedAmount: num(p.raised_amount),
+    expectedReturnPercent: p.expected_return_percent != null ? num(p.expected_return_percent) : null,
+    durationMonths: p.duration_months ?? null,
+    riskLevel: p.risk_level ?? null,
+    status: p.status ?? "draft",
+    opensAt: p.opens_at ?? null,
+    closesAt: p.closes_at ?? null,
+    metadata: p.metadata ?? {},
+    createdAt: p.created_at ?? null,
+    updatedAt: p.updated_at ?? null,
+  };
+}
 
-  const [totalResult] = await db.select({ count: count() }).from(investmentsTable).where(whereClause);
-  const investments = await db
-    .select()
-    .from(investmentsTable)
-    .where(whereClause)
-    .orderBy(sql`${investmentsTable.createdAt} DESC`)
-    .limit(limit)
-    .offset(offset);
+function shapeParticipant(p: MobileParticipation): Record<string, unknown> {
+  return {
+    id: p.id,
+    poolId: p.pool_id,
+    memberId: p.profile_id,
+    memberName: p.profile?.name ?? null,
+    memberEmail: p.profile?.email ?? null,
+    amount: num(p.amount),
+    expectedReturn: p.expected_return != null ? num(p.expected_return) : null,
+    actualReturn: p.actual_return != null ? num(p.actual_return) : null,
+    status: p.status ?? "active",
+    joinedAt: p.joined_at ?? null,
+    maturedAt: p.matured_at ?? null,
+  };
+}
 
-  res.json({
-    data: investments.map(i => ({
-      ...i,
-      amount: Number(i.amount),
-      currentValue: Number(i.currentValue),
-      returns: Number(i.returns),
-      returnPercentage: Number(i.returnPercentage),
-    })),
-    total: Number(totalResult.count),
-    page,
-    limit,
-  });
-});
-
-router.post("/investments", async (req, res): Promise<void> => {
-  const { name, type, amount, startDate, maturityDate, description } = req.body;
-  if (!name || !type || !amount || !startDate) {
-    res.status(400).json({ error: "name, type, amount, startDate are required" });
-    return;
+router.get("/investments", requireAuth, async (req, res): Promise<void> => {
+  try {
+    const client = getMobileApiClient();
+    const { status, category, riskLevel, q, page = "1", limit = "20" } = req.query as Record<string, string>;
+    const response = await client.get<MobilePoolListResponse>("/api/v2/admin/investments", {
+      status, category, riskLevel, q, page, limit,
+    });
+    res.json({
+      data: (response.pools ?? []).map(shapePool),
+      total: response.pagination?.total ?? 0,
+      page: response.pagination?.page ?? Number(page),
+      limit: response.pagination?.limit ?? Number(limit),
+    });
+  } catch (err) {
+    handleMobileError(err, res);
   }
+});
 
-  const [investment] = await db.insert(investmentsTable).values({
-    name,
-    type,
-    amount: String(amount),
-    currentValue: String(amount),
-    returns: "0",
-    returnPercentage: "0",
-    status: "active",
-    startDate,
-    maturityDate,
-    description,
-  }).returning();
+router.get("/investments/:id", requireAuth, async (req, res): Promise<void> => {
+  try {
+    const client = getMobileApiClient();
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const response = await client.get<MobilePoolDetailResponse>(`/api/v2/admin/investments/${encodeURIComponent(id)}`);
+    res.json({
+      pool: shapePool(response.pool),
+      participants: (response.participants ?? []).map(shapeParticipant),
+    });
+  } catch (err) {
+    handleMobileError(err, res);
+  }
+});
 
-  res.status(201).json({
-    ...investment,
-    amount: Number(investment.amount),
-    currentValue: Number(investment.currentValue),
-    returns: Number(investment.returns),
-    returnPercentage: Number(investment.returnPercentage),
-  });
+router.post("/investments", requireAuth, async (req, res): Promise<void> => {
+  try {
+    const client = getMobileApiClient();
+    const response = await client.post<MobilePoolMutationResponse>("/api/v2/admin/investments", req.body);
+    res.status(201).json(shapePool(response.pool));
+  } catch (err) {
+    handleMobileError(err, res);
+  }
+});
+
+router.patch("/investments/:id", requireAuth, async (req, res): Promise<void> => {
+  try {
+    const client = getMobileApiClient();
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const response = await client.patch<MobilePoolMutationResponse>(
+      `/api/v2/admin/investments/${encodeURIComponent(id)}`,
+      req.body,
+    );
+    res.json(shapePool(response.pool));
+  } catch (err) {
+    handleMobileError(err, res);
+  }
+});
+
+router.delete("/investments/:id", requireAuth, async (req, res): Promise<void> => {
+  try {
+    const client = getMobileApiClient();
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const response = await client.delete<MobilePoolMutationResponse>(
+      `/api/v2/admin/investments/${encodeURIComponent(id)}`,
+    );
+    res.json(shapePool(response.pool));
+  } catch (err) {
+    handleMobileError(err, res);
+  }
+});
+
+router.get("/investments/:id/participants", requireAuth, async (req, res): Promise<void> => {
+  try {
+    const client = getMobileApiClient();
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const response = await client.get<{ success: boolean; participants: MobileParticipation[] }>(
+      `/api/v2/admin/investments/${encodeURIComponent(id)}/participants`,
+    );
+    res.json({ data: (response.participants ?? []).map(shapeParticipant) });
+  } catch (err) {
+    handleMobileError(err, res);
+  }
 });
 
 export default router;
