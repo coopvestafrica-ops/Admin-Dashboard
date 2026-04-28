@@ -152,4 +152,75 @@ router.post("/loans", async (_req, res): Promise<void> => {
   });
 });
 
+interface MobileRepayment {
+  id: string;
+  loan_id: string;
+  profile_id: string;
+  amount: string | number;
+  principal_component?: string | number | null;
+  interest_component?: string | number | null;
+  due_date?: string | null;
+  paid_at?: string | null;
+  status?: string | null;
+  reference?: string | null;
+  created_at?: string;
+}
+
+function shapeRepayment(r: MobileRepayment): Record<string, unknown> {
+  return {
+    id: r.id,
+    loanId: r.loan_id,
+    memberId: r.profile_id,
+    amount: num(r.amount),
+    principalComponent: r.principal_component != null ? num(r.principal_component) : null,
+    interestComponent: r.interest_component != null ? num(r.interest_component) : null,
+    dueDate: r.due_date ?? null,
+    paidAt: r.paid_at ?? null,
+    status: r.status ?? "pending",
+    reference: r.reference ?? null,
+    createdAt: r.created_at ?? null,
+  };
+}
+
+router.get("/loans/:id/repayments", async (req, res): Promise<void> => {
+  try {
+    const client = getMobileApiClient();
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const response = await client.get<{ success: boolean; repayments: MobileRepayment[] }>(
+      `/api/v2/admin/loans/${encodeURIComponent(id)}/repayments`,
+    );
+    res.json({ data: (response.repayments ?? []).map(shapeRepayment) });
+  } catch (err) {
+    handleMobileError(err, res);
+  }
+});
+
+router.post("/loans/:id/repayments", async (req, res): Promise<void> => {
+  try {
+    const client = getMobileApiClient();
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const response = await client.post<{ success: boolean; repayment: MobileRepayment }>(
+      `/api/v2/admin/loans/${encodeURIComponent(id)}/repayments`,
+      req.body,
+    );
+    res.status(201).json(shapeRepayment(response.repayment));
+  } catch (err) {
+    handleMobileError(err, res);
+  }
+});
+
+router.post("/loans/:id/restructure", async (req, res): Promise<void> => {
+  try {
+    const client = getMobileApiClient();
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const response = await client.post<{ success: boolean; loan: MobileLoan }>(
+      `/api/v2/admin/loans/${encodeURIComponent(id)}/restructure`,
+      req.body,
+    );
+    res.json(shapeLoan(response.loan));
+  } catch (err) {
+    handleMobileError(err, res);
+  }
+});
+
 export default router;

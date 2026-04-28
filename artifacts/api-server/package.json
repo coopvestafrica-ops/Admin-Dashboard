@@ -25,7 +25,8 @@
     "otplib": "^13.4.0",
     "pino": "^9",
     "pino-http": "^10",
-    "qrcode": "^1.5.4"
+    "qrcode": "^1.5.4",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",

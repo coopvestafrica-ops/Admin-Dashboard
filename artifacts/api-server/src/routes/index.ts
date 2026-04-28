@@ -19,6 +19,10 @@ import settingsRouter from "./settings";
 import featureFlagsRouter from "./feature-flags";
 import securityRouter from "./security-center";
 import excelRouter from "./excel";
+import investmentsRouter from "./investments";
+import systemRouter from "./system";
+import scheduledNotificationsRouter from "./scheduled-notifications";
+import backupsRouter from "./backups";
 
 const router: IRouter = Router();
 
@@ -42,5 +46,9 @@ router.use(settingsRouter);
 router.use(featureFlagsRouter);
 router.use(securityRouter);
 router.use(excelRouter);
+router.use(investmentsRouter);
+router.use(systemRouter);
+router.use(scheduledNotificationsRouter);
+router.use(backupsRouter);
 
 export default router;

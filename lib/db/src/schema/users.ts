@@ -17,9 +17,15 @@ export const usersTable = pgTable("users", {
   failedAttempts: integer("failed_attempts").notNull().default(0),
   lockedUntil: timestamp("locked_until", { withTimezone: true }),
   mustChangePassword: boolean("must_change_password").notNull().default(false),
+  passwordChangedAt: timestamp("password_changed_at", { withTimezone: true }),
+  department: text("department"),
+  phone: text("phone"),
+  accessLevel: text("access_level"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const SUPER_ADMIN_CAP = 3;
 
 export const insertUserSchema = createInsertSchema(usersTable).omit({
   id: true, createdAt: true, updatedAt: true,

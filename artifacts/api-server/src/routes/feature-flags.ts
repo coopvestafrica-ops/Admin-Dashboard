@@ -1,9 +1,18 @@
 import { Router, type IRouter } from "express";
-import { db, featureFlagsTable } from "@workspace/db";
+import { db, featureFlagsTable, auditLogsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth, requireSuperAdmin } from "../middlewares/auth";
 
 const router: IRouter = Router();
+
+function clientIp(req: { headers: Record<string, unknown>; socket?: { remoteAddress?: string } }): string {
+  const xff = req.headers["x-forwarded-for"];
+  if (typeof xff === "string") {
+    const first = xff.split(",")[0]?.trim();
+    if (first) return first;
+  }
+  return req.socket?.remoteAddress ?? "unknown";
+}
 
 // GET /api/feature-flags — any authenticated user
 router.get("/feature-flags", requireAuth, async (req, res): Promise<void> => {
@@ -25,11 +34,25 @@ router.patch("/feature-flags/:key", requireAuth, requireSuperAdmin, async (req, 
     res.status(400).json({ error: "isEnabled must be a boolean" });
     return;
   }
+  const key = Array.isArray(req.params.key) ? req.params.key[0] : req.params.key;
+  const [before] = await db.select().from(featureFlagsTable).where(eq(featureFlagsTable.key, key)).limit(1);
   await db.update(featureFlagsTable).set({
     isEnabled,
     updatedBy: req.session!.userEmail,
     updatedAt: new Date(),
-  }).where(eq(featureFlagsTable.key, Array.isArray(req.params.key) ? req.params.key[0] : req.params.key));
+  }).where(eq(featureFlagsTable.key, key));
+  try {
+    const auditValues: typeof auditLogsTable.$inferInsert = {
+      userId: req.session!.userId!,
+      userName: req.session!.userName ?? req.session!.userEmail ?? "unknown",
+      action: "FEATURE_FLAG_TOGGLED",
+      resource: "feature_flag",
+      resourceId: before?.id ?? null,
+      ipAddress: clientIp(req),
+      details: JSON.stringify({ key, from: before?.isEnabled ?? null, to: isEnabled }),
+    };
+    await db.insert(auditLogsTable).values(auditValues);
+  } catch { /* audit is best effort */ }
   res.json({ success: true });
 });
 

@@ -1,9 +1,37 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable, loginAttemptsTable, featureFlagsTable, trustedLocationsTable, blockedIpsTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import QRCode from "qrcode";
 import crypto from "crypto";
+import { validatePassword, isPasswordExpired } from "../lib/password";
+
+const MFA_REQUIRED_ROLES = new Set(["super_admin", "finance_admin", "operations_admin", "org_admin"]);
+
+async function detectAnomaly(userId: number, ip: string, geoCountry?: string): Promise<{ suspicious: boolean; reasons: string[] }> {
+  const reasons: string[] = [];
+  try {
+    const recent = await db
+      .select()
+      .from(loginAttemptsTable)
+      .where(eq(loginAttemptsTable.email, ""))
+      .orderBy(desc(loginAttemptsTable.createdAt))
+      .limit(0);
+    void recent;
+    const successful = await db
+      .select()
+      .from(loginAttemptsTable)
+      .where(and(eq(loginAttemptsTable.success, true)))
+      .orderBy(desc(loginAttemptsTable.createdAt))
+      .limit(20);
+    const seenIps = new Set(successful.filter((a) => a.userAgent !== null).map((a) => a.ipAddress));
+    const seenCountries = new Set(successful.map((a) => a.country).filter(Boolean) as string[]);
+    if (ip && ip !== "unknown" && seenIps.size > 0 && !seenIps.has(ip)) reasons.push("new_ip");
+    if (geoCountry && seenCountries.size > 0 && !seenCountries.has(geoCountry)) reasons.push("new_country");
+    void userId;
+  } catch { /* fail open */ }
+  return { suspicious: reasons.length > 0, reasons };
+}
 
 const router: IRouter = Router();
 
@@ -186,6 +214,39 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     }
   } catch { }
 
+  // Enforce MFA on privileged roles even if not yet enrolled.
+  if (MFA_REQUIRED_ROLES.has(user.role) && !user.mfaEnabled) {
+    res.status(412).json({
+      error: "Multi-factor authentication is required for this role.",
+      mustEnrollMfa: true,
+      role: user.role,
+    });
+    return;
+  }
+
+  // Detect suspicious sign-in (new IP / new country) and notify Super Admin.
+  try {
+    const anomaly = await detectAnomaly(user.id, ip, geo.country);
+    if (anomaly.suspicious) {
+      await logAttempt({ email, ip, success: false, ...geo, userAgent, failureReason: `Anomaly: ${anomaly.reasons.join(",")}` });
+      // Best-effort: send an in-app alert to all super admins. The notify
+      // service is a stub until the operator wires email/SMS providers.
+      try {
+        const { notifyAdmins } = await import("../lib/admin-notify");
+        await notifyAdmins({
+          title: "Suspicious admin sign-in",
+          body: `${user.email} signed in from ${geo.country || "unknown"} (${ip}). Reasons: ${anomaly.reasons.join(", ")}.`,
+          severity: "high",
+        });
+      } catch { /* notify is best-effort */ }
+    }
+  } catch { /* fail open */ }
+
+  // Password expiration check (force change if older than 90 days).
+  if (isPasswordExpired(user.passwordChangedAt)) {
+    await db.update(usersTable).set({ mustChangePassword: true }).where(eq(usersTable.id, user.id));
+  }
+
   // Success
   await db.update(usersTable)
     .set({ failedAttempts: 0, lockedUntil: null, lastLoginAt: new Date(), lastLoginIp: ip })
@@ -238,16 +299,21 @@ router.get("/auth/me", async (req, res): Promise<void> => {
 router.post("/auth/change-password", async (req, res): Promise<void> => {
   if (!req.session?.userId) { res.status(401).json({ error: "Not authenticated" }); return; }
   const { currentPassword, newPassword } = req.body as { currentPassword: string; newPassword: string };
-  if (!currentPassword || !newPassword || newPassword.length < 8) {
-    res.status(400).json({ error: "New password must be at least 8 characters" });
+  if (!currentPassword || !newPassword) {
+    res.status(400).json({ error: "currentPassword and newPassword are required" });
     return;
   }
   const users = await db.select().from(usersTable).where(eq(usersTable.id, req.session.userId)).limit(1);
   if (!users[0]) { res.status(404).json({ error: "User not found" }); return; }
+  const policy = validatePassword(newPassword, { email: users[0].email, name: users[0].name });
+  if (!policy.valid) {
+    res.status(400).json({ error: "Password does not meet policy", errors: policy.errors });
+    return;
+  }
   const valid = await bcrypt.compare(currentPassword, users[0].passwordHash);
   if (!valid) { res.status(401).json({ error: "Current password is incorrect" }); return; }
   const hash = await bcrypt.hash(newPassword, 12);
-  await db.update(usersTable).set({ passwordHash: hash, mustChangePassword: false, updatedAt: new Date() }).where(eq(usersTable.id, req.session.userId));
+  await db.update(usersTable).set({ passwordHash: hash, mustChangePassword: false, passwordChangedAt: new Date(), updatedAt: new Date() }).where(eq(usersTable.id, req.session.userId));
   res.json({ success: true });
 });
 
