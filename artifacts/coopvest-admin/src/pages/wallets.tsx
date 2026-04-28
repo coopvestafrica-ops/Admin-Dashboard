@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useListWallets, useGetWalletTransactions, useFundWallet, getListWalletsQueryKey } from "@workspace/api-client-react";
+import { useListWallets, useGetWalletTransactions, useFundWallet, getListWalletsQueryKey, getGetWalletTransactionsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -39,7 +39,7 @@ export default function Wallets() {
   const queryClient = useQueryClient();
 
   const { data: wallets, isLoading: isLoadingWallets } = useListWallets({ page, limit: 10 });
-  const { data: transactions, isLoading: isLoadingTransactions } = useGetWalletTransactions({ page: 1, limit: 5 });
+  const { data: transactions, isLoading: isLoadingTransactions } = useGetWalletTransactions(0, { page: 1, limit: 5 }, { query: { enabled: false, queryKey: getGetWalletTransactionsQueryKey(0, { page: 1, limit: 5 }) } });
   const fundMutation = useFundWallet();
 
   const form = useForm<z.infer<typeof fundWalletSchema>>({

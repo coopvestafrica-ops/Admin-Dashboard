@@ -1,4 +1,3 @@
-import { Outlet } from "wouter";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
 

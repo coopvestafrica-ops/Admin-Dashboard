@@ -52,7 +52,7 @@ export default function TicketDetail() {
     );
   }
 
-  const messages = messagesData?.data || [];
+  const messages = messagesData ?? [];
 
   return (
     <div className="space-y-6 flex flex-col h-[calc(100vh-8rem)]">

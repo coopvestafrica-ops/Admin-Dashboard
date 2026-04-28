@@ -30,6 +30,10 @@ import UserManagement from "@/pages/user-management";
 import FeatureFlags from "@/pages/feature-flags";
 import SecurityCenter from "@/pages/security-center";
 import ExcelWorkbooks from "@/pages/excel-workbooks";
+import Investments from "@/pages/investments";
+import SystemControl from "@/pages/system-control";
+import ScheduledNotifications from "@/pages/scheduled-notifications";
+import Backups from "@/pages/backups";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -83,6 +87,10 @@ function Router() {
         <Route path="/feature-flags" component={FeatureFlags} />
         <Route path="/security" component={SecurityCenter} />
         <Route path="/excel" component={ExcelWorkbooks} />
+        <Route path="/investments" component={Investments} />
+        <Route path="/system-control" component={SystemControl} />
+        <Route path="/scheduled-notifications" component={ScheduledNotifications} />
+        <Route path="/backups" component={Backups} />
         <Route component={NotFound} />
       </Switch>
     </AppLayout>

@@ -3,6 +3,7 @@ import {
   LayoutDashboard, Building2, Users, PiggyBank, Landmark, Banknote, Wallet,
   ShieldAlert, Bell, BarChart3, History, UserCog, Settings, LifeBuoy,
   LogOut, Menu, Shield, ToggleLeft, FileSpreadsheet, UserPlus,
+  TrendingUp, Server, Clock, DatabaseBackup,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,14 +27,16 @@ const navigation: NavItem[] = [
   { name: "Members", href: "/members", icon: Users },
   { name: "Savings", href: "/savings", icon: PiggyBank },
   { name: "Loans", href: "/loans", icon: Landmark },
+  { name: "Investments", href: "/investments", icon: TrendingUp, roles: ["super_admin", "finance_admin", "operations_admin", "org_admin"] },
   { name: "Payroll", href: "/payroll", icon: Banknote },
   { name: "Wallets", href: "/wallets", icon: Wallet },
-  { name: "Risk & Credit", href: "/risk", icon: ShieldAlert },
+  { name: "Risk & Credit", href: "/risk", icon: ShieldAlert, roles: ["super_admin", "finance_admin", "operations_admin"] },
   { name: "Excel Workbooks", href: "/excel", icon: FileSpreadsheet },
   { name: "Notifications", href: "/notifications", icon: Bell },
+  { name: "Scheduled", href: "/scheduled-notifications", icon: Clock, roles: ["super_admin", "operations_admin"] },
   { name: "Reports", href: "/reports", icon: BarChart3 },
-  { name: "Audit Logs", href: "/audit-logs", icon: History },
-  { name: "Roles", href: "/roles", icon: UserCog },
+  { name: "Audit Logs", href: "/audit-logs", icon: History, roles: ["super_admin", "operations_admin"] },
+  { name: "Roles", href: "/roles", icon: UserCog, roles: ["super_admin"] },
   { name: "Support", href: "/support", icon: LifeBuoy },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
@@ -41,7 +44,9 @@ const navigation: NavItem[] = [
 const adminNavigation: NavItem[] = [
   { name: "User Management", href: "/users", icon: UserPlus, roles: ["super_admin"] },
   { name: "Feature Flags", href: "/feature-flags", icon: ToggleLeft, roles: ["super_admin"] },
+  { name: "System Control", href: "/system-control", icon: Server, roles: ["super_admin"] },
   { name: "Security Center", href: "/security", icon: Shield, roles: ["super_admin"] },
+  { name: "Backups", href: "/backups", icon: DatabaseBackup, roles: ["super_admin"] },
 ];
 
 function NavLink({ item, location }: { item: NavItem; location: string }) {
@@ -66,6 +71,7 @@ function SidebarContent({ location }: { location: string }) {
   const { user, logout } = useAuth();
   const role = user?.role ?? "staff";
   const initials = user?.name?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) ?? "SA";
+  const visibleNav = navigation.filter((item) => !item.roles || item.roles.includes(role as AdminRole));
   const visibleAdmin = adminNavigation.filter((item) => !item.roles || item.roles.includes(role as AdminRole));
 
   return (
@@ -81,7 +87,7 @@ function SidebarContent({ location }: { location: string }) {
 
       <ScrollArea className="flex-1 overflow-y-auto overflow-x-hidden py-3">
         <nav className="px-3 space-y-0.5">
-          {navigation.map((item) => <NavLink key={item.name} item={item} location={location} />)}
+          {visibleNav.map((item) => <NavLink key={item.name} item={item} location={location} />)}
         </nav>
 
         {visibleAdmin.length > 0 && (
