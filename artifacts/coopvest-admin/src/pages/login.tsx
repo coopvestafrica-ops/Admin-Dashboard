@@ -7,13 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Shield, Lock, Eye, EyeOff, AlertTriangle } from "lucide-react";
 
-const DEMO_ACCOUNTS = [
-  { label: "Super Admin", email: "admin@coopvest.africa", password: "Admin@2024!", color: "bg-red-500" },
-  { label: "Finance Admin", email: "finance@coopvest.africa", password: "Finance@2024!", color: "bg-blue-500" },
-  { label: "Operations", email: "ops@coopvest.africa", password: "Ops@2024!", color: "bg-green-500" },
-  { label: "Org Admin", email: "orgadmin@coopvest.africa", password: "OrgAdmin@2024!", color: "bg-orange-500" },
-];
-
 export default function LoginPage() {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
@@ -38,13 +31,6 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const fillDemo = (acc: (typeof DEMO_ACCOUNTS)[0]) => {
-    setEmail(acc.email);
-    setPassword(acc.password);
-    setError("");
-    setRequiresMfa(false);
   };
 
   return (
@@ -124,27 +110,6 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        {!requiresMfa && (
-          <Card className="border-slate-700 bg-slate-900/50">
-            <CardHeader className="pb-2 pt-4">
-              <CardTitle className="text-sm text-slate-400 font-normal">Demo Accounts — click to fill</CardTitle>
-            </CardHeader>
-            <CardContent className="pb-4">
-              <div className="grid grid-cols-2 gap-2">
-                {DEMO_ACCOUNTS.map((acc) => (
-                  <button key={acc.email} type="button" onClick={() => fillDemo(acc)}
-                    className="flex items-center gap-2 p-2 rounded-lg border border-slate-700 hover:border-slate-500 hover:bg-slate-800 transition-colors text-left">
-                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${acc.color}`} />
-                    <div className="min-w-0">
-                      <div className="text-xs font-medium text-slate-300">{acc.label}</div>
-                      <div className="text-xs text-slate-500 truncate">{acc.email}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
         <p className="text-center text-xs text-slate-600">
           Protected by enterprise-grade security · All access is logged and monitored
         </p>
