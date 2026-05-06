@@ -14,7 +14,8 @@ import {
   Settings, 
   LogOut,
   Menu,
-  FileText
+  FileText,
+  Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ const sidebarGroups = [
       { title: "Members", icon: Users, href: "/members" },
       { title: "Loans", icon: CreditCard, href: "/loans" },
       { title: "Contributions", icon: Wallet, href: "/contributions" },
+      { title: "Payroll", icon: Briefcase, href: "/payroll" },
       { title: "Investments", icon: PieChart, href: "/investments" },
     ],
   },
