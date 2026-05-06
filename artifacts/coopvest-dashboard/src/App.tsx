@@ -17,6 +17,7 @@ import RiskScoring from "@/pages/risk-scoring/index";
 import InterestRates from "@/pages/interest-rates/index";
 import AuditLogs from "@/pages/audit-logs/index";
 import Settings from "@/pages/settings";
+import Payroll from "@/pages/payroll/index";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/interest-rates" component={InterestRates} />
       <Route path="/audit-logs" component={AuditLogs} />
       <Route path="/settings" component={Settings} />
+      <Route path="/payroll" component={Payroll} />
       <Route component={NotFound} />
     </Switch>
   );
