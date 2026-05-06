@@ -16,6 +16,9 @@ import {
   ShieldCheck,
   Trash2,
   Upload,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 
 interface Organization {
@@ -46,6 +49,18 @@ const mockOrgs: Organization[] = [
   },
 ];
 
+interface PaymentAccount {
+  bank: string;
+  accountName: string;
+  accountNumber: string;
+}
+
+const defaultPaymentAccount: PaymentAccount = {
+  bank: "Opay",
+  accountName: "Ayanlowo Olatunji Ayobami",
+  accountNumber: "7038193753",
+};
+
 export default function Settings() {
   const [salaryDeductionGlobal, setSalaryDeductionGlobal] = useState(false);
   const [organizations, setOrganizations] = useState<Organization[]>(mockOrgs);
@@ -53,6 +68,29 @@ export default function Settings() {
   const [newOrgName, setNewOrgName] = useState("");
   const [newOrgType, setNewOrgType] = useState<"manual_upload" | "api">("manual_upload");
   const [savedGlobal, setSavedGlobal] = useState(false);
+
+  // Bank account details
+  const [paymentAccount, setPaymentAccount] = useState<PaymentAccount>(defaultPaymentAccount);
+  const [editingAccount, setEditingAccount] = useState(false);
+  const [draftAccount, setDraftAccount] = useState<PaymentAccount>(defaultPaymentAccount);
+  const [accountSaved, setAccountSaved] = useState(false);
+
+  function startEditAccount() {
+    setDraftAccount({ ...paymentAccount });
+    setEditingAccount(true);
+  }
+
+  function saveAccountDetails() {
+    setPaymentAccount({ ...draftAccount });
+    setEditingAccount(false);
+    setAccountSaved(true);
+    setTimeout(() => setAccountSaved(false), 2500);
+  }
+
+  function cancelEditAccount() {
+    setDraftAccount({ ...paymentAccount });
+    setEditingAccount(false);
+  }
 
   function toggleOrgDeduction(id: string) {
     setOrganizations((prev) =>
@@ -243,6 +281,100 @@ export default function Settings() {
               <div className="flex items-center gap-2 rounded-md bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700">
                 <ShieldCheck className="h-4 w-4 shrink-0" />
                 <span>Organization-level toggles are disabled because global salary deduction is turned off.</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Bank Transfer Account Details */}
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-primary" />
+                <CardTitle className="text-base">Bank Transfer Account Details</CardTitle>
+              </div>
+              {!editingAccount && (
+                <Button size="sm" variant="outline" onClick={startEditAccount}>
+                  <Pencil className="mr-2 h-3.5 w-3.5" />
+                  Edit Details
+                </Button>
+              )}
+            </div>
+            <CardDescription>
+              The bank account members see when they choose Bank Transfer on the deposit screen.
+              Only super admins can change these details.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {accountSaved && (
+              <div className="mb-4 flex items-center gap-2 rounded-md bg-emerald-50 border border-emerald-200 px-4 py-2 text-sm text-emerald-700">
+                <Check className="h-4 w-4" />
+                Account details updated successfully.
+              </div>
+            )}
+
+            {editingAccount ? (
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Bank Name</Label>
+                  <Input
+                    className="mt-1"
+                    value={draftAccount.bank}
+                    onChange={(e) => setDraftAccount((d) => ({ ...d, bank: e.target.value }))}
+                    placeholder="e.g. Opay, GTBank, Zenith"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Account Name</Label>
+                  <Input
+                    className="mt-1"
+                    value={draftAccount.accountName}
+                    onChange={(e) => setDraftAccount((d) => ({ ...d, accountName: e.target.value }))}
+                    placeholder="Full account holder name"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Account Number</Label>
+                  <Input
+                    className="mt-1"
+                    value={draftAccount.accountNumber}
+                    onChange={(e) => setDraftAccount((d) => ({ ...d, accountNumber: e.target.value }))}
+                    placeholder="10-digit account number"
+                    maxLength={10}
+                  />
+                </div>
+                <div className="flex gap-2 justify-end pt-1">
+                  <Button variant="ghost" size="sm" onClick={cancelEditAccount}>
+                    <X className="mr-1.5 h-3.5 w-3.5" />
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={saveAccountDetails}
+                    disabled={!draftAccount.bank.trim() || !draftAccount.accountName.trim() || !draftAccount.accountNumber.trim()}
+                  >
+                    <Check className="mr-1.5 h-3.5 w-3.5" />
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+                {[
+                  { label: "Bank", value: paymentAccount.bank },
+                  { label: "Account Name", value: paymentAccount.accountName },
+                  { label: "Account Number", value: paymentAccount.accountNumber },
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex items-center gap-4">
+                    <span className="w-36 text-sm text-muted-foreground shrink-0">{label}</span>
+                    <span className="text-sm font-semibold">{value}</span>
+                  </div>
+                ))}
+                <div className="mt-2 flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
+                  <ShieldCheck className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <span>Changes to these details are reflected immediately on the member deposit screen. Inform members of any account changes via the Notifications module.</span>
+                </div>
               </div>
             )}
           </CardContent>
