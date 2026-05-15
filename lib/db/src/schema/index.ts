@@ -8,3 +8,4 @@ export * from "./audit_logs";
 export * from "./support_tickets";
 export * from "./risk_scores";
 export * from "./interest_rates";
+export * from "./rollovers";

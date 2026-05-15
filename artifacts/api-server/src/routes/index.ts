@@ -11,6 +11,7 @@ import auditLogsRouter from "./audit_logs";
 import supportRouter from "./support";
 import riskScoringRouter from "./risk_scoring";
 import interestRatesRouter from "./interest_rates";
+import rolloversRouter from "./rollovers";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(auditLogsRouter);
 router.use(supportRouter);
 router.use(riskScoringRouter);
 router.use(interestRatesRouter);
+router.use(rolloversRouter);
 
 export default router;
