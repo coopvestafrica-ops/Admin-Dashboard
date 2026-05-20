@@ -48,8 +48,7 @@ export default function Compliance() {
 
   const { data: summary, isLoading: loadingSummary } = useGetComplianceSummary();
   const { data, isLoading } = useGetComplianceItems({
-    search: search || undefined,
-    status: (status as "pending" | "approved" | "rejected" | "under_review") || undefined,
+    status: (status as "pending" | "approved" | "rejected" | "flagged") || undefined,
     page,
     limit: 20,
   });
@@ -187,7 +186,7 @@ export default function Compliance() {
                           </td>
                           <td className="py-3 text-muted-foreground text-xs">{item.reviewedBy ?? "—"}</td>
                           <td className="py-3">
-                            {(item.status === "pending" || item.status === "under_review") && (
+                            {(item.status === "pending" || item.status === "flagged") && (
                               <div className="flex items-center justify-center gap-2">
                                 <Button
                                   size="sm"
