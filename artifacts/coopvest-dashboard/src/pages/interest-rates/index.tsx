@@ -2,6 +2,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetInterestRates } from "@workspace/api-client-react";
+import type { InterestRate } from "@workspace/api-client-react";
 import { Percent, TrendingUp, TrendingDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
@@ -19,15 +20,14 @@ const COLORS = ["#2d6a4f", "#40916c", "#52b788", "#74c69d", "#95d5b2", "#f6ae2d"
 export default function InterestRates() {
   const { data, isLoading } = useGetInterestRates();
 
-  const rates = (Array.isArray(data) ? data : data?.data) ?? [];
-  const avgRate = rates.length > 0 ? (rates.reduce((s, r) => s + r.rate, 0) / rates.length).toFixed(1) : "0";
-  const maxRate = rates.length > 0 ? Math.max(...rates.map(r => r.rate)) : 0;
-  const minRate = rates.length > 0 ? Math.min(...rates.map(r => r.rate)) : 0;
+  const rates: InterestRate[] = (Array.isArray(data) ? data : []) ?? [];
+  const avgRate = rates.length > 0 ? (rates.reduce((s: number, r: InterestRate) => s + r.rate, 0) / rates.length).toFixed(1) : "0";
+  const maxRate = rates.length > 0 ? Math.max(...rates.map((r: InterestRate) => r.rate)) : 0;
+  const minRate = rates.length > 0 ? Math.min(...rates.map((r: InterestRate) => r.rate)) : 0;
 
-  const chartData = rates.map(r => ({
+  const chartData = rates.map((r: InterestRate) => ({
     type: loanTypeLabels[r.loanType] ?? r.loanType,
     rate: r.rate,
-    penaltyRate: r.penaltyRate,
   }));
 
   return (
@@ -79,7 +79,7 @@ export default function InterestRates() {
                   <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${v}%`} />
                   <Tooltip formatter={(val: number) => [`${val}%`]} />
                   <Bar dataKey="rate" name="Interest Rate" radius={[4, 4, 0, 0]}>
-                    {chartData.map((_, i) => (
+                    {chartData.map((_entry: { type: string; rate: number }, i: number) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Bar>
@@ -115,7 +115,7 @@ export default function InterestRates() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {rates.map((rate) => (
+                    {rates.map((rate: InterestRate) => (
                       <tr key={rate.id} className="hover:bg-muted/50 transition-colors" data-testid={`row-rate-${rate.id}`}>
                         <td className="py-3 font-medium">{loanTypeLabels[rate.loanType] ?? rate.loanType}</td>
                         <td className="py-3 text-right font-bold text-primary">{rate.rate}%</td>
