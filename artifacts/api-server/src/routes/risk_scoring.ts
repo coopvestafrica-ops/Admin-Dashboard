@@ -1,7 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, sql, count } from "drizzle-orm";
-import { db } from "@workspace/db";
-import { riskScoresTable, membersTable } from "@workspace/db";
+import { supabase } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -9,40 +7,50 @@ router.get("/risk-scoring", async (req, res): Promise<void> => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
-  const riskLevel = req.query.riskLevel as string | undefined;
 
-  let whereClause = sql`1=1`;
-  if (riskLevel) whereClause = sql`${riskScoresTable.riskLevel} = ${riskLevel}`;
+  const { data: profiles, count, error } = await supabase
+    .from("profiles")
+    .select("id, name, user_id, is_active, is_flagged, kyc_verified, created_at", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
 
-  const [totalResult] = await db.select({ count: count() }).from(riskScoresTable).where(whereClause);
+  if (error) { res.status(500).json({ error: error.message }); return; }
 
-  const scores = await db
-    .select({
-      id: riskScoresTable.id,
-      memberId: riskScoresTable.memberId,
-      memberName: sql<string>`${membersTable.firstName} || ' ' || ${membersTable.lastName}`,
-      score: riskScoresTable.score,
-      riskLevel: riskScoresTable.riskLevel,
-      factors: riskScoresTable.factors,
-      loanHistory: riskScoresTable.loanHistory,
-      paymentConsistency: riskScoresTable.paymentConsistency,
-      creditUtilization: riskScoresTable.creditUtilization,
-      lastUpdated: riskScoresTable.lastUpdated,
-    })
-    .from(riskScoresTable)
-    .innerJoin(membersTable, eq(riskScoresTable.memberId, membersTable.id))
-    .where(whereClause)
-    .orderBy(sql`${riskScoresTable.score} ASC`)
-    .limit(limit)
-    .offset(offset);
+  const profileIds = (profiles ?? []).map(p => p.id);
+  const { data: loanData } = profileIds.length > 0
+    ? await supabase.from("loans").select("profile_id, status, remaining_balance").in("profile_id", profileIds)
+    : { data: [] };
+
+  const loanMap = new Map<string, { active: number; defaulted: number; balance: number }>();
+  for (const l of loanData ?? []) {
+    const existing = loanMap.get(l.profile_id) ?? { active: 0, defaulted: 0, balance: 0 };
+    if (l.status === "active") existing.active++;
+    if (l.status === "defaulted") existing.defaulted++;
+    existing.balance += Number(l.remaining_balance || 0);
+    loanMap.set(l.profile_id, existing);
+  }
 
   res.json({
-    data: scores.map(s => ({
-      ...s,
-      paymentConsistency: Number(s.paymentConsistency || 0),
-      creditUtilization: Number(s.creditUtilization || 0),
-    })),
-    total: Number(totalResult.count),
+    data: (profiles ?? []).map(p => {
+      const loans = loanMap.get(p.id) ?? { active: 0, defaulted: 0, balance: 0 };
+      const score = Math.max(0, 100 - loans.defaulted * 30 - (p.is_flagged ? 20 : 0));
+      return {
+        id: p.id,
+        memberId: p.user_id,
+        memberName: p.name ?? "",
+        score,
+        riskLevel: score >= 70 ? "low" : score >= 40 ? "medium" : "high",
+        factors: {
+          activeLoans: loans.active,
+          defaultedLoans: loans.defaulted,
+          totalBalance: loans.balance,
+          isFlagged: p.is_flagged ?? false,
+          kycVerified: p.kyc_verified ?? false,
+        },
+        lastUpdated: p.created_at,
+      };
+    }),
+    total: count ?? 0,
     page,
     limit,
   });

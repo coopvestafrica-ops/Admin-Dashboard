@@ -1,29 +1,27 @@
 import { Router, type IRouter } from "express";
-import { eq, sql, count } from "drizzle-orm";
-import { db } from "@workspace/db";
-import { complianceItemsTable, membersTable } from "@workspace/db";
+import { supabase } from "@workspace/db";
 
 const router: IRouter = Router();
 
 router.get("/compliance/summary", async (req, res): Promise<void> => {
-  const [pending] = await db.select({ count: count() }).from(complianceItemsTable).where(eq(complianceItemsTable.status, "pending"));
-  const [approved] = await db.select({ count: count() }).from(complianceItemsTable).where(eq(complianceItemsTable.status, "approved"));
-  const [flagged] = await db.select({ count: count() }).from(complianceItemsTable).where(eq(complianceItemsTable.status, "flagged"));
-  const [rejected] = await db.select({ count: count() }).from(complianceItemsTable).where(eq(complianceItemsTable.status, "rejected"));
-  const [thisMonth] = await db
-    .select({ count: count() })
-    .from(complianceItemsTable)
-    .where(sql`DATE_TRUNC('month', ${complianceItemsTable.submittedAt}) = DATE_TRUNC('month', NOW())`);
+  const { count: pending } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "pending");
+  const { count: approved } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "verified");
+  const { count: flagged } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "in_review");
+  const { count: rejected } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "rejected");
 
-  const totalReviewed = Number(approved.count) + Number(rejected.count);
-  const approvalRate = totalReviewed > 0 ? (Number(approved.count) / totalReviewed) * 100 : 0;
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const { count: thisMonth } = await supabase.from("kyc").select("*", { count: "exact", head: true }).gte("created_at", monthStart);
+
+  const totalReviewed = (approved ?? 0) + (rejected ?? 0);
+  const approvalRate = totalReviewed > 0 ? ((approved ?? 0) / totalReviewed) * 100 : 0;
 
   res.json({
-    pending: Number(pending.count),
-    approved: Number(approved.count),
-    flagged: Number(flagged.count),
-    rejected: Number(rejected.count),
-    totalThisMonth: Number(thisMonth.count),
+    pending: pending ?? 0,
+    approved: approved ?? 0,
+    flagged: flagged ?? 0,
+    rejected: rejected ?? 0,
+    totalThisMonth: thisMonth ?? 0,
     approvalRate: Math.round(approvalRate * 10) / 10,
   });
 });
@@ -34,60 +32,71 @@ router.get("/compliance", async (req, res): Promise<void> => {
   const offset = (page - 1) * limit;
   const status = req.query.status as string | undefined;
 
-  let whereClause = sql`1=1`;
-  if (status) whereClause = sql`${complianceItemsTable.status} = ${status}`;
+  const statusMap: Record<string, string> = { pending: "pending", approved: "verified", flagged: "in_review", rejected: "rejected" };
+  let query = supabase.from("kyc").select("*, profiles!kyc_profile_id_fkey(name, user_id)", { count: "exact" });
+  if (status && statusMap[status]) query = query.eq("status", statusMap[status]);
 
-  const [totalResult] = await db.select({ count: count() }).from(complianceItemsTable).where(whereClause);
+  const { data: kycItems, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
 
-  const items = await db
-    .select({
-      id: complianceItemsTable.id,
-      memberId: complianceItemsTable.memberId,
-      memberName: sql<string>`${membersTable.firstName} || ' ' || ${membersTable.lastName}`,
-      type: complianceItemsTable.type,
-      status: complianceItemsTable.status,
-      description: complianceItemsTable.description,
-      riskLevel: complianceItemsTable.riskLevel,
-      reviewedBy: complianceItemsTable.reviewedBy,
-      notes: complianceItemsTable.notes,
-      submittedAt: complianceItemsTable.submittedAt,
-      reviewedAt: complianceItemsTable.reviewedAt,
-    })
-    .from(complianceItemsTable)
-    .innerJoin(membersTable, eq(complianceItemsTable.memberId, membersTable.id))
-    .where(whereClause)
-    .orderBy(sql`${complianceItemsTable.submittedAt} DESC`)
-    .limit(limit)
-    .offset(offset);
+  if (error) { res.status(500).json({ error: error.message }); return; }
+
+  const reverseStatusMap: Record<string, string> = { pending: "pending", verified: "approved", in_review: "flagged", rejected: "rejected", expired: "rejected" };
 
   res.json({
-    data: items,
-    total: Number(totalResult.count),
+    data: (kycItems ?? []).map(k => {
+      const profile = k.profiles as unknown as { name: string; user_id: string } | null;
+      return {
+        id: k.id,
+        memberId: k.profile_id,
+        memberName: profile?.name ?? "",
+        type: "KYC Verification",
+        status: reverseStatusMap[k.status] ?? k.status,
+        description: `KYC level ${k.verification_level ?? 0} verification`,
+        riskLevel: "low",
+        reviewedBy: null,
+        notes: k.rejection_reason ?? null,
+        submittedAt: k.submitted_at ?? k.created_at,
+        reviewedAt: k.verified_at ?? null,
+      };
+    }),
+    total: count ?? 0,
     page,
     limit,
   });
 });
 
 router.post("/compliance/:id/approve", async (req, res): Promise<void> => {
-  const id = Number(req.params.id);
-  const [updated] = await db
-    .update(complianceItemsTable)
-    .set({ status: "approved", reviewedBy: "Admin", reviewedAt: new Date() })
-    .where(eq(complianceItemsTable.id, id))
-    .returning();
-  if (!updated) { res.status(404).json({ error: "Not found" }); return; }
-  res.json(updated);
+  const id = req.params.id;
+  const { data: updated, error } = await supabase.from("kyc").update({
+    status: "verified",
+    verified: true,
+    verified_at: new Date().toISOString(),
+  }).eq("id", id).select().single();
+
+  if (error || !updated) { res.status(404).json({ error: "Not found" }); return; }
+
+  // Also update profile
+  if (updated.profile_id) {
+    await supabase.from("profiles").update({ kyc_verified: true }).eq("id", updated.profile_id);
+  }
+
+  res.json({ id: updated.id, status: "approved", reviewedAt: updated.verified_at });
 });
 
 router.post("/compliance/:id/reject", async (req, res): Promise<void> => {
-  const id = Number(req.params.id);
-  const [updated] = await db
-    .update(complianceItemsTable)
-    .set({ status: "rejected", reviewedBy: "Admin", reviewedAt: new Date() })
-    .where(eq(complianceItemsTable.id, id))
-    .returning();
-  if (!updated) { res.status(404).json({ error: "Not found" }); return; }
-  res.json(updated);
+  const id = req.params.id;
+  const { reason } = req.body;
+
+  const { data: updated, error } = await supabase.from("kyc").update({
+    status: "rejected",
+    verified: false,
+    rejection_reason: reason ?? "Rejected by admin",
+  }).eq("id", id).select().single();
+
+  if (error || !updated) { res.status(404).json({ error: "Not found" }); return; }
+  res.json({ id: updated.id, status: "rejected", reviewedAt: new Date().toISOString() });
 });
 
 export default router;

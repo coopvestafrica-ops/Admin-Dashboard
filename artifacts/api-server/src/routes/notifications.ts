@@ -1,7 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, sql, count } from "drizzle-orm";
-import { db } from "@workspace/db";
-import { notificationsTable } from "@workspace/db";
+import { supabase } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -11,24 +9,29 @@ router.get("/notifications", async (req, res): Promise<void> => {
   const offset = (page - 1) * limit;
   const unreadOnly = req.query.unreadOnly === "true";
 
-  let whereClause = sql`1=1`;
-  if (unreadOnly) whereClause = sql`${notificationsTable.isRead} = false`;
+  let query = supabase.from("notifications").select("*", { count: "exact" });
+  if (unreadOnly) query = query.eq("is_read", false);
 
-  const [totalResult] = await db.select({ count: count() }).from(notificationsTable).where(whereClause);
-  const [unreadCount] = await db.select({ count: count() }).from(notificationsTable).where(eq(notificationsTable.isRead, false));
+  const { data: notifications, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
 
-  const notifications = await db
-    .select()
-    .from(notificationsTable)
-    .where(whereClause)
-    .orderBy(sql`${notificationsTable.createdAt} DESC`)
-    .limit(limit)
-    .offset(offset);
+  if (error) { res.status(500).json({ error: error.message }); return; }
+
+  const { count: unreadCount } = await supabase.from("notifications").select("*", { count: "exact", head: true }).eq("is_read", false);
 
   res.json({
-    data: notifications,
-    total: Number(totalResult.count),
-    unreadCount: Number(unreadCount.count),
+    data: (notifications ?? []).map(n => ({
+      id: n.id,
+      title: n.title,
+      message: n.message,
+      type: n.category ?? n.type ?? "info",
+      isRead: n.is_read,
+      targetAudience: null,
+      createdAt: n.created_at,
+    })),
+    total: count ?? 0,
+    unreadCount: unreadCount ?? 0,
     page,
     limit,
   });
@@ -41,31 +44,50 @@ router.post("/notifications", async (req, res): Promise<void> => {
     return;
   }
 
-  const [notification] = await db.insert(notificationsTable).values({
+  const { data: notification, error } = await supabase.from("notifications").insert({
     title,
     message,
-    type,
-    isRead: false,
-    targetAudience,
-  }).returning();
+    type: "system",
+    category: type,
+    is_read: false,
+    priority: "normal",
+  }).select().single();
 
-  res.status(201).json(notification);
+  if (error) { res.status(500).json({ error: error.message }); return; }
+
+  res.status(201).json({
+    id: notification.id,
+    title: notification.title,
+    message: notification.message,
+    type: notification.category ?? "info",
+    isRead: notification.is_read,
+    targetAudience: null,
+    createdAt: notification.created_at,
+  });
 });
 
 router.post("/notifications/read-all", async (req, res): Promise<void> => {
-  await db.update(notificationsTable).set({ isRead: true }).where(eq(notificationsTable.isRead, false));
+  await supabase.from("notifications").update({ is_read: true, read_at: new Date().toISOString() }).eq("is_read", false);
   res.json({ success: true });
 });
 
 router.post("/notifications/:id/read", async (req, res): Promise<void> => {
-  const id = Number(req.params.id);
-  const [updated] = await db
-    .update(notificationsTable)
-    .set({ isRead: true })
-    .where(eq(notificationsTable.id, id))
-    .returning();
-  if (!updated) { res.status(404).json({ error: "Not found" }); return; }
-  res.json(updated);
+  const id = req.params.id;
+  const { data: updated, error } = await supabase.from("notifications").update({
+    is_read: true,
+    read_at: new Date().toISOString(),
+  }).eq("id", id).select().single();
+
+  if (error || !updated) { res.status(404).json({ error: "Not found" }); return; }
+
+  res.json({
+    id: updated.id,
+    title: updated.title,
+    message: updated.message,
+    type: updated.category ?? "info",
+    isRead: updated.is_read,
+    createdAt: updated.created_at,
+  });
 });
 
 export default router;

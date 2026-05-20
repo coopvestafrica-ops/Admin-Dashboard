@@ -1,163 +1,83 @@
 import { Router, type IRouter } from "express";
-import { eq, sql, count, and } from "drizzle-orm";
-import { db } from "@workspace/db";
-import { rolloversTable, rolloverGuarantorsTable, loansTable, membersTable } from "@workspace/db";
+import { supabase } from "@workspace/db";
 
 const router: IRouter = Router();
 
-// Get rollover eligibility for a loan
-router.get("/rollovers/:loanId/eligibility", async (req, res): Promise<void> => {
-  const loanId = parseInt(req.params.loanId, 10);
-  if (isNaN(loanId)) {
-    res.status(400).json({ success: false, message: "Invalid loan ID" });
+router.post("/rollovers/request", async (req, res): Promise<void> => {
+  const { loan_id, member_id, reason, new_tenure } = req.body;
+  if (!loan_id || !member_id || !reason || !new_tenure) {
+    res.status(400).json({ success: false, message: "loan_id, member_id, reason, new_tenure are required" });
     return;
   }
 
-  const [loan] = await db.select().from(loansTable).where(eq(loansTable.id, loanId));
-  if (!loan) {
-    res.status(404).json({ success: false, message: "Loan not found" });
-    return;
-  }
+  const { data: loan } = await supabase.from("loans").select("*").eq("id", loan_id).single();
+  if (!loan) { res.status(404).json({ success: false, message: "Loan not found" }); return; }
 
-  // Check eligibility: loan must be active with outstanding balance
-  const isEligible = loan.status === "active" && Number(loan.balance) > 0;
-  const balance = Number(loan.balance);
-  const rolloverFee = balance * 0.02; // 2% rollover fee
+  const outstandingBalance = Number(loan.remaining_balance ?? loan.amount);
+  const rolloverFee = outstandingBalance * 0.02;
+  const newMonthly = (outstandingBalance + rolloverFee) / new_tenure;
 
-  res.json({
-    success: true,
-    message: isEligible ? "Eligible for rollover" : "Not eligible for rollover",
-    eligibility: {
-      isEligible,
-      loanId: loan.loanId,
-      outstandingBalance: balance,
-      rolloverFee,
-      availableTenures: [3, 6, 12],
-      guarantorsRequired: 3,
-      reason: !isEligible ? "Loan must be active with outstanding balance" : null,
-    },
-  });
-});
+  const rolloverId = "ROL-" + String(Date.now()).slice(-7);
+  const { data: rollover, error } = await supabase.from("rollovers").insert({
+    rollover_id: rolloverId,
+    loan_id: loan.id,
+    profile_id: member_id,
+    original_amount: Number(loan.amount),
+    outstanding_balance: outstandingBalance,
+    rollover_fee: rolloverFee,
+    new_tenure,
+    new_monthly_payment: Number(newMonthly.toFixed(2)),
+    reason,
+    status: "pending_guarantors",
+  }).select().single();
 
-// Create a rollover request
-router.post("/rollovers/:loanId", async (req, res): Promise<void> => {
-  const loanId = parseInt(req.params.loanId, 10);
-  if (isNaN(loanId)) {
-    res.status(400).json({ success: false, message: "Invalid loan ID" });
-    return;
-  }
-
-  const { member_id, new_tenure, guarantors } = req.body;
-  if (!member_id || !new_tenure || !guarantors || guarantors.length < 3) {
-    res.status(400).json({ success: false, message: "member_id, new_tenure, and 3 guarantors are required" });
-    return;
-  }
-
-  const [loan] = await db.select().from(loansTable).where(eq(loansTable.id, loanId));
-  if (!loan) {
-    res.status(404).json({ success: false, message: "Loan not found" });
-    return;
-  }
-
-  const rolloverId = "RO-" + String(Date.now()).slice(-7);
-  const balance = Number(loan.balance);
-  const rolloverFee = balance * 0.02;
-  const monthlyPayment = (balance + rolloverFee) / new_tenure;
-
-  const [rollover] = await db.insert(rolloversTable).values({
-    rolloverId,
-    loanId,
-    memberId: Number(member_id),
-    originalAmount: loan.amount,
-    outstandingBalance: String(balance),
-    rolloverFee: String(rolloverFee),
-    newTenure: new_tenure,
-    newMonthlyPayment: String(monthlyPayment.toFixed(2)),
-    status: "awaiting_guarantors",
-  }).returning();
-
-  // Add guarantors
-  for (const g of guarantors) {
-    await db.insert(rolloverGuarantorsTable).values({
-      rolloverId: rollover.id,
-      guarantorId: Number(g.guarantor_id),
-      guarantorName: g.guarantor_name,
-      guarantorPhone: g.guarantor_phone,
-      status: "pending",
-    });
-  }
+  if (error) { res.status(500).json({ success: false, message: error.message }); return; }
 
   res.status(201).json({
     success: true,
-    message: "Rollover request created successfully",
+    message: "Rollover requested",
     rollover: {
-      ...rollover,
-      outstandingBalance: Number(rollover.outstandingBalance),
-      rolloverFee: Number(rollover.rolloverFee),
-      newMonthlyPayment: rollover.newMonthlyPayment ? Number(rollover.newMonthlyPayment) : undefined,
+      id: rollover.id,
+      rolloverId: rollover.rollover_id,
+      loanId: rollover.loan_id,
+      memberId: rollover.profile_id,
+      originalAmount: Number(rollover.original_amount),
+      outstandingBalance: Number(rollover.outstanding_balance),
+      rolloverFee: Number(rollover.rollover_fee),
+      newTenure: rollover.new_tenure,
+      newMonthlyPayment: Number(rollover.new_monthly_payment),
+      status: rollover.status,
+      createdAt: rollover.created_at,
     },
   });
 });
 
-// Get rollover details
 router.get("/rollovers/:rolloverId", async (req, res): Promise<void> => {
   const rolloverId = req.params.rolloverId;
+  const { data: rollover } = await supabase.from("rollovers").select("*, profiles!rollovers_profile_id_fkey(name)").eq("rollover_id", rolloverId).single();
+  if (!rollover) { res.status(404).json({ success: false, message: "Rollover not found" }); return; }
 
-  const [rollover] = await db
-    .select()
-    .from(rolloversTable)
-    .where(eq(rolloversTable.rolloverId, rolloverId));
-
-  if (!rollover) {
-    res.status(404).json({ success: false, message: "Rollover not found" });
-    return;
-  }
-
-  const guarantors = await db
-    .select()
-    .from(rolloverGuarantorsTable)
-    .where(eq(rolloverGuarantorsTable.rolloverId, rollover.id));
-
+  const profile = rollover.profiles as unknown as { name: string } | null;
   res.json({
     success: true,
-    message: "Rollover details retrieved",
     rollover: {
-      ...rollover,
-      outstandingBalance: Number(rollover.outstandingBalance),
-      rolloverFee: Number(rollover.rolloverFee),
-      newMonthlyPayment: rollover.newMonthlyPayment ? Number(rollover.newMonthlyPayment) : undefined,
+      id: rollover.id,
+      rolloverId: rollover.rollover_id,
+      loanId: rollover.loan_id,
+      memberId: rollover.profile_id,
+      memberName: profile?.name ?? "",
+      originalAmount: Number(rollover.original_amount),
+      outstandingBalance: Number(rollover.outstanding_balance),
+      rolloverFee: Number(rollover.rollover_fee),
+      newTenure: rollover.new_tenure,
+      newMonthlyPayment: rollover.new_monthly_payment ? Number(rollover.new_monthly_payment) : undefined,
+      status: rollover.status,
+      reason: rollover.reason,
+      createdAt: rollover.created_at,
     },
-    guarantors,
   });
 });
 
-// Get member's rollovers
-router.get("/members/:memberId/rollovers", async (req, res): Promise<void> => {
-  const memberId = parseInt(req.params.memberId, 10);
-  if (isNaN(memberId)) {
-    res.status(400).json({ success: false, message: "Invalid member ID" });
-    return;
-  }
-
-  const rollovers = await db
-    .select()
-    .from(rolloversTable)
-    .where(eq(rolloversTable.memberId, memberId))
-    .orderBy(sql`${rolloversTable.createdAt} DESC`);
-
-  res.json({
-    success: true,
-    message: "Member rollovers retrieved",
-    rollovers: rollovers.map(r => ({
-      ...r,
-      outstandingBalance: Number(r.outstandingBalance),
-      rolloverFee: Number(r.rolloverFee),
-      newMonthlyPayment: r.newMonthlyPayment ? Number(r.newMonthlyPayment) : undefined,
-    })),
-  });
-});
-
-// Add guarantor to rollover
 router.post("/rollovers/:rolloverId/guarantors", async (req, res): Promise<void> => {
   const rolloverId = req.params.rolloverId;
   const { guarantor_id, guarantor_name, guarantor_phone } = req.body;
@@ -167,61 +87,33 @@ router.post("/rollovers/:rolloverId/guarantors", async (req, res): Promise<void>
     return;
   }
 
-  const [rollover] = await db
-    .select()
-    .from(rolloversTable)
-    .where(eq(rolloversTable.rolloverId, rolloverId));
+  const { data: rollover } = await supabase.from("rollovers").select("id").eq("rollover_id", rolloverId).single();
+  if (!rollover) { res.status(404).json({ success: false, message: "Rollover not found" }); return; }
 
-  if (!rollover) {
-    res.status(404).json({ success: false, message: "Rollover not found" });
-    return;
-  }
-
-  const [guarantor] = await db.insert(rolloverGuarantorsTable).values({
-    rolloverId: rollover.id,
-    guarantorId: Number(guarantor_id),
-    guarantorName: guarantor_name,
-    guarantorPhone: guarantor_phone,
+  const { data: guarantor, error } = await supabase.from("loan_guarantors").insert({
+    loan_id: rollover.id,
+    guarantor_id,
+    name: guarantor_name,
+    phone: guarantor_phone,
     status: "pending",
-  }).returning();
+  }).select().single();
 
-  res.status(201).json({
-    success: true,
-    message: "Guarantor added successfully",
-    guarantor,
-  });
+  if (error) { res.status(500).json({ success: false, message: error.message }); return; }
+  res.status(201).json({ success: true, message: "Guarantor added successfully", guarantor });
 });
 
-// Get rollover guarantors
 router.get("/rollovers/:rolloverId/guarantors", async (req, res): Promise<void> => {
   const rolloverId = req.params.rolloverId;
+  const { data: rollover } = await supabase.from("rollovers").select("id").eq("rollover_id", rolloverId).single();
+  if (!rollover) { res.status(404).json({ success: false, message: "Rollover not found" }); return; }
 
-  const [rollover] = await db
-    .select()
-    .from(rolloversTable)
-    .where(eq(rolloversTable.rolloverId, rolloverId));
-
-  if (!rollover) {
-    res.status(404).json({ success: false, message: "Rollover not found" });
-    return;
-  }
-
-  const guarantors = await db
-    .select()
-    .from(rolloverGuarantorsTable)
-    .where(eq(rolloverGuarantorsTable.rolloverId, rollover.id));
-
-  res.json({
-    success: true,
-    message: "Guarantors retrieved",
-    guarantors,
-  });
+  const { data: guarantors } = await supabase.from("loan_guarantors").select("*").eq("loan_id", rollover.id);
+  res.json({ success: true, message: "Guarantors retrieved", guarantors: guarantors ?? [] });
 });
 
-// Guarantor responds to consent request
 router.post("/rollovers/:rolloverId/guarantors/:guarantorId/respond", async (req, res): Promise<void> => {
   const rolloverId = req.params.rolloverId;
-  const guarantorId = parseInt(req.params.guarantorId, 10);
+  const guarantorId = req.params.guarantorId;
   const { accepted, reason } = req.body;
 
   if (typeof accepted !== "boolean") {
@@ -229,52 +121,34 @@ router.post("/rollovers/:rolloverId/guarantors/:guarantorId/respond", async (req
     return;
   }
 
-  const [rollover] = await db
+  const { data: rollover } = await supabase.from("rollovers").select("id").eq("rollover_id", rolloverId).single();
+  if (!rollover) { res.status(404).json({ success: false, message: "Rollover not found" }); return; }
+
+  const updatedFields: Record<string, unknown> = {
+    status: accepted ? "accepted" : "declined",
+  };
+  if (!accepted && reason) updatedFields.decline_reason = reason;
+
+  const { data: updatedGuarantor, error } = await supabase
+    .from("loan_guarantors")
+    .update(updatedFields)
+    .eq("id", guarantorId)
+    .eq("loan_id", rollover.id)
     .select()
-    .from(rolloversTable)
-    .where(eq(rolloversTable.rolloverId, rolloverId));
+    .single();
 
-  if (!rollover) {
-    res.status(404).json({ success: false, message: "Rollover not found" });
-    return;
-  }
-
-  const [updatedGuarantor] = await db
-    .update(rolloverGuarantorsTable)
-    .set({
-      status: accepted ? "accepted" : "declined",
-      declineReason: !accepted ? reason : null,
-      respondedAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(rolloverGuarantorsTable.rolloverId, rollover.id),
-        eq(rolloverGuarantorsTable.guarantorId, guarantorId)
-      )
-    )
-    .returning();
-
-  if (!updatedGuarantor) {
+  if (error || !updatedGuarantor) {
     res.status(404).json({ success: false, message: "Guarantor not found" });
     return;
   }
 
-  // Check consent status
-  const guarantors = await db
-    .select()
-    .from(rolloverGuarantorsTable)
-    .where(eq(rolloverGuarantorsTable.rolloverId, rollover.id));
-
-  const acceptedCount = guarantors.filter(g => g.status === "accepted").length;
-  const declinedCount = guarantors.filter(g => g.status === "declined").length;
+  const { data: guarantors } = await supabase.from("loan_guarantors").select("*").eq("loan_id", rollover.id);
+  const acceptedCount = (guarantors ?? []).filter(g => g.status === "accepted").length;
+  const declinedCount = (guarantors ?? []).filter(g => g.status === "declined").length;
   const allConsented = acceptedCount >= 3;
 
-  // Update rollover status if all guarantors consented
   if (allConsented) {
-    await db.update(rolloversTable)
-      .set({ status: "awaiting_admin_approval", updatedAt: new Date() })
-      .where(eq(rolloversTable.id, rollover.id));
+    await supabase.from("rollovers").update({ status: "awaiting_admin_approval" }).eq("id", rollover.id);
   }
 
   res.json({
@@ -287,41 +161,33 @@ router.post("/rollovers/:rolloverId/guarantors/:guarantorId/respond", async (req
   });
 });
 
-// Cancel rollover
 router.post("/rollovers/:rolloverId/cancel", async (req, res): Promise<void> => {
   const rolloverId = req.params.rolloverId;
   const { reason } = req.body;
 
-  const [rollover] = await db
-    .update(rolloversTable)
-    .set({
-      status: "cancelled",
-      rejectionReason: reason || "Cancelled by member",
-      updatedAt: new Date(),
-    })
-    .where(eq(rolloversTable.rolloverId, rolloverId))
-    .returning();
+  const { data: rollover, error } = await supabase
+    .from("rollovers")
+    .update({ status: "cancelled", rejection_reason: reason || "Cancelled by member" })
+    .eq("rollover_id", rolloverId)
+    .select()
+    .single();
 
-  if (!rollover) {
-    res.status(404).json({ success: false, message: "Rollover not found" });
-    return;
-  }
+  if (error || !rollover) { res.status(404).json({ success: false, message: "Rollover not found" }); return; }
 
   res.json({
     success: true,
     message: "Rollover cancelled",
     rollover: {
       ...rollover,
-      outstandingBalance: Number(rollover.outstandingBalance),
-      rolloverFee: Number(rollover.rolloverFee),
+      outstandingBalance: Number(rollover.outstanding_balance),
+      rolloverFee: Number(rollover.rollover_fee),
     },
   });
 });
 
-// Replace guarantor
 router.put("/rollovers/:rolloverId/guarantors/:guarantorId", async (req, res): Promise<void> => {
   const rolloverId = req.params.rolloverId;
-  const oldGuarantorId = parseInt(req.params.guarantorId, 10);
+  const oldGuarantorId = req.params.guarantorId;
   const { guarantor_id, guarantor_name, guarantor_phone } = req.body;
 
   if (!guarantor_id || !guarantor_name || !guarantor_phone) {
@@ -329,175 +195,130 @@ router.put("/rollovers/:rolloverId/guarantors/:guarantorId", async (req, res): P
     return;
   }
 
-  const [rollover] = await db
-    .select()
-    .from(rolloversTable)
-    .where(eq(rolloversTable.rolloverId, rolloverId));
+  const { data: rollover } = await supabase.from("rollovers").select("id").eq("rollover_id", rolloverId).single();
+  if (!rollover) { res.status(404).json({ success: false, message: "Rollover not found" }); return; }
 
-  if (!rollover) {
-    res.status(404).json({ success: false, message: "Rollover not found" });
-    return;
-  }
+  await supabase.from("loan_guarantors").delete().eq("id", oldGuarantorId).eq("loan_id", rollover.id);
 
-  // Remove old guarantor
-  await db.delete(rolloverGuarantorsTable)
-    .where(
-      and(
-        eq(rolloverGuarantorsTable.rolloverId, rollover.id),
-        eq(rolloverGuarantorsTable.guarantorId, oldGuarantorId)
-      )
-    );
-
-  // Add new guarantor
-  const [newGuarantor] = await db.insert(rolloverGuarantorsTable).values({
-    rolloverId: rollover.id,
-    guarantorId: Number(guarantor_id),
-    guarantorName: guarantor_name,
-    guarantorPhone: guarantor_phone,
+  const { data: newGuarantor } = await supabase.from("loan_guarantors").insert({
+    loan_id: rollover.id,
+    guarantor_id,
+    name: guarantor_name,
+    phone: guarantor_phone,
     status: "pending",
-  }).returning();
+  }).select().single();
 
-  const guarantors = await db
-    .select()
-    .from(rolloverGuarantorsTable)
-    .where(eq(rolloverGuarantorsTable.rolloverId, rollover.id));
+  const { data: guarantors } = await supabase.from("loan_guarantors").select("*").eq("loan_id", rollover.id);
 
   res.json({
     success: true,
     message: "Guarantor replaced successfully",
     new_guarantor: newGuarantor,
-    guarantors,
+    guarantors: guarantors ?? [],
   });
 });
 
-// Admin: Approve rollover
 router.post("/rollovers/:rolloverId/approve", async (req, res): Promise<void> => {
   const rolloverId = req.params.rolloverId;
   const { admin_id, notes } = req.body;
 
-  const [rollover] = await db
-    .update(rolloversTable)
-    .set({
+  const { data: rollover, error } = await supabase
+    .from("rollovers")
+    .update({
       status: "approved",
-      approvedAt: new Date(),
-      approvedBy: admin_id ? Number(admin_id) : null,
-      adminNotes: notes,
-      updatedAt: new Date(),
+      approved_at: new Date().toISOString(),
+      approved_by: admin_id ?? null,
+      admin_notes: notes ?? null,
     })
-    .where(eq(rolloversTable.rolloverId, rolloverId))
-    .returning();
+    .eq("rollover_id", rolloverId)
+    .select()
+    .single();
 
-  if (!rollover) {
-    res.status(404).json({ success: false, message: "Rollover not found" });
-    return;
-  }
+  if (error || !rollover) { res.status(404).json({ success: false, message: "Rollover not found" }); return; }
 
-  // Update the loan with new tenure and dates
   const now = new Date();
   const dueDate = new Date(now);
-  dueDate.setMonth(dueDate.getMonth() + rollover.newTenure);
+  dueDate.setMonth(dueDate.getMonth() + rollover.new_tenure);
 
-  await db.update(loansTable)
-    .set({
-      tenure: rollover.newTenure,
-      monthlyPayment: rollover.newMonthlyPayment,
-      dueDate: dueDate.toISOString().slice(0, 10),
-      nextPaymentDate: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString().slice(0, 10),
-    })
-    .where(eq(loansTable.id, rollover.loanId));
+  await supabase.from("loans").update({
+    tenure_months: rollover.new_tenure,
+    monthly_repayment: rollover.new_monthly_payment,
+    next_due_date: dueDate.toISOString().slice(0, 10),
+  }).eq("id", rollover.loan_id);
 
   res.json({
     success: true,
     message: "Rollover approved successfully",
     rollover: {
       ...rollover,
-      outstandingBalance: Number(rollover.outstandingBalance),
-      rolloverFee: Number(rollover.rolloverFee),
-      newMonthlyPayment: rollover.newMonthlyPayment ? Number(rollover.newMonthlyPayment) : undefined,
+      outstandingBalance: Number(rollover.outstanding_balance),
+      rolloverFee: Number(rollover.rollover_fee),
+      newMonthlyPayment: rollover.new_monthly_payment ? Number(rollover.new_monthly_payment) : undefined,
     },
   });
 });
 
-// Admin: Reject rollover
 router.post("/rollovers/:rolloverId/reject", async (req, res): Promise<void> => {
   const rolloverId = req.params.rolloverId;
   const { reason, admin_id } = req.body;
 
-  if (!reason) {
-    res.status(400).json({ success: false, message: "reason is required" });
-    return;
-  }
+  if (!reason) { res.status(400).json({ success: false, message: "reason is required" }); return; }
 
-  const [rollover] = await db
-    .update(rolloversTable)
-    .set({
+  const { data: rollover, error } = await supabase
+    .from("rollovers")
+    .update({
       status: "rejected",
-      rejectionReason: reason,
-      approvedBy: admin_id ? Number(admin_id) : null,
-      updatedAt: new Date(),
+      rejection_reason: reason,
+      approved_by: admin_id ?? null,
     })
-    .where(eq(rolloversTable.rolloverId, rolloverId))
-    .returning();
+    .eq("rollover_id", rolloverId)
+    .select()
+    .single();
 
-  if (!rollover) {
-    res.status(404).json({ success: false, message: "Rollover not found" });
-    return;
-  }
+  if (error || !rollover) { res.status(404).json({ success: false, message: "Rollover not found" }); return; }
 
   res.json({
     success: true,
     message: "Rollover rejected",
     rollover: {
       ...rollover,
-      outstandingBalance: Number(rollover.outstandingBalance),
-      rolloverFee: Number(rollover.rolloverFee),
+      outstandingBalance: Number(rollover.outstanding_balance),
+      rolloverFee: Number(rollover.rollover_fee),
     },
   });
 });
 
-// Admin: Get all pending rollovers
 router.get("/rollovers", async (req, res): Promise<void> => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
   const status = req.query.status as string | undefined;
 
-  let whereClause = sql`1=1`;
-  if (status) whereClause = sql`${whereClause} AND ${rolloversTable.status} = ${status}`;
+  let query = supabase.from("rollovers").select("*, profiles!rollovers_profile_id_fkey(name)", { count: "exact" });
+  if (status) query = query.eq("status", status);
 
-  const [totalResult] = await db.select({ count: count() }).from(rolloversTable).where(whereClause);
+  const { data: rollovers, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
 
-  const rollovers = await db
-    .select({
-      id: rolloversTable.id,
-      rolloverId: rolloversTable.rolloverId,
-      loanId: rolloversTable.loanId,
-      memberId: rolloversTable.memberId,
-      memberName: sql<string>`${membersTable.firstName} || ' ' || ${membersTable.lastName}`,
-      originalAmount: rolloversTable.originalAmount,
-      outstandingBalance: rolloversTable.outstandingBalance,
-      rolloverFee: rolloversTable.rolloverFee,
-      newTenure: rolloversTable.newTenure,
-      newMonthlyPayment: rolloversTable.newMonthlyPayment,
-      status: rolloversTable.status,
-      createdAt: rolloversTable.createdAt,
-    })
-    .from(rolloversTable)
-    .innerJoin(membersTable, eq(rolloversTable.memberId, membersTable.id))
-    .where(whereClause)
-    .orderBy(sql`${rolloversTable.createdAt} DESC`)
-    .limit(limit)
-    .offset(offset);
+  if (error) { res.status(500).json({ error: error.message }); return; }
 
   res.json({
-    data: rollovers.map(r => ({
-      ...r,
-      originalAmount: Number(r.originalAmount),
-      outstandingBalance: Number(r.outstandingBalance),
-      rolloverFee: Number(r.rolloverFee),
-      newMonthlyPayment: r.newMonthlyPayment ? Number(r.newMonthlyPayment) : undefined,
+    data: (rollovers ?? []).map(r => ({
+      id: r.id,
+      rolloverId: r.rollover_id,
+      loanId: r.loan_id,
+      memberId: r.profile_id,
+      memberName: (r.profiles as unknown as { name: string } | null)?.name ?? "",
+      originalAmount: Number(r.original_amount),
+      outstandingBalance: Number(r.outstanding_balance),
+      rolloverFee: Number(r.rollover_fee),
+      newTenure: r.new_tenure,
+      newMonthlyPayment: r.new_monthly_payment ? Number(r.new_monthly_payment) : undefined,
+      status: r.status,
+      createdAt: r.created_at,
     })),
-    total: Number(totalResult.count),
+    total: count ?? 0,
     page,
     limit,
   });

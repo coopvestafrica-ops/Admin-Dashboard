@@ -1,16 +1,25 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
-import * as schema from "./schema";
+import { createClient } from "@supabase/supabase-js";
 
-const { Pool } = pg;
+const supabaseUrl = process.env["SUPABASE_URL"];
+const supabaseKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
 
-if (!process.env.DATABASE_URL) {
+if (!supabaseUrl || !supabaseKey) {
   throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
+    "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set.",
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle(pool, { schema });
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
-export * from "./schema";
+export function splitName(name: string | null): { firstName: string; lastName: string } {
+  if (!name) return { firstName: "", lastName: "" };
+  const parts = name.trim().split(/\s+/);
+  return { firstName: parts[0] ?? "", lastName: parts.slice(1).join(" ") || "" };
+}
+
+export function deriveStatus(row: { is_active?: boolean; is_flagged?: boolean; kyc_verified?: boolean }): string {
+  if (row.is_flagged) return "suspended";
+  if (!row.is_active) return "inactive";
+  if (row.kyc_verified) return "active";
+  return "pending";
+}

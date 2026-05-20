@@ -1,92 +1,128 @@
 import { Router, type IRouter } from "express";
-import { eq, sql, count } from "drizzle-orm";
-import { db } from "@workspace/db";
-import { supportTicketsTable, membersTable } from "@workspace/db";
+import { supabase } from "@workspace/db";
 
 const router: IRouter = Router();
 
-router.get("/support/tickets", async (req, res): Promise<void> => {
+router.get("/support-tickets/summary", async (req, res): Promise<void> => {
+  const { count: total } = await supabase.from("tickets").select("*", { count: "exact", head: true });
+  const { count: open } = await supabase.from("tickets").select("*", { count: "exact", head: true }).eq("status", "open");
+  const { count: inProgress } = await supabase.from("tickets").select("*", { count: "exact", head: true }).eq("status", "in_progress");
+  const { count: resolved } = await supabase.from("tickets").select("*", { count: "exact", head: true }).eq("status", "resolved");
+  const { count: closed } = await supabase.from("tickets").select("*", { count: "exact", head: true }).eq("status", "closed");
+
+  res.json({
+    total: total ?? 0,
+    open: open ?? 0,
+    inProgress: inProgress ?? 0,
+    resolved: resolved ?? 0,
+    closed: closed ?? 0,
+  });
+});
+
+router.get("/support-tickets", async (req, res): Promise<void> => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
   const status = req.query.status as string | undefined;
   const priority = req.query.priority as string | undefined;
 
-  let whereClause = sql`1=1`;
-  if (status) whereClause = sql`${whereClause} AND ${supportTicketsTable.status} = ${status}`;
-  if (priority) whereClause = sql`${whereClause} AND ${supportTicketsTable.priority} = ${priority}`;
+  let query = supabase.from("tickets").select("*, profiles!tickets_profile_id_fkey(name, user_id)", { count: "exact" });
+  if (status) query = query.eq("status", status);
+  if (priority) query = query.eq("priority", priority);
 
-  const [totalResult] = await db.select({ count: count() }).from(supportTicketsTable).where(whereClause);
+  const { data: tickets, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
 
-  const tickets = await db
-    .select({
-      id: supportTicketsTable.id,
-      ticketId: supportTicketsTable.ticketId,
-      memberId: supportTicketsTable.memberId,
-      memberName: sql<string>`${membersTable.firstName} || ' ' || ${membersTable.lastName}`,
-      subject: supportTicketsTable.subject,
-      description: supportTicketsTable.description,
-      status: supportTicketsTable.status,
-      priority: supportTicketsTable.priority,
-      category: supportTicketsTable.category,
-      assignedTo: supportTicketsTable.assignedTo,
-      createdAt: supportTicketsTable.createdAt,
-      updatedAt: supportTicketsTable.updatedAt,
-      resolvedAt: supportTicketsTable.resolvedAt,
-    })
-    .from(supportTicketsTable)
-    .innerJoin(membersTable, eq(supportTicketsTable.memberId, membersTable.id))
-    .where(whereClause)
-    .orderBy(sql`${supportTicketsTable.createdAt} DESC`)
-    .limit(limit)
-    .offset(offset);
+  if (error) { res.status(500).json({ error: error.message }); return; }
 
   res.json({
-    data: tickets,
-    total: Number(totalResult.count),
+    data: (tickets ?? []).map(t => {
+      const profile = t.profiles as unknown as { name: string; user_id: string } | null;
+      return {
+        id: t.id,
+        ticketId: t.ticket_id,
+        memberId: t.profile_id,
+        memberName: profile?.name ?? "",
+        subject: t.subject,
+        description: t.description,
+        status: t.status,
+        priority: t.priority ?? "medium",
+        assignedTo: t.assigned_to ?? null,
+        createdAt: t.created_at,
+        updatedAt: t.updated_at ?? t.created_at,
+      };
+    }),
+    total: count ?? 0,
     page,
     limit,
   });
 });
 
-router.get("/support/tickets/:id", async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+router.get("/support-tickets/:id", async (req, res): Promise<void> => {
+  const id = req.params.id;
+  const { data: ticket, error } = await supabase.from("tickets").select("*, profiles!tickets_profile_id_fkey(name)").eq("id", id).single();
+  if (error || !ticket) { res.status(404).json({ error: "Ticket not found" }); return; }
 
-  const [ticket] = await db
-    .select({
-      id: supportTicketsTable.id,
-      ticketId: supportTicketsTable.ticketId,
-      memberId: supportTicketsTable.memberId,
-      memberName: sql<string>`${membersTable.firstName} || ' ' || ${membersTable.lastName}`,
-      subject: supportTicketsTable.subject,
-      description: supportTicketsTable.description,
-      status: supportTicketsTable.status,
-      priority: supportTicketsTable.priority,
-      category: supportTicketsTable.category,
-      assignedTo: supportTicketsTable.assignedTo,
-      createdAt: supportTicketsTable.createdAt,
-      updatedAt: supportTicketsTable.updatedAt,
-      resolvedAt: supportTicketsTable.resolvedAt,
-    })
-    .from(supportTicketsTable)
-    .innerJoin(membersTable, eq(supportTicketsTable.memberId, membersTable.id))
-    .where(eq(supportTicketsTable.id, id));
+  const { data: messages } = await supabase.from("ticket_messages").select("*").eq("ticket_id", ticket.id).order("created_at", { ascending: true });
 
-  if (!ticket) { res.status(404).json({ error: "Ticket not found" }); return; }
-  res.json(ticket);
+  const profile = ticket.profiles as unknown as { name: string } | null;
+  res.json({
+    id: ticket.id,
+    ticketId: ticket.ticket_id,
+    memberId: ticket.profile_id,
+    memberName: profile?.name ?? "",
+    subject: ticket.subject,
+    description: ticket.description,
+    status: ticket.status,
+    priority: ticket.priority ?? "medium",
+    assignedTo: ticket.assigned_to ?? null,
+    createdAt: ticket.created_at,
+    updatedAt: ticket.updated_at ?? ticket.created_at,
+    messages: (messages ?? []).map(m => ({
+      id: m.id,
+      senderId: m.sender_id,
+      senderType: m.sender_type,
+      message: m.message,
+      createdAt: m.created_at,
+    })),
+  });
 });
 
-router.post("/support/:id/resolve", async (req, res): Promise<void> => {
-  const id = Number(req.params.id);
-  const [updated] = await db
-    .update(supportTicketsTable)
-    .set({ status: "resolved", resolvedAt: new Date() })
-    .where(eq(supportTicketsTable.id, id))
-    .returning();
-  if (!updated) { res.status(404).json({ error: "Not found" }); return; }
-  res.json(updated);
+router.post("/support-tickets/:id/reply", async (req, res): Promise<void> => {
+  const id = req.params.id;
+  const { message } = req.body;
+  if (!message) { res.status(400).json({ error: "message is required" }); return; }
+
+  const { data: msg, error } = await supabase.from("ticket_messages").insert({
+    ticket_id: id,
+    sender_type: "admin",
+    message,
+  }).select().single();
+
+  if (error) { res.status(500).json({ error: error.message }); return; }
+
+  await supabase.from("tickets").update({ status: "in_progress", updated_at: new Date().toISOString() }).eq("id", id);
+
+  res.status(201).json({
+    id: msg.id,
+    senderId: msg.sender_id,
+    senderType: msg.sender_type,
+    message: msg.message,
+    createdAt: msg.created_at,
+  });
+});
+
+router.post("/support-tickets/:id/close", async (req, res): Promise<void> => {
+  const id = req.params.id;
+  const { data: ticket, error } = await supabase.from("tickets").update({
+    status: "closed",
+    closed_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }).eq("id", id).select().single();
+
+  if (error || !ticket) { res.status(404).json({ error: "Ticket not found" }); return; }
+  res.json({ id: ticket.id, status: ticket.status });
 });
 
 export default router;

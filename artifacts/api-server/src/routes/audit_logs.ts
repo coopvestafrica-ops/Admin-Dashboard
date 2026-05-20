@@ -1,7 +1,5 @@
 import { Router, type IRouter } from "express";
-import { sql, count } from "drizzle-orm";
-import { db } from "@workspace/db";
-import { auditLogsTable } from "@workspace/db";
+import { supabase } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -10,24 +8,30 @@ router.get("/audit-logs", async (req, res): Promise<void> => {
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
   const action = req.query.action as string | undefined;
-  const adminId = req.query.adminId ? Number(req.query.adminId) : undefined;
+  const entity = req.query.entity as string | undefined;
 
-  let whereClause = sql`1=1`;
-  if (action) whereClause = sql`${whereClause} AND ${auditLogsTable.action} ILIKE ${"%" + action + "%"}`;
-  if (adminId) whereClause = sql`${whereClause} AND ${auditLogsTable.adminId} = ${adminId}`;
+  let query = supabase.from("audit_logs").select("*", { count: "exact" });
+  if (action) query = query.eq("action", action);
+  if (entity) query = query.eq("entity_type", entity);
 
-  const [totalResult] = await db.select({ count: count() }).from(auditLogsTable).where(whereClause);
-  const logs = await db
-    .select()
-    .from(auditLogsTable)
-    .where(whereClause)
-    .orderBy(sql`${auditLogsTable.createdAt} DESC`)
-    .limit(limit)
-    .offset(offset);
+  const { data: logs, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) { res.status(500).json({ error: error.message }); return; }
 
   res.json({
-    data: logs,
-    total: Number(totalResult.count),
+    data: (logs ?? []).map(l => ({
+      id: l.id,
+      action: l.action,
+      entity: l.entity_type,
+      entityId: l.entity_id,
+      userId: l.profile_id,
+      details: l.description ?? l.metadata ?? null,
+      ipAddress: l.ip_address ?? null,
+      createdAt: l.created_at,
+    })),
+    total: count ?? 0,
     page,
     limit,
   });
