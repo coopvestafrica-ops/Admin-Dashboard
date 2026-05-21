@@ -19,6 +19,18 @@ import InterestRates from "@/pages/interest-rates/index";
 import AuditLogs from "@/pages/audit-logs/index";
 import Settings from "@/pages/settings";
 import Payroll from "@/pages/payroll/index";
+// New command-center modules
+import MobileFeatureControls from "@/pages/mobile-feature-controls/index";
+import RoleManagement from "@/pages/role-management/index";
+import FraudDetection from "@/pages/fraud-detection/index";
+import Organizations from "@/pages/organizations/index";
+import PlatformAnalytics from "@/pages/platform-analytics/index";
+import SecurityAccess from "@/pages/security-access/index";
+import WalletManagement from "@/pages/wallet-management/index";
+import WithdrawalManagement from "@/pages/withdrawal-management/index";
+import UserVerification from "@/pages/user-verification/index";
+import ReferralProgram from "@/pages/referral-program/index";
+import GuarantorSystem from "@/pages/guarantor-system/index";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +55,18 @@ function Router() {
       <Route path="/audit-logs">{() => <ProtectedRoute component={AuditLogs} />}</Route>
       <Route path="/settings">{() => <ProtectedRoute component={Settings} />}</Route>
       <Route path="/payroll">{() => <ProtectedRoute component={Payroll} />}</Route>
+      {/* Command-center modules */}
+      <Route path="/mobile-feature-controls">{() => <ProtectedRoute component={MobileFeatureControls} />}</Route>
+      <Route path="/role-management">{() => <ProtectedRoute component={RoleManagement} />}</Route>
+      <Route path="/fraud-detection">{() => <ProtectedRoute component={FraudDetection} />}</Route>
+      <Route path="/organizations">{() => <ProtectedRoute component={Organizations} />}</Route>
+      <Route path="/platform-analytics">{() => <ProtectedRoute component={PlatformAnalytics} />}</Route>
+      <Route path="/security-access">{() => <ProtectedRoute component={SecurityAccess} />}</Route>
+      <Route path="/wallet-management">{() => <ProtectedRoute component={WalletManagement} />}</Route>
+      <Route path="/withdrawal-management">{() => <ProtectedRoute component={WithdrawalManagement} />}</Route>
+      <Route path="/user-verification">{() => <ProtectedRoute component={UserVerification} />}</Route>
+      <Route path="/referral-program">{() => <ProtectedRoute component={ReferralProgram} />}</Route>
+      <Route path="/guarantor-system">{() => <ProtectedRoute component={GuarantorSystem} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );
