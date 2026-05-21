@@ -46,7 +46,6 @@ export default function Support() {
   const { toast } = useToast();
 
   const { data, isLoading } = useGetSupportTickets({
-    search: search || undefined,
     status: (status as "open" | "in_progress" | "resolved" | "closed") || undefined,
     page,
     limit: 20,

@@ -37,7 +37,6 @@ export default function AuditLogs() {
   const [page, setPage] = useState(1);
 
   const { data, isLoading } = useGetAuditLogs({
-    search: search || undefined,
     action: action || undefined,
     page,
     limit: 25,
@@ -120,10 +119,10 @@ export default function AuditLogs() {
                           <span className="font-medium text-sm">{log.adminName}</span>
                           <span className="text-muted-foreground text-sm">•</span>
                           <span className="text-sm capitalize">{log.action.replace(/_/g, " ")}</span>
-                          {log.entityType && (
+                          {log.resource && (
                             <>
                               <span className="text-muted-foreground text-sm">on</span>
-                              <span className="text-sm font-mono text-muted-foreground">{log.entityType}#{log.entityId}</span>
+                              <span className="text-sm font-mono text-muted-foreground">{log.resource}#{log.resourceId}</span>
                             </>
                           )}
                         </div>

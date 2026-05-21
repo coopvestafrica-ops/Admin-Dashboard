@@ -29,7 +29,6 @@ export default function Loans() {
   const { toast } = useToast();
 
   const { data, isLoading, refetch } = useGetLoans({
-    search: search || undefined,
     status: (status as "pending" | "active" | "repaid" | "defaulted" | "rejected") || undefined,
     page,
     limit: 20,
@@ -49,7 +48,7 @@ export default function Loans() {
   };
 
   const handleReject = (id: number) => {
-    rejectLoan({ id }, {
+    rejectLoan({ id, data: { reason: "Rejected by admin" } }, {
       onSuccess: () => {
         toast({ title: "Loan rejected", description: "The loan application has been rejected." });
         refetch();
@@ -162,7 +161,7 @@ export default function Loans() {
                           <td className="py-3 text-muted-foreground max-w-[160px] truncate">{loan.purpose}</td>
                           <td className="py-3 text-right font-semibold">{formatCurrency(loan.amount)}</td>
                           <td className="py-3 text-right text-muted-foreground">{loan.interestRate}%</td>
-                          <td className="py-3 text-right text-muted-foreground">{loan.durationMonths}mo</td>
+                          <td className="py-3 text-right text-muted-foreground">{loan.tenure}mo</td>
                           <td className="py-3">
                             <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${cfg.className}`}>
                               {cfg.label}

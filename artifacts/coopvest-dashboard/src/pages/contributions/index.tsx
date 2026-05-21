@@ -22,8 +22,6 @@ export default function Contributions() {
 
   const { data: summary, isLoading: loadingSummary } = useGetContributionSummary();
   const { data, isLoading } = useGetContributions({
-    search: search || undefined,
-    status: (status as "paid" | "pending" | "overdue") || undefined,
     page,
     limit: 20,
   });
