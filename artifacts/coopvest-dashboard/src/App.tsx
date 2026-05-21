@@ -2,6 +2,7 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
@@ -24,21 +25,24 @@ const queryClient = new QueryClient();
 function Router() {
   return (
     <Switch>
+      {/* Public */}
       <Route path="/" component={Login} />
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/members" component={Members} />
-      <Route path="/members/:id" component={MemberProfile} />
-      <Route path="/loans" component={Loans} />
-      <Route path="/contributions" component={Contributions} />
-      <Route path="/investments" component={Investments} />
-      <Route path="/compliance" component={Compliance} />
-      <Route path="/notifications" component={Notifications} />
-      <Route path="/support" component={Support} />
-      <Route path="/risk-scoring" component={RiskScoring} />
-      <Route path="/interest-rates" component={InterestRates} />
-      <Route path="/audit-logs" component={AuditLogs} />
-      <Route path="/settings" component={Settings} />
-      <Route path="/payroll" component={Payroll} />
+
+      {/* Protected — session required */}
+      <Route path="/dashboard">{() => <ProtectedRoute component={Dashboard} />}</Route>
+      <Route path="/members">{() => <ProtectedRoute component={Members} />}</Route>
+      <Route path="/members/:id">{() => <ProtectedRoute component={MemberProfile} />}</Route>
+      <Route path="/loans">{() => <ProtectedRoute component={Loans} />}</Route>
+      <Route path="/contributions">{() => <ProtectedRoute component={Contributions} />}</Route>
+      <Route path="/investments">{() => <ProtectedRoute component={Investments} />}</Route>
+      <Route path="/compliance">{() => <ProtectedRoute component={Compliance} />}</Route>
+      <Route path="/notifications">{() => <ProtectedRoute component={Notifications} />}</Route>
+      <Route path="/support">{() => <ProtectedRoute component={Support} />}</Route>
+      <Route path="/risk-scoring">{() => <ProtectedRoute component={RiskScoring} />}</Route>
+      <Route path="/interest-rates">{() => <ProtectedRoute component={InterestRates} />}</Route>
+      <Route path="/audit-logs">{() => <ProtectedRoute component={AuditLogs} />}</Route>
+      <Route path="/settings">{() => <ProtectedRoute component={Settings} />}</Route>
+      <Route path="/payroll">{() => <ProtectedRoute component={Payroll} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );
