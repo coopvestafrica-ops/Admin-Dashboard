@@ -15,7 +15,18 @@ import {
   LogOut,
   Menu,
   FileText,
-  Briefcase
+  Briefcase,
+  Smartphone,
+  UserCog,
+  AlertTriangle,
+  Building2,
+  BarChart3,
+  Lock,
+  WalletCards,
+  ArrowDownToLine,
+  BadgeCheck,
+  Gift,
+  HandshakeIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,11 +45,37 @@ const sidebarGroups = [
     ],
   },
   {
-    title: "Admin",
+    title: "Financial Control",
+    items: [
+      { title: "Wallet Management", icon: WalletCards, href: "/wallet-management" },
+      { title: "Withdrawal Approvals", icon: ArrowDownToLine, href: "/withdrawal-management" },
+      { title: "Guarantor System", icon: HandshakeIcon, href: "/guarantor-system" },
+      { title: "Interest Rates", icon: Percent, href: "/interest-rates" },
+    ],
+  },
+  {
+    title: "Platform Control",
+    items: [
+      { title: "Mobile App Controls", icon: Smartphone, href: "/mobile-feature-controls" },
+      { title: "Role Management", icon: UserCog, href: "/role-management" },
+      { title: "Security & Access", icon: Lock, href: "/security-access" },
+      { title: "Organizations", icon: Building2, href: "/organizations" },
+      { title: "Referral Program", icon: Gift, href: "/referral-program" },
+    ],
+  },
+  {
+    title: "Analytics & Risk",
+    items: [
+      { title: "Platform Analytics", icon: BarChart3, href: "/platform-analytics" },
+      { title: "Fraud Detection", icon: AlertTriangle, href: "/fraud-detection" },
+      { title: "Risk Scoring", icon: Activity, href: "/risk-scoring" },
+      { title: "KYC Verification", icon: BadgeCheck, href: "/user-verification" },
+    ],
+  },
+  {
+    title: "Governance",
     items: [
       { title: "Compliance", icon: ShieldCheck, href: "/compliance" },
-      { title: "Risk Scoring", icon: Activity, href: "/risk-scoring" },
-      { title: "Interest Rates", icon: Percent, href: "/interest-rates" },
       { title: "Audit Logs", icon: FileText, href: "/audit-logs" },
     ],
   },
