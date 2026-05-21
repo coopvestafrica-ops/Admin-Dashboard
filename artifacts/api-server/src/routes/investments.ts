@@ -1,45 +1,40 @@
 import { Router, type IRouter } from "express";
-import { eq, sql, count, sum } from "drizzle-orm";
-import { db } from "@workspace/db";
-import { investmentsTable } from "@workspace/db";
+import { supabase } from "@workspace/db";
 
 const router: IRouter = Router();
 
 router.get("/investments/portfolio", async (req, res): Promise<void> => {
-  const [totalInvested] = await db.select({ total: sum(investmentsTable.amount) }).from(investmentsTable);
-  const [currentValue] = await db.select({ total: sum(investmentsTable.currentValue) }).from(investmentsTable);
-  const [totalReturns] = await db.select({ total: sum(investmentsTable.returns) }).from(investmentsTable);
-  const [activeCount] = await db.select({ count: count() }).from(investmentsTable).where(eq(investmentsTable.status, "active"));
-  const [maturedCount] = await db.select({ count: count() }).from(investmentsTable).where(eq(investmentsTable.status, "matured"));
+  const { data: pools } = await supabase.from("investment_pools").select("*");
+  const rows = pools ?? [];
 
-  const invested = Number(totalInvested.total || 0);
-  const current = Number(currentValue.total || 0);
-  const returns = Number(totalReturns.total || 0);
-  const returnPct = invested > 0 ? (returns / invested) * 100 : 0;
+  const totalInvested = rows.reduce((s, p) => s + Number(p.target_amount || 0), 0);
+  const currentValue = rows.reduce((s, p) => s + Number(p.raised_amount || 0), 0);
+  const totalReturns = currentValue - totalInvested;
+  const returnPct = totalInvested > 0 ? (totalReturns / totalInvested) * 100 : 0;
 
-  const breakdown = await db
-    .select({
-      status: investmentsTable.status,
-      count: count(),
-      amount: sum(investmentsTable.currentValue),
-    })
-    .from(investmentsTable)
-    .groupBy(investmentsTable.status);
+  const activeCount = rows.filter(p => p.status === "active" || p.status === "open" || p.status === "funded").length;
+  const maturedCount = rows.filter(p => p.status === "completed").length;
 
-  const total = breakdown.reduce((s, b) => s + Number(b.count), 0);
+  const grouped = new Map<string, { count: number; amount: number }>();
+  for (const p of rows) {
+    const s = p.status;
+    const existing = grouped.get(s) ?? { count: 0, amount: 0 };
+    grouped.set(s, { count: existing.count + 1, amount: existing.amount + Number(p.raised_amount || 0) });
+  }
 
+  const total = rows.length;
   res.json({
-    totalInvested: invested,
-    currentValue: current,
-    totalReturns: returns,
+    totalInvested,
+    currentValue,
+    totalReturns: Math.max(0, totalReturns),
     returnPercentage: Math.round(returnPct * 10) / 10,
-    activeCount: Number(activeCount.count),
-    maturedCount: Number(maturedCount.count),
-    breakdown: breakdown.map(b => ({
-      status: b.status,
-      count: Number(b.count),
-      amount: Number(b.amount || 0),
-      percentage: total > 0 ? Math.round((Number(b.count) / total) * 1000) / 10 : 0,
+    activeCount,
+    maturedCount,
+    breakdown: Array.from(grouped.entries()).map(([status, v]) => ({
+      status,
+      count: v.count,
+      amount: v.amount,
+      percentage: total > 0 ? Math.round((v.count / total) * 1000) / 10 : 0,
     })),
   });
 });
@@ -50,27 +45,31 @@ router.get("/investments", async (req, res): Promise<void> => {
   const offset = (page - 1) * limit;
   const status = req.query.status as string | undefined;
 
-  let whereClause = sql`1=1`;
-  if (status) whereClause = sql`${investmentsTable.status} = ${status}`;
+  let query = supabase.from("investment_pools").select("*", { count: "exact" });
+  if (status) query = query.eq("status", status);
 
-  const [totalResult] = await db.select({ count: count() }).from(investmentsTable).where(whereClause);
-  const investments = await db
-    .select()
-    .from(investmentsTable)
-    .where(whereClause)
-    .orderBy(sql`${investmentsTable.createdAt} DESC`)
-    .limit(limit)
-    .offset(offset);
+  const { data: pools, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) { res.status(500).json({ error: error.message }); return; }
 
   res.json({
-    data: investments.map(i => ({
-      ...i,
-      amount: Number(i.amount),
-      currentValue: Number(i.currentValue),
-      returns: Number(i.returns),
-      returnPercentage: Number(i.returnPercentage),
+    data: (pools ?? []).map(p => ({
+      id: p.id,
+      name: p.name,
+      type: p.category ?? "pool",
+      amount: Number(p.target_amount),
+      currentValue: Number(p.raised_amount),
+      returns: Number(p.raised_amount) - Number(p.target_amount),
+      returnPercentage: Number(p.expected_return_percent ?? 0),
+      status: p.status === "completed" ? "matured" : p.status === "open" || p.status === "funded" ? "active" : p.status,
+      startDate: p.opens_at?.slice(0, 10) ?? p.created_at?.slice(0, 10) ?? null,
+      maturityDate: p.closes_at?.slice(0, 10) ?? null,
+      description: p.description ?? null,
+      createdAt: p.created_at,
     })),
-    total: Number(totalResult.count),
+    total: count ?? 0,
     page,
     limit,
   });
@@ -83,25 +82,37 @@ router.post("/investments", async (req, res): Promise<void> => {
     return;
   }
 
-  const [investment] = await db.insert(investmentsTable).values({
+  const poolId = "POOL-" + String(Date.now()).slice(-7);
+  const { data: pool, error } = await supabase.from("investment_pools").insert({
+    pool_id: poolId,
     name,
-    type,
-    amount: String(amount),
-    currentValue: String(amount),
-    returns: "0",
-    returnPercentage: "0",
-    status: "active",
-    startDate,
-    maturityDate,
+    category: type,
+    target_amount: amount,
+    raised_amount: 0,
+    expected_return_percent: 0,
+    duration_months: maturityDate ? Math.round((new Date(maturityDate).getTime() - new Date(startDate).getTime()) / (30 * 24 * 60 * 60 * 1000)) : null,
+    risk_level: "medium",
+    status: "open",
+    opens_at: startDate,
+    closes_at: maturityDate ?? null,
     description,
-  }).returning();
+  }).select().single();
+
+  if (error) { res.status(500).json({ error: error.message }); return; }
 
   res.status(201).json({
-    ...investment,
-    amount: Number(investment.amount),
-    currentValue: Number(investment.currentValue),
-    returns: Number(investment.returns),
-    returnPercentage: Number(investment.returnPercentage),
+    id: pool.id,
+    name: pool.name,
+    type: pool.category ?? "pool",
+    amount: Number(pool.target_amount),
+    currentValue: Number(pool.raised_amount),
+    returns: 0,
+    returnPercentage: 0,
+    status: "active",
+    startDate: pool.opens_at?.slice(0, 10) ?? null,
+    maturityDate: pool.closes_at?.slice(0, 10) ?? null,
+    description: pool.description,
+    createdAt: pool.created_at,
   });
 });
 

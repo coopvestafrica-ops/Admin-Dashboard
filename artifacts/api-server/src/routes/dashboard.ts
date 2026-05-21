@@ -1,60 +1,38 @@
 import { Router, type IRouter } from "express";
-import { sql, count, sum } from "drizzle-orm";
-import { db } from "@workspace/db";
-import {
-  membersTable,
-  loansTable,
-  contributionsTable,
-  investmentsTable,
-  complianceItemsTable,
-  notificationsTable,
-  supportTicketsTable,
-} from "@workspace/db";
+import { supabase, splitName } from "@workspace/db";
 
 const router: IRouter = Router();
 
 router.get("/dashboard/summary", async (req, res): Promise<void> => {
-  const [memberCount] = await db.select({ count: count() }).from(membersTable);
-  const [activeLoans] = await db
-    .select({ count: count() })
-    .from(loansTable)
-    .where(sql`${loansTable.status} = 'active'`);
-  const [totalContrib] = await db
-    .select({ total: sum(contributionsTable.amount) })
-    .from(contributionsTable)
-    .where(sql`${contributionsTable.status} = 'paid'`);
-  const [loansDisbursed] = await db
-    .select({ total: sum(loansTable.amount) })
-    .from(loansTable)
-    .where(sql`${loansTable.status} IN ('active', 'repaid')`);
-  const [totalInvested] = await db
-    .select({ total: sum(investmentsTable.currentValue) })
-    .from(investmentsTable);
-  const [pendingCompliance] = await db
-    .select({ count: count() })
-    .from(complianceItemsTable)
-    .where(sql`${complianceItemsTable.status} = 'pending'`);
-  const [openTickets] = await db
-    .select({ count: count() })
-    .from(supportTicketsTable)
-    .where(sql`${supportTicketsTable.status} IN ('open', 'in_progress')`);
-  const [repaidCount] = await db
-    .select({ count: count() })
-    .from(loansTable)
-    .where(sql`${loansTable.status} = 'repaid'`);
+  const { count: memberCount } = await supabase.from("profiles").select("*", { count: "exact", head: true });
+  const { data: loanRows } = await supabase.from("loans").select("amount, remaining_balance, status");
+  const loans = loanRows ?? [];
 
-  const totalLoans = Number(activeLoans.count) + Number(repaidCount.count);
-  const repaymentRate = totalLoans > 0 ? (Number(repaidCount.count) / totalLoans) * 100 : 0;
+  const activeLoans = loans.filter(l => l.status === "active").length;
+  const activeOrCompleted = loans.filter(l => l.status === "active" || l.status === "completed");
+  const loansDisbursed = activeOrCompleted.reduce((s, l) => s + Number(l.amount || 0), 0);
+  const completedCount = loans.filter(l => l.status === "completed").length;
+  const totalLoans = activeLoans + completedCount;
+  const repaymentRate = totalLoans > 0 ? (completedCount / totalLoans) * 100 : 0;
+
+  const { data: savingsRows } = await supabase.from("savings").select("total_saved");
+  const totalContributions = (savingsRows ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
+
+  const { data: poolRows } = await supabase.from("investment_pools").select("raised_amount");
+  const totalInvestments = (poolRows ?? []).reduce((s, r) => s + Number(r.raised_amount || 0), 0);
+
+  const { count: pendingKyc } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "pending");
+  const { count: openTickets } = await supabase.from("tickets").select("*", { count: "exact", head: true }).in("status", ["open", "in_progress"]);
 
   res.json({
-    totalMembers: Number(memberCount.count),
-    activeLoans: Number(activeLoans.count),
-    totalContributions: Number(totalContrib.total || 0),
-    loansDisbursed: Number(loansDisbursed.total || 0),
+    totalMembers: memberCount ?? 0,
+    activeLoans,
+    totalContributions,
+    loansDisbursed,
     repaymentRate: Math.round(repaymentRate * 10) / 10,
-    pendingCompliance: Number(pendingCompliance.count),
-    openSupportTickets: Number(openTickets.count),
-    totalInvestments: Number(totalInvested.total || 0),
+    pendingCompliance: pendingKyc ?? 0,
+    openSupportTickets: openTickets ?? 0,
+    totalInvestments,
     membersGrowth: 8.5,
     loansGrowth: 12.3,
     contributionsGrowth: 6.7,
@@ -62,102 +40,92 @@ router.get("/dashboard/summary", async (req, res): Promise<void> => {
 });
 
 router.get("/dashboard/monthly-contributions", async (req, res): Promise<void> => {
-  const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-  ];
-  const result = await db
-    .select({
-      month: sql<string>`TO_CHAR(${contributionsTable.createdAt}, 'Mon')`,
-      value: sum(contributionsTable.amount),
-    })
-    .from(contributionsTable)
-    .where(sql`${contributionsTable.status} = 'paid' AND EXTRACT(YEAR FROM ${contributionsTable.createdAt}) = EXTRACT(YEAR FROM NOW())`)
-    .groupBy(sql`TO_CHAR(${contributionsTable.createdAt}, 'Mon'), EXTRACT(MONTH FROM ${contributionsTable.createdAt})`)
-    .orderBy(sql`EXTRACT(MONTH FROM ${contributionsTable.createdAt})`);
-
-  const dataMap = new Map(result.map(r => [r.month, Number(r.value || 0)]));
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const now = new Date();
+  const year = now.getFullYear();
   const currentMonth = now.getMonth();
+
+  const yearStart = `${year}-01-01T00:00:00Z`;
+  const { data: txns } = await supabase
+    .from("transactions")
+    .select("amount, created_at")
+    .in("type", ["savings_deposit", "deposit"])
+    .eq("status", "completed")
+    .gte("created_at", yearStart);
+
+  const monthMap = new Map<string, number>();
+  for (const t of txns ?? []) {
+    const m = new Date(t.created_at).getMonth();
+    const key = months[m]!;
+    monthMap.set(key, (monthMap.get(key) ?? 0) + Number(t.amount || 0));
+  }
 
   const data = months.slice(0, currentMonth + 1).map(month => ({
     month,
-    value: dataMap.get(month) || 0,
+    value: monthMap.get(month) ?? 0,
   }));
 
   res.json(data);
 });
 
 router.get("/dashboard/loan-status-breakdown", async (req, res): Promise<void> => {
-  const result = await db
-    .select({
-      status: loansTable.status,
-      count: count(),
-      amount: sum(loansTable.amount),
-    })
-    .from(loansTable)
-    .groupBy(loansTable.status);
+  const { data: loans } = await supabase.from("loans").select("amount, status");
+  const rows = loans ?? [];
 
-  const total = result.reduce((sum, r) => sum + Number(r.count), 0);
+  const grouped = new Map<string, { count: number; amount: number }>();
+  for (const l of rows) {
+    const s = l.status === "completed" ? "repaid" : l.status;
+    const existing = grouped.get(s) ?? { count: 0, amount: 0 };
+    grouped.set(s, { count: existing.count + 1, amount: existing.amount + Number(l.amount || 0) });
+  }
 
-  res.json(result.map(r => ({
-    status: r.status,
-    count: Number(r.count),
-    amount: Number(r.amount || 0),
-    percentage: total > 0 ? Math.round((Number(r.count) / total) * 1000) / 10 : 0,
+  const total = rows.length;
+  res.json(Array.from(grouped.entries()).map(([status, v]) => ({
+    status,
+    count: v.count,
+    amount: v.amount,
+    percentage: total > 0 ? Math.round((v.count / total) * 1000) / 10 : 0,
   })));
 });
 
 router.get("/dashboard/recent-activity", async (req, res): Promise<void> => {
-  const recentContribs = await db
-    .select({
-      id: contributionsTable.id,
-      memberId: membersTable.id,
-      memberName: sql<string>`${membersTable.firstName} || ' ' || ${membersTable.lastName}`,
-      amount: contributionsTable.amount,
-      createdAt: contributionsTable.createdAt,
-    })
-    .from(contributionsTable)
-    .innerJoin(membersTable, sql`${contributionsTable.memberId} = ${membersTable.id}`)
-    .orderBy(sql`${contributionsTable.createdAt} DESC`)
+  const { data: recentTxns } = await supabase
+    .from("transactions")
+    .select("id, profile_id, amount, type, created_at, profiles!transactions_profile_id_fkey(name)")
+    .in("type", ["savings_deposit", "deposit"])
+    .order("created_at", { ascending: false })
     .limit(5);
 
-  const recentLoans = await db
-    .select({
-      id: loansTable.id,
-      memberId: membersTable.id,
-      memberName: sql<string>`${membersTable.firstName} || ' ' || ${membersTable.lastName}`,
-      amount: loansTable.amount,
-      status: loansTable.status,
-      createdAt: loansTable.createdAt,
-    })
-    .from(loansTable)
-    .innerJoin(membersTable, sql`${loansTable.memberId} = ${membersTable.id}`)
-    .orderBy(sql`${loansTable.createdAt} DESC`)
+  const { data: recentLoans } = await supabase
+    .from("loans")
+    .select("id, profile_id, amount, status, created_at, profiles!loans_profile_id_fkey(name)")
+    .order("created_at", { ascending: false })
     .limit(5);
 
   const activities = [
-    ...recentContribs.map(c => ({
-      id: c.id,
+    ...(recentTxns ?? []).map(t => ({
+      id: t.id,
       type: "contribution",
-      description: `Contribution received from ${c.memberName}`,
-      memberName: c.memberName,
-      amount: Number(c.amount),
-      createdAt: c.createdAt,
+      memberId: t.profile_id,
+      memberName: ((t.profiles as unknown as { name: string }) ?? {}).name ?? "",
+      amount: Number(t.amount),
+      description: `Contribution of ₦${Number(t.amount).toLocaleString()}`,
+      createdAt: t.created_at,
     })),
-    ...recentLoans.map(l => ({
-      id: l.id + 1000,
-      type: l.status === "pending" ? "loan_application" : "loan_update",
-      description: l.status === "pending"
-        ? `New loan application from ${l.memberName}`
-        : `Loan ${l.status} for ${l.memberName}`,
-      memberName: l.memberName,
+    ...(recentLoans ?? []).map(l => ({
+      id: l.id,
+      type: "loan",
+      memberId: l.profile_id,
+      memberName: ((l.profiles as unknown as { name: string }) ?? {}).name ?? "",
       amount: Number(l.amount),
-      createdAt: l.createdAt,
+      description: `Loan ${l.status}: ₦${Number(l.amount).toLocaleString()}`,
+      status: l.status === "completed" ? "repaid" : l.status,
+      createdAt: l.created_at,
     })),
-  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10);
+  ];
 
-  res.json(activities);
+  activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  res.json(activities.slice(0, 10));
 });
 
 export default router;

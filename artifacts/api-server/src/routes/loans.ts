@@ -1,43 +1,35 @@
 import { Router, type IRouter } from "express";
-import { eq, sql, count, sum } from "drizzle-orm";
-import { db } from "@workspace/db";
-import { loansTable, membersTable } from "@workspace/db";
+import { supabase, splitName } from "@workspace/db";
 
 const router: IRouter = Router();
 
 router.get("/loans/portfolio-summary", async (req, res): Promise<void> => {
-  const [total] = await db
-    .select({ total: sum(loansTable.amount) })
-    .from(loansTable)
-    .where(sql`${loansTable.status} IN ('active', 'repaid')`);
-  const [outstanding] = await db
-    .select({ total: sum(loansTable.balance) })
-    .from(loansTable)
-    .where(sql`${loansTable.status} = 'active'`);
-  const [defaulted] = await db
-    .select({ total: sum(loansTable.amount) })
-    .from(loansTable)
-    .where(sql`${loansTable.status} = 'defaulted'`);
-  const [activeCount] = await db.select({ count: count() }).from(loansTable).where(eq(loansTable.status, "active"));
-  const [defaultedCount] = await db.select({ count: count() }).from(loansTable).where(eq(loansTable.status, "defaulted"));
-  const [pendingCount] = await db.select({ count: count() }).from(loansTable).where(eq(loansTable.status, "pending"));
-  const [repaidCount] = await db.select({ count: count() }).from(loansTable).where(eq(loansTable.status, "repaid"));
+  const { data: loans } = await supabase.from("loans").select("amount, remaining_balance, status");
+  const rows = loans ?? [];
 
-  const totalDisbursed = Number(total.total || 0);
-  const outstandingAmt = Number(outstanding.total || 0);
-  const collected = totalDisbursed - outstandingAmt;
-  const totalLoans = Number(activeCount.count) + Number(repaidCount.count);
-  const repaymentRate = totalLoans > 0 ? (Number(repaidCount.count) / totalLoans) * 100 : 0;
+  const activeOrCompleted = rows.filter(l => l.status === "active" || l.status === "completed");
+  const totalDisbursed = activeOrCompleted.reduce((s, l) => s + Number(l.amount || 0), 0);
+  const outstanding = rows.filter(l => l.status === "active").reduce((s, l) => s + Number(l.remaining_balance || 0), 0);
+  const defaultedAmt = rows.filter(l => l.status === "defaulted").reduce((s, l) => s + Number(l.amount || 0), 0);
+  const collected = totalDisbursed - outstanding;
+
+  const activeCount = rows.filter(l => l.status === "active").length;
+  const completedCount = rows.filter(l => l.status === "completed").length;
+  const defaultedCount = rows.filter(l => l.status === "defaulted").length;
+  const pendingCount = rows.filter(l => l.status === "pending").length;
+
+  const totalLoans = activeCount + completedCount;
+  const repaymentRate = totalLoans > 0 ? (completedCount / totalLoans) * 100 : 0;
 
   res.json({
     totalDisbursed,
-    outstanding: outstandingAmt,
+    outstanding,
     collected,
-    defaulted: Number(defaulted.total || 0),
+    defaulted: defaultedAmt,
     repaymentRate: Math.round(repaymentRate * 10) / 10,
-    activeCount: Number(activeCount.count),
-    defaultedCount: Number(defaultedCount.count),
-    pendingCount: Number(pendingCount.count),
+    activeCount,
+    defaultedCount,
+    pendingCount,
   });
 });
 
@@ -46,49 +38,41 @@ router.get("/loans", async (req, res): Promise<void> => {
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
   const status = req.query.status as string | undefined;
-  const memberId = req.query.memberId ? Number(req.query.memberId) : undefined;
+  const memberId = req.query.memberId as string | undefined;
 
-  let whereClause = sql`1=1`;
-  if (status) whereClause = sql`${whereClause} AND ${loansTable.status} = ${status}`;
-  if (memberId) whereClause = sql`${whereClause} AND ${loansTable.memberId} = ${memberId}`;
+  let query = supabase.from("loans").select("*, profiles!loans_profile_id_fkey(name)", { count: "exact" });
+  if (status) query = query.eq("status", status === "repaid" ? "completed" : status);
+  if (memberId) query = query.eq("profile_id", memberId);
 
-  const [totalResult] = await db.select({ count: count() }).from(loansTable).where(whereClause);
+  const { data: loans, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
 
-  const loans = await db
-    .select({
-      id: loansTable.id,
-      loanId: loansTable.loanId,
-      memberId: loansTable.memberId,
-      memberName: sql<string>`${membersTable.firstName} || ' ' || ${membersTable.lastName}`,
-      amount: loansTable.amount,
-      balance: loansTable.balance,
-      interestRate: loansTable.interestRate,
-      tenure: loansTable.tenure,
-      status: loansTable.status,
-      purpose: loansTable.purpose,
-      disbursedDate: loansTable.disbursedDate,
-      dueDate: loansTable.dueDate,
-      monthlyPayment: loansTable.monthlyPayment,
-      nextPaymentDate: loansTable.nextPaymentDate,
-      rejectionReason: loansTable.rejectionReason,
-      createdAt: loansTable.createdAt,
-    })
-    .from(loansTable)
-    .innerJoin(membersTable, eq(loansTable.memberId, membersTable.id))
-    .where(whereClause)
-    .orderBy(sql`${loansTable.createdAt} DESC`)
-    .limit(limit)
-    .offset(offset);
+  if (error) { res.status(500).json({ error: error.message }); return; }
 
   res.json({
-    data: loans.map(l => ({
-      ...l,
-      amount: Number(l.amount),
-      balance: Number(l.balance),
-      interestRate: Number(l.interestRate),
-      monthlyPayment: l.monthlyPayment ? Number(l.monthlyPayment) : undefined,
-    })),
-    total: Number(totalResult.count),
+    data: (loans ?? []).map(l => {
+      const profile = l.profiles as unknown as { name: string } | null;
+      return {
+        id: l.id,
+        loanId: l.loan_id,
+        memberId: l.profile_id,
+        memberName: profile?.name ?? "",
+        amount: Number(l.amount),
+        balance: Number(l.remaining_balance ?? l.amount),
+        interestRate: Number(l.effective_interest_rate),
+        tenure: l.tenure_months,
+        status: l.status === "completed" ? "repaid" : l.status,
+        purpose: l.purpose,
+        disbursedDate: l.approved_at?.slice(0, 10) ?? null,
+        dueDate: l.next_due_date ?? null,
+        monthlyPayment: l.monthly_repayment ? Number(l.monthly_repayment) : undefined,
+        nextPaymentDate: l.next_due_date ?? null,
+        rejectionReason: l.rejected_reason ?? null,
+        createdAt: l.created_at,
+      };
+    }),
+    total: count ?? 0,
     page,
     limit,
   });
@@ -104,121 +88,121 @@ router.post("/loans", async (req, res): Promise<void> => {
   const loanId = "LN-" + String(Date.now()).slice(-7);
   const monthlyPayment = (amount * (interestRate / 100 / 12)) / (1 - Math.pow(1 + interestRate / 100 / 12, -tenure));
 
-  const [loan] = await db.insert(loansTable).values({
-    loanId,
-    memberId: Number(memberId),
-    amount: String(amount),
-    balance: String(amount),
-    interestRate: String(interestRate),
-    tenure: Number(tenure),
+  const { data: loan, error } = await supabase.from("loans").insert({
+    loan_id: loanId,
+    profile_id: memberId,
+    loan_type: "Quick Loan",
+    amount,
+    tenure_months: tenure,
     purpose,
+    base_interest_rate: interestRate,
+    referral_bonus_percent: 0,
+    effective_interest_rate: interestRate,
+    monthly_repayment: Number(monthlyPayment.toFixed(2)),
+    total_repayment: Number((monthlyPayment * tenure).toFixed(2)),
+    remaining_balance: amount,
+    remaining_months: tenure,
     status: "pending",
-    monthlyPayment: String(monthlyPayment.toFixed(2)),
-  }).returning();
+  }).select().single();
 
-  const [member] = await db.select().from(membersTable).where(eq(membersTable.id, Number(memberId)));
+  if (error) { res.status(500).json({ error: error.message }); return; }
+
+  const { data: profile } = await supabase.from("profiles").select("name").eq("id", memberId).single();
+
   res.status(201).json({
-    ...loan,
-    memberName: member ? `${member.firstName} ${member.lastName}` : "",
+    id: loan.id,
+    loanId: loan.loan_id,
+    memberId: loan.profile_id,
+    memberName: profile?.name ?? "",
     amount: Number(loan.amount),
-    balance: Number(loan.balance),
-    interestRate: Number(loan.interestRate),
-    monthlyPayment: loan.monthlyPayment ? Number(loan.monthlyPayment) : undefined,
+    balance: Number(loan.remaining_balance),
+    interestRate: Number(loan.effective_interest_rate),
+    tenure: loan.tenure_months,
+    status: loan.status,
+    purpose: loan.purpose,
+    monthlyPayment: Number(loan.monthly_repayment),
+    createdAt: loan.created_at,
   });
 });
 
 router.get("/loans/:id", async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  const id = req.params.id;
+  const { data: loan, error } = await supabase.from("loans").select("*, profiles!loans_profile_id_fkey(name)").eq("id", id).single();
+  if (error || !loan) { res.status(404).json({ error: "Loan not found" }); return; }
 
-  const [loan] = await db
-    .select({
-      id: loansTable.id,
-      loanId: loansTable.loanId,
-      memberId: loansTable.memberId,
-      memberName: sql<string>`${membersTable.firstName} || ' ' || ${membersTable.lastName}`,
-      amount: loansTable.amount,
-      balance: loansTable.balance,
-      interestRate: loansTable.interestRate,
-      tenure: loansTable.tenure,
-      status: loansTable.status,
-      purpose: loansTable.purpose,
-      disbursedDate: loansTable.disbursedDate,
-      dueDate: loansTable.dueDate,
-      monthlyPayment: loansTable.monthlyPayment,
-      nextPaymentDate: loansTable.nextPaymentDate,
-      rejectionReason: loansTable.rejectionReason,
-      createdAt: loansTable.createdAt,
-    })
-    .from(loansTable)
-    .innerJoin(membersTable, eq(loansTable.memberId, membersTable.id))
-    .where(eq(loansTable.id, id));
-
-  if (!loan) { res.status(404).json({ error: "Loan not found" }); return; }
-
+  const profile = loan.profiles as unknown as { name: string } | null;
   res.json({
-    ...loan,
+    id: loan.id,
+    loanId: loan.loan_id,
+    memberId: loan.profile_id,
+    memberName: profile?.name ?? "",
     amount: Number(loan.amount),
-    balance: Number(loan.balance),
-    interestRate: Number(loan.interestRate),
-    monthlyPayment: loan.monthlyPayment ? Number(loan.monthlyPayment) : undefined,
+    balance: Number(loan.remaining_balance ?? loan.amount),
+    interestRate: Number(loan.effective_interest_rate),
+    tenure: loan.tenure_months,
+    status: loan.status === "completed" ? "repaid" : loan.status,
+    purpose: loan.purpose,
+    disbursedDate: loan.approved_at?.slice(0, 10) ?? null,
+    dueDate: loan.next_due_date ?? null,
+    monthlyPayment: loan.monthly_repayment ? Number(loan.monthly_repayment) : undefined,
+    nextPaymentDate: loan.next_due_date ?? null,
+    rejectionReason: loan.rejected_reason ?? null,
+    createdAt: loan.created_at,
   });
 });
 
 router.post("/loans/:id/approve", async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-
+  const id = req.params.id;
   const now = new Date();
   const dueDate = new Date(now);
   dueDate.setMonth(dueDate.getMonth() + 12);
 
-  const [loan] = await db.update(loansTable)
-    .set({
-      status: "active",
-      disbursedDate: now.toISOString().slice(0, 10),
-      dueDate: dueDate.toISOString().slice(0, 10),
-      nextPaymentDate: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString().slice(0, 10),
-    })
-    .where(eq(loansTable.id, id))
-    .returning();
+  const { data: loan, error } = await supabase.from("loans").update({
+    status: "active",
+    approved_at: now.toISOString(),
+    next_due_date: dueDate.toISOString().slice(0, 10),
+  }).eq("id", id).select().single();
 
-  if (!loan) { res.status(404).json({ error: "Loan not found" }); return; }
+  if (error || !loan) { res.status(404).json({ error: "Loan not found" }); return; }
 
-  const [member] = await db.select().from(membersTable).where(eq(membersTable.id, loan.memberId));
+  const { data: profile } = await supabase.from("profiles").select("name").eq("id", loan.profile_id).single();
   res.json({
-    ...loan,
-    memberName: member ? `${member.firstName} ${member.lastName}` : "",
+    id: loan.id,
+    loanId: loan.loan_id,
+    memberId: loan.profile_id,
+    memberName: profile?.name ?? "",
     amount: Number(loan.amount),
-    balance: Number(loan.balance),
-    interestRate: Number(loan.interestRate),
+    balance: Number(loan.remaining_balance ?? loan.amount),
+    interestRate: Number(loan.effective_interest_rate),
+    status: loan.status,
+    createdAt: loan.created_at,
   });
 });
 
 router.post("/loans/:id/reject", async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-
+  const id = req.params.id;
   const { reason } = req.body;
   if (!reason) { res.status(400).json({ error: "reason is required" }); return; }
 
-  const [loan] = await db.update(loansTable)
-    .set({ status: "rejected", rejectionReason: reason })
-    .where(eq(loansTable.id, id))
-    .returning();
+  const { data: loan, error } = await supabase.from("loans").update({
+    status: "rejected",
+    rejected_reason: reason,
+  }).eq("id", id).select().single();
 
-  if (!loan) { res.status(404).json({ error: "Loan not found" }); return; }
+  if (error || !loan) { res.status(404).json({ error: "Loan not found" }); return; }
 
-  const [member] = await db.select().from(membersTable).where(eq(membersTable.id, loan.memberId));
+  const { data: profile } = await supabase.from("profiles").select("name").eq("id", loan.profile_id).single();
   res.json({
-    ...loan,
-    memberName: member ? `${member.firstName} ${member.lastName}` : "",
+    id: loan.id,
+    loanId: loan.loan_id,
+    memberId: loan.profile_id,
+    memberName: profile?.name ?? "",
     amount: Number(loan.amount),
-    balance: Number(loan.balance),
-    interestRate: Number(loan.interestRate),
+    balance: Number(loan.remaining_balance ?? loan.amount),
+    interestRate: Number(loan.effective_interest_rate),
+    status: loan.status,
+    rejectionReason: loan.rejected_reason,
+    createdAt: loan.created_at,
   });
 });
 

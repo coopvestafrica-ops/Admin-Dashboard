@@ -1,36 +1,27 @@
 import { Router, type IRouter } from "express";
-import { eq, sql, count, sum } from "drizzle-orm";
-import { db } from "@workspace/db";
-import { contributionsTable, membersTable } from "@workspace/db";
+import { supabase } from "@workspace/db";
 
 const router: IRouter = Router();
 
 router.get("/contributions/summary", async (req, res): Promise<void> => {
-  const [totalPaid] = await db.select({ total: sum(contributionsTable.amount) }).from(contributionsTable).where(eq(contributionsTable.status, "paid"));
-  const [pending] = await db.select({ total: sum(contributionsTable.amount) }).from(contributionsTable).where(eq(contributionsTable.status, "pending"));
-  const [overdue] = await db.select({ total: sum(contributionsTable.amount) }).from(contributionsTable).where(eq(contributionsTable.status, "overdue"));
-  const [thisMonth] = await db
-    .select({ total: sum(contributionsTable.amount) })
-    .from(contributionsTable)
-    .where(sql`DATE_TRUNC('month', ${contributionsTable.createdAt}) = DATE_TRUNC('month', NOW()) AND ${contributionsTable.status} = 'paid'`);
-  const [totalMembers] = await db.select({ count: count() }).from(membersTable).where(eq(membersTable.status, "active"));
-  const [paidThisMonth] = await db
-    .select({ count: count() })
-    .from(contributionsTable)
-    .where(sql`DATE_TRUNC('month', ${contributionsTable.createdAt}) = DATE_TRUNC('month', NOW()) AND ${contributionsTable.status} = 'paid'`);
+  const { data: savingsRows } = await supabase.from("savings").select("total_saved, monthly_savings, profile_id");
+  const rows = savingsRows ?? [];
 
-  const totalM = Number(totalMembers.count);
-  const paidM = Number(paidThisMonth.count);
-  const collectionRate = totalM > 0 ? (paidM / totalM) * 100 : 0;
+  const totalCollected = rows.reduce((s, r) => s + Number(r.total_saved || 0), 0);
+  const thisMonth = rows.reduce((s, r) => s + Number(r.monthly_savings || 0), 0);
+
+  const { count: totalMembers } = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_active", true);
+  const membersWithSavings = rows.filter(r => Number(r.monthly_savings || 0) > 0).length;
+  const collectionRate = (totalMembers ?? 0) > 0 ? (membersWithSavings / (totalMembers ?? 1)) * 100 : 0;
 
   res.json({
-    totalCollected: Number(totalPaid.total || 0),
-    pendingAmount: Number(pending.total || 0),
-    overdueAmount: Number(overdue.total || 0),
-    thisMonth: Number(thisMonth.total || 0),
+    totalCollected,
+    pendingAmount: 0,
+    overdueAmount: 0,
+    thisMonth,
     collectionRate: Math.round(collectionRate * 10) / 10,
-    totalMembers: totalM,
-    paidThisMonth: paidM,
+    totalMembers: totalMembers ?? 0,
+    paidThisMonth: membersWithSavings,
   });
 });
 
@@ -38,37 +29,43 @@ router.get("/contributions", async (req, res): Promise<void> => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
-  const memberId = req.query.memberId ? Number(req.query.memberId) : undefined;
+  const memberId = req.query.memberId as string | undefined;
   const month = req.query.month as string | undefined;
 
-  let whereClause = sql`1=1`;
-  if (memberId) whereClause = sql`${whereClause} AND ${contributionsTable.memberId} = ${memberId}`;
-  if (month) whereClause = sql`${whereClause} AND ${contributionsTable.month} = ${month}`;
+  let query = supabase
+    .from("transactions")
+    .select("id, profile_id, amount, type, status, reference, created_at, profiles!transactions_profile_id_fkey(name)", { count: "exact" })
+    .in("type", ["savings_deposit", "deposit"]);
 
-  const [totalResult] = await db.select({ count: count() }).from(contributionsTable).where(whereClause);
+  if (memberId) query = query.eq("profile_id", memberId);
+  if (month) {
+    const [y, m] = month.split("-");
+    if (y && m) {
+      const start = `${y}-${m}-01T00:00:00Z`;
+      const end = new Date(Number(y), Number(m), 1).toISOString();
+      query = query.gte("created_at", start).lt("created_at", end);
+    }
+  }
 
-  const contributions = await db
-    .select({
-      id: contributionsTable.id,
-      memberId: contributionsTable.memberId,
-      memberName: sql<string>`${membersTable.firstName} || ' ' || ${membersTable.lastName}`,
-      amount: contributionsTable.amount,
-      month: contributionsTable.month,
-      paymentMethod: contributionsTable.paymentMethod,
-      status: contributionsTable.status,
-      transactionRef: contributionsTable.transactionRef,
-      createdAt: contributionsTable.createdAt,
-    })
-    .from(contributionsTable)
-    .innerJoin(membersTable, eq(contributionsTable.memberId, membersTable.id))
-    .where(whereClause)
-    .orderBy(sql`${contributionsTable.createdAt} DESC`)
-    .limit(limit)
-    .offset(offset);
+  const { data: txns, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) { res.status(500).json({ error: error.message }); return; }
 
   res.json({
-    data: contributions.map(c => ({ ...c, amount: Number(c.amount) })),
-    total: Number(totalResult.count),
+    data: (txns ?? []).map(t => ({
+      id: t.id,
+      memberId: t.profile_id,
+      memberName: ((t.profiles as unknown as { name: string }) ?? {}).name ?? "",
+      amount: Number(t.amount),
+      month: t.created_at ? t.created_at.slice(0, 7) : "",
+      paymentMethod: "wallet",
+      status: t.status === "completed" ? "paid" : t.status === "pending" ? "pending" : "overdue",
+      transactionRef: t.reference ?? null,
+      createdAt: t.created_at,
+    })),
+    total: count ?? 0,
     page,
     limit,
   });
@@ -82,20 +79,34 @@ router.post("/contributions", async (req, res): Promise<void> => {
   }
 
   const ref = "TXN-" + String(Date.now()).slice(-8);
-  const [contribution] = await db.insert(contributionsTable).values({
-    memberId: Number(memberId),
-    amount: String(amount),
+  const txnId = "TX-" + crypto.randomUUID().slice(0, 8);
+
+  const { data: txn, error } = await supabase.from("transactions").insert({
+    transaction_id: txnId,
+    profile_id: memberId,
+    type: "savings_deposit",
+    category: "credit",
+    amount,
+    status: "completed",
+    payment_method: paymentMethod,
+    description: `Monthly contribution for ${month}`,
+    reference: ref,
+  }).select().single();
+
+  if (error) { res.status(500).json({ error: error.message }); return; }
+
+  const { data: profile } = await supabase.from("profiles").select("name").eq("id", memberId).single();
+
+  res.status(201).json({
+    id: txn.id,
+    memberId: txn.profile_id,
+    memberName: profile?.name ?? "",
+    amount: Number(txn.amount),
     month,
     paymentMethod,
     status: "paid",
-    transactionRef: ref,
-  }).returning();
-
-  const [member] = await db.select().from(membersTable).where(eq(membersTable.id, Number(memberId)));
-  res.status(201).json({
-    ...contribution,
-    memberName: member ? `${member.firstName} ${member.lastName}` : "",
-    amount: Number(contribution.amount),
+    transactionRef: txn.reference,
+    createdAt: txn.created_at,
   });
 });
 
