@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,11 +12,10 @@ import {
   Shield,
   AlertTriangle,
   Search,
-  Calendar,
-  Wallet,
   Users,
   ChevronDown,
   ChevronUp,
+  Loader2,
 } from "lucide-react";
 import {
   BarChart,
@@ -26,40 +26,33 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  Radar,
 } from "recharts";
+import { getAccessToken } from "@/lib/supabase";
 
-interface MemberRisk {
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+interface RiskMember {
   id: string;
-  name: string;
-  contributionScore: number;
-  loanRepaymentScore: number;
-  tenureScore: number;
-  activityScore: number;
-  overallScore: number;
-  monthsContributed: number;
-  monthsMissed: number;
-  totalMonths: number;
-  consecutiveMissed: number;
-  lastContribution: string | null;
-  method: "manual" | "payroll";
-  flagged: boolean;
-  flagReason?: string;
+  memberId: string;
+  memberName: string;
+  score: number;
+  riskLevel: "low" | "medium" | "high";
+  factors: {
+    activeLoans: number;
+    defaultedLoans: number;
+    totalBalance: number;
+    isFlagged: boolean;
+    kycVerified: boolean;
+  };
+  lastUpdated: string;
 }
 
-const mockMembers: MemberRisk[] = [
-  { id: "1", name: "Adebayo Oluwatobi", contributionScore: 95, loanRepaymentScore: 90, tenureScore: 88, activityScore: 80, overallScore: 88, monthsContributed: 23, monthsMissed: 1, totalMonths: 24, consecutiveMissed: 0, lastContribution: "2026-04-30", method: "payroll", flagged: false },
-  { id: "2", name: "Ngozi Okafor", contributionScore: 100, loanRepaymentScore: 95, tenureScore: 72, activityScore: 85, overallScore: 88, monthsContributed: 12, monthsMissed: 0, totalMonths: 12, consecutiveMissed: 0, lastContribution: "2026-04-30", method: "manual", flagged: false },
-  { id: "3", name: "Emeka Chukwu", contributionScore: 60, loanRepaymentScore: 70, tenureScore: 80, activityScore: 50, overallScore: 65, monthsContributed: 15, monthsMissed: 9, totalMonths: 24, consecutiveMissed: 2, lastContribution: "2026-02-28", method: "manual", flagged: true, flagReason: "2 consecutive months missed" },
-  { id: "4", name: "Fatima Ibrahim", contributionScore: 25, loanRepaymentScore: 40, tenureScore: 90, activityScore: 30, overallScore: 46, monthsContributed: 8, monthsMissed: 16, totalMonths: 24, consecutiveMissed: 4, lastContribution: "2025-12-31", method: "manual", flagged: true, flagReason: "4 consecutive months missed — high default risk" },
-  { id: "5", name: "Segun Adesanya", contributionScore: 83, loanRepaymentScore: 88, tenureScore: 65, activityScore: 75, overallScore: 78, monthsContributed: 10, monthsMissed: 2, totalMonths: 12, consecutiveMissed: 0, lastContribution: "2026-04-30", method: "payroll", flagged: false },
-  { id: "6", name: "Chidinma Eze", contributionScore: 10, loanRepaymentScore: 20, tenureScore: 50, activityScore: 15, overallScore: 24, monthsContributed: 3, monthsMissed: 21, totalMonths: 24, consecutiveMissed: 7, lastContribution: "2025-09-30", method: "manual", flagged: true, flagReason: "7 consecutive months missed — loan eligibility suspended" },
-  { id: "7", name: "Olumide Bankole", contributionScore: 78, loanRepaymentScore: 82, tenureScore: 70, activityScore: 72, overallScore: 75, monthsContributed: 9, monthsMissed: 3, totalMonths: 12, consecutiveMissed: 1, lastContribution: "2026-03-31", method: "manual", flagged: false },
-  { id: "8", name: "Aisha Musa", contributionScore: 90, loanRepaymentScore: 85, tenureScore: 60, activityScore: 88, overallScore: 81, monthsContributed: 11, monthsMissed: 1, totalMonths: 12, consecutiveMissed: 0, lastContribution: "2026-04-30", method: "payroll", flagged: false },
-];
+interface RiskResponse {
+  data: RiskMember[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 function getRiskConfig(score: number) {
   if (score >= 80) return { label: "Low Risk", color: "text-emerald-700", bg: "bg-emerald-100", bar: "#2d6a4f" };
@@ -80,44 +73,66 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
-function ConsistencyBadge({ months, total }: { months: number; total: number }) {
-  const pct = Math.round((months / total) * 100);
-  const color = pct >= 90 ? "text-emerald-700 bg-emerald-100" : pct >= 70 ? "text-amber-700 bg-amber-100" : "text-red-700 bg-red-100";
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${color}`}>
-      {months}/{total} months ({pct}%)
-    </span>
-  );
-}
-
 export default function RiskScoring() {
   const [search, setSearch] = useState("");
   const [riskFilter, setRiskFilter] = useState("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const filtered = mockMembers.filter((m) => {
-    const matchSearch = !search || m.name.toLowerCase().includes(search.toLowerCase());
-    const cfg = getRiskConfig(m.overallScore);
+  const { data: resp, isLoading, isError } = useQuery<RiskResponse>({
+    queryKey: ["risk-scoring"],
+    queryFn: async () => {
+      const token = await getAccessToken();
+      const res = await fetch(`${BASE}/api/risk-scoring?limit=100`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch risk scoring data");
+      return res.json() as Promise<RiskResponse>;
+    },
+  });
+
+  const members = resp?.data ?? [];
+
+  const filtered = members.filter((m) => {
+    const matchSearch = !search || m.memberName.toLowerCase().includes(search.toLowerCase());
     const matchRisk =
       riskFilter === "all" ||
-      (riskFilter === "flagged" && m.flagged) ||
-      (riskFilter === "low" && m.overallScore >= 80) ||
-      (riskFilter === "moderate" && m.overallScore >= 60 && m.overallScore < 80) ||
-      (riskFilter === "high" && m.overallScore < 60);
-    void cfg;
+      (riskFilter === "flagged" && m.factors.isFlagged) ||
+      (riskFilter === "low" && m.score >= 80) ||
+      (riskFilter === "moderate" && m.score >= 60 && m.score < 80) ||
+      (riskFilter === "high" && m.score < 60);
     return matchSearch && matchRisk;
   });
 
-  const avgScore = Math.round(mockMembers.reduce((s, m) => s + m.overallScore, 0) / mockMembers.length);
-  const flaggedCount = mockMembers.filter((m) => m.flagged).length;
-  const lowRiskCount = mockMembers.filter((m) => m.overallScore >= 80).length;
+  const avgScore = members.length > 0 ? Math.round(members.reduce((s, m) => s + m.score, 0) / members.length) : 0;
+  const flaggedCount = members.filter((m) => m.factors.isFlagged).length;
+  const lowRiskCount = members.filter((m) => m.score >= 80).length;
 
   const distribution = [
-    { range: "0–24", count: mockMembers.filter((m) => m.overallScore < 25).length, color: "#e63946" },
-    { range: "25–49", count: mockMembers.filter((m) => m.overallScore >= 25 && m.overallScore < 50).length, color: "#f4a261" },
-    { range: "50–74", count: mockMembers.filter((m) => m.overallScore >= 50 && m.overallScore < 75).length, color: "#f6ae2d" },
-    { range: "75–100", count: mockMembers.filter((m) => m.overallScore >= 75).length, color: "#2d6a4f" },
+    { range: "0–24", count: members.filter((m) => m.score < 25).length, color: "#e63946" },
+    { range: "25–49", count: members.filter((m) => m.score >= 25 && m.score < 50).length, color: "#f4a261" },
+    { range: "50–74", count: members.filter((m) => m.score >= 50 && m.score < 75).length, color: "#f6ae2d" },
+    { range: "75–100", count: members.filter((m) => m.score >= 75).length, color: "#2d6a4f" },
   ];
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex h-64 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Layout>
+        <div className="flex h-64 items-center justify-center">
+          <p className="text-sm text-destructive">Failed to load risk scoring data. Please try again.</p>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -133,7 +148,7 @@ export default function RiskScoring() {
             { label: "Avg. Risk Score", value: `${avgScore}/100`, icon: Activity, color: "text-primary" },
             { label: "Flagged at Risk", value: flaggedCount, icon: AlertTriangle, color: "text-red-600" },
             { label: "Low Risk Members", value: lowRiskCount, icon: Shield, color: "text-emerald-600" },
-            { label: "Total Assessed", value: mockMembers.length, icon: Users, color: "text-blue-600" },
+            { label: "Total Assessed", value: members.length, icon: Users, color: "text-blue-600" },
           ].map(({ label, value, icon: Icon, color }) => (
             <Card key={label}>
               <CardContent className="p-4 flex items-center gap-3">
@@ -156,7 +171,7 @@ export default function RiskScoring() {
             <div>
               <p className="text-sm font-semibold text-red-800">{flaggedCount} member{flaggedCount > 1 ? "s" : ""} flagged at high default risk</p>
               <p className="text-xs text-red-700 mt-0.5">
-                These members have missed multiple consecutive contributions and may be ineligible for new loans. Review their profiles and consider reaching out.
+                These members have defaulted loans or are flagged. Review their profiles and consider reaching out.
               </p>
             </div>
           </div>
@@ -189,22 +204,22 @@ export default function RiskScoring() {
               <CardTitle className="text-base">Highest Risk Members</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {[...mockMembers]
-                .sort((a, b) => a.overallScore - b.overallScore)
+              {[...members]
+                .sort((a, b) => a.score - b.score)
                 .slice(0, 5)
                 .map((m) => {
-                  const cfg = getRiskConfig(m.overallScore);
+                  const cfg = getRiskConfig(m.score);
                   return (
                     <div key={m.id} className="flex items-center gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium truncate">{m.name}</span>
+                          <span className="text-sm font-medium truncate">{m.memberName}</span>
                           <span className={`text-xs px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.color} shrink-0`}>{cfg.label}</span>
                         </div>
-                        <ScoreBar score={m.overallScore} />
-                        {m.flagged && (
+                        <ScoreBar score={m.score} />
+                        {m.factors.isFlagged && (
                           <p className="text-xs text-red-600 mt-0.5 flex items-center gap-1">
-                            <AlertTriangle className="h-3 w-3" />{m.flagReason}
+                            <AlertTriangle className="h-3 w-3" />Flagged — {m.factors.defaultedLoans} defaulted loan{m.factors.defaultedLoans !== 1 ? "s" : ""}
                           </p>
                         )}
                       </div>
@@ -246,58 +261,44 @@ export default function RiskScoring() {
                 <thead>
                   <tr className="border-b text-muted-foreground">
                     <th className="pb-3 text-left font-medium">Member</th>
-                    <th className="pb-3 text-left font-medium">Overall Score</th>
-                    <th className="pb-3 text-left font-medium">Consistency</th>
-                    <th className="pb-3 text-center font-medium">Missed (consec.)</th>
-                    <th className="pb-3 text-left font-medium">Method</th>
-                    <th className="pb-3 text-left font-medium">Last Contribution</th>
-                    <th className="pb-3 text-left font-medium">Status</th>
+                    <th className="pb-3 text-left font-medium">Risk Score</th>
+                    <th className="pb-3 text-left font-medium">KYC</th>
+                    <th className="pb-3 text-center font-medium">Active Loans</th>
+                    <th className="pb-3 text-center font-medium">Defaulted</th>
+                    <th className="pb-3 text-left font-medium">Outstanding Balance</th>
+                    <th className="pb-3 text-left font-medium">Risk Level</th>
                     <th className="pb-3 text-center font-medium">Details</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {filtered.map((m) => {
-                    const cfg = getRiskConfig(m.overallScore);
+                    const cfg = getRiskConfig(m.score);
                     const isExpanded = expandedId === m.id;
-                    const radarData = [
-                      { subject: "Contribution", value: m.contributionScore },
-                      { subject: "Loan Repay", value: m.loanRepaymentScore },
-                      { subject: "Tenure", value: m.tenureScore },
-                      { subject: "Activity", value: m.activityScore },
-                    ];
                     return (
                       <>
-                        <tr key={m.id} className={`hover:bg-muted/50 transition-colors ${m.flagged ? "bg-red-50/40" : ""}`}>
+                        <tr key={m.id} className={`hover:bg-muted/50 transition-colors ${m.factors.isFlagged ? "bg-red-50/40" : ""}`}>
                           <td className="py-3 font-medium">
                             <div className="flex items-center gap-2">
-                              {m.flagged && <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0" />}
-                              {m.name}
+                              {m.factors.isFlagged && <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0" />}
+                              {m.memberName}
                             </div>
                           </td>
                           <td className="py-3 min-w-[140px]">
-                            <ScoreBar score={m.overallScore} />
+                            <ScoreBar score={m.score} />
                           </td>
                           <td className="py-3">
-                            <ConsistencyBadge months={m.monthsContributed} total={m.totalMonths} />
-                          </td>
-                          <td className="py-3 text-center">
-                            <span className={m.consecutiveMissed >= 3 ? "text-red-600 font-bold" : m.consecutiveMissed >= 1 ? "text-amber-600 font-semibold" : "text-muted-foreground"}>
-                              {m.monthsMissed} ({m.consecutiveMissed})
-                            </span>
-                          </td>
-                          <td className="py-3">
-                            <Badge variant="outline" className="text-xs">
-                              {m.method === "payroll" ? (
-                                <><Wallet className="mr-1 h-3 w-3" />Payroll</>
-                              ) : (
-                                <><Calendar className="mr-1 h-3 w-3" />Manual</>
-                              )}
+                            <Badge variant={m.factors.kycVerified ? "default" : "secondary"} className="text-xs">
+                              {m.factors.kycVerified ? "Verified" : "Pending"}
                             </Badge>
                           </td>
+                          <td className="py-3 text-center">{m.factors.activeLoans}</td>
+                          <td className="py-3 text-center">
+                            <span className={m.factors.defaultedLoans > 0 ? "text-red-600 font-bold" : "text-muted-foreground"}>
+                              {m.factors.defaultedLoans}
+                            </span>
+                          </td>
                           <td className="py-3 text-xs text-muted-foreground">
-                            {m.lastContribution
-                              ? new Date(m.lastContribution).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })
-                              : "Never"}
+                            ₦{m.factors.totalBalance.toLocaleString("en-NG")}
                           </td>
                           <td className="py-3">
                             <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${cfg.bg} ${cfg.color}`}>
@@ -316,56 +317,27 @@ export default function RiskScoring() {
                           </td>
                         </tr>
 
-                        {/* Expanded score breakdown */}
                         {isExpanded && (
                           <tr key={`${m.id}-expand`} className="bg-muted/30">
                             <td colSpan={8} className="px-4 py-4">
-                              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                {/* Radar chart */}
-                                <div>
-                                  <p className="text-xs font-semibold text-muted-foreground mb-2">Score Breakdown</p>
-                                  <ResponsiveContainer width="100%" height={160}>
-                                    <RadarChart data={radarData}>
-                                      <PolarGrid />
-                                      <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11 }} />
-                                      <Radar dataKey="value" stroke={cfg.bar} fill={cfg.bar} fillOpacity={0.25} />
-                                    </RadarChart>
-                                  </ResponsiveContainer>
+                              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div className="rounded-lg border p-3 space-y-1 text-xs">
+                                  <p className="text-xs font-semibold text-muted-foreground mb-2">Risk Factors</p>
+                                  <div className="flex justify-between"><span className="text-muted-foreground">Active Loans</span><span className="font-medium">{m.factors.activeLoans}</span></div>
+                                  <div className="flex justify-between"><span className="text-muted-foreground">Defaulted Loans</span><span className={`font-medium ${m.factors.defaultedLoans > 0 ? "text-red-600" : ""}`}>{m.factors.defaultedLoans}</span></div>
+                                  <div className="flex justify-between"><span className="text-muted-foreground">Total Outstanding</span><span className="font-medium">₦{m.factors.totalBalance.toLocaleString("en-NG")}</span></div>
+                                  <div className="flex justify-between"><span className="text-muted-foreground">KYC Status</span><span className="font-medium">{m.factors.kycVerified ? "Verified" : "Pending"}</span></div>
+                                  <div className="flex justify-between"><span className="text-muted-foreground">Last Updated</span><span className="font-medium">{new Date(m.lastUpdated).toLocaleDateString("en-NG")}</span></div>
                                 </div>
-
-                                {/* Score pillars */}
-                                <div className="space-y-2">
-                                  <p className="text-xs font-semibold text-muted-foreground mb-2">Score Pillars</p>
-                                  {[
-                                    { label: "Contribution Consistency", value: m.contributionScore },
-                                    { label: "Loan Repayment", value: m.loanRepaymentScore },
-                                    { label: "Membership Tenure", value: m.tenureScore },
-                                    { label: "Platform Activity", value: m.activityScore },
-                                  ].map(({ label, value }) => (
-                                    <div key={label} className="flex items-center gap-2">
-                                      <span className="text-xs text-muted-foreground w-40 shrink-0">{label}</span>
-                                      <ScoreBar score={value} />
-                                    </div>
-                                  ))}
-                                </div>
-
-                                {/* Summary + flag */}
-                                <div className="space-y-2">
-                                  <p className="text-xs font-semibold text-muted-foreground mb-2">Contribution Summary</p>
-                                  <div className="rounded-lg border p-3 space-y-1 text-xs">
-                                    <div className="flex justify-between"><span className="text-muted-foreground">Total months enrolled</span><span className="font-medium">{m.totalMonths}</span></div>
-                                    <div className="flex justify-between"><span className="text-muted-foreground">Months contributed</span><span className="font-medium text-emerald-600">{m.monthsContributed}</span></div>
-                                    <div className="flex justify-between"><span className="text-muted-foreground">Months missed</span><span className="font-medium text-red-600">{m.monthsMissed}</span></div>
-                                    <div className="flex justify-between"><span className="text-muted-foreground">Consecutive missed</span><span className={`font-bold ${m.consecutiveMissed >= 3 ? "text-red-600" : "text-muted-foreground"}`}>{m.consecutiveMissed}</span></div>
-                                    <div className="flex justify-between"><span className="text-muted-foreground">Contribution method</span><span className="font-medium capitalize">{m.method}</span></div>
+                                {m.factors.isFlagged && (
+                                  <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-start gap-2">
+                                    <AlertTriangle className="h-3.5 w-3.5 text-red-600 mt-0.5 shrink-0" />
+                                    <p className="text-xs text-red-700">
+                                      This member is flagged due to {m.factors.defaultedLoans} defaulted loan{m.factors.defaultedLoans !== 1 ? "s" : ""}.
+                                      Review their profile before approving new credit.
+                                    </p>
                                   </div>
-                                  {m.flagged && m.flagReason && (
-                                    <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-start gap-2">
-                                      <AlertTriangle className="h-3.5 w-3.5 text-red-600 mt-0.5 shrink-0" />
-                                      <p className="text-xs text-red-700">{m.flagReason}</p>
-                                    </div>
-                                  )}
-                                </div>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -393,12 +365,11 @@ export default function RiskScoring() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {[
-                { label: "Contribution Consistency", weight: "40%", desc: "Percentage of months contributed on time vs. enrolled months.", color: "border-blue-200 bg-blue-50 text-blue-800" },
-                { label: "Loan Repayment", weight: "30%", desc: "Historical on-time repayment rate for previous loans.", color: "border-purple-200 bg-purple-50 text-purple-800" },
-                { label: "Membership Tenure", weight: "15%", desc: "How long the member has been actively enrolled.", color: "border-amber-200 bg-amber-50 text-amber-800" },
-                { label: "Platform Activity", weight: "15%", desc: "Login frequency, document uploads, support interactions.", color: "border-emerald-200 bg-emerald-50 text-emerald-800" },
+                { label: "Defaulted Loans", weight: "−30 pts each", desc: "Each defaulted loan reduces score by 30 points.", color: "border-red-200 bg-red-50 text-red-800" },
+                { label: "Flagged Status", weight: "−20 pts", desc: "Accounts manually flagged by admin reduce the score.", color: "border-amber-200 bg-amber-50 text-amber-800" },
+                { label: "Baseline", weight: "100 pts", desc: "All members start at a perfect score of 100.", color: "border-emerald-200 bg-emerald-50 text-emerald-800" },
               ].map((item) => (
                 <div key={item.label} className={`rounded-lg border p-3 ${item.color}`}>
                   <div className="flex items-center justify-between mb-1">
@@ -410,7 +381,7 @@ export default function RiskScoring() {
               ))}
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
-              Members with 3+ consecutive missed contributions are automatically flagged. Members below 40 overall are ineligible for new loans until their score improves.
+              Members below 40 overall are ineligible for new loans until their score improves.
             </p>
           </CardContent>
         </Card>
