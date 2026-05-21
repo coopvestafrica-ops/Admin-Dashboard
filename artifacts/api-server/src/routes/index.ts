@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { requireAuth } from "../middleware/auth";
 import healthRouter from "./health";
 import dashboardRouter from "./dashboard";
 import membersRouter from "./members";
@@ -12,10 +13,15 @@ import supportRouter from "./support";
 import riskScoringRouter from "./risk_scoring";
 import interestRatesRouter from "./interest_rates";
 import rolloversRouter from "./rollovers";
+import payrollRouter from "./payroll";
 
 const router: IRouter = Router();
 
+// Public — no auth required
 router.use(healthRouter);
+
+// Protected — all routes below require a valid Supabase JWT
+router.use(requireAuth);
 router.use(dashboardRouter);
 router.use(membersRouter);
 router.use(loansRouter);
@@ -28,5 +34,6 @@ router.use(supportRouter);
 router.use(riskScoringRouter);
 router.use(interestRatesRouter);
 router.use(rolloversRouter);
+router.use(payrollRouter);
 
 export default router;
