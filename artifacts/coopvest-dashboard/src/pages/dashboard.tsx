@@ -10,349 +10,313 @@ import {
   useGetRecentActivity,
 } from "@workspace/api-client-react";
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend, BarChart, Bar, LineChart, Line,
 } from "recharts";
 import {
-  Users,
-  CreditCard,
-  Wallet,
-  PieChartIcon,
-  ShieldCheck,
-  LifeBuoy,
-  TrendingUp,
-  TrendingDown,
-  ArrowUpRight,
-  AlertTriangle,
-  ShieldAlert,
-  Clock,
-  UserX,
-  FileSpreadsheet,
-  Building2,
+  Users, CreditCard, Wallet, TrendingUp, TrendingDown, ArrowUpRight,
+  ShieldAlert, Clock, UserX, Building2, Activity, Percent, RefreshCw,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 const PIE_COLORS = ["#2d6a4f", "#40916c", "#f6ae2d", "#e63946", "#74c69d"];
 
+const riskExposureData = [
+  { name: "Low Risk",    value: 58, color: "#40916c" },
+  { name: "Medium Risk", value: 27, color: "#f6ae2d" },
+  { name: "High Risk",   value: 11, color: "#e63946" },
+  { name: "Critical",    value:  4, color: "#9b2226" },
+];
+
+const defaulterTrendData = [
+  { month: "Jan", defaulters: 12, recovered:  5 },
+  { month: "Feb", defaulters: 18, recovered:  8 },
+  { month: "Mar", defaulters: 14, recovered: 11 },
+  { month: "Apr", defaulters: 22, recovered:  9 },
+  { month: "May", defaulters: 19, recovered: 14 },
+  { month: "Jun", defaulters: 16, recovered: 12 },
+];
+
+const repaymentTrendData = [
+  { month: "Jan", rate: 87 },
+  { month: "Feb", rate: 89 },
+  { month: "Mar", rate: 85 },
+  { month: "Apr", rate: 91 },
+  { month: "May", rate: 88 },
+  { month: "Jun", rate: 93 },
+];
+
 function KPICard({
-  title,
-  value,
-  growth,
-  icon: Icon,
-  loading,
-  format = "number",
+  title, value, growth, icon: Icon, loading,
+  format = "number", accent,
 }: {
-  title: string;
-  value: number;
-  growth?: number;
-  icon: React.ElementType;
-  loading: boolean;
-  format?: "number" | "currency" | "percent";
+  title: string; value: number; growth?: number; icon: React.ElementType;
+  loading: boolean; format?: "number" | "currency" | "percent";
+  accent?: "green" | "red" | "amber";
 }) {
   const formatted =
-    format === "currency"
-      ? formatCurrency(value)
-      : format === "percent"
-      ? `${value}%`
-      : value.toLocaleString();
+    format === "currency" ? formatCurrency(value)
+    : format === "percent" ? `${value}%`
+    : value.toLocaleString();
+
+  const accentClass =
+    accent === "red"   ? "bg-red-50 text-red-700"
+    : accent === "amber" ? "bg-amber-50 text-amber-700"
+    : "bg-primary/10 text-primary";
 
   return (
     <Card data-testid={`kpi-card-${title.toLowerCase().replace(/\s+/g, "-")}`}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-            <Icon className="h-6 w-6 text-primary" />
+          <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${accentClass}`}>
+            <Icon className="h-6 w-6" />
           </div>
           {growth !== undefined && (
-            <div
-              className={`flex items-center gap-1 text-sm font-medium ${growth >= 0 ? "text-emerald-600" : "text-red-500"}`}
-            >
-              {growth >= 0 ? (
-                <TrendingUp className="h-4 w-4" />
-              ) : (
-                <TrendingDown className="h-4 w-4" />
-              )}
+            <div className={`flex items-center gap-1 text-sm font-medium ${growth >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+              {growth >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
               {Math.abs(growth)}%
             </div>
           )}
         </div>
-        {loading ? (
-          <>
-            <Skeleton className="mt-4 h-8 w-32" />
-            <Skeleton className="mt-1 h-4 w-24" />
-          </>
-        ) : (
-          <>
-            <div className="mt-4 text-2xl font-bold text-foreground">{formatted}</div>
-            <p className="text-sm text-muted-foreground">{title}</p>
-          </>
-        )}
+        <div className="mt-4">
+          {loading ? <Skeleton className="h-8 w-24" /> : <p className="text-2xl font-bold">{formatted}</p>}
+          <p className="mt-1 text-sm text-muted-foreground">{title}</p>
+        </div>
       </CardContent>
     </Card>
   );
 }
 
 export default function Dashboard() {
-  const [, setLocation] = useLocation();
-  const { data: summary, isLoading: loadingSummary } = useGetDashboardSummary();
-  const { data: monthlyContribs, isLoading: loadingMonthly } = useGetMonthlyContributions();
-  const { data: loanBreakdown, isLoading: loadingBreakdown } = useGetLoanStatusBreakdown();
+  const [, navigate] = useLocation();
+  const { data: summary,        isLoading: loadingSummary  } = useGetDashboardSummary();
+  const { data: monthlyData,    isLoading: loadingMonthly  } = useGetMonthlyContributions();
+  const { data: loanBreakdown,  isLoading: loadingLoans    } = useGetLoanStatusBreakdown();
   const { data: recentActivity, isLoading: loadingActivity } = useGetRecentActivity();
+
+  const kpiCards = [
+    { title: "Total Savings Volume",  value: summary?.totalSavings    ?? 0, growth: summary?.savingsGrowth ?? 0, icon: Wallet,     format: "currency" as const },
+    { title: "Total Loans Issued",    value: summary?.totalLoansIssued ?? 0, growth: summary?.loansGrowth   ?? 0, icon: CreditCard, format: "currency" as const },
+    { title: "Active Members",        value: summary?.activeMembers   ?? 0, growth: summary?.membersGrowth ?? 0, icon: Users,      format: "number"   as const },
+    { title: "Active Organizations",  value: summary?.activeOrganizations ?? 0,                                   icon: Building2,  format: "number"   as const },
+    { title: "Repayment Rate",        value: summary?.repaymentRate   ?? 0, growth: 2,                            icon: Percent,    format: "percent"  as const },
+    { title: "Monthly Growth",        value: summary?.monthlyGrowth   ?? 0, growth: summary?.monthlyGrowth,       icon: TrendingUp, format: "percent"  as const },
+    { title: "Risk Exposure",         value: summary?.riskExposure    ?? 0,                                       icon: ShieldAlert,format: "currency" as const, accent: "red"   as const },
+    { title: "Active Defaulters",     value: summary?.activeDefaulters ?? 0,                                      icon: UserX,      format: "number"   as const, accent: "amber" as const },
+  ];
+
+  const pieData  = (loanBreakdown?.breakdown ?? []).map((b: { status: string; count: number }) => ({
+    name: b.status.charAt(0).toUpperCase() + b.status.slice(1), value: b.count,
+  }));
+  const areaData = (monthlyData?.data ?? []).map((d: { month: string; amount: number }) => ({
+    month: d.month, contributions: d.amount,
+  }));
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-8">
+
+        {/* ── Header ── */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Command Center</h1>
-            <p className="text-muted-foreground">Coopvest Africa — Admin Dashboard Overview</p>
+            <h1 className="text-3xl font-bold tracking-tight">Command Center</h1>
+            <p className="text-muted-foreground mt-1">Coopvest Africa — Real-time platform overview</p>
           </div>
-          <div className="flex gap-2">
-            <button
-              className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-muted transition-colors"
-              onClick={() => setLocation("/excel-manager")}
-            >
-              <FileSpreadsheet className="h-4 w-4" /> Excel Manager
-            </button>
-            <button
-              className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-muted transition-colors"
-              onClick={() => setLocation("/organizations")}
-            >
-              <Building2 className="h-4 w-4" /> Organizations
-            </button>
-          </div>
+          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+            <RefreshCw className="h-4 w-4 mr-2" />Refresh
+          </Button>
         </div>
 
-        {/* Alert Banner for Urgent Items */}
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          {[
-            { label: "Loan Defaulters", value: 12, icon: AlertTriangle, color: "bg-red-50 border-red-200 text-red-700", href: "/members" },
-            { label: "High-Risk Accounts", value: 8, icon: ShieldAlert, color: "bg-rose-50 border-rose-200 text-rose-700", href: "/risk-scoring" },
-            { label: "Pending KYC Verification", value: summary?.pendingVerifications ?? 24, icon: Clock, color: "bg-amber-50 border-amber-200 text-amber-700", href: "/user-verification" },
-          ].map(alert => (
-            <div
-              key={alert.label}
-              className={`flex items-center justify-between rounded-lg border px-4 py-3 cursor-pointer hover:opacity-80 transition-opacity ${alert.color}`}
-              onClick={() => setLocation(alert.href)}
-            >
-              <div className="flex items-center gap-2">
-                <alert.icon className="h-4 w-4" />
-                <span className="text-sm font-medium">{alert.label}</span>
-              </div>
-              <span className="text-lg font-bold">{(alert.value ?? 0).toLocaleString()}</span>
-            </div>
+        {/* ── KPI Grid ── */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {kpiCards.map((card) => (
+            <KPICard key={card.title} {...card} loading={loadingSummary} />
           ))}
         </div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-          <KPICard
-            title="Total Members"
-            value={summary?.totalMembers ?? 0}
-            growth={summary?.membersGrowth}
-            icon={Users}
-            loading={loadingSummary}
-          />
-          <KPICard
-            title="Total Contributions"
-            value={summary?.totalContributions ?? 0}
-            growth={summary?.contributionsGrowth}
-            icon={Wallet}
-            loading={loadingSummary}
-            format="currency"
-          />
-          <KPICard
-            title="Loans Disbursed"
-            value={summary?.loansDisbursed ?? 0}
-            growth={summary?.loansGrowth}
-            icon={CreditCard}
-            loading={loadingSummary}
-            format="currency"
-          />
-          <KPICard
-            title="Repayment Rate"
-            value={summary?.repaymentRate ?? 0}
-            icon={TrendingUp}
-            loading={loadingSummary}
-            format="percent"
-          />
-          <KPICard
-            title="Active Loans"
-            value={summary?.activeLoans ?? 0}
-            icon={ArrowUpRight}
-            loading={loadingSummary}
-          />
-          <KPICard
-            title="Total Investments"
-            value={summary?.totalInvestments ?? 0}
-            icon={PieChartIcon}
-            loading={loadingSummary}
-            format="currency"
-          />
-          <KPICard
-            title="Pending Compliance"
-            value={summary?.pendingCompliance ?? 0}
-            icon={ShieldCheck}
-            loading={loadingSummary}
-          />
-          <KPICard
-            title="Open Support Tickets"
-            value={summary?.openSupportTickets ?? 0}
-            icon={LifeBuoy}
-            loading={loadingSummary}
-          />
-          <KPICard
-            title="Suspended Users"
-            value={summary?.suspendedMembers ?? 0}
-            icon={UserX}
-            loading={loadingSummary}
-          />
-          <KPICard
-            title="Missed Contributions"
-            value={summary?.overdueContributions ?? 0}
-            icon={AlertTriangle}
-            loading={loadingSummary}
-          />
-          <KPICard
-            title="Onboarded Orgs"
-            value={summary?.totalOrganizations ?? 0}
-            icon={Building2}
-            loading={loadingSummary}
-          />
-          <KPICard
-            title="Pending Verifications"
-            value={summary?.pendingVerifications ?? 0}
-            icon={Clock}
-            loading={loadingSummary}
-          />
-        </div>
-
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Monthly Contributions Chart */}
-          <Card>
+        {/* ── Charts Row 1 ── */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle className="text-base font-semibold">Monthly Contributions</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />Monthly Savings Volume
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              {loadingMonthly ? (
-                <Skeleton className="h-64 w-full" />
-              ) : (
-                <ResponsiveContainer width="100%" height={250}>
-                  <AreaChart data={monthlyContribs ?? []}>
+              {loadingMonthly ? <Skeleton className="h-64 w-full" /> : (
+                <ResponsiveContainer width="100%" height={260}>
+                  <AreaChart data={areaData}>
                     <defs>
-                      <linearGradient id="contribGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#2d6a4f" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#2d6a4f" stopOpacity={0} />
+                      <linearGradient id="savingsGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%"  stopColor="#2d6a4f" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#2d6a4f" stopOpacity={0}   />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `₦${(v / 1000).toFixed(0)}k`} />
-                    <Tooltip formatter={(val: number) => [formatCurrency(val), "Contributions"]} />
-                    <Area
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#2d6a4f"
-                      strokeWidth={2}
-                      fill="url(#contribGrad)"
-                    />
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="month" className="text-xs" />
+                    <YAxis className="text-xs" tickFormatter={(v) => `₦${(v/1_000_000).toFixed(1)}M`} />
+                    <Tooltip formatter={(v: number) => formatCurrency(v)} />
+                    <Area type="monotone" dataKey="contributions" stroke="#2d6a4f" strokeWidth={2} fill="url(#savingsGrad)" />
                   </AreaChart>
                 </ResponsiveContainer>
               )}
             </CardContent>
           </Card>
 
-          {/* Loan Status Breakdown */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base font-semibold">Loan Portfolio Breakdown</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-primary" />Loan Status Breakdown
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              {loadingBreakdown ? (
-                <Skeleton className="h-64 w-full" />
-              ) : (
-                <ResponsiveContainer width="100%" height={250}>
+              {loadingLoans ? <Skeleton className="h-64 w-full" /> : pieData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={260}>
                   <PieChart>
-                    <Pie
-                      data={loanBreakdown ?? []}
-                      dataKey="count"
-                      nameKey="status"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={90}
-                      label={({ status, percentage }) => `${status} ${percentage}%`}
-                      labelLine={false}
-                    >
-                      {(loanBreakdown ?? []).map((_, i) => (
-                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                      ))}
+                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={4} dataKey="value">
+                      {pieData.map((_: unknown, i: number) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                     </Pie>
-                    <Tooltip formatter={(val, name) => [val, name]} />
-                    <Legend />
+                    <Legend /><Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
+              ) : (
+                <div className="flex h-64 items-center justify-center text-muted-foreground text-sm">No loan data</div>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loadingActivity ? (
-              <div className="space-y-3">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : (
-              <div className="divide-y">
-                {(recentActivity ?? []).map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between py-3"
-                    data-testid={`activity-item-${item.id}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                        {item.type === "contribution" ? (
-                          <Wallet className="h-4 w-4 text-primary" />
-                        ) : (
-                          <CreditCard className="h-4 w-4 text-primary" />
-                        )}
+        {/* ── Charts Row 2 ── */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Percent className="h-5 w-5 text-emerald-600" />Repayment Rate Trend
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={repaymentTrendData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="month" className="text-xs" />
+                  <YAxis domain={[75, 100]} className="text-xs" tickFormatter={(v) => `${v}%`} />
+                  <Tooltip formatter={(v: number) => [`${v}%`, "Repayment Rate"]} />
+                  <Line type="monotone" dataKey="rate" stroke="#40916c" strokeWidth={2.5} dot={{ r: 4, fill: "#40916c" }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShieldAlert className="h-5 w-5 text-red-600" />Risk Exposure
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie data={riskExposureData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value">
+                    {riskExposureData.map((e, i) => <Cell key={i} fill={e.color} />)}
+                  </Pie>
+                  <Legend iconSize={10} />
+                  <Tooltip formatter={(v: number) => [`${v}%`, "Portfolio"]} />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserX className="h-5 w-5 text-amber-600" />Defaulter Trends
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={defaulterTrendData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="month" className="text-xs" /><YAxis className="text-xs" />
+                  <Tooltip /><Legend />
+                  <Bar dataKey="defaulters" fill="#e63946" name="Defaulters" radius={[3,3,0,0]} />
+                  <Bar dataKey="recovered"  fill="#40916c" name="Recovered"  radius={[3,3,0,0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ── Quick Actions + Recent Activity ── */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Activity className="h-5 w-5 text-primary" />Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {[
+                { label: "Send Notification",       href: "/notifications",          icon: "🔔" },
+                { label: "Review Loan Applications", href: "/loans",                 icon: "💳" },
+                { label: "Manage Mobile Content",   href: "/mobile-feature-controls",icon: "📱" },
+                { label: "View Risk Scores",         href: "/risk-scoring",          icon: "⚠️" },
+                { label: "Platform Analytics",       href: "/platform-analytics",    icon: "📊" },
+                { label: "Fraud Detection",          href: "/fraud-detection",       icon: "🛡️" },
+              ].map((a) => (
+                <button key={a.href} onClick={() => navigate(a.href)}
+                  className="flex w-full items-center gap-3 rounded-lg border p-3 text-left text-sm hover:bg-muted/50 transition-colors">
+                  <span>{a.icon}</span>
+                  <span className="font-medium">{a.label}</span>
+                  <ArrowUpRight className="ml-auto h-4 w-4 text-muted-foreground" />
+                </button>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary" />Recent Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loadingActivity ? (
+                <div className="space-y-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}</div>
+              ) : (recentActivity?.activities ?? []).length === 0 ? (
+                <div className="flex flex-col items-center py-12 gap-3 text-muted-foreground">
+                  <Activity className="h-12 w-12 opacity-30" /><p>No recent activity</p>
+                </div>
+              ) : (
+                <div className="space-y-1 divide-y">
+                  {(recentActivity?.activities ?? []).slice(0, 8).map((item: {
+                    id: number; type: string; description: string;
+                    amount: number | null; createdAt: string;
+                  }) => (
+                    <div key={item.id} className="flex items-center gap-4 py-3" data-testid={`activity-item-${item.id}`}>
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                        {item.type === "contribution"
+                          ? <Wallet className="h-4 w-4 text-primary" />
+                          : <CreditCard className="h-4 w-4 text-primary" />}
                       </div>
-                      <div>
-                        <p className="text-sm font-medium">{item.description}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{item.description}</p>
                         <p className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
+                          {item.createdAt ? formatDistanceToNow(new Date(item.createdAt), { addSuffix: true }) : ""}
                         </p>
                       </div>
+                      {item.amount != null && (
+                        <span className="text-sm font-semibold text-primary shrink-0">{formatCurrency(item.amount)}</span>
+                      )}
                     </div>
-                    {item.amount != null && (
-                      <span className="text-sm font-semibold text-primary">
-                        {formatCurrency(item.amount)}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
       </div>
     </Layout>
   );
