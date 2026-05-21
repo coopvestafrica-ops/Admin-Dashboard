@@ -14,6 +14,18 @@ import riskScoringRouter from "./risk_scoring";
 import interestRatesRouter from "./interest_rates";
 import rolloversRouter from "./rollovers";
 import payrollRouter from "./payroll";
+// New command-center routes
+import mobileFeaturesRouter from "./mobile_features";
+import rolesRouter from "./roles";
+import fraudDetectionRouter from "./fraud_detection";
+import organizationsRouter from "./organizations";
+import analyticsRouter from "./analytics";
+import securityRouter from "./security";
+import walletsRouter from "./wallets";
+import withdrawalsRouter from "./withdrawals";
+import verificationRouter from "./verification";
+import referralsRouter from "./referrals";
+import guarantorsRouter from "./guarantors";
 
 const router: IRouter = Router();
 
@@ -35,5 +47,17 @@ router.use(riskScoringRouter);
 router.use(interestRatesRouter);
 router.use(rolloversRouter);
 router.use(payrollRouter);
+// New command-center modules
+router.use(mobileFeaturesRouter);
+router.use(rolesRouter);
+router.use(fraudDetectionRouter);
+router.use(organizationsRouter);
+router.use(analyticsRouter);
+router.use(securityRouter);
+router.use(walletsRouter);
+router.use(withdrawalsRouter);
+router.use(verificationRouter);
+router.use(referralsRouter);
+router.use(guarantorsRouter);
 
 export default router;
