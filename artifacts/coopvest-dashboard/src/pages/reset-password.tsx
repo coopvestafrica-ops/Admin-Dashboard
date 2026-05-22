@@ -1,3 +1,4 @@
+// Quick Win: /reset-password page — handles Supabase password-reset redirect links
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -6,11 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldCheck, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-// Fix #5: use toast instead of native alert()
 import { useToast } from "@/hooks/use-toast";
 
-export default function Login() {
+export default function ResetPassword() {
   const [, setLocation] = useLocation();
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -18,41 +20,28 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (password !== confirm) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     setIsLoading(true);
+    const { error: updateError } = await supabase.auth.updateUser({ password });
+    setIsLoading(false);
 
-    const form = e.currentTarget;
-    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
-    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
-
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (authError) {
-      setError(authError.message);
-      setIsLoading(false);
-      return;
-    }
-
-    setLocation("/dashboard");
-  };
-
-  const handleForgotPassword = async () => {
-    const email = (document.getElementById("email") as HTMLInputElement)?.value;
-    if (!email) {
-      setError("Enter your email address first, then click Forgot password.");
-      return;
-    }
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (resetError) {
-      setError(resetError.message);
+    if (updateError) {
+      setError(updateError.message);
     } else {
-      setError(null);
-      // Fix #5: replace native alert() with toast notification
       toast({
-        title: "Password reset email sent",
-        description: `Check your inbox at ${email} for a reset link.`,
+        title: "Password updated",
+        description: "Your password has been changed. Please sign in.",
       });
+      setLocation("/");
     }
   };
 
@@ -65,14 +54,14 @@ export default function Login() {
           </div>
           <h1 className="text-2xl font-bold tracking-tight">Coopvest Africa</h1>
           <p className="text-muted-foreground text-sm text-center">
-            Cooperative Operations Dashboard
+            Set a new password for your account
           </p>
         </div>
 
         <Card className="border-border shadow-xl">
           <CardHeader>
-            <CardTitle>Sign in to continue</CardTitle>
-            <CardDescription>Enter your operator credentials</CardDescription>
+            <CardTitle>Reset your password</CardTitle>
+            <CardDescription>Choose a strong new password</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
@@ -83,26 +72,35 @@ export default function Login() {
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" placeholder="admin@coopvest.africa" required autoComplete="email" />
+                <Label htmlFor="password">New password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
+                />
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <button
-                    type="button"
-                    onClick={handleForgotPassword}
-                    className="text-xs text-primary hover:underline"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-                <Input id="password" name="password" type="password" required autoComplete="current-password" />
+                <Label htmlFor="confirm">Confirm new password</Label>
+                <Input
+                  id="confirm"
+                  name="confirm"
+                  type="password"
+                  required
+                  minLength={8}
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  autoComplete="new-password"
+                />
               </div>
             </CardContent>
             <CardFooter>
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Authenticating..." : "Sign In"}
+                {isLoading ? "Updating..." : "Set new password"}
                 {!isLoading && <ShieldCheck className="ml-2 h-4 w-4" />}
               </Button>
             </CardFooter>

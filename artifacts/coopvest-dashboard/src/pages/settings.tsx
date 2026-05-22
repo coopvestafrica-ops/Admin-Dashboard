@@ -132,6 +132,14 @@ export default function Settings() {
           <p className="text-muted-foreground">Manage contribution engine controls and system configuration</p>
         </div>
 
+        {/* Quick Win: placeholder notice so operators know this page is not fully wired */}
+        <div className="flex items-center gap-3 rounded-md border border-yellow-400/40 bg-yellow-400/10 px-4 py-3 text-sm text-yellow-700 dark:text-yellow-400">
+          <span className="text-base">🚧</span>
+          <span>
+            <strong>Work in progress.</strong> Some settings on this page are UI placeholders and are not yet saved to the backend. Changes made here may not persist until the integration is complete.
+          </span>
+        </div>
+
         {/* Global Salary Deduction Toggle */}
         <Card>
           <CardHeader className="pb-2">
