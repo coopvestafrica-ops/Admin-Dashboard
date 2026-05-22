@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { requireAuth, requireRole } from "../middleware/auth"; // Fix #4
 
 const router: IRouter = Router();
 
@@ -11,19 +12,20 @@ let adminUsers = [
 ];
 
 const ROLE_HIERARCHY = { super_admin: 4, admin: 3, operator: 2, viewer: 1 };
+router.use(requireAuth);
 
-router.get("/roles", async (_req, res): Promise<void> => {
+router.get("/roles", requireRole("admin"), async (_req, res): Promise<void> => {
   res.json({ admins: adminUsers, roleHierarchy: ROLE_HIERARCHY });
 });
 
-router.post("/roles", async (req, res): Promise<void> => {
+router.post("/roles", requireRole("admin"), async (req, res): Promise<void> => {
   const { name, email, role } = req.body;
   const newUser = { id: String(Date.now()), name, email, role, status: "active", lastActive: new Date().toISOString(), createdAt: new Date().toISOString() };
   adminUsers.push(newUser);
   res.status(201).json({ admin: newUser, message: "Admin user created successfully" });
 });
 
-router.put("/roles/:id", async (req, res): Promise<void> => {
+router.put("/roles/:id", requireRole("admin"), async (req, res): Promise<void> => {
   const { id } = req.params;
   const { role, status } = req.body;
   const idx = adminUsers.findIndex((u) => u.id === id);
@@ -32,7 +34,7 @@ router.put("/roles/:id", async (req, res): Promise<void> => {
   res.json({ admin: adminUsers[idx], message: "Role updated successfully" });
 });
 
-router.delete("/roles/:id", async (req, res): Promise<void> => {
+router.delete("/roles/:id", requireRole("super_admin"), async (req, res): Promise<void> => {
   const { id } = req.params;
   adminUsers = adminUsers.filter((u) => u.id !== id);
   res.json({ message: "Admin access revoked" });
