@@ -23,30 +23,10 @@ import { Button } from "@/components/ui/button";
 
 const PIE_COLORS = ["#2d6a4f", "#40916c", "#f6ae2d", "#e63946", "#74c69d"];
 
-const riskExposureData = [
-  { name: "Low Risk",    value: 58, color: "#40916c" },
-  { name: "Medium Risk", value: 27, color: "#f6ae2d" },
-  { name: "High Risk",   value: 11, color: "#e63946" },
-  { name: "Critical",    value:  4, color: "#9b2226" },
-];
-
-const defaulterTrendData = [
-  { month: "Jan", defaulters: 12, recovered:  5 },
-  { month: "Feb", defaulters: 18, recovered:  8 },
-  { month: "Mar", defaulters: 14, recovered: 11 },
-  { month: "Apr", defaulters: 22, recovered:  9 },
-  { month: "May", defaulters: 19, recovered: 14 },
-  { month: "Jun", defaulters: 16, recovered: 12 },
-];
-
-const repaymentTrendData = [
-  { month: "Jan", rate: 87 },
-  { month: "Feb", rate: 89 },
-  { month: "Mar", rate: 85 },
-  { month: "Apr", rate: 91 },
-  { month: "May", rate: 88 },
-  { month: "Jun", rate: 93 },
-];
+// Fix #3: Removed static mock arrays. Charts below show placeholder banners
+// until the corresponding API endpoints are implemented.
+const CHART_PLACEHOLDER_NOTICE =
+  "⚠️ This chart shows placeholder data. Wire up the API endpoint to display live figures.";
 
 function KPICard({
   title, value, growth, icon: Icon, loading,
@@ -190,60 +170,30 @@ export default function Dashboard() {
 
         {/* ── Charts Row 2 ── */}
         <div className="grid gap-6 lg:grid-cols-3">
+          {/* Fix #3: Repayment Rate Trend – placeholder until GET /api/analytics/repayment-trend is live */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Percent className="h-5 w-5 text-emerald-600" />Repayment Rate Trend
-              </CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><Percent className="h-5 w-5 text-emerald-600" />Repayment Rate Trend</CardTitle></CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={repaymentTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="month" className="text-xs" />
-                  <YAxis domain={[75, 100]} className="text-xs" tickFormatter={(v) => `${v}%`} />
-                  <Tooltip formatter={(v: number) => [`${v}%`, "Repayment Rate"]} />
-                  <Line type="monotone" dataKey="rate" stroke="#40916c" strokeWidth={2.5} dot={{ r: 4, fill: "#40916c" }} />
-                </LineChart>
-              </ResponsiveContainer>
+              <div className="mb-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">{CHART_PLACEHOLDER_NOTICE}</div>
+              <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">Connect <code className="mx-1 rounded bg-muted px-1 font-mono text-xs">GET /api/analytics/repayment-trend</code></div>
             </CardContent>
           </Card>
 
+          {/* Fix #3: Risk Exposure – placeholder until GET /api/analytics/risk-exposure is live */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShieldAlert className="h-5 w-5 text-red-600" />Risk Exposure
-              </CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-red-600" />Risk Exposure</CardTitle></CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={riskExposureData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value">
-                    {riskExposureData.map((e, i) => <Cell key={i} fill={e.color} />)}
-                  </Pie>
-                  <Legend iconSize={10} />
-                  <Tooltip formatter={(v: number) => [`${v}%`, "Portfolio"]} />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="mb-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">{CHART_PLACEHOLDER_NOTICE}</div>
+              <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">Connect <code className="mx-1 rounded bg-muted px-1 font-mono text-xs">GET /api/analytics/risk-exposure</code></div>
             </CardContent>
           </Card>
 
+          {/* Fix #3: Defaulter Trends – placeholder until GET /api/analytics/defaulter-trend is live */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UserX className="h-5 w-5 text-amber-600" />Defaulter Trends
-              </CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><UserX className="h-5 w-5 text-amber-600" />Defaulter Trends</CardTitle></CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={defaulterTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="month" className="text-xs" /><YAxis className="text-xs" />
-                  <Tooltip /><Legend />
-                  <Bar dataKey="defaulters" fill="#e63946" name="Defaulters" radius={[3,3,0,0]} />
-                  <Bar dataKey="recovered"  fill="#40916c" name="Recovered"  radius={[3,3,0,0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="mb-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">{CHART_PLACEHOLDER_NOTICE}</div>
+              <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">Connect <code className="mx-1 rounded bg-muted px-1 font-mono text-xs">GET /api/analytics/defaulter-trend</code></div>
             </CardContent>
           </Card>
         </div>
