@@ -1,7 +1,13 @@
 import { Router, type IRouter } from "express";
 import { supabase } from "@workspace/db";
+// Fix #2: Import generated Zod schema for input validation
+import { CreateContributionBody } from "@workspace/api-zod";
+import { requireAuth } from "../middleware/auth";
 
 const router: IRouter = Router();
+
+// All contribution routes require authentication
+router.use(requireAuth);
 
 router.get("/contributions/summary", async (req, res): Promise<void> => {
   const { data: savingsRows } = await supabase.from("savings").select("total_saved, monthly_savings, profile_id");
@@ -72,11 +78,13 @@ router.get("/contributions", async (req, res): Promise<void> => {
 });
 
 router.post("/contributions", async (req, res): Promise<void> => {
-  const { memberId, amount, month, paymentMethod } = req.body;
-  if (!memberId || !amount || !month || !paymentMethod) {
-    res.status(400).json({ error: "memberId, amount, month, paymentMethod are required" });
+  // Fix #2: Validate POST body with Zod before inserting
+  const parsed = CreateContributionBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
+  const { memberId, amount, month, paymentMethod } = parsed.data;
 
   const ref = "TXN-" + String(Date.now()).slice(-8);
   const txnId = "TX-" + crypto.randomUUID().slice(0, 8);
