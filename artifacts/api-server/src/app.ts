@@ -6,6 +6,16 @@ import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
+// ── Fix #1: CORS – fail fast if ALLOWED_ORIGIN is unset in production ─────────
+if (process.env.NODE_ENV === "production" && !process.env.ALLOWED_ORIGIN) {
+  logger.fatal(
+    "ALLOWED_ORIGIN environment variable is not set. " +
+    "Refusing to start in production with a wildcard CORS origin. " +
+    "Set ALLOWED_ORIGIN to your frontend URL (e.g. https://app.coopvest.africa).",
+  );
+  process.exit(1);
+}
+
 const app: Express = express();
 
 // Security headers
@@ -36,16 +46,10 @@ app.use(
     logger,
     serializers: {
       req(req) {
-        return {
-          id: req.id,
-          method: req.method,
-          url: req.url?.split("?")[0],
-        };
+        return { id: req.id, method: req.method, url: req.url?.split("?")[0] };
       },
       res(res) {
-        return {
-          statusCode: res.statusCode,
-        };
+        return { statusCode: res.statusCode };
       },
     },
   }),
@@ -53,7 +57,6 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 app.use("/api", router);
 
 export default app;
