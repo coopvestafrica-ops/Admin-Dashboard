@@ -22,8 +22,39 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // Log to console (swap for your logger / Sentry etc. in production)
+    // Log to console (useful for development)
     console.error("[ErrorBoundary] Uncaught error:", error, info.componentStack);
+
+    // Support production error reporting services dynamically in production
+    try {
+      if ((window as any).Sentry) {
+        (window as any).Sentry.captureException(error, {
+          extra: { componentStack: info.componentStack },
+        });
+      }
+      if ((window as any).LogRocket) {
+        (window as any).LogRocket.captureException(error, {
+          extra: { componentStack: info.componentStack },
+        });
+      }
+      // Safe fallback - send crash diagnostics back to API logger if endpoint exists
+      fetch("/api/logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          level: "error",
+          error: error.message,
+          stack: error.stack,
+          componentStack: info.componentStack,
+          url: window.location.href,
+          timestamp: new Date().toISOString(),
+        }),
+      }).catch(() => {
+        // Silently swallow network errors if logger endpoint doesn't exist
+      });
+    } catch (e) {
+      // Prevent crash reporting failures from taking down the application
+    }
   }
 
   handleReset = () => {

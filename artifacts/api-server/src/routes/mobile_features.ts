@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { readData, writeData } from "../lib/store";
 
 const router: IRouter = Router();
 
@@ -11,86 +12,79 @@ const defaultFeatures = [
   { id: "investment_pool",     name: "Investment Pool",       description: "Allow members to invest in the cooperative pool",        enabled: true,  updatedAt: new Date().toISOString(), updatedBy: "Super Admin" },
   { id: "guarantor_system",    name: "Guarantor System",      description: "Require a guarantor for loan applications",              enabled: true,  updatedAt: new Date().toISOString(), updatedBy: "Super Admin" },
   { id: "referral_program",    name: "Referral Program",      description: "Enable member referral bonuses",                        enabled: true,  updatedAt: new Date().toISOString(), updatedBy: "Super Admin" },
-  { id: "push_notifications",  name: "Push Notifications",    description: "Send push notifications to mobile app users",           enabled: true,  updatedAt: new Date().toISOString(), updatedBy: "Super Admin" },
-  { id: "withdrawals",         name: "Withdrawals",           description: "Allow members to withdraw from their wallets",           enabled: true,  updatedAt: new Date().toISOString(), updatedBy: "Super Admin" },
-  { id: "kyc_verification",    name: "KYC Verification",      description: "Require KYC verification before full platform access",  enabled: true,  updatedAt: new Date().toISOString(), updatedBy: "Super Admin" },
-  { id: "biometric_login",     name: "Biometric Login",       description: "Allow fingerprint / face ID login",                     enabled: false, updatedAt: new Date().toISOString(), updatedBy: "Super Admin" },
+  { id: "push_notifications",  name: "Push Notifications",    description: "Send push notifications to mobile devices",              enabled: true,  updatedAt: new Date().toISOString(), updatedBy: "Super Admin" },
 ];
 
-let features = [...defaultFeatures];
-
-router.get("/mobile-features", async (_req, res): Promise<void> => {
-  res.json({ features, lastSync: new Date().toISOString() });
-});
-
-router.put("/mobile-features", async (req, res): Promise<void> => {
-  const { featureId, enabled } = req.body;
-  const idx = features.findIndex((f) => f.id === featureId);
-  if (idx === -1) { res.status(404).json({ error: "Feature not found" }); return; }
-  features[idx] = { ...features[idx], enabled, updatedAt: new Date().toISOString(), updatedBy: "Admin" };
-  res.json({ feature: features[idx], message: `Feature '${features[idx].name}' ${enabled ? "enabled" : "disabled"} successfully` });
-});
-
-router.put("/mobile-features/bulk", async (req, res): Promise<void> => {
-  const { updates } = req.body as { updates: { featureId: string; enabled: boolean }[] };
-  for (const u of updates) {
-    const idx = features.findIndex((f) => f.id === u.featureId);
-    if (idx !== -1) features[idx] = { ...features[idx], enabled: u.enabled, updatedAt: new Date().toISOString(), updatedBy: "Admin" };
-  }
-  res.json({ features, message: "Bulk update applied" });
-});
-
-// ── Mobile Content (banners, announcements, onboarding, text) ─────────────────
-
-interface Banner        { id: string; title: string; subtitle: string; imageUrl: string; linkUrl: string; active: boolean; order: number; }
-interface Announcement  { id: string; title: string; body: string; active: boolean; createdAt: string; }
-interface Slide         { id: string; title: string; description: string; icon: string; order: number; }
-interface ContentSection{ key: string; label: string; value: string; }
-
-let banners: Banner[] = [
-  { id: "b1", title: "Welcome to Coopvest Africa",      subtitle: "Save, Invest & Grow Together",      imageUrl: "", linkUrl: "", active: true, order: 1 },
-  { id: "b2", title: "Apply for a Cooperative Loan",    subtitle: "Low interest rates for members",    imageUrl: "", linkUrl: "", active: true, order: 2 },
+const defaultSlides = [
+  { id: "1", title: "Welcome to Coopvest",     description: "Your partner in secure cooperative investments and community growth", image: "welcome.png", order: 1 },
+  { id: "2", title: "Save with Purpose",       description: "Earn high-yield returns on your monthly contributions with absolute peace of mind", image: "save.png", order: 2 },
+  { id: "3", title: "Empower Your Business",   description: "Access collateral-free loans at low interest rates through our community vetting", image: "loans.png", order: 3 },
 ];
-let announcements: Announcement[] = [
-  { id: "a1", title: "New Feature: Wallet Transfers", body: "Members can now transfer funds between wallets instantly. Update your app to get started!", active: true, createdAt: new Date().toISOString() },
-];
-let slides: Slide[] = [
-  { id: "s1", title: "Welcome to Coopvest Africa", description: "Your trusted cooperative savings and investment platform.", icon: "🏦", order: 1 },
-  { id: "s2", title: "Save Together",              description: "Join thousands of members building wealth through collective savings.",      icon: "💰", order: 2 },
-  { id: "s3", title: "Low Interest Loans",         description: "Access affordable loans backed by your cooperative savings.",               icon: "💳", order: 3 },
-  { id: "s4", title: "Invest & Grow",              description: "Participate in investment pools and watch your money grow.",                icon: "📈", order: 4 },
-];
-let contentSections: ContentSection[] = [
+
+const defaultContentSections = [
   { key: "homepage_message", label: "Homepage Welcome Message",   value: "Welcome back! Your savings are growing. Keep contributing towards your goals." },
   { key: "terms",            label: "Terms & Conditions",          value: "By using Coopvest Africa, you agree to our terms of service and cooperative bylaws." },
   { key: "privacy_policy",   label: "Privacy Policy",             value: "Coopvest Africa is committed to protecting your personal data. We collect only what is necessary to provide our services." },
   { key: "about",            label: "About Us",                   value: "Coopvest Africa is a cooperative investment and savings platform dedicated to empowering individuals and organizations through collective financial growth." },
 ];
 
-// Banners
-router.get("/mobile-content/banners",        (_req, res) => res.json({ banners }));
-router.post("/mobile-content/banners",       (req, res)  => { const b: Banner = { ...req.body, id: `b${Date.now()}` }; banners.push(b); res.status(201).json({ banner: b }); });
-router.put("/mobile-content/banners/:id",    (req, res)  => { const i = banners.findIndex((b) => b.id === req.params.id); if (i === -1) { res.status(404).json({ error: "Not found" }); return; } banners[i] = { ...banners[i], ...req.body }; res.json({ banner: banners[i] }); });
-router.delete("/mobile-content/banners/:id", (req, res)  => { banners = banners.filter((b) => b.id !== req.params.id); res.json({ success: true }); });
+// Features List
+router.get("/mobile-features", async (_req, res) => {
+  const features = await readData("mobile_features.json", defaultFeatures);
+  res.json({ features });
+});
 
-// Announcements
-router.get("/mobile-content/announcements",        (_req, res) => res.json({ announcements }));
-router.post("/mobile-content/announcements",       (req, res)  => { const a: Announcement = { ...req.body, id: `a${Date.now()}`, createdAt: new Date().toISOString() }; announcements.unshift(a); res.status(201).json({ announcement: a }); });
-router.put("/mobile-content/announcements/:id",    (req, res)  => { const i = announcements.findIndex((a) => a.id === req.params.id); if (i === -1) { res.status(404).json({ error: "Not found" }); return; } announcements[i] = { ...announcements[i], ...req.body }; res.json({ announcement: announcements[i] }); });
-router.delete("/mobile-content/announcements/:id", (req, res)  => { announcements = announcements.filter((a) => a.id !== req.params.id); res.json({ success: true }); });
+router.put("/mobile-features/:id", async (req, res) => {
+  const features = await readData("mobile_features.json", defaultFeatures);
+  const idx = features.findIndex((f) => f.id === req.params.id);
+  if (idx === -1) { res.status(404).json({ error: "Feature not found" }); return; }
+  features[idx] = { ...features[idx], ...req.body, updatedAt: new Date().toISOString() };
+  await writeData("mobile_features.json", features);
+  res.json({ feature: features[idx], message: "Feature updated successfully" });
+});
 
-// Onboarding Slides
-router.get("/mobile-content/onboarding",        (_req, res) => res.json({ slides }));
-router.post("/mobile-content/onboarding",       (req, res)  => { const s: Slide = { ...req.body, id: `s${Date.now()}` }; slides.push(s); res.status(201).json({ slide: s }); });
-router.put("/mobile-content/onboarding/:id",    (req, res)  => { const i = slides.findIndex((s) => s.id === req.params.id); if (i === -1) { res.status(404).json({ error: "Not found" }); return; } slides[i] = { ...slides[i], ...req.body }; res.json({ slide: slides[i] }); });
-router.delete("/mobile-content/onboarding/:id", (req, res)  => { slides = slides.filter((s) => s.id !== req.params.id); res.json({ success: true }); });
+// Slides/Onboarding Content
+router.get("/mobile-content/onboarding", async (_req, res) => {
+  const slides = await readData("mobile_slides.json", defaultSlides);
+  res.json({ slides });
+});
+
+router.post("/mobile-content/onboarding", async (req, res) => {
+  const slides = await readData("mobile_slides.json", defaultSlides);
+  const newSlide = { id: String(Date.now()), ...req.body, order: slides.length + 1 };
+  slides.push(newSlide);
+  await writeData("mobile_slides.json", slides);
+  res.status(201).json({ slide: newSlide });
+});
+
+router.put("/mobile-content/onboarding/:id", async (req, res) => {
+  const slides = await readData("mobile_slides.json", defaultSlides);
+  const i = slides.findIndex((s) => s.id === req.params.id);
+  if (i === -1) { res.status(404).json({ error: "Not found" }); return; }
+  slides[i] = { ...slides[i], ...req.body };
+  await writeData("mobile_slides.json", slides);
+  res.json({ slide: slides[i] });
+});
+
+router.delete("/mobile-content/onboarding/:id", async (req, res) => {
+  let slides = await readData("mobile_slides.json", defaultSlides);
+  slides = slides.filter((s) => s.id !== req.params.id);
+  await writeData("mobile_slides.json", slides);
+  res.json({ success: true });
+});
 
 // Text Content
-router.get("/mobile-content/text",       (_req, res) => res.json({ sections: contentSections }));
-router.put("/mobile-content/text/:key",  (req, res)  => {
+router.get("/mobile-content/text", async (_req, res) => {
+  const contentSections = await readData("mobile_text.json", defaultContentSections);
+  res.json({ sections: contentSections });
+});
+
+router.put("/mobile-content/text/:key", async (req, res) => {
+  const contentSections = await readData("mobile_text.json", defaultContentSections);
   const i = contentSections.findIndex((s) => s.key === req.params.key);
   if (i === -1) { res.status(404).json({ error: "Section not found" }); return; }
   contentSections[i] = { ...contentSections[i], value: req.body.value };
+  await writeData("mobile_text.json", contentSections);
   res.json({ section: contentSections[i], message: "Content updated successfully" });
 });
 

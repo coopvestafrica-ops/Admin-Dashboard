@@ -1,8 +1,9 @@
 import { Router, type IRouter } from "express";
+import { readData, writeData } from "../lib/store";
 
 const router: IRouter = Router();
 
-let kycSubmissions = [
+const defaultKycSubmissions = [
   { id: "1", userId: "USR001", userName: "Bola Adeyemi", email: "bola@email.com", documentType: "NIN", documentNumber: "1234****890", submittedAt: new Date(Date.now() - 86400000).toISOString(), status: "pending", rejectionReason: null },
   { id: "2", userId: "USR002", userName: "Chioma Obi", email: "chioma@email.com", documentType: "BVN", documentNumber: "2234****891", submittedAt: new Date(Date.now() - 172800000).toISOString(), status: "verified", rejectionReason: null },
   { id: "3", userId: "USR003", userName: "Emeka Nze", email: "emeka@email.com", documentType: "Passport", documentNumber: "A1234****", submittedAt: new Date(Date.now() - 259200000).toISOString(), status: "rejected", rejectionReason: "Document expired" },
@@ -11,36 +12,34 @@ let kycSubmissions = [
 ];
 
 router.get("/verification", async (req, res): Promise<void> => {
+  const kycSubmissions = await readData("kyc_submissions.json", defaultKycSubmissions);
   const { status, documentType } = req.query;
   let filtered = [...kycSubmissions];
-  if (status) filtered = filtered.filter((k) => k.status === status);
-  if (documentType) filtered = filtered.filter((k) => k.documentType === documentType);
-  res.json({ submissions: filtered, total: filtered.length });
-});
-
-router.get("/verification/stats", async (_req, res): Promise<void> => {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  res.json({
-    pendingKYC: kycSubmissions.filter((k) => k.status === "pending").length,
-    verifiedToday: kycSubmissions.filter((k) => k.status === "verified" && new Date(k.submittedAt) >= today).length,
-    rejected: kycSubmissions.filter((k) => k.status === "rejected").length,
-    totalVerified: kycSubmissions.filter((k) => k.status === "verified").length,
-  });
+  if (status) filtered = filtered.filter((v) => v.status === status);
+  if (documentType) filtered = filtered.filter((v) => v.documentType === documentType);
+  res.json({ submissions: filtered, pendingCount: kycSubmissions.filter((v) => v.status === "pending").length, total: kycSubmissions.length });
 });
 
 router.put("/verification/:id/verify", async (req, res): Promise<void> => {
-  const sub = kycSubmissions.find((k) => k.id === req.params.id);
-  if (!sub) { res.status(404).json({ error: "Submission not found" }); return; }
+  const kycSubmissions = await readData("kyc_submissions.json", defaultKycSubmissions);
+  const { id } = req.params;
+  const sub = kycSubmissions.find((v) => v.id === id);
+  if (!sub) { res.status(404).json({ error: "KYC Submission not found" }); return; }
   sub.status = "verified";
-  res.json({ submission: sub, message: "KYC verified successfully" });
+  await writeData("kyc_submissions.json", kycSubmissions);
+  res.json({ submission: sub, message: "KYC submission verified" });
 });
 
 router.put("/verification/:id/reject", async (req, res): Promise<void> => {
-  const sub = kycSubmissions.find((k) => k.id === req.params.id);
-  if (!sub) { res.status(404).json({ error: "Submission not found" }); return; }
+  const kycSubmissions = await readData("kyc_submissions.json", defaultKycSubmissions);
+  const { id } = req.params;
+  const { reason } = req.body;
+  const sub = kycSubmissions.find((v) => v.id === id);
+  if (!sub) { res.status(404).json({ error: "KYC Submission not found" }); return; }
   sub.status = "rejected";
-  sub.rejectionReason = req.body.reason ?? "Does not meet requirements";
-  res.json({ submission: sub, message: "KYC rejected" });
+  sub.rejectionReason = reason || "Rejection reason not provided";
+  await writeData("kyc_submissions.json", kycSubmissions);
+  res.json({ submission: sub, message: "KYC submission rejected" });
 });
 
 export default router;

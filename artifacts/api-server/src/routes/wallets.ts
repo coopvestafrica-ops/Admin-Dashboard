@@ -1,8 +1,9 @@
 import { Router, type IRouter } from "express";
+import { readData, writeData } from "../lib/store";
 
 const router: IRouter = Router();
 
-const wallets = Array.from({ length: 20 }, (_, i) => ({
+const defaultWallets = Array.from({ length: 20 }, (_, i) => ({
   id: String(i + 1),
   userId: `USR${String(i + 1).padStart(3, "0")}`,
   userName: ["Bola Adeyemi", "Chioma Obi", "Emeka Nze", "Fatima Yusuf", "Gbenga Ola", "Hannah Musa", "Ibrahim Sule", "Joy Okafor", "Kalu Eze", "Lola Bakare", "Musa Ahmed", "Ngozi Eze", "Ola Adebayo", "Patience Okonkwo", "Qudus Akin", "Rita Chukwu", "Samuel Tunde", "Tunde Alabi", "Uche Nwosu", "Victoria Oke"][i],
@@ -14,6 +15,7 @@ const wallets = Array.from({ length: 20 }, (_, i) => ({
 }));
 
 router.get("/wallets", async (req, res): Promise<void> => {
+  const wallets = await readData("wallets.json", defaultWallets);
   const { page = 1, limit = 20, status } = req.query;
   let filtered = [...wallets];
   if (status) filtered = filtered.filter((w) => w.status === status);
@@ -21,21 +23,26 @@ router.get("/wallets", async (req, res): Promise<void> => {
 });
 
 router.get("/wallets/stats", async (_req, res): Promise<void> => {
+  const wallets = await readData("wallets.json", defaultWallets);
   const total = wallets.reduce((s, w) => s + w.balance, 0);
   res.json({ totalBalance: total, activeWallets: wallets.filter((w) => w.status === "active").length, frozenWallets: wallets.filter((w) => w.status === "frozen").length, suspendedWallets: wallets.filter((w) => w.status === "suspended").length, totalWallets: wallets.length });
 });
 
 router.put("/wallets/:id/freeze", async (req, res): Promise<void> => {
+  const wallets = await readData("wallets.json", defaultWallets);
   const wallet = wallets.find((w) => w.id === req.params.id);
   if (!wallet) { res.status(404).json({ error: "Wallet not found" }); return; }
   wallet.status = "frozen";
+  await writeData("wallets.json", wallets);
   res.json({ wallet, message: "Wallet frozen successfully" });
 });
 
 router.put("/wallets/:id/unfreeze", async (req, res): Promise<void> => {
+  const wallets = await readData("wallets.json", defaultWallets);
   const wallet = wallets.find((w) => w.id === req.params.id);
   if (!wallet) { res.status(404).json({ error: "Wallet not found" }); return; }
   wallet.status = "active";
+  await writeData("wallets.json", wallets);
   res.json({ wallet, message: "Wallet unfrozen successfully" });
 });
 

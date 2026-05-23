@@ -1,0 +1,36 @@
+services:
+  # 1. Express API Backend
+  - type: web
+    name: coopvest-api-server
+    env: docker
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    dockerTarget: api-server
+    plan: starter
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8080
+      - key: SUPABASE_URL
+        sync: false # Must be set in Render dashboard
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false # Must be set in Render dashboard
+      - key: ALLOWED_ORIGIN
+        sync: false # Must match the front-end service URL
+
+  # 2. React Frontend Dashboard
+  - type: web
+    name: coopvest-admin-dashboard
+    env: docker
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    dockerTarget: frontend
+    plan: starter
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5173
+      - key: BASE_PATH
+        value: "/"
