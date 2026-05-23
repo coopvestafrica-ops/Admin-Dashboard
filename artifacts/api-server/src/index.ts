@@ -1,6 +1,17 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 
+// Unhandled rejection & uncaught exception handlers
+process.on("unhandledRejection", (err) => {
+  logger.fatal(err, "Unhandled rejection");
+  process.exit(1);
+});
+
+process.on("uncaughtException", (err) => {
+  logger.fatal(err, "Uncaught exception");
+  process.exit(1);
+});
+
 const rawPort = process.env["PORT"];
 
 if (!rawPort) {
