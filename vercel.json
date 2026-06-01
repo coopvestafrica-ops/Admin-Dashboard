@@ -1,0 +1,12 @@
+{
+  "buildCommand": "pnpm --filter @workspace/coopvest-dashboard run build",
+  "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": null,
+  "env": {
+    "BASE_PATH": "/"
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
