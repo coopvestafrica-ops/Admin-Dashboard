@@ -3,7 +3,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-// Fix #6: top-level error boundary
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
@@ -21,7 +20,6 @@ import InterestRates from "@/pages/interest-rates/index";
 import AuditLogs from "@/pages/audit-logs/index";
 import Settings from "@/pages/settings";
 import Payroll from "@/pages/payroll/index";
-// New command-center modules
 import MobileFeatureControls from "@/pages/mobile-feature-controls/index";
 import RoleManagement from "@/pages/role-management/index";
 import FraudDetection from "@/pages/fraud-detection/index";
@@ -34,20 +32,24 @@ import UserVerification from "@/pages/user-verification/index";
 import ReferralProgram from "@/pages/referral-program/index";
 import GuarantorSystem from "@/pages/guarantor-system/index";
 import ExcelManager from "@/pages/excel-manager/index";
-// Quick Win: reset-password page for Supabase redirect link
 import ResetPassword from "@/pages/reset-password";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      refetchInterval: 60_000,
+      refetchOnWindowFocus: true,
+      retry: 1,
+    },
+  },
+});
 
 function Router() {
   return (
     <Switch>
-      {/* Public */}
       <Route path="/" component={Login} />
-      {/* Quick Win: /reset-password — handles Supabase password-reset redirect */}
       <Route path="/reset-password" component={ResetPassword} />
-
-      {/* Protected — session required */}
       <Route path="/dashboard">{() => <ProtectedRoute component={Dashboard} />}</Route>
       <Route path="/members">{() => <ProtectedRoute component={Members} />}</Route>
       <Route path="/members/:id">{() => <ProtectedRoute component={MemberProfile} />}</Route>
@@ -62,7 +64,6 @@ function Router() {
       <Route path="/audit-logs">{() => <ProtectedRoute component={AuditLogs} />}</Route>
       <Route path="/settings">{() => <ProtectedRoute component={Settings} />}</Route>
       <Route path="/payroll">{() => <ProtectedRoute component={Payroll} />}</Route>
-      {/* Command-center modules */}
       <Route path="/mobile-feature-controls">{() => <ProtectedRoute component={MobileFeatureControls} />}</Route>
       <Route path="/role-management">{() => <ProtectedRoute component={RoleManagement} />}</Route>
       <Route path="/fraud-detection">{() => <ProtectedRoute component={FraudDetection} />}</Route>
@@ -82,12 +83,10 @@ function Router() {
 
 function App() {
   return (
-    // Fix #6: top-level error boundary — prevents blank screen on unexpected render errors
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            {/* Per-route error boundary so one crashing page doesn't kill the whole app */}
             <ErrorBoundary>
               <Router />
             </ErrorBoundary>
