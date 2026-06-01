@@ -6,12 +6,10 @@
   "scripts": {
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
-    "render-build": "node_modules/.bin/pnpm install --frozen-lockfile && node_modules/.bin/pnpm --filter @workspace/api-server run build"
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
   "private": true,
   "devDependencies": {
-    "pnpm": "9.15.4",
     "prettier": "^3.8.3",
     "typescript": "~5.9.3"
   }
