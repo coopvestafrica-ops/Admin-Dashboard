@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,45 +31,6 @@ interface PayrollBatch {
   unmatchedCount: number;
 }
 
-const mockBatches: PayrollBatch[] = [
-  {
-    id: "b1",
-    organization: "Lagos State Civil Service",
-    month: "May 2026",
-    uploadedAt: "2026-05-05T10:30:00Z",
-    uploadedBy: "Admin User",
-    recordCount: 142,
-    totalAmount: 1420000,
-    status: "completed",
-    matchedCount: 138,
-    unmatchedCount: 4,
-  },
-  {
-    id: "b2",
-    organization: "First Bank Nigeria",
-    month: "May 2026",
-    uploadedAt: "2026-05-04T14:15:00Z",
-    uploadedBy: "Admin User",
-    recordCount: 38,
-    totalAmount: 380000,
-    status: "pending",
-    matchedCount: 0,
-    unmatchedCount: 0,
-  },
-  {
-    id: "b3",
-    organization: "Lagos State Civil Service",
-    month: "April 2026",
-    uploadedAt: "2026-04-07T09:00:00Z",
-    uploadedBy: "Admin User",
-    recordCount: 140,
-    totalAmount: 1400000,
-    status: "completed",
-    matchedCount: 140,
-    unmatchedCount: 0,
-  },
-];
-
 const statusConfig: Record<PayrollBatch["status"], { label: string; color: string; icon: typeof CheckCircle2 }> = {
   pending: { label: "Pending Review", color: "bg-amber-100 text-amber-800", icon: Clock },
   processing: { label: "Processing", color: "bg-blue-100 text-blue-800", icon: Clock },
@@ -82,13 +43,23 @@ function formatCurrency(v: number) {
 }
 
 export default function Payroll() {
-  const [batches, setBatches] = useState<PayrollBatch[]>(mockBatches);
+  const [batches, setBatches] = useState<PayrollBatch[]>([]);
+  const [loadingBatches, setLoadingBatches] = useState(true);
+
+  useEffect(() => {
+    setLoadingBatches(true);
+    fetch("/api/payroll/batches")
+      .then(r => r.ok ? r.json() : { batches: [] })
+      .then((d: { batches?: PayrollBatch[] }) => setBatches(d.batches ?? []))
+      .catch(() => setBatches([]))
+      .finally(() => setLoadingBatches(false));
+  }, []);
   const [search, setSearch] = useState("");
   const [orgFilter, setOrgFilter] = useState("all");
   const [isDragging, setIsDragging] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
-  const orgs = Array.from(new Set(batches.map((b) => b.organization)));
+  const orgs = Array.from(new Set(batches.map((b) => b.organization))) as string[];
 
   const filtered = batches.filter((b) => {
     const matchSearch =
