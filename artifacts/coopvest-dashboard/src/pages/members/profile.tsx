@@ -100,6 +100,7 @@ export default function MemberProfile() {
     member.riskScore >= 40 ? "text-orange-600" : "text-red-600";
 
   return (
+    <>
     <Layout>
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-3">
@@ -353,5 +354,6 @@ export default function MemberProfile() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
