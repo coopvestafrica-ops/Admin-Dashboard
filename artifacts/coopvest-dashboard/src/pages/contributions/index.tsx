@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useGetContributions, useGetContributionSummary } from "@workspace/api-client-react";
+import { useGetContributions, useGetContributionSummary, useGetMonthlyContributions } from "@workspace/api-client-react";
 import { formatCurrency } from "@/lib/format";
 import { Search, Wallet, TrendingUp, CheckCircle, AlertCircle, XCircle, Download, Upload, RefreshCw, PlusCircle, FileSpreadsheet, ArrowDownUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,15 +25,6 @@ const statusColors: Record<string, string> = {
   reversed: "bg-gray-100 text-gray-600",
 };
 
-const MOCK_TRENDS = [
-  { month: "Dec 24", collected: 18200000, missed: 1200000 },
-  { month: "Jan 25", collected: 19800000, missed: 950000 },
-  { month: "Feb 25", collected: 20100000, missed: 800000 },
-  { month: "Mar 25", collected: 21400000, missed: 1100000 },
-  { month: "Apr 25", collected: 22900000, missed: 700000 },
-  { month: "May 25", collected: 24100000, missed: 600000 },
-];
-
 type DialogType = "approve" | "reverse" | "adjust" | "add" | null;
 
 export default function Contributions() {
@@ -51,6 +42,7 @@ export default function Contributions() {
 
   const { data: summary, isLoading: loadingSummary } = useGetContributionSummary();
   const { data, isLoading } = useGetContributions({ page, limit: 20 });
+  const { data: trendsData } = useGetMonthlyContributions();
 
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / 20);
@@ -275,7 +267,7 @@ export default function Contributions() {
                 <CardHeader><CardTitle className="text-base">Monthly Contribution Growth</CardTitle></CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={250}>
-                    <AreaChart data={MOCK_TRENDS}>
+                    <AreaChart data={(trendsData?.data ?? []).map((t: { month: string; amount: number }) => ({ month: t.month, collected: t.amount, missed: 0 }))}>
                       <defs>
                         <linearGradient id="colorCollected" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#2d6a4f" stopOpacity={0.3} />
@@ -296,7 +288,7 @@ export default function Contributions() {
                 <CardHeader><CardTitle className="text-base">Collected vs Missed</CardTitle></CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={MOCK_TRENDS}>
+                    <BarChart data={(trendsData?.data ?? []).map((t: { month: string; amount: number }) => ({ month: t.month, collected: t.amount, missed: 0 }))}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                       <YAxis tickFormatter={(v) => `₦${(v / 1000000).toFixed(0)}M`} tick={{ fontSize: 11 }} />
@@ -324,7 +316,7 @@ export default function Contributions() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {MOCK_TRENDS.map(t => {
+                    {((trendsData?.data ?? []).map((t: { month: string; amount: number }) => ({ month: t.month, collected: t.amount, missed: 0 }))).map(t => {
                       const rate = ((t.collected / (t.collected + t.missed)) * 100).toFixed(1);
                       return (
                         <tr key={t.month} className="hover:bg-muted/30">
