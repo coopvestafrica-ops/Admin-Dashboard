@@ -14,89 +14,16 @@ import { useToast } from "@/hooks/use-toast";
 import { Building2, Plus, ChevronDown, ChevronRight, Users, Search, Briefcase, TrendingUp, CheckCircle, AlertCircle, Clock, Download, RefreshCw, ArrowRightLeft } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 
-interface StaffMember {
-  id: number;
+interface ApiOrg {
+  id: string;
   name: string;
-  email: string;
-  department: string;
-  joinedDate: string;
-}
-
-interface RemittanceRecord {
-  month: string;
-  amount: number;
-  status: "remitted" | "pending" | "overdue";
-  date?: string;
-}
-
-interface Organization {
-  id: number;
-  name: string;
-  type: "Government" | "Private" | "NGO" | "Educational" | "Financial";
+  type: string;
   memberCount: number;
-  status: "Active" | "Inactive" | "Pending";
+  status: string;
   dateAdded: string;
   contactEmail: string;
-  deductionStatus: "on_track" | "delayed" | "stopped";
-  totalContributions: number;
-  lastRemittance?: string;
-  staff: StaffMember[];
-  remittances: RemittanceRecord[];
+  address?: string;
 }
-
-const MOCK_ORGS: Organization[] = [
-  {
-    id: 1, name: "Lagos State Civil Service Commission", type: "Government", memberCount: 842, status: "Active",
-    dateAdded: "2023-03-15", contactEmail: "hr@lagosgov.ng", deductionStatus: "on_track",
-    totalContributions: 42100000, lastRemittance: "2025-05-01",
-    staff: [
-      { id: 1, name: "Adaobi Nwoye", email: "a.nwoye@lagosgov.ng", department: "Finance", joinedDate: "2023-04-01" },
-      { id: 2, name: "Kola Abioye", email: "k.abioye@lagosgov.ng", department: "HR", joinedDate: "2023-04-15" },
-      { id: 3, name: "Zainab Usman", email: "z.usman@lagosgov.ng", department: "Administration", joinedDate: "2023-05-01" },
-    ],
-    remittances: [
-      { month: "May 2025", amount: 4210000, status: "remitted", date: "2025-05-01" },
-      { month: "Apr 2025", amount: 4210000, status: "remitted", date: "2025-04-02" },
-      { month: "Mar 2025", amount: 4100000, status: "remitted", date: "2025-03-04" },
-      { month: "Feb 2025", amount: 4050000, status: "remitted", date: "2025-02-03" },
-    ],
-  },
-  {
-    id: 2, name: "Access Bank Plc", type: "Financial", memberCount: 521, status: "Active",
-    dateAdded: "2023-06-10", contactEmail: "staff@accessbankplc.com", deductionStatus: "on_track",
-    totalContributions: 26050000, lastRemittance: "2025-05-02",
-    staff: [
-      { id: 4, name: "Emeka Obi", email: "e.obi@accessbank.com", department: "HR", joinedDate: "2023-06-20" },
-    ],
-    remittances: [
-      { month: "May 2025", amount: 2605000, status: "remitted", date: "2025-05-02" },
-      { month: "Apr 2025", amount: 2605000, status: "remitted", date: "2025-04-01" },
-      { month: "Mar 2025", amount: 2605000, status: "remitted", date: "2025-03-01" },
-    ],
-  },
-  {
-    id: 3, name: "Federal University of Technology, Akure", type: "Educational", memberCount: 234, status: "Active",
-    dateAdded: "2024-01-15", contactEmail: "bursary@futa.edu.ng", deductionStatus: "delayed",
-    totalContributions: 8190000, lastRemittance: "2025-03-20",
-    staff: [
-      { id: 5, name: "Prof. Adunola Salami", email: "a.salami@futa.edu.ng", department: "Bursary", joinedDate: "2024-01-20" },
-    ],
-    remittances: [
-      { month: "May 2025", amount: 0, status: "overdue" },
-      { month: "Apr 2025", amount: 0, status: "pending" },
-      { month: "Mar 2025", amount: 2730000, status: "remitted", date: "2025-03-20" },
-    ],
-  },
-  {
-    id: 4, name: "Save the Children Nigeria", type: "NGO", memberCount: 67, status: "Inactive",
-    dateAdded: "2023-09-01", contactEmail: "admin@savethechildren.ng", deductionStatus: "stopped",
-    totalContributions: 1340000, lastRemittance: "2024-12-01",
-    staff: [],
-    remittances: [
-      { month: "Dec 2024", amount: 335000, status: "remitted", date: "2024-12-01" },
-    ],
-  },
-];
 
 const deductionColors: Record<string, string> = {
   on_track: "bg-emerald-100 text-emerald-800",
@@ -114,26 +41,34 @@ export default function Organizations() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+  const [selectedOrg, setSelectedOrg] = useState<ApiOrg | null>(null);
   const [detailTab, setDetailTab] = useState("overview");
-  const [newOrg, setNewOrg] = useState({ name: "", type: "Government" as Organization["type"], contactEmail: "" });
+  const [newOrg, setNewOrg] = useState({ name: "", type: "Government", contactEmail: "" });
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [orgs, setOrgs] = useState<Organization[]>(MOCK_ORGS);
+  const { data: orgsData, isLoading: loadingOrgs, refetch: refetchOrgs } = useQuery({
+    queryKey: ["organizations"],
+    queryFn: async () => {
+      const res = await fetch("/api/organizations");
+      if (!res.ok) throw new Error("Failed to fetch organizations");
+      return res.json() as Promise<{ organizations: ApiOrg[]; total: number }>;
+    },
+  });
+  const orgs: ApiOrg[] = orgsData?.organizations ?? [];
 
   const filtered = orgs.filter(o => {
     const matchSearch = o.name.toLowerCase().includes(search.toLowerCase()) || o.contactEmail.toLowerCase().includes(search.toLowerCase());
-    const matchType = typeFilter === "all" || o.type === typeFilter;
-    const matchStatus = statusFilter === "all" || o.status === statusFilter;
+    const matchType = typeFilter === "all" || o.type.toLowerCase() === typeFilter.toLowerCase();
+    const matchStatus = statusFilter === "all" || o.status.toLowerCase() === statusFilter.toLowerCase();
     return matchSearch && matchType && matchStatus;
   });
 
   function createOrg(data: typeof newOrg) {
-    setCreating(true);
+    setCreating(true); void refetchOrgs;
     setTimeout(() => {
       const newEntry: Organization = {
         id: orgs.length + 1,
@@ -155,7 +90,7 @@ export default function Organizations() {
   }
 
   function exportRemittanceReport(org: Organization) {
-    const rows = org.remittances;
+    const rows = [];
     const headers = ["Month", "Amount", "Status", "Date"];
     const csv = [headers.join(","), ...rows.map(r => [r.month, r.amount, r.status, r.date ?? ""].join(","))].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
@@ -250,12 +185,16 @@ export default function Organizations() {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {filtered.map(org => (
+                  {loadingOrgs ? (
+            <div className="py-8 text-center text-muted-foreground">Loading organizations…</div>
+          ) : filtered.length === 0 ? (
+            <div className="py-8 text-center text-muted-foreground">No organizations found.</div>
+          ) : filtered.map(org => (
                     <>
                       <tr key={org.id} className="hover:bg-muted/30 transition-colors">
                         <td className="px-4 py-3">
-                          <button onClick={() => setExpandedId(expandedId === org.id ? null : org.id)}>
-                            {expandedId === org.id
+                          <button onClick={() => setExpandedId(expandedId === String(org.id) ? null : org.id)}>
+                            {expandedId === String(org.id)
                               ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
                               : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                           </button>
@@ -270,13 +209,13 @@ export default function Organizations() {
                           <span className="text-xs text-muted-foreground"> members</span>
                         </td>
                         <td className="px-4 py-3">
-                          <Badge className={deductionColors[org.deductionStatus]} variant="outline">
+                          <Badge className={"bg-gray-100 text-gray-600"} variant="outline">
                             {org.deductionStatus === "on_track" ? "On Track" : org.deductionStatus === "delayed" ? "Delayed" : "Stopped"}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3 text-right font-semibold">{formatCurrency(org.totalContributions)}</td>
+                        <td className="px-4 py-3 text-right font-semibold">{formatCurrency(0)}</td>
                         <td className="px-4 py-3 text-center text-xs text-muted-foreground">
-                          {org.lastRemittance ? new Date(org.lastRemittance).toLocaleDateString("en-NG") : "—"}
+                          {"—" ? new Date("—").toLocaleDateString("en-NG") : "—"}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <Badge variant={org.status === "Active" ? "default" : "secondary"}>{org.status}</Badge>
@@ -292,18 +231,18 @@ export default function Organizations() {
                           </div>
                         </td>
                       </tr>
-                      {expandedId === org.id && (
+                      {expandedId === String(org.id) && (
                         <tr key={`${org.id}-expanded`} className="bg-muted/20">
                           <td colSpan={9} className="px-8 py-4">
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                               {/* Staff */}
                               <div>
-                                <h4 className="font-semibold text-sm mb-2 flex items-center gap-1.5"><Briefcase className="h-4 w-4" /> Staff ({org.staff.length})</h4>
-                                {org.staff.length === 0 ? (
+                                <h4 className="font-semibold text-sm mb-2 flex items-center gap-1.5"><Briefcase className="h-4 w-4" /> Staff ({[].length})</h4>
+                                {[].length === 0 ? (
                                   <p className="text-xs text-muted-foreground">No staff records.</p>
                                 ) : (
                                   <div className="space-y-1.5">
-                                    {org.staff.map(s => (
+                                    {[].map(s => (
                                       <div key={s.id} className="flex justify-between text-xs bg-background rounded px-3 py-1.5 border">
                                         <span className="font-medium">{s.name}</span>
                                         <span className="text-muted-foreground">{s.department}</span>
@@ -317,7 +256,7 @@ export default function Organizations() {
                               <div>
                                 <h4 className="font-semibold text-sm mb-2 flex items-center gap-1.5"><ArrowRightLeft className="h-4 w-4" /> Recent Remittances</h4>
                                 <div className="space-y-1.5">
-                                  {org.remittances.slice(0, 4).map((r, i) => (
+                                  {[].slice(0, 4).map((r, i) => (
                                     <div key={i} className="flex justify-between text-xs bg-background rounded px-3 py-1.5 border">
                                       <span>{r.month}</span>
                                       <span className="font-medium">{r.amount > 0 ? formatCurrency(r.amount) : "—"}</span>
@@ -404,8 +343,8 @@ export default function Organizations() {
                     { label: "Contact", value: selectedOrg.contactEmail },
                     { label: "Members", value: selectedOrg.memberCount.toLocaleString() },
                     { label: "Deduction Status", value: selectedOrg.deductionStatus.replace("_", " ") },
-                    { label: "Total Contributions", value: formatCurrency(selectedOrg.totalContributions) },
-                    { label: "Last Remittance", value: selectedOrg.lastRemittance ? new Date(selectedOrg.lastRemittance).toLocaleDateString("en-NG") : "—" },
+                    { label: "Total Contributions", value: formatCurrency(0) },
+                    { label: "Last Remittance", value: "—" ? new Date("—").toLocaleDateString("en-NG") : "—" },
                   ].map(item => (
                     <div key={item.label} className="rounded-lg border p-3">
                       <div className="text-xs text-muted-foreground">{item.label}</div>
@@ -433,7 +372,7 @@ export default function Organizations() {
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-                        {selectedOrg.remittances.map((r, i) => (
+                        {[].map((r, i) => (
                           <tr key={i} className="hover:bg-muted/20">
                             <td className="px-4 py-2">{r.month}</td>
                             <td className="px-4 py-2 text-right font-medium">{r.amount > 0 ? formatCurrency(r.amount) : "—"}</td>
@@ -452,19 +391,19 @@ export default function Organizations() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-3 gap-3">
                     <Card><CardContent className="p-3 text-center">
-                      <div className="text-lg font-bold text-emerald-600">{selectedOrg.remittances.filter(r => r.status === "remitted").length}</div>
+                      <div className="text-lg font-bold text-emerald-600">{[].filter(r => r.status === "remitted").length}</div>
                       <div className="text-xs text-muted-foreground">Remitted</div>
                     </CardContent></Card>
                     <Card><CardContent className="p-3 text-center">
-                      <div className="text-lg font-bold text-amber-600">{selectedOrg.remittances.filter(r => r.status === "pending").length}</div>
+                      <div className="text-lg font-bold text-amber-600">{[].filter(r => r.status === "pending").length}</div>
                       <div className="text-xs text-muted-foreground">Pending</div>
                     </CardContent></Card>
                     <Card><CardContent className="p-3 text-center">
-                      <div className="text-lg font-bold text-red-600">{selectedOrg.remittances.filter(r => r.status === "overdue").length}</div>
+                      <div className="text-lg font-bold text-red-600">{[].filter(r => r.status === "overdue").length}</div>
                       <div className="text-xs text-muted-foreground">Overdue</div>
                     </CardContent></Card>
                   </div>
-                  {selectedOrg.remittances.map((r, i) => (
+                  {[].map((r, i) => (
                     <div key={i} className="flex items-center justify-between rounded-lg border p-3">
                       <div>
                         <div className="font-medium text-sm">{r.month}</div>
@@ -485,7 +424,7 @@ export default function Organizations() {
               </TabsContent>
 
               <TabsContent value="staff" className="mt-4">
-                {selectedOrg.staff.length === 0 ? (
+                {[].length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
                     <Users className="h-8 w-8 opacity-40" />
                     <p>No staff records for this organization.</p>
@@ -502,7 +441,7 @@ export default function Organizations() {
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-                        {selectedOrg.staff.map(s => (
+                        {[].map(s => (
                           <tr key={s.id} className="hover:bg-muted/20">
                             <td className="px-4 py-2 font-medium">{s.name}</td>
                             <td className="px-4 py-2 text-muted-foreground">{s.email}</td>
