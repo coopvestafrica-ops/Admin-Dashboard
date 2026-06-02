@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -19,7 +19,10 @@ import {
   Pencil,
   Check,
   X,
+  Loader2,
 } from "lucide-react";
+import { customFetch, setBaseUrl } from "@workspace/api-client-react";
+import { toast } from "sonner";
 
 interface Organization {
   id: string;
@@ -30,50 +33,91 @@ interface Organization {
   memberCount: number;
 }
 
-const mockOrgs: Organization[] = [
-  {
-    id: "1",
-    name: "Lagos State Civil Service",
-    deductionEnabled: true,
-    deductionType: "manual_upload",
-    remittanceCycle: "monthly",
-    memberCount: 142,
-  },
-  {
-    id: "2",
-    name: "First Bank Nigeria",
-    deductionEnabled: false,
-    deductionType: "api",
-    remittanceCycle: "monthly",
-    memberCount: 38,
-  },
-];
-
 interface PaymentAccount {
   bank: string;
   accountName: string;
   accountNumber: string;
 }
 
-const defaultPaymentAccount: PaymentAccount = {
-  bank: "",
-  accountName: "",
-  accountNumber: "",
-};
+interface SalaryDeductionSettings {
+  enabled: boolean;
+}
 
 export default function Settings() {
-  const [salaryDeductionGlobal, setSalaryDeductionGlobal] = useState(false);
-  const [organizations, setOrganizations] = useState<Organization[]>(mockOrgs);
+  const [salaryDeduction, setSalaryDeduction] = useState<SalaryDeductionSettings>({ enabled: false });
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [showAddOrg, setShowAddOrg] = useState(false);
   const [newOrgName, setNewOrgName] = useState("");
   const [newOrgType, setNewOrgType] = useState<"manual_upload" | "api">("manual_upload");
   const [savedGlobal, setSavedGlobal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Bank account details
-  const [paymentAccount, setPaymentAccount] = useState<PaymentAccount>(defaultPaymentAccount);
+  const [paymentAccount, setPaymentAccount] = useState<PaymentAccount>({
+    bank: "",
+    accountName: "",
+    accountNumber: "",
+  });
   const [editingAccount, setEditingAccount] = useState(false);
-  const [draftAccount, setDraftAccount] = useState<PaymentAccount>(defaultPaymentAccount);
+  const [draftAccount, setDraftAccount] = useState<PaymentAccount>({
+    bank: "",
+    accountName: "",
+    accountNumber: "",
+  });
   const [accountSaved, setAccountSaved] = useState(false);
+
+  // Fetch initial data
+  useEffect(() => {
+    async function fetchSettings() {
+      try {
+        // Set base URL for API calls (Vite env var)
+        setBaseUrl(import.meta.env.VITE_API_BASE_URL || "");
+        
+        // Fetch salary deduction setting
+        const deductionRes = await customFetch<{ success: boolean; enabled: boolean }>(
+          "/api/v1/admin/salary-deduction"
+        );
+        if (deductionRes.success) {
+          setSalaryDeduction({ enabled: deductionRes.enabled });
+        }
+        
+        // Fetch organizations
+        const orgsRes = await customFetch<{ success: boolean; organizations: any[] }>(
+          "/api/v1/admin/organizations"
+        );
+        if (orgsRes.success && orgsRes.organizations) {
+          setOrganizations(
+            orgsRes.organizations.map((org: any) => ({
+              id: org.id,
+              name: org.name,
+              deductionEnabled: org.deduction_enabled ?? false,
+              deductionType: org.deduction_type || "manual_upload",
+              remittanceCycle: org.remittance_cycle || "monthly",
+              memberCount: org.member_count || 0,
+            }))
+          );
+        }
+        
+        // Fetch payment settings
+        const paymentRes = await customFetch<{ success: boolean; bank?: string; account_name?: string; account_number?: string }>(
+          "/api/v1/admin/payment-settings"
+        );
+        if (paymentRes.success) {
+          setPaymentAccount({
+            bank: paymentRes.bank || "",
+            accountName: paymentRes.account_name || "",
+            accountNumber: paymentRes.account_number || "",
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch settings:", err);
+        toast.error("Failed to load settings");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSettings();
+  }, []);
 
   function startEditAccount() {
     setDraftAccount({ ...paymentAccount });
@@ -81,10 +125,27 @@ export default function Settings() {
   }
 
   function saveAccountDetails() {
-    setPaymentAccount({ ...draftAccount });
-    setEditingAccount(false);
+    setEditingAccount(true);
     setAccountSaved(true);
-    setTimeout(() => setAccountSaved(false), 2500);
+  }
+
+  async function handleSaveAccount() {
+    try {
+      await customFetch("/api/v1/admin/payment-settings", {
+        method: "PUT",
+        body: JSON.stringify({
+          bank: draftAccount.bank,
+          account_name: draftAccount.accountName,
+          account_number: draftAccount.accountNumber,
+        }),
+      });
+      setPaymentAccount({ ...draftAccount });
+      setEditingAccount(false);
+      toast.success("Payment account saved");
+    } catch (err) {
+      console.error("Failed to save payment account:", err);
+      toast.error("Failed to save payment account");
+    }
   }
 
   function cancelEditAccount() {
@@ -92,36 +153,84 @@ export default function Settings() {
     setEditingAccount(false);
   }
 
-  function toggleOrgDeduction(id: string) {
-    setOrganizations((prev) =>
-      prev.map((org) =>
-        org.id === id ? { ...org, deductionEnabled: !org.deductionEnabled } : org
-      )
-    );
+  async function toggleOrgDeduction(org: Organization) {
+    try {
+      await customFetch(`/api/v1/admin/organizations/${org.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ deduction_enabled: !org.deductionEnabled }),
+      });
+      setOrganizations((prev) =>
+        prev.map((o) =>
+          o.id === org.id ? { ...o, deductionEnabled: !org.deductionEnabled } : o
+        )
+      );
+      toast.success(`Deduction ${org.deductionEnabled ? "disabled" : "enabled"} for ${org.name}`);
+    } catch (err) {
+      console.error("Failed to toggle org deduction:", err);
+      toast.error("Failed to update organization");
+    }
   }
 
-  function addOrganization() {
+  async function addOrganization() {
     if (!newOrgName.trim()) return;
-    const newOrg: Organization = {
-      id: Date.now().toString(),
-      name: newOrgName.trim(),
-      deductionEnabled: false,
-      deductionType: newOrgType,
-      remittanceCycle: "monthly",
-      memberCount: 0,
-    };
-    setOrganizations((prev) => [...prev, newOrg]);
-    setNewOrgName("");
-    setShowAddOrg(false);
+    try {
+      const res = await customFetch<{ success: boolean; organization: any }>(
+        "/api/v1/admin/organizations",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: newOrgName.trim(),
+            deduction_type: newOrgType,
+          }),
+        }
+      );
+      if (res.success && res.organization) {
+        const newOrg: Organization = {
+          id: res.organization.id,
+          name: res.organization.name,
+          deductionEnabled: res.organization.deduction_enabled ?? false,
+          deductionType: res.organization.deduction_type || newOrgType,
+          remittanceCycle: res.organization.remittance_cycle || "monthly",
+          memberCount: 0,
+        };
+        setOrganizations((prev) => [...prev, newOrg]);
+        toast.success("Organization added");
+      }
+      setNewOrgName("");
+      setShowAddOrg(false);
+    } catch (err) {
+      console.error("Failed to add organization:", err);
+      toast.error("Failed to add organization");
+    }
   }
 
-  function removeOrganization(id: string) {
-    setOrganizations((prev) => prev.filter((o) => o.id !== id));
+  async function removeOrganization(id: string) {
+    try {
+      await customFetch(`/api/v1/admin/organizations/${id}`, {
+        method: "DELETE",
+      });
+      setOrganizations((prev) => prev.filter((o) => o.id !== id));
+      toast.success("Organization removed");
+    } catch (err) {
+      console.error("Failed to remove organization:", err);
+      toast.error("Failed to remove organization");
+    }
   }
 
-  function saveGlobalToggle() {
-    setSavedGlobal(true);
-    setTimeout(() => setSavedGlobal(false), 2000);
+  async function saveGlobalToggle() {
+    try {
+      await customFetch("/api/v1/admin/salary-deduction", {
+        method: "PUT",
+        body: JSON.stringify({ enabled: !salaryDeduction.enabled }),
+      });
+      setSalaryDeduction({ enabled: !salaryDeduction.enabled });
+      setSavedGlobal(true);
+      toast.success("Salary deduction setting updated");
+      setTimeout(() => setSavedGlobal(false), 2000);
+    } catch (err) {
+      console.error("Failed to save global toggle:", err);
+      toast.error("Failed to save setting");
+    }
   }
 
   return (
@@ -132,13 +241,12 @@ export default function Settings() {
           <p className="text-muted-foreground">Manage contribution engine controls and system configuration</p>
         </div>
 
-        {/* Quick Win: placeholder notice so operators know this page is not fully wired */}
-        <div className="flex items-center gap-3 rounded-md border border-yellow-400/40 bg-yellow-400/10 px-4 py-3 text-sm text-yellow-700 dark:text-yellow-400">
-          <span className="text-base">🚧</span>
-          <span>
-            <strong>Work in progress.</strong> Some settings on this page are UI placeholders and are not yet saved to the backend. Changes made here may not persist until the integration is complete.
-          </span>
-        </div>
+        {loading && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading settings...
+          </div>
+        )}
 
         {/* Global Salary Deduction Toggle */}
         <Card>
@@ -157,26 +265,20 @@ export default function Settings() {
               <div className="space-y-1">
                 <p className="text-sm font-medium">Enable Salary Deduction Globally</p>
                 <p className="text-xs text-muted-foreground">
-                  {salaryDeductionGlobal
+                  {salaryDeduction.enabled
                     ? "Salary deduction is active. Organizations with deduction enabled can process payroll contributions."
                     : "Salary deduction is disabled globally. No payroll deductions will be processed."}
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <Badge variant={salaryDeductionGlobal ? "default" : "secondary"}>
-                  {salaryDeductionGlobal ? "Enabled" : "Disabled"}
+                <Badge variant={salaryDeduction.enabled ? "default" : "secondary"}>
+                  {salaryDeduction.enabled ? "Enabled" : "Disabled"}
                 </Badge>
                 <Switch
-                  checked={salaryDeductionGlobal}
-                  onCheckedChange={setSalaryDeductionGlobal}
+                  checked={salaryDeduction.enabled}
+                  onCheckedChange={saveGlobalToggle}
                 />
               </div>
-            </div>
-            <div className="mt-3 flex justify-end">
-              <Button size="sm" onClick={saveGlobalToggle} disabled={savedGlobal}>
-                <Settings2 className="mr-2 h-4 w-4" />
-                {savedGlobal ? "Saved!" : "Save Setting"}
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -267,9 +369,9 @@ export default function Settings() {
                       </Badge>
                       <Switch
                         checked={org.deductionEnabled}
-                        onCheckedChange={() => toggleOrgDeduction(org.id)}
-                        disabled={!salaryDeductionGlobal}
-                        title={!salaryDeductionGlobal ? "Enable global salary deduction first" : undefined}
+                        onCheckedChange={() => toggleOrgDeduction(org)}
+                        disabled={!salaryDeduction.enabled}
+                        title={!salaryDeduction.enabled ? "Enable global salary deduction first" : undefined}
                       />
                       <Button
                         variant="ghost"
@@ -285,7 +387,7 @@ export default function Settings() {
               </div>
             )}
 
-            {!salaryDeductionGlobal && organizations.length > 0 && (
+            {!salaryDeduction.enabled && organizations.length > 0 && (
               <div className="flex items-center gap-2 rounded-md bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700">
                 <ShieldCheck className="h-4 w-4 shrink-0" />
                 <span>Organization-level toggles are disabled because global salary deduction is turned off.</span>
@@ -359,7 +461,7 @@ export default function Settings() {
                   </Button>
                   <Button
                     size="sm"
-                    onClick={saveAccountDetails}
+                    onClick={handleSaveAccount}
                     disabled={!draftAccount.bank.trim() || !draftAccount.accountName.trim() || !draftAccount.accountNumber.trim()}
                   >
                     <Check className="mr-1.5 h-3.5 w-3.5" />
