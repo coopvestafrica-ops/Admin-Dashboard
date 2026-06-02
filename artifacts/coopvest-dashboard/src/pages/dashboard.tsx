@@ -107,10 +107,30 @@ async function fetchAnalyticsData(): Promise<AnalyticsData | null> {
 
 export default function Dashboard() {
   const [, navigate] = useLocation();
+  // Normalize data - handle both direct arrays and wrapped objects
+  const normalizeData = <T,>(data: T | { data?: T[] } | null | undefined, key = "data"): T[] => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    if (typeof data === "object" && "data" in data && Array.isArray((data as { data: unknown }).data)) {
+      return (data as { data: T[] }).data;
+    }
+    if (typeof data === "object" && key in data) {
+      const val = (data as Record<string, unknown>)[key];
+      return Array.isArray(val) ? val as T[] : [];
+    }
+    return [];
+  };
+
+  // Use hooks
   const { data: summary, isLoading: loadingSummary, refetch: refetchSummary } = useGetDashboardSummary();
-  const { data: monthlyData, isLoading: loadingMonthly } = useGetMonthlyContributions();
-  const { data: loanBreakdown, isLoading: loadingLoans } = useGetLoanStatusBreakdown();
-  const { data: recentActivity, isLoading: loadingActivity } = useGetRecentActivity();
+  const { data: rawMonthly, isLoading: loadingMonthly } = useGetMonthlyContributions();
+  const { data: rawLoans, isLoading: loadingLoans } = useGetLoanStatusBreakdown();
+  const { data: rawActivity, isLoading: loadingActivity } = useGetRecentActivity();
+
+  // Normalize data
+  const monthlyData = normalizeData<{ month: string; amount: number; value: number }>(rawMonthly);
+  const loanBreakdown = normalizeData<{ status: string; count: number; amount: number; percentage: number }>(rawLoans);
+  const recentActivity = normalizeData<{ id: string | number; type: string; description: string; memberName?: string; amount?: number; createdAt?: string | Date }>(rawActivity);
 
   // Real-time analytics data
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);

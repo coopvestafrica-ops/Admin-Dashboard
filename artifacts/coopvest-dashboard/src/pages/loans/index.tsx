@@ -94,10 +94,10 @@ export default function Loans() {
   const { mutate: apiApprove } = useApproveLoan();
   const { mutate: apiReject } = useRejectLoan();
 
-  const loans = (apiData as { data?: ApiLoan[] } | undefined)?.data ?? [];
+  const loans = Array.isArray(apiData) ? apiData : (apiData as { data?: ApiLoan[] } | undefined)?.data ?? [];
   const total = (apiData as { total?: number } | undefined)?.total ?? 0;
   const totalPages = Math.ceil(total / 20);
-  const filtered = loans;
+  const filtered = Array.isArray(loans) ? loans : [];
 
   const stats = [
     { label: "Total Applications",  value: total,                                                                       icon: CreditCard,   color: "text-primary" },

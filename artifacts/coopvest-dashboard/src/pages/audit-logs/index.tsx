@@ -78,11 +78,13 @@ export default function AuditLogs() {
 
   const { data: apiData, isLoading: apiLoading } = useGetAuditLogs({ page, limit: PAGE_SIZE });
 
-  const allLogs: ApiLog[] = (apiData as { data?: ApiLog[] } | undefined)?.data ?? [];
+  const allLogs: ApiLog[] = Array.isArray(apiData)
+    ? apiData as ApiLog[]
+    : (apiData as { data?: ApiLog[] } | undefined)?.data ?? [];
   const total = (apiData as { total?: number } | undefined)?.total ?? 0;
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
-  const filtered = allLogs.filter(log => {
+  const filtered = Array.isArray(allLogs) ? allLogs.filter(log => {
     const matchSearch = !search ||
       log.actor?.toLowerCase().includes(search.toLowerCase()) ||
       log.description?.toLowerCase().includes(search.toLowerCase()) ||
@@ -91,9 +93,9 @@ export default function AuditLogs() {
     const matchSeverity = severityFilter === "all" || log.severity === severityFilter;
     const matchRole     = roleFilter === "all" || log.role === roleFilter;
     return matchSearch && matchAction && matchSeverity && matchRole;
-  });
+  }) : [];
 
-  const paginated = filtered;
+  const paginated = Array.isArray(filtered) ? filtered : [];
 
   function exportCSV() {
     const headers = ["ID", "Action", "Actor", "Role", "Target", "Description", "Timestamp", "Severity"];
