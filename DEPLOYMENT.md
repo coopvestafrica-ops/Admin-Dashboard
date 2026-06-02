@@ -49,7 +49,7 @@ This project deploys the **backend API to Render** and the **frontend to Vercel*
 
 | Service | Platform | URL | Status |
 |---------|----------|-----|--------|
-| Backend API | Render | https://coopvest-api.onrender.com | ✅ Live |
+| Backend API (v3) | Render | https://coopvest-api-v3.onrender.com | ✅ Live |
 | Frontend | Vercel | TBD — follow steps below | — |
 
 ---
@@ -95,7 +95,7 @@ The `vercel.json` at the repo root configures everything.
 |-----|-------|
 | `VITE_SUPABASE_URL` | `https://nyoauzqezpxeonmrxxgi.supabase.co` |
 | `VITE_SUPABASE_ANON_KEY` | Your Supabase **anon/public** key (safe to expose) |
-| `VITE_API_URL` | `https://coopvest-api.onrender.com` |
+| `VITE_API_URL` | `https://coopvest-api-v3.onrender.com` |
 
 6. Click **Deploy**.
 7. Once done, copy your Vercel URL (e.g. `https://your-app.vercel.app`).
