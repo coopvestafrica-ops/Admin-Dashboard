@@ -145,7 +145,8 @@ router.get("/dashboard/monthly-contributions", async (req, res): Promise<void> =
     value:  monthMap.get(month) ?? 0,
   }));
 
-  res.json({ data });
+  // Return array directly (not wrapped in object) to match frontend expectations
+  res.json(data);
 });
 
 router.get("/dashboard/loan-status-breakdown", async (req, res): Promise<void> => {
@@ -160,15 +161,14 @@ router.get("/dashboard/loan-status-breakdown", async (req, res): Promise<void> =
   }
 
   const total = rows.length;
-  res.json({
-    breakdown: Array.from(grouped.entries()).map(([status, v]) => ({
-      status,
-      count:      v.count,
-      amount:     v.amount,
-      percentage: total > 0 ? Math.round((v.count / total) * 1000) / 10 : 0,
-    })),
-    total,
-  });
+  // Return array directly (not wrapped in object) to match frontend expectations
+  const breakdown = Array.from(grouped.entries()).map(([status, v]) => ({
+    status,
+    count:      v.count,
+    amount:     v.amount,
+    percentage: total > 0 ? Math.round((v.count / total) * 1000) / 10 : 0,
+  }));
+  res.json(breakdown);
 });
 
 router.get("/dashboard/recent-activity", async (req, res): Promise<void> => {
@@ -208,7 +208,8 @@ router.get("/dashboard/recent-activity", async (req, res): Promise<void> => {
   ];
 
   activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  res.json({ activities: activities.slice(0, 10) });
+  // Return array directly (not wrapped in object) to match frontend expectations
+  res.json(activities.slice(0, 10));
 });
 
 export default router;
