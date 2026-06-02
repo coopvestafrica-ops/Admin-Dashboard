@@ -1,7 +1,17 @@
 import { Router, type IRouter } from "express";
 import { supabase } from "@workspace/db";
+import { z } from "zod";
 
 const router: IRouter = Router();
+
+const CreateInvestmentBody = z.object({
+  name: z.string().min(1, "name is required"),
+  type: z.string().min(1, "type is required"),
+  amount: z.number().positive("amount must be a positive number"),
+  startDate: z.string().min(1, "startDate is required"),
+  maturityDate: z.string().optional(),
+  description: z.string().optional(),
+});
 
 router.get("/investments/portfolio", async (req, res): Promise<void> => {
   const { data: pools } = await supabase.from("investment_pools").select("*");
@@ -76,13 +86,15 @@ router.get("/investments", async (req, res): Promise<void> => {
 });
 
 router.post("/investments", async (req, res): Promise<void> => {
-  const { name, type, amount, startDate, maturityDate, description } = req.body;
-  if (!name || !type || !amount || !startDate) {
-    res.status(400).json({ error: "name, type, amount, startDate are required" });
+  const parsed = CreateInvestmentBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
 
-  const poolId = "POOL-" + String(Date.now()).slice(-7);
+  const { name, type, amount, startDate, maturityDate, description } = parsed.data;
+
+  const poolId = "POOL-" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
   const { data: pool, error } = await supabase.from("investment_pools").insert({
     pool_id: poolId,
     name,
@@ -90,7 +102,9 @@ router.post("/investments", async (req, res): Promise<void> => {
     target_amount: amount,
     raised_amount: 0,
     expected_return_percent: 0,
-    duration_months: maturityDate ? Math.round((new Date(maturityDate).getTime() - new Date(startDate).getTime()) / (30 * 24 * 60 * 60 * 1000)) : null,
+    duration_months: maturityDate
+      ? Math.round((new Date(maturityDate).getTime() - new Date(startDate).getTime()) / (30 * 24 * 60 * 60 * 1000))
+      : null,
     risk_level: "medium",
     status: "open",
     opens_at: startDate,

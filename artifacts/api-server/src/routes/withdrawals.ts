@@ -3,13 +3,19 @@ import { readData, writeData } from "../lib/store";
 
 const router: IRouter = Router();
 
-const defaultWithdrawalRequests = [
-  { id: "1", userId: "USR001", userName: "Bola Adeyemi", amount: 250000, bankName: "GTBank", accountNumber: "0123456789", accountName: "Bola Adeyemi", requestedAt: new Date(Date.now() - 3600000).toISOString(), status: "pending", riskFlag: false, riskReason: null },
-  { id: "2", userId: "USR002", userName: "Chioma Obi", amount: 1500000, bankName: "Access Bank", accountNumber: "9876543210", accountName: "Chioma Obi", requestedAt: new Date(Date.now() - 7200000).toISOString(), status: "pending", riskFlag: true, riskReason: "Exceeds daily limit" },
-  { id: "3", userId: "USR003", userName: "Emeka Nze", amount: 75000, bankName: "UBA", accountNumber: "1122334455", accountName: "Emeka Nze", requestedAt: new Date(Date.now() - 10800000).toISOString(), status: "approved", riskFlag: false, riskReason: null },
-  { id: "4", userId: "USR004", userName: "Fatima Yusuf", amount: 500000, bankName: "Zenith Bank", accountNumber: "5566778899", accountName: "Fatima Yusuf", requestedAt: new Date(Date.now() - 14400000).toISOString(), status: "on_hold", riskFlag: true, riskReason: "Unverified account" },
-  { id: "5", userId: "USR005", userName: "Gbenga Ola", amount: 180000, bankName: "First Bank", accountNumber: "3344556677", accountName: "Gbenga Ola", requestedAt: new Date(Date.now() - 21600000).toISOString(), status: "rejected", riskFlag: false, riskReason: null },
-];
+const defaultWithdrawalRequests: {
+  id: string;
+  userId: string;
+  userName: string;
+  amount: number;
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+  requestedAt: string;
+  status: string;
+  riskFlag: boolean;
+  riskReason: string | null;
+}[] = [];
 
 const defaultWithdrawalSettings = { dailyLimit: 1000000, requireApprovalAbove: 500000, autoApproveBelow: 5000, maxPendingPerUser: 3 };
 

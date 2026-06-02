@@ -80,7 +80,7 @@ router.post("/loans", async (req, res): Promise<void> => {
   }
 
   const { memberId, amount, tenure, purpose, interestRate = 5 } = parsed.data;
-  const loanId = "LN-" + String(Date.now()).slice(-7);
+  const loanId = "LN-" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
   const monthlyPayment = (amount * (interestRate / 100 / 12)) / (1 - Math.pow(1 + interestRate / 100 / 12, -tenure));
 
   const { data: loan, error } = await supabase.from("loans").insert({

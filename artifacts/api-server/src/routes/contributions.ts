@@ -86,7 +86,7 @@ router.post("/contributions", async (req, res): Promise<void> => {
   }
   const { memberId, amount, month, paymentMethod } = parsed.data;
 
-  const ref = "TXN-" + String(Date.now()).slice(-8);
+  const ref = "TXN-" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
   const txnId = "TX-" + crypto.randomUUID().slice(0, 8);
 
   const { data: txn, error } = await supabase.from("transactions").insert({

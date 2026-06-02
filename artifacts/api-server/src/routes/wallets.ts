@@ -3,16 +3,16 @@ import { readData, writeData } from "../lib/store";
 
 const router: IRouter = Router();
 
-const defaultWallets = Array.from({ length: 20 }, (_, i) => ({
-  id: String(i + 1),
-  userId: `USR${String(i + 1).padStart(3, "0")}`,
-  userName: ["Bola Adeyemi", "Chioma Obi", "Emeka Nze", "Fatima Yusuf", "Gbenga Ola", "Hannah Musa", "Ibrahim Sule", "Joy Okafor", "Kalu Eze", "Lola Bakare", "Musa Ahmed", "Ngozi Eze", "Ola Adebayo", "Patience Okonkwo", "Qudus Akin", "Rita Chukwu", "Samuel Tunde", "Tunde Alabi", "Uche Nwosu", "Victoria Oke"][i],
-  balance: Math.floor(Math.random() * 5000000) + 10000,
-  status: i === 3 || i === 11 ? "frozen" : i === 7 ? "suspended" : "active",
-  lastTransaction: new Date(Date.now() - Math.random() * 7 * 86400000).toISOString(),
-  totalDeposits: Math.floor(Math.random() * 10000000),
-  totalWithdrawals: Math.floor(Math.random() * 5000000),
-}));
+const defaultWallets: {
+  id: string;
+  userId: string;
+  userName: string;
+  balance: number;
+  status: string;
+  lastTransaction: string | null;
+  totalDeposits: number;
+  totalWithdrawals: number;
+}[] = [];
 
 router.get("/wallets", async (req, res): Promise<void> => {
   const wallets = await readData("wallets.json", defaultWallets);

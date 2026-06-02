@@ -1,14 +1,45 @@
 import { Router, type IRouter } from "express";
 import { supabase } from "@workspace/db";
+import { z } from "zod";
 
 const router: IRouter = Router();
 
+const RequestRolloverBody = z.object({
+  loan_id: z.string().min(1, "loan_id is required"),
+  member_id: z.string().min(1, "member_id is required"),
+  reason: z.string().min(1, "reason is required"),
+  new_tenure: z.number().int().positive("new_tenure must be a positive integer"),
+});
+
+const AddGuarantorBody = z.object({
+  guarantor_id: z.string().min(1, "guarantor_id is required"),
+  guarantor_name: z.string().min(1, "guarantor_name is required"),
+  guarantor_phone: z.string().min(1, "guarantor_phone is required"),
+});
+
+const GuarantorRespondBody = z.object({
+  accepted: z.boolean({ required_error: "accepted (boolean) is required" }),
+  reason: z.string().optional(),
+});
+
+const ApproveRolloverBody = z.object({
+  admin_id: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+const RejectRolloverBody = z.object({
+  reason: z.string().min(1, "reason is required"),
+  admin_id: z.string().optional(),
+});
+
 router.post("/rollovers/request", async (req, res): Promise<void> => {
-  const { loan_id, member_id, reason, new_tenure } = req.body;
-  if (!loan_id || !member_id || !reason || !new_tenure) {
-    res.status(400).json({ success: false, message: "loan_id, member_id, reason, new_tenure are required" });
+  const parsed = RequestRolloverBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
+
+  const { loan_id, member_id, reason, new_tenure } = parsed.data;
 
   const { data: loan } = await supabase.from("loans").select("*").eq("id", loan_id).single();
   if (!loan) { res.status(404).json({ success: false, message: "Loan not found" }); return; }
@@ -17,7 +48,7 @@ router.post("/rollovers/request", async (req, res): Promise<void> => {
   const rolloverFee = outstandingBalance * 0.02;
   const newMonthly = (outstandingBalance + rolloverFee) / new_tenure;
 
-  const rolloverId = "ROL-" + String(Date.now()).slice(-7);
+  const rolloverId = "ROL-" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
   const { data: rollover, error } = await supabase.from("rollovers").insert({
     rollover_id: rolloverId,
     loan_id: loan.id,
@@ -79,13 +110,14 @@ router.get("/rollovers/:rolloverId", async (req, res): Promise<void> => {
 });
 
 router.post("/rollovers/:rolloverId/guarantors", async (req, res): Promise<void> => {
-  const rolloverId = req.params.rolloverId;
-  const { guarantor_id, guarantor_name, guarantor_phone } = req.body;
-
-  if (!guarantor_id || !guarantor_name || !guarantor_phone) {
-    res.status(400).json({ success: false, message: "guarantor_id, guarantor_name, and guarantor_phone are required" });
+  const parsed = AddGuarantorBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
+
+  const rolloverId = req.params.rolloverId;
+  const { guarantor_id, guarantor_name, guarantor_phone } = parsed.data;
 
   const { data: rollover } = await supabase.from("rollovers").select("id").eq("rollover_id", rolloverId).single();
   if (!rollover) { res.status(404).json({ success: false, message: "Rollover not found" }); return; }
@@ -112,14 +144,15 @@ router.get("/rollovers/:rolloverId/guarantors", async (req, res): Promise<void> 
 });
 
 router.post("/rollovers/:rolloverId/guarantors/:guarantorId/respond", async (req, res): Promise<void> => {
-  const rolloverId = req.params.rolloverId;
-  const guarantorId = req.params.guarantorId;
-  const { accepted, reason } = req.body;
-
-  if (typeof accepted !== "boolean") {
-    res.status(400).json({ success: false, message: "accepted (boolean) is required" });
+  const parsed = GuarantorRespondBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
+
+  const rolloverId = req.params.rolloverId;
+  const guarantorId = req.params.guarantorId;
+  const { accepted, reason } = parsed.data;
 
   const { data: rollover } = await supabase.from("rollovers").select("id").eq("rollover_id", rolloverId).single();
   if (!rollover) { res.status(404).json({ success: false, message: "Rollover not found" }); return; }
@@ -186,14 +219,15 @@ router.post("/rollovers/:rolloverId/cancel", async (req, res): Promise<void> => 
 });
 
 router.put("/rollovers/:rolloverId/guarantors/:guarantorId", async (req, res): Promise<void> => {
-  const rolloverId = req.params.rolloverId;
-  const oldGuarantorId = req.params.guarantorId;
-  const { guarantor_id, guarantor_name, guarantor_phone } = req.body;
-
-  if (!guarantor_id || !guarantor_name || !guarantor_phone) {
-    res.status(400).json({ success: false, message: "guarantor_id, guarantor_name, and guarantor_phone are required" });
+  const parsed = AddGuarantorBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
+
+  const rolloverId = req.params.rolloverId;
+  const oldGuarantorId = req.params.guarantorId;
+  const { guarantor_id, guarantor_name, guarantor_phone } = parsed.data;
 
   const { data: rollover } = await supabase.from("rollovers").select("id").eq("rollover_id", rolloverId).single();
   if (!rollover) { res.status(404).json({ success: false, message: "Rollover not found" }); return; }
@@ -219,8 +253,14 @@ router.put("/rollovers/:rolloverId/guarantors/:guarantorId", async (req, res): P
 });
 
 router.post("/rollovers/:rolloverId/approve", async (req, res): Promise<void> => {
+  const parsed = ApproveRolloverBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
+    return;
+  }
+
   const rolloverId = req.params.rolloverId;
-  const { admin_id, notes } = req.body;
+  const { admin_id, notes } = parsed.data;
 
   const { data: rollover, error } = await supabase
     .from("rollovers")
@@ -259,10 +299,14 @@ router.post("/rollovers/:rolloverId/approve", async (req, res): Promise<void> =>
 });
 
 router.post("/rollovers/:rolloverId/reject", async (req, res): Promise<void> => {
-  const rolloverId = req.params.rolloverId;
-  const { reason, admin_id } = req.body;
+  const parsed = RejectRolloverBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
+    return;
+  }
 
-  if (!reason) { res.status(400).json({ success: false, message: "reason is required" }); return; }
+  const rolloverId = req.params.rolloverId;
+  const { reason, admin_id } = parsed.data;
 
   const { data: rollover, error } = await supabase
     .from("rollovers")

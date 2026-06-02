@@ -1,7 +1,27 @@
 import { Router, type IRouter } from "express";
 import { supabase } from "@workspace/db";
+import { z } from "zod";
 
 const router: IRouter = Router();
+
+const CreateInterestRateBody = z.object({
+  name: z.string().min(1, "name is required"),
+  baseRate: z.number().min(0, "baseRate must be non-negative"),
+  minTenure: z.number().int().positive("minTenure must be a positive integer"),
+  maxTenure: z.number().int().positive("maxTenure must be a positive integer"),
+  minAmount: z.number().min(0).optional().default(0),
+  maxAmount: z.number().min(0).optional().default(0),
+});
+
+const UpdateInterestRateBody = z.object({
+  name: z.string().min(1).optional(),
+  baseRate: z.number().min(0).optional(),
+  minTenure: z.number().int().positive().optional(),
+  maxTenure: z.number().int().positive().optional(),
+  minAmount: z.number().min(0).optional(),
+  maxAmount: z.number().min(0).optional(),
+  isActive: z.boolean().optional(),
+});
 
 router.get("/interest-rates", async (req, res): Promise<void> => {
   const { data: settings } = await supabase
@@ -32,11 +52,13 @@ router.get("/interest-rates", async (req, res): Promise<void> => {
 });
 
 router.post("/interest-rates", async (req, res): Promise<void> => {
-  const { name, baseRate, minTenure, maxTenure, minAmount, maxAmount } = req.body;
-  if (!name || baseRate === undefined || !minTenure || !maxTenure) {
-    res.status(400).json({ error: "name, baseRate, minTenure, maxTenure are required" });
+  const parsed = CreateInterestRateBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
+
+  const { name, baseRate, minTenure, maxTenure, minAmount, maxAmount } = parsed.data;
 
   const { data: settings } = await supabase.from("system_settings").select("value").eq("key", "interest_rates").single();
   let rates: unknown[] = [];
@@ -45,13 +67,13 @@ router.post("/interest-rates", async (req, res): Promise<void> => {
   }
 
   const newRate = {
-    id: String(Date.now()),
+    id: crypto.randomUUID(),
     name,
     baseRate,
     minTenure,
     maxTenure,
-    minAmount: minAmount ?? 0,
-    maxAmount: maxAmount ?? 0,
+    minAmount,
+    maxAmount,
     isActive: true,
   };
   rates.push(newRate);
@@ -66,8 +88,14 @@ router.post("/interest-rates", async (req, res): Promise<void> => {
 });
 
 router.put("/interest-rates/:id", async (req, res): Promise<void> => {
+  const parsed = UpdateInterestRateBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
+    return;
+  }
+
   const id = req.params.id;
-  const updates = req.body;
+  const updates = parsed.data;
 
   const { data: settings } = await supabase.from("system_settings").select("value").eq("key", "interest_rates").single();
   let rates: { id: string; [key: string]: unknown }[] = [];
