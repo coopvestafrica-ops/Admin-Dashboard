@@ -116,4 +116,17 @@ router.get("/members/:id", async (req, res): Promise<void> => {
   res.json({ id: profile.id, memberId: profile.user_id, firstName, lastName, email: profile.email, phone: profile.phone ?? "", status: deriveStatus(profile), joinDate: profile.created_at?.slice(0, 10) ?? null, address: null, occupation: null, createdAt: profile.created_at, totalContributions, activeLoan, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" });
 });
 
+// Get member by user_id (CVA-XXX format) - used by admin dashboard
+router.get("/members/user/:userId", async (req, res): Promise<void> => {
+  const userId = req.params.userId;
+  const { data: profile, error } = await supabase.from("profiles").select("*").eq("user_id", userId).single();
+  if (error || !profile) { res.status(404).json({ error: "Member not found" }); return; }
+  const { data: savings }     = await supabase.from("savings").select("total_saved").eq("profile_id", profile.id).single();
+  const { data: activeLoans } = await supabase.from("loans").select("remaining_balance").eq("profile_id", profile.id).eq("status", "active");
+  const totalContributions = Number(savings?.total_saved ?? 0);
+  const activeLoan = (activeLoans ?? []).reduce((sum, l) => sum + Number(l.remaining_balance || 0), 0);
+  const { firstName, lastName } = splitName(profile.name);
+  res.json({ id: profile.id, memberId: profile.user_id, firstName, lastName, email: profile.email, phone: profile.phone ?? "", status: deriveStatus(profile), joinDate: profile.created_at?.slice(0, 10) ?? null, address: null, occupation: null, createdAt: profile.created_at, totalContributions, activeLoan, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" });
+});
+
 export default router;

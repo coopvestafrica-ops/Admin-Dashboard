@@ -36,7 +36,7 @@ type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verif
 export default function MemberProfile() {
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
-  const id = parseInt(params.id, 10);
+  const id = params.id || null;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const updateMember = useUpdateMember();
@@ -45,13 +45,10 @@ export default function MemberProfile() {
   const [contributionMethod, setContributionMethod] = useState("monthly");
   const [showBalances, setShowBalances] = useState(true);
 
-  const { data: member, isLoading } = useGetMember(id, {
-    query: { enabled: !!id, queryKey: getGetMemberQueryKey(id) },
+  // Use useGetMember which queries by profile.id (UUID)
+  const { data: member, isLoading } = useGetMember(id as unknown as number, {
+    query: { enabled: !!id },
   });
-  const { data: loans } = useGetLoans({ memberId: id });
-  const { data: contributions } = useGetContributions({ memberId: id });
-  const { data: investments } = useGetInvestments({ memberId: id });
-  const { data: transactions } = useGetTransactions({ memberId: id });
 
   async function executeAction() {
     if (!actionDialog.action || !member) return;
