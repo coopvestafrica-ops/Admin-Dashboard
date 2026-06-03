@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useGetMember, useGetLoans, useGetContributions, useGetInvestments, useGetTransactions, useUpdateMember, getGetMemberQueryKey } from "@workspace/api-client-react";
+import { useGetMember, useGetLoans, useGetContributions, useGetInvestments, useGetTransactions, useUpdateMember, getGetMemberQueryKey, useGetMemberByUserId, getGetMemberByUserIdQueryKey } from "@workspace/api-client-react";
 import { formatCurrency } from "@/lib/format";
 import {
   ArrowLeft, Mail, Phone, Ban, Lock, KeyRound, CheckCircle2, CreditCard,
