@@ -36,7 +36,8 @@ type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verif
 export default function MemberProfile() {
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
-  const id = params.id || null;
+  // Use memberId (CVA-XXX format) for navigation and query
+  const memberId = params.id || null;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const updateMember = useUpdateMember();
@@ -45,18 +46,17 @@ export default function MemberProfile() {
   const [contributionMethod, setContributionMethod] = useState("monthly");
   const [showBalances, setShowBalances] = useState(true);
 
-  // Use useGetMember which queries by profile.id (UUID)
-  const { data: member, isLoading, isError, error: queryError } = useGetMember(id as unknown as number, {
+  // Query using the /members/user/:userId endpoint
+  const { data: member, isLoading, isError, error: queryError } = useGetMemberByUserId(memberId, {
     query: { 
-      enabled: !!id,
+      enabled: !!memberId,
       retry: 1,
     },
   });
   
   // Debug
-  console.log('[MemberProfile] id from params:', params.id);
-  console.log('[MemberProfile] id variable:', id);
-  console.log('[MemberProfile] useGetMember result:', { member, isLoading, isError, queryError });
+  console.log('[MemberProfile] memberId from params:', params.id);
+  console.log('[MemberProfile] member:', member);
 
   async function executeAction() {
     if (!actionDialog.action || !member) return;
@@ -76,10 +76,10 @@ export default function MemberProfile() {
     };
     try {
       if (statusMap[actionDialog.action]) {
-        await updateMember.mutateAsync({ id: member.id, data: { status: statusMap[actionDialog.action] as any } });
+        await updateMember.mutateAsync({ id: member.memberId, data: { status: statusMap[actionDialog.action] as any } });
       }
       toast({ title: "Done", description: messages[actionDialog.action] });
-      queryClient.invalidateQueries({ queryKey: getGetMemberQueryKey(id) });
+      queryClient.invalidateQueries({ queryKey: getGetMemberByUserIdQueryKey(memberId as string) });
       setActionDialog({ open: false, action: null });
     } catch {
       toast({ title: "Error", description: "Action failed.", variant: "destructive" });

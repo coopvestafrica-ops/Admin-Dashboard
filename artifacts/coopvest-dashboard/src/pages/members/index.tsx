@@ -249,7 +249,7 @@ export default function Members() {
                                 <div>
                                   <button
                                     className="font-medium hover:text-primary hover:underline text-left"
-                                    onClick={() => setLocation(`/members/${member.id}`)}
+                                    onClick={() => setLocation(`/members/${member.memberId}`)}
                                     data-testid={`member-link-${member.id}`}
                                   >
                                     {member.firstName} {member.lastName}
@@ -287,7 +287,7 @@ export default function Members() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-52">
-                                  <DropdownMenuItem onClick={() => setLocation(`/members/${member.id}`)}>
+                                  <DropdownMenuItem onClick={() => setLocation(`/members/${member.memberId}`)}>
                                     View Profile
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />

@@ -1543,3 +1543,23 @@ components:
         description:
           type: string
       required: [loanType, minAmount, maxAmount, rate, tenure]
+
+# New endpoint for member lookup by user_id (CVA-XXX format)
+  /members/user/{userId}:
+    get:
+      operationId: getMemberByUserId
+      tags: [members]
+      summary: Get member by user ID
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Member details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Member"
