@@ -46,9 +46,17 @@ export default function MemberProfile() {
   const [showBalances, setShowBalances] = useState(true);
 
   // Use useGetMember which queries by profile.id (UUID)
-  const { data: member, isLoading } = useGetMember(id as unknown as number, {
-    query: { enabled: !!id },
+  const { data: member, isLoading, isError, error: queryError } = useGetMember(id as unknown as number, {
+    query: { 
+      enabled: !!id,
+      retry: 1,
+    },
   });
+  
+  // Debug
+  console.log('[MemberProfile] id from params:', params.id);
+  console.log('[MemberProfile] id variable:', id);
+  console.log('[MemberProfile] useGetMember result:', { member, isLoading, isError, queryError });
 
   async function executeAction() {
     if (!actionDialog.action || !member) return;
