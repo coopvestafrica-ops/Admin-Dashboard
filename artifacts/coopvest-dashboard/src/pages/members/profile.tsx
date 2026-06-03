@@ -47,16 +47,12 @@ export default function MemberProfile() {
   const [showBalances, setShowBalances] = useState(true);
 
   // Query using the /members/user/:userId endpoint
-  const { data: member, isLoading, isError, error: queryError } = useGetMemberByUserId(memberId, {
+  const { data: member, isLoading } = useGetMemberByUserId(memberId, {
     query: { 
       enabled: !!memberId,
       retry: 1,
     },
   });
-  
-  // Debug
-  console.log('[MemberProfile] memberId from params:', params.id);
-  console.log('[MemberProfile] member:', member);
 
   async function executeAction() {
     if (!actionDialog.action || !member) return;
@@ -76,7 +72,7 @@ export default function MemberProfile() {
     };
     try {
       if (statusMap[actionDialog.action]) {
-        await updateMember.mutateAsync({ id: member.memberId, data: { status: statusMap[actionDialog.action] as any } });
+        await updateMember.mutateAsync({ id: member.id, data: { status: statusMap[actionDialog.action] as any } });
       }
       toast({ title: "Done", description: messages[actionDialog.action] });
       queryClient.invalidateQueries({ queryKey: getGetMemberByUserIdQueryKey(memberId as string) });
