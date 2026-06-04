@@ -1,9 +1,8 @@
 {
-  "buildCommand": "pnpm --filter @workspace/coopvest-dashboard run build",
+  "buildCommand": "pnpm --filter @workspace/coopvest-dashboard run build && mkdir -p api && cp -r api-serverless/members api/members",
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "framework": null,
-  "rootDirectory": "",
   "env": {
     "BASE_PATH": "/"
   }
