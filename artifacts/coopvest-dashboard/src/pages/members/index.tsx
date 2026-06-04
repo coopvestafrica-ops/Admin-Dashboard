@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,6 +73,7 @@ export default function Members() {
 
   const effectiveStatus = activeTab !== "all" ? tabToStatus[activeTab] : status;
 
+  // Debug logging for development
   const { data: statsData, isLoading: statsLoading } = useGetMemberStats();
   const { data, isLoading, error } = useGetMembers({
     search: search || undefined,
@@ -80,6 +81,16 @@ export default function Members() {
     page,
     limit: 20,
   });
+
+  useEffect(() => {
+    console.log('[Members] Query state:', { data, isLoading, error });
+    if (error) {
+      console.error('[Members] Error loading members:', error);
+    }
+    if (data) {
+      console.log('[Members] Received data:', data);
+    }
+  }, [data, isLoading, error]);
 
   // Safely extract members data with fallbacks
   const members = extractArray<any>(data);
@@ -258,6 +269,7 @@ export default function Members() {
                   <div className="flex h-48 flex-col items-center justify-center gap-2 text-red-500">
                     <AlertTriangle className="h-8 w-8" />
                     <p>Failed to load members. Please try again.</p>
+                    <p className="text-xs text-muted-foreground">{String((error as Error)?.message || error)}</p>
                     <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
                       Retry
                     </Button>

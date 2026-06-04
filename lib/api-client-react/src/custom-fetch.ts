@@ -326,6 +326,8 @@ export async function customFetch<T = unknown>(
   input: RequestInfo | URL,
   options: CustomFetchOptions = {},
 ): Promise<T> {
+  const resolvedUrl = resolveUrl(input);
+  console.log('[API] Request:', resolvedUrl, options.method || 'GET');
   input = applyBaseUrl(input);
   const { responseType = "auto", headers: headersInit, ...init } = options;
 
@@ -364,8 +366,10 @@ export async function customFetch<T = unknown>(
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);
+    console.error('[API] Error response:', resolvedUrl, response.status, errorData);
     throw new ApiError(response, errorData, requestInfo);
   }
 
+  console.log('[API] Success:', resolvedUrl);
   return (await parseSuccessBody(response, responseType, requestInfo)) as T;
 }
