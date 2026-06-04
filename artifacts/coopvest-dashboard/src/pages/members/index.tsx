@@ -55,14 +55,16 @@ export default function Members() {
   const effectiveStatus = activeTab !== "all" ? tabToStatus[activeTab] : status;
 
   const { data: statsData, isLoading: statsLoading } = useGetMemberStats();
-  const { data, isLoading } = useGetMembers({
+  const { data, isLoading, error } = useGetMembers({
     search: search || undefined,
     status: (effectiveStatus as "active" | "inactive" | "suspended" | "pending") || undefined,
     page,
     limit: 20,
   });
 
-  const total = data?.total ?? 0;
+  // Safely extract members data with fallbacks
+  const members = Array.isArray(data?.data) ? data.data : [];
+  const total = typeof data?.total === 'number' ? data.total : 0;
   const totalPages = Math.ceil(total / 20);
 
   const stats = [
@@ -121,10 +123,9 @@ export default function Members() {
   }
 
   function exportCSV() {
-    const rows = data?.data ?? [];
-    if (!rows.length) return;
+    if (!members.length) return;
     const headers = ["ID", "Name", "Email", "Phone", "Status", "Organization", "Monthly Contribution", "Risk Score"];
-    const csv = [headers.join(","), ...rows.map((m) => [m.id, `"${m.firstName} ${m.lastName}"`, m.email, m.phone ?? "", m.status, `"${m.occupation ?? ""}"`, m.totalContributions ?? "", m.riskScore ?? ""].join(","))].join("\n");
+    const csv = [headers.join(","), ...members.map((m) => [m.id, `"${m.firstName} ${m.lastName}"`, m.email, m.phone ?? "", m.status, `"${m.occupation ?? ""}"`, m.totalContributions ?? "", m.riskScore ?? ""].join(","))].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = "members_export.csv"; a.click();
@@ -217,7 +218,15 @@ export default function Members() {
                   <div className="space-y-3 p-6">
                     {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
                   </div>
-                ) : !data?.data?.length ? (
+                ) : error ? (
+                  <div className="flex h-48 flex-col items-center justify-center gap-2 text-red-500">
+                    <AlertTriangle className="h-8 w-8" />
+                    <p>Failed to load members. Please try again.</p>
+                    <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                      Retry
+                    </Button>
+                  </div>
+                ) : !members.length ? (
                   <div className="flex h-48 flex-col items-center justify-center gap-2 text-muted-foreground">
                     <Users className="h-8 w-8 opacity-40" />
                     <p>No members found.</p>
@@ -237,7 +246,7 @@ export default function Members() {
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-                        {data.data.map((member) => (
+                        {members.map((member) => (
                           <tr key={member.id} className="group hover:bg-muted/30 transition-colors">
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-3">
