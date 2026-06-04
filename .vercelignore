@@ -1,0 +1,4 @@
+# Exclude API directories from Vercel build
+artifacts/api-server/**
+api/**
+!artifacts/coopvest-dashboard/**
