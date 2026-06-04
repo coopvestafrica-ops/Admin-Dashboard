@@ -63,18 +63,31 @@ export default function Members() {
   });
 
   // Safely extract members data with fallbacks
-  const members = Array.isArray(data?.data) ? data.data : [];
-  const total = typeof data?.total === 'number' ? data.total : 0;
+  const members = (data && typeof data === 'object' && Array.isArray((data as any).data)) ? (data as any).data : [];
+  const total = (data && typeof data === 'object' && typeof (data as any).total === 'number') ? (data as any).total : 0;
   const totalPages = Math.ceil(total / 20);
 
-  const stats = [
-    { label: "Total Users", value: statsData?.total ?? 0, icon: Users, color: "text-primary", testid: "total" },
-    { label: "Active Users", value: statsData?.active ?? 0, icon: UserCheck, color: "text-emerald-600", testid: "active" },
-    { label: "Suspended", value: statsData?.suspended ?? 0, icon: UserX, color: "text-orange-500", testid: "suspended" },
-    { label: "Pending Verification", value: statsData?.pending ?? 0, icon: Clock, color: "text-amber-500", testid: "pending" },
-    { label: "Loan Defaulters", value: statsData?.loanDefaulters ?? 12, icon: AlertTriangle, color: "text-red-500", testid: "defaulters" },
-    { label: "High-Risk Accounts", value: statsData?.highRisk ?? 8, icon: ShieldAlert, color: "text-rose-600", testid: "high-risk" },
+  // Safely extract stats with fallbacks - ensure always array
+  const safeStats: any[] = [
+    { label: "Total Users", value: 0, icon: Users, color: "text-primary", testid: "total" },
+    { label: "Active Users", value: 0, icon: UserCheck, color: "text-emerald-600", testid: "active" },
+    { label: "Suspended", value: 0, icon: UserX, color: "text-orange-500", testid: "suspended" },
+    { label: "Pending Verification", value: 0, icon: Clock, color: "text-amber-500", testid: "pending" },
+    { label: "Loan Defaulters", value: 12, icon: AlertTriangle, color: "text-red-500", testid: "defaulters" },
+    { label: "High-Risk Accounts", value: 8, icon: ShieldAlert, color: "text-rose-600", testid: "high-risk" },
   ];
+  
+  if (statsData && typeof statsData === 'object' && !Array.isArray(statsData)) {
+    const sd = statsData as any;
+    safeStats[0].value = typeof sd.total === 'number' ? sd.total : 0;
+    safeStats[1].value = typeof sd.active === 'number' ? sd.active : 0;
+    safeStats[2].value = typeof sd.suspended === 'number' ? sd.suspended : 0;
+    safeStats[3].value = typeof sd.pending === 'number' ? sd.pending : 0;
+    safeStats[4].value = typeof sd.loanDefaulters === 'number' ? sd.loanDefaulters : 12;
+    safeStats[5].value = typeof sd.highRisk === 'number' ? sd.highRisk : 8;
+  }
+  
+  const stats = safeStats;
 
   function openAction(memberId: number, action: AdminAction, memberName: string) {
     setActionDialog({ open: true, memberId, action, memberName });
@@ -123,9 +136,9 @@ export default function Members() {
   }
 
   function exportCSV() {
-    if (!members.length) return;
+    if (!Array.isArray(members) || !members.length) return;
     const headers = ["ID", "Name", "Email", "Phone", "Status", "Organization", "Monthly Contribution", "Risk Score"];
-    const csv = [headers.join(","), ...members.map((m) => [m.id, `"${m.firstName} ${m.lastName}"`, m.email, m.phone ?? "", m.status, `"${m.occupation ?? ""}"`, m.totalContributions ?? "", m.riskScore ?? ""].join(","))].join("\n");
+    const csv = [headers.join(","), ...(Array.isArray(members) ? members.map((m: any) => [m.id, `"${m.firstName} ${m.lastName}"`, m.email, m.phone ?? "", m.status, `"${m.occupation ?? ""}"`, m.totalContributions ?? "", m.riskScore ?? ""].join(",")) : [])].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = "members_export.csv"; a.click();
@@ -246,7 +259,7 @@ export default function Members() {
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-                        {members.map((member) => (
+                        {Array.isArray(members) && members.map((member: any) => (
                           <tr key={member.id} className="group hover:bg-muted/30 transition-colors">
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-3">
