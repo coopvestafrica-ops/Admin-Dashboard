@@ -618,9 +618,9 @@ export default function MemberProfile() {
                 <CardHeader><CardTitle className="text-base flex items-center gap-2"><Building2 className="h-4 w-4" /> Employer / Organization</CardTitle></CardHeader>
                 <CardContent>
                   <div className="space-y-3 text-sm">
-                    <div><span className="text-muted-foreground">Organization</span><p className="font-medium">{member.organization || "Not specified"}</p></div>
-                    <div><span className="text-muted-foreground">Employer</span><p className="font-medium">{member.employer || "Not specified"}</p></div>
-                    <div><span className="text-muted-foreground">Contribution Method</span><p className="font-medium capitalize">{member.contributionMethod || "Monthly"}</p></div>
+                    <div><span className="text-muted-foreground">Organization</span><p className="font-medium">{activeMember.organization || "Not specified"}</p></div>
+                    <div><span className="text-muted-foreground">Employer</span><p className="font-medium">{activeMember.employer || "Not specified"}</p></div>
+                    <div><span className="text-muted-foreground">Contribution Method</span><p className="font-medium capitalize">{activeMember.contributionMethod || "Monthly"}</p></div>
                   </div>
                 </CardContent>
               </Card>
