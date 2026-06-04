@@ -16,7 +16,7 @@ import { defineConfig } from "vite";
     define: {
       'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL || ''),
       'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY || ''),
-      'import.meta.env.VITE_API_BASE_URL': JSON.stringify(process.env.VITE_API_BASE_URL || ''),
+      'import.meta.env.VITE_API_BASE_URL': JSON.stringify(process.env.VITE_API_BASE_URL ? process.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://coopvest-api-v3.onrender.com'),
     },
     resolve: {
       alias: {
