@@ -63,6 +63,21 @@ export default function MemberProfile() {
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(true);
 
+  // Fetch related data using numeric member ID (for loans, contributions, etc)
+  const memberNumericId = memberData?.id ? parseInt(String(memberData.id).split('-')[0], 10) || 1 : 1;
+  const { data: loans } = useGetLoans({ memberId: memberNumericId }, {
+    query: { enabled: !!memberData, retry: 1 }
+  });
+  const { data: contributions } = useGetContributions({ memberId: memberNumericId }, {
+    query: { enabled: !!memberData, retry: 1 }
+  });
+  const { data: investments } = useGetInvestments({ memberId: memberNumericId }, {
+    query: { enabled: !!memberData, retry: 1 }
+  });
+  const { data: transactions } = useGetTransactions({ memberId: memberNumericId }, {
+    query: { enabled: !!memberData, retry: 1 }
+  });
+
   useEffect(() => {
     if (!memberIdFromUrl) {
       setIsFetching(false);
