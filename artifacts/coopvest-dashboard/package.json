@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.0",
-    "@workspace/api-client-react": "file:../../lib/api-client-react"
+    "@tanstack/react-query": "^5.90.21"
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.10.0",
