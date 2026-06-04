@@ -5,10 +5,5 @@
   "framework": null,
   "env": {
     "BASE_PATH": "/"
-  },
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "nodejs22.x"
-    }
   }
 }
