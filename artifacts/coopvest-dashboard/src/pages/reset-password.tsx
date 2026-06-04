@@ -21,6 +21,11 @@ export default function ResetPassword() {
     e.preventDefault();
     setError(null);
 
+    if (!supabase) {
+      setError("Authentication service not configured. Please contact support.");
+      return;
+    }
+
     if (password.length < 8) {
       setError("Password must be at least 8 characters.");
       return;

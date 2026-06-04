@@ -12,6 +12,13 @@ export function ProtectedRoute({ component: Component }: ProtectedRouteProps) {
   const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
+    if (!supabase) {
+      // No supabase client - redirect to login
+      setLocation("/");
+      setChecking(false);
+      return;
+    }
+    
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         setAuthenticated(true);

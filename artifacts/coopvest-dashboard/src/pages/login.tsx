@@ -20,6 +20,12 @@ export default function Login() {
     setError(null);
     setIsLoading(true);
 
+    if (!supabase) {
+      setError("Authentication service not configured. Please contact support.");
+      setIsLoading(false);
+      return;
+    }
+
     const form = e.currentTarget;
     const email = (form.elements.namedItem("email") as HTMLInputElement).value;
     const password = (form.elements.namedItem("password") as HTMLInputElement).value;
@@ -36,6 +42,11 @@ export default function Login() {
   };
 
   const handleForgotPassword = async () => {
+    if (!supabase) {
+      setError("Authentication service not configured. Please contact support.");
+      return;
+    }
+    
     const email = (document.getElementById("email") as HTMLInputElement)?.value;
     if (!email) {
       setError("Enter your email address first, then click Forgot password.");
