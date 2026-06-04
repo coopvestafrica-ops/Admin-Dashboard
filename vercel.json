@@ -1,6 +1,6 @@
 {
   "framework": null,
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
-  "installCommand": "npm install --ignore-scripts",
-  "buildCommand": "echo 'Using pre-built dist folder'"
+  "installCommand": "true",
+  "buildCommand": "true"
 }
