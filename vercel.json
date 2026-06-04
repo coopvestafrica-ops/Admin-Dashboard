@@ -1,7 +1,7 @@
 {
-  "buildCommand": "pnpm --filter @workspace/coopvest-dashboard run build",
+  "buildCommand": "cd artifacts/coopvest-dashboard && pnpm build",
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
-  "installCommand": "pnpm install --no-frozen-lockfile",
+  "installCommand": "corepack enable && pnpm install",
   "framework": null,
   "env": {
     "BASE_PATH": "/"
