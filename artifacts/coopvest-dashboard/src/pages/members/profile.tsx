@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useGetMember, useGetLoans, useGetContributions, useGetInvestments, useGetTransactions, useUpdateMember, getGetMemberQueryKey, useGetMemberByUserId, getGetMemberByUserIdQueryKey } from "@workspace/api-client-react";
+import { useGetMember, useGetLoans, useGetContributions, useGetInvestments, useGetTransactions, useUpdateMember, getGetMemberQueryKey } from "@workspace/api-client-react";
 import { formatCurrency } from "@/lib/format";
 import {
   ArrowLeft, Mail, Phone, Ban, Lock, KeyRound, CheckCircle2, CreditCard,
@@ -36,8 +36,8 @@ type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verif
 export default function MemberProfile() {
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
-  // Use memberId (CVA-XXX format) for navigation and query
-  const memberId = params.id || null;
+  // Parse the numeric ID from the URL
+  const memberId = params.id ? parseInt(params.id, 10) : null;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const updateMember = useUpdateMember();
@@ -46,10 +46,10 @@ export default function MemberProfile() {
   const [contributionMethod, setContributionMethod] = useState("monthly");
   const [showBalances, setShowBalances] = useState(true);
 
-  // Query using the /members/user/:userId endpoint
-  const { data: member, isLoading } = useGetMemberByUserId(memberId, {
+  // Query using the numeric member ID
+  const { data: member, isLoading } = useGetMember(memberId as number, {
     query: { 
-      enabled: !!memberId,
+      enabled: memberId !== null && !isNaN(memberId),
       retry: 1,
     },
   });
@@ -75,7 +75,7 @@ export default function MemberProfile() {
         await updateMember.mutateAsync({ id: member.id, data: { status: statusMap[actionDialog.action] as any } });
       }
       toast({ title: "Done", description: messages[actionDialog.action] });
-      queryClient.invalidateQueries({ queryKey: getGetMemberByUserIdQueryKey(memberId as string) });
+      queryClient.invalidateQueries({ queryKey: getGetMemberQueryKey(memberId as number) });
       setActionDialog({ open: false, action: null });
     } catch {
       toast({ title: "Error", description: "Action failed.", variant: "destructive" });

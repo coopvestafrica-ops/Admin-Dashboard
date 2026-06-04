@@ -310,7 +310,7 @@ export default function Members() {
                                 <div>
                                   <button
                                     className="font-medium hover:text-primary hover:underline text-left"
-                                    onClick={() => setLocation(`/members/${member.memberId}`)}
+                                    onClick={() => setLocation(`/members/${member.id}`)}
                                     data-testid={`member-link-${member.id}`}
                                   >
                                     {member.firstName} {member.lastName}
