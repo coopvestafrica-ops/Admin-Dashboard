@@ -1,6 +1,4 @@
 {
   "framework": null,
-  "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
-  "installCommand": "true",
-  "buildCommand": "true"
+  "outputDirectory": "artifacts/coopvest-dashboard/dist/public"
 }
