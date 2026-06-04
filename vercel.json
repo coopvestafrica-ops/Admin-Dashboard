@@ -1,8 +1,0 @@
-{
-  "buildCommand": "true",
-  "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
-  "framework": null,
-  "env": {
-    "BASE_PATH": "/"
-  }
-}
