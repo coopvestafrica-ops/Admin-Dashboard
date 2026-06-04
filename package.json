@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "cd artifacts/coopvest-dashboard && npm install && npm run build"
+    "build": "npm install lib/api-client-react && cd artifacts/coopvest-dashboard && npm install && npm run build"
   },
   "engines": {
     "node": ">=18"
