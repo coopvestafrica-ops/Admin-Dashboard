@@ -294,7 +294,10 @@ export default function RoleManagement() {
                             <div className="flex items-center gap-3">
                               <Avatar className="h-8 w-8">
                                 <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
-                                  {s.name.split(" ").map(n => n[0]).join("").slice(0,2)}
+                                  {(() => {
+                                    const name = String(s.name ?? '');
+                                    return name.split(' ').filter(Boolean).map(n => n[0] || '').join('').slice(0, 2) || '??';
+                                  })()}
                                 </AvatarFallback>
                               </Avatar>
                               <div>

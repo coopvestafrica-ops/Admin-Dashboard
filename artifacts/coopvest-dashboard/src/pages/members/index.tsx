@@ -18,6 +18,25 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
+// Type for stats cards
+interface StatCard {
+  label: string;
+  value: number;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  testid: string;
+}
+
+// Helper to safely extract array from response
+function extractArray<T>(data: unknown): T[] {
+  if (Array.isArray(data)) return data as T[];
+  if (data && typeof data === 'object' && 'data' in data) {
+    const nested = (data as { data: unknown }).data;
+    return Array.isArray(nested) ? nested as T[] : [];
+  }
+  return [];
+}
+
 const statusColors: Record<string, string> = {
   active: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
   inactive: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
@@ -63,12 +82,12 @@ export default function Members() {
   });
 
   // Safely extract members data with fallbacks
-  const members = (data && typeof data === 'object' && Array.isArray((data as any).data)) ? (data as any).data : [];
+  const members = extractArray<any>(data);
   const total = (data && typeof data === 'object' && typeof (data as any).total === 'number') ? (data as any).total : 0;
-  const totalPages = Math.ceil(total / 20);
+  const totalPages = total > 0 ? Math.ceil(total / 20) : 0;
 
-  // Safely extract stats with fallbacks - ensure always array
-  const safeStats: any[] = [
+  // Safely extract stats with fallbacks - ensure always array of StatCard
+  const defaultStats: StatCard[] = [
     { label: "Total Users", value: 0, icon: Users, color: "text-primary", testid: "total" },
     { label: "Active Users", value: 0, icon: UserCheck, color: "text-emerald-600", testid: "active" },
     { label: "Suspended", value: 0, icon: UserX, color: "text-orange-500", testid: "suspended" },
@@ -77,17 +96,21 @@ export default function Members() {
     { label: "High-Risk Accounts", value: 8, icon: ShieldAlert, color: "text-rose-600", testid: "high-risk" },
   ];
   
+  // Make a copy to avoid mutating defaultStats
+  const safeStats: StatCard[] = [...defaultStats];
+  
+  // Override with API data if available
   if (statsData && typeof statsData === 'object' && !Array.isArray(statsData)) {
-    const sd = statsData as any;
-    safeStats[0].value = typeof sd.total === 'number' ? sd.total : 0;
-    safeStats[1].value = typeof sd.active === 'number' ? sd.active : 0;
-    safeStats[2].value = typeof sd.suspended === 'number' ? sd.suspended : 0;
-    safeStats[3].value = typeof sd.pending === 'number' ? sd.pending : 0;
-    safeStats[4].value = typeof sd.loanDefaulters === 'number' ? sd.loanDefaulters : 12;
-    safeStats[5].value = typeof sd.highRisk === 'number' ? sd.highRisk : 8;
+    const sd = statsData as Record<string, unknown>;
+    if (typeof sd.total === 'number') safeStats[0].value = sd.total;
+    if (typeof sd.active === 'number') safeStats[1].value = sd.active;
+    if (typeof sd.suspended === 'number') safeStats[2].value = sd.suspended;
+    if (typeof sd.pending === 'number') safeStats[3].value = sd.pending;
+    if (typeof sd.loanDefaulters === 'number') safeStats[4].value = sd.loanDefaulters;
+    if (typeof sd.highRisk === 'number') safeStats[5].value = sd.highRisk;
   }
   
-  const stats = safeStats;
+  const stats: StatCard[] = safeStats;
 
   function openAction(memberId: number, action: AdminAction, memberName: string) {
     setActionDialog({ open: true, memberId, action, memberName });
@@ -265,7 +288,11 @@ export default function Members() {
                               <div className="flex items-center gap-3">
                                 <Avatar className="h-9 w-9">
                                   <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
-                                    {`${member.firstName} ${member.lastName}`.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                    {(() => {
+                                      const first = String(member.firstName ?? '');
+                                      const last = String(member.lastName ?? '');
+                                      return (first + ' ' + last).split(' ').filter(Boolean).map(n => n[0] || '').join('').slice(0, 2).toUpperCase() || '??';
+                                    })()}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
