@@ -58,7 +58,7 @@ export default function MemberProfile() {
     },
   });
 
-  // Fetch member by UUID (Supabase user ID)
+  // Fetch member by finding in the members list (same API that works)
   const [memberData, setMemberData] = useState<any>(null);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(true);
@@ -69,28 +69,34 @@ export default function MemberProfile() {
       return;
     }
 
-    // Try to fetch by the provided ID
+    // Fetch members list and find the matching member by ID
     const fetchMember = async () => {
       setIsFetching(true);
       setLoadingError(null);
       try {
-        // The ID from members list is the Supabase UUID (activeMember.id)
         const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
-        const response = await fetch(`${baseUrl}/api/members/${memberIdFromUrl}`, {
+        const token = await import('@/lib/supabase').then(m => m.getAccessToken());
+        
+        const response = await fetch(`${baseUrl}/api/members?limit=100`, {
           headers: {
-            'Authorization': `Bearer ${(await import('@/lib/supabase')).getAccessToken()}`,
+            'Authorization': `Bearer ${token}`,
           },
         });
         
         if (response.ok) {
           const data = await response.json();
-          setMemberData(data);
-        } else if (response.status === 404) {
-          setLoadingError('Member not found');
+          const members = data.data || data;
+          // Find member with matching UUID
+          const found = members.find((m: any) => m.id === memberIdFromUrl);
+          if (found) {
+            setMemberData(found);
+          } else {
+            setLoadingError('Member not found');
+          }
         } else {
           setLoadingError('Failed to load member');
         }
-      } catch (err) {
+      } catch {
         setLoadingError('Network error');
       } finally {
         setIsFetching(false);
