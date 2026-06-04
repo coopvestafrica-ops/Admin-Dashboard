@@ -1,19 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const userId = req.query.userId as string;
-
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
-    return;
-  }
-
-  if (!userId) {
-    res.status(400).json({ error: 'userId is required' });
     return;
   }
 
@@ -26,31 +19,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    let fetchUrl: string;
-    let method: string;
-    let body: string | undefined;
-
-    if (req.method === 'PUT') {
-      fetchUrl = `${API_BASE_URL}/members/${userId}`;
-      method = 'PUT';
-      body = JSON.stringify(req.body);
-    } else if (req.method === 'GET') {
-      fetchUrl = `${API_BASE_URL}/members/user/${userId}`;
-      method = 'GET';
-    } else {
-      res.status(405).json({ error: 'Method not allowed' });
-      return;
-    }
-
-    console.log(`Proxying ${method} request to:`, fetchUrl);
+    const fetchUrl = `${API_BASE_URL}/members/stats`;
+    console.log('Proxying member stats request to:', fetchUrl);
 
     const response = await fetch(fetchUrl, {
-      method,
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': req.headers.authorization || '',
       },
-      body,
     });
 
     const data = await response.json();

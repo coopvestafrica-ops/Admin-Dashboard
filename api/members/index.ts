@@ -1,19 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { Member, MembersListResponse, MemberStats } from '@workspace/api-client-react';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const userId = req.query.userId as string;
-
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
-    return;
-  }
-
-  if (!userId) {
-    res.status(400).json({ error: 'userId is required' });
     return;
   }
 
@@ -26,31 +20,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    let fetchUrl: string;
-    let method: string;
-    let body: string | undefined;
+    // Build query params
+    const params = new URLSearchParams();
+    if (req.query.status) params.append('status', req.query.status as string);
+    if (req.query.search) params.append('search', req.query.search as string);
+    if (req.query.page) params.append('page', req.query.page as string);
+    if (req.query.limit) params.append('limit', req.query.limit as string);
 
-    if (req.method === 'PUT') {
-      fetchUrl = `${API_BASE_URL}/members/${userId}`;
-      method = 'PUT';
-      body = JSON.stringify(req.body);
-    } else if (req.method === 'GET') {
-      fetchUrl = `${API_BASE_URL}/members/user/${userId}`;
-      method = 'GET';
-    } else {
-      res.status(405).json({ error: 'Method not allowed' });
-      return;
-    }
-
-    console.log(`Proxying ${method} request to:`, fetchUrl);
+    const queryString = params.toString();
+    const fetchUrl = `${API_BASE_URL}/members${queryString ? `?${queryString}` : ''}`;
+    console.log('Proxying members list request to:', fetchUrl);
 
     const response = await fetch(fetchUrl, {
-      method,
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': req.headers.authorization || '',
       },
-      body,
     });
 
     const data = await response.json();
