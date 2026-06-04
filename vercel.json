@@ -1,4 +1,7 @@
 {
   "version": 2,
-  "outputDirectory": "artifacts/coopvest-dashboard/dist/public"
+  "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
+  "routes": [
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
 }
