@@ -1,7 +1,6 @@
 {
-  "buildCommand": "cd artifacts/coopvest-dashboard && pnpm build",
+  "buildCommand": "cd artifacts/coopvest-dashboard && npm install && npm run build",
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
-  "installCommand": "corepack enable && pnpm install",
   "framework": null,
   "env": {
     "BASE_PATH": "/"
