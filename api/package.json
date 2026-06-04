@@ -1,0 +1,8 @@
+{
+  "name": "@vercel/serverless",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@vercel/node": "^32.0.0"
+  }
+}
