@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,8 +36,12 @@ type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verif
 export default function MemberProfile() {
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
-  // Parse the numeric ID from the URL
-  const memberId = params.id ? parseInt(params.id, 10) : null;
+  // The ID from URL can be a Supabase UUID (activeMember.id) or numeric database ID
+  const memberIdFromUrl = params.id;
+  // Try to parse as number first, fall back to string (UUID)
+  const numericId = memberIdFromUrl ? parseInt(memberIdFromUrl, 10) : null;
+  const isNumericId = numericId !== null && !isNaN(numericId);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const updateMember = useUpdateMember();
@@ -46,16 +50,60 @@ export default function MemberProfile() {
   const [contributionMethod, setContributionMethod] = useState("monthly");
   const [showBalances, setShowBalances] = useState(true);
 
-  // Query using the numeric member ID
-  const { data: member, isLoading } = useGetMember(memberId as number, {
+  // Query using the member ID (can be UUID or numeric)
+  const { data: member, isLoading } = useGetMember((isNumericId ? numericId as number : 1) as number, {
     query: { 
-      enabled: memberId !== null && !isNaN(memberId),
+      enabled: false, // Disable auto-fetch, we'll handle it manually
       retry: 1,
     },
   });
 
+  // Fetch member by UUID (Supabase user ID)
+  const [memberData, setMemberData] = useState<any>(null);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [isFetching, setIsFetching] = useState(true);
+
+  useEffect(() => {
+    if (!memberIdFromUrl) {
+      setIsFetching(false);
+      return;
+    }
+
+    // Try to fetch by the provided ID
+    const fetchMember = async () => {
+      setIsFetching(true);
+      setLoadingError(null);
+      try {
+        // The ID from members list is the Supabase UUID (activeMember.id)
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+        const response = await fetch(`${baseUrl}/api/members/${memberIdFromUrl}`, {
+          headers: {
+            'Authorization': `Bearer ${(await import('@/lib/supabase')).getAccessToken()}`,
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setMemberData(data);
+        } else if (response.status === 404) {
+          setLoadingError('Member not found');
+        } else {
+          setLoadingError('Failed to load member');
+        }
+      } catch (err) {
+        setLoadingError('Network error');
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    fetchMember();
+  }, [memberIdFromUrl]);
+
+  const activeMember = memberData || member;
+
   async function executeAction() {
-    if (!actionDialog.action || !member) return;
+    if (!actionDialog.action || !activeMember) return;
     const statusMap: Partial<Record<AdminAction, string>> = {
       suspend: "suspended", freeze: "frozen", activate: "active", verify: "active",
     };
@@ -72,7 +120,7 @@ export default function MemberProfile() {
     };
     try {
       if (statusMap[actionDialog.action]) {
-        await updateMember.mutateAsync({ id: member.id, data: { status: statusMap[actionDialog.action] as any } });
+        await updateMember.mutateAsync({ id: activeMember.id, data: { status: statusMap[actionDialog.action] as any } });
       }
       toast({ title: "Done", description: messages[actionDialog.action] });
       queryClient.invalidateQueries({ queryKey: getGetMemberQueryKey(memberId as number) });
@@ -82,7 +130,7 @@ export default function MemberProfile() {
     }
   }
 
-  if (isLoading) {
+  if (isFetching) {
     return (
       <Layout>
         <div className="space-y-6">
@@ -94,7 +142,20 @@ export default function MemberProfile() {
     );
   }
 
-  if (!member) {
+  if (loadingError) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center py-24 gap-4">
+          <AlertTriangle className="h-12 w-12 text-amber-500" />
+          <p className="text-lg font-medium">{loadingError}</p>
+          <p className="text-muted-foreground">The member you're looking for doesn't exist or has been removed.</p>
+          <Button onClick={() => setLocation("/members")}>Back to Members</Button>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!activeMember) {
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center py-24 gap-4">
@@ -108,13 +169,13 @@ export default function MemberProfile() {
   }
 
   const riskColor =
-    member.riskScore >= 80 ? "text-emerald-600" :
-    member.riskScore >= 60 ? "text-amber-600" :
-    member.riskScore >= 40 ? "text-orange-600" : "text-red-600";
+    activeMember.riskScore >= 80 ? "text-emerald-600" :
+    activeMember.riskScore >= 60 ? "text-amber-600" :
+    activeMember.riskScore >= 40 ? "text-orange-600" : "text-red-600";
 
   const totalInvestments = (investments?.data ?? []).reduce((sum, i) => sum + Number(i.amount), 0);
   const totalLoans = (loans?.data ?? []).reduce((sum, l) => sum + Number(l.amount), 0);
-  const netWorth = (member.totalContributions || 0) + (member.walletBalance || 0) + totalInvestments - (member.activeLoan || 0);
+  const netWorth = (activeMember.totalContributions || 0) + (activeMember.walletBalance || 0) + totalInvestments - (activeMember.activeLoan || 0);
 
   return (
     <>
@@ -127,25 +188,25 @@ export default function MemberProfile() {
             </Button>
             <Avatar className="h-16 w-16 border-2 border-primary/20">
               <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
-                {member.avatarInitials ?? (member.firstName[0] + member.lastName[0])}
+                {activeMember.avatarInitials ?? (activeMember.firstName[0] + activeMember.lastName[0])}
               </AvatarFallback>
             </Avatar>
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-2 flex-wrap">
-                {member.firstName} {member.lastName}
-                <Badge className={statusColors[member.status] || "bg-gray-100"}>{member.status}</Badge>
-                {member.kycVerified && <Badge className="bg-blue-100 text-blue-800"><BadgeCheck className="h-3 w-3 mr-1" />KYC</Badge>}
+                {activeMember.firstName} {activeMember.lastName}
+                <Badge className={statusColors[activeMember.status] || "bg-gray-100"}>{activeMember.status}</Badge>
+                {activeMember.kycVerified && <Badge className="bg-blue-100 text-blue-800"><BadgeCheck className="h-3 w-3 mr-1" />KYC</Badge>}
               </h1>
-              <p className="text-muted-foreground font-mono text-sm">ID: {member.memberId}</p>
+              <p className="text-muted-foreground font-mono text-sm">ID: {activeMember.memberId}</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            {member.status !== "active" && (
+            {activeMember.status !== "active" && (
               <Button size="sm" variant="outline" className="text-emerald-600" onClick={() => setActionDialog({ open: true, action: "activate" })}>
                 <CheckCircle2 className="h-4 w-4 mr-1" /> Activate
               </Button>
             )}
-            {member.status === "active" && (
+            {activeMember.status === "active" && (
               <Button size="sm" variant="outline" className="text-orange-600" onClick={() => setActionDialog({ open: true, action: "suspend" })}>
                 <Ban className="h-4 w-4 mr-1" /> Suspend
               </Button>
@@ -170,7 +231,7 @@ export default function MemberProfile() {
                 <span className="text-xs font-medium">Total Contributions</span>
               </div>
               <div className={`text-xl font-bold text-emerald-800 ${!showBalances && "blur-sm select-none"}`}>
-                {formatCurrency(member.totalContributions)}
+                {formatCurrency(activeMember.totalContributions)}
               </div>
             </CardContent>
           </Card>
@@ -181,7 +242,7 @@ export default function MemberProfile() {
                 <span className="text-xs font-medium">Active Loan</span>
               </div>
               <div className={`text-xl font-bold text-amber-800 ${!showBalances && "blur-sm select-none"}`}>
-                {member.activeLoan > 0 ? formatCurrency(member.activeLoan) : "—"}
+                {activeMember.activeLoan > 0 ? formatCurrency(activeMember.activeLoan) : "—"}
               </div>
             </CardContent>
           </Card>
@@ -192,7 +253,7 @@ export default function MemberProfile() {
                 <span className="text-xs font-medium">Wallet Balance</span>
               </div>
               <div className={`text-xl font-bold text-blue-800 ${!showBalances && "blur-sm select-none"}`}>
-                {formatCurrency(member.walletBalance || 0)}
+                {formatCurrency(activeMember.walletBalance || 0)}
               </div>
             </CardContent>
           </Card>
@@ -213,7 +274,7 @@ export default function MemberProfile() {
                 <ShieldAlert className="h-4 w-4" />
                 <span className="text-xs font-medium">Risk Score</span>
               </div>
-              <div className={`text-xl font-bold ${riskColor}`}>{member.riskScore}/100</div>
+              <div className={`text-xl font-bold ${riskColor}`}>{activeMember.riskScore}/100</div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-gray-50 to-gray-100/50 border-gray-200">
@@ -222,7 +283,7 @@ export default function MemberProfile() {
                 <CalendarDays className="h-4 w-4" />
                 <span className="text-xs font-medium">Member Since</span>
               </div>
-              <div className="text-lg font-bold">{new Date(member.createdAt).toLocaleDateString()}</div>
+              <div className="text-lg font-bold">{new Date(activeMember.createdAt).toLocaleDateString()}</div>
             </CardContent>
           </Card>
         </div>
@@ -250,14 +311,14 @@ export default function MemberProfile() {
                 <CardHeader><CardTitle className="text-base flex items-center gap-2"><User className="h-4 w-4" /> Personal Information</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div><span className="text-muted-foreground">First Name</span><p className="font-medium">{member.firstName}</p></div>
-                    <div><span className="text-muted-foreground">Last Name</span><p className="font-medium">{member.lastName}</p></div>
-                    <div><span className="text-muted-foreground">Email</span><p className="font-medium flex items-center gap-1"><Mail className="h-3 w-3" />{member.email}</p></div>
-                    <div><span className="text-muted-foreground">Phone</span><p className="font-medium flex items-center gap-1"><Phone className="h-3 w-3" />{member.phone}</p></div>
-                    <div><span className="text-muted-foreground">Role</span><p className="font-medium capitalize">{member.role || "Member"}</p></div>
-                    <div><span className="text-muted-foreground">Status</span><Badge className={statusColors[member.status]}>{member.status}</Badge></div>
-                    <div><span className="text-muted-foreground">KYC Verified</span><p className="font-medium">{member.kycVerified ? "Yes" : "No"}</p></div>
-                    <div><span className="text-muted-foreground">Email Verified</span><p className="font-medium">{member.emailVerified ? "Yes" : "Pending"}</p></div>
+                    <div><span className="text-muted-foreground">First Name</span><p className="font-medium">{activeMember.firstName}</p></div>
+                    <div><span className="text-muted-foreground">Last Name</span><p className="font-medium">{activeMember.lastName}</p></div>
+                    <div><span className="text-muted-foreground">Email</span><p className="font-medium flex items-center gap-1"><Mail className="h-3 w-3" />{activeMember.email}</p></div>
+                    <div><span className="text-muted-foreground">Phone</span><p className="font-medium flex items-center gap-1"><Phone className="h-3 w-3" />{activeMember.phone}</p></div>
+                    <div><span className="text-muted-foreground">Role</span><p className="font-medium capitalize">{activeMember.role || "Member"}</p></div>
+                    <div><span className="text-muted-foreground">Status</span><Badge className={statusColors[activeMember.status]}>{activeMember.status}</Badge></div>
+                    <div><span className="text-muted-foreground">KYC Verified</span><p className="font-medium">{activeMember.kycVerified ? "Yes" : "No"}</p></div>
+                    <div><span className="text-muted-foreground">Email Verified</span><p className="font-medium">{activeMember.emailVerified ? "Yes" : "Pending"}</p></div>
                   </div>
                 </CardContent>
               </Card>
@@ -268,7 +329,7 @@ export default function MemberProfile() {
                 <CardContent className="space-y-3">
                   <div className="flex justify-between items-center p-3 bg-emerald-50 rounded-lg">
                     <div className="flex items-center gap-2"><PiggyBank className="h-4 w-4 text-emerald-600" /><span className="text-sm">Total Contributions</span></div>
-                    <span className={`font-bold text-emerald-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(member.totalContributions)}</span>
+                    <span className={`font-bold text-emerald-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(activeMember.totalContributions)}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
                     <div className="flex items-center gap-2"><CreditCard className="h-4 w-4 text-amber-600" /><span className="text-sm">Total Loan Amount</span></div>
@@ -276,7 +337,7 @@ export default function MemberProfile() {
                   </div>
                   <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
                     <div className="flex items-center gap-2"><Wallet className="h-4 w-4 text-blue-600" /><span className="text-sm">Wallet Balance</span></div>
-                    <span className={`font-bold text-blue-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(member.walletBalance || 0)}</span>
+                    <span className={`font-bold text-blue-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(activeMember.walletBalance || 0)}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
                     <div className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-purple-600" /><span className="text-sm">Investments</span></div>
@@ -295,10 +356,10 @@ export default function MemberProfile() {
                 <CardHeader><CardTitle className="text-base flex items-center gap-2"><Shield className="h-4 w-4" /> Account & Security</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div><span className="text-muted-foreground">Member ID</span><p className="font-mono font-medium">{member.memberId}</p></div>
-                    <div><span className="text-muted-foreground">Risk Score</span><p className={`font-medium ${riskColor}`}>{member.riskScore}/100</p></div>
-                    <div><span className="text-muted-foreground">Created</span><p className="font-medium">{new Date(member.createdAt).toLocaleDateString()}</p></div>
-                    <div><span className="text-muted-foreground">Last Login</span><p className="font-medium">{member.lastLogin ? new Date(member.lastLogin).toLocaleString() : "N/A"}</p></div>
+                    <div><span className="text-muted-foreground">Member ID</span><p className="font-mono font-medium">{activeMember.memberId}</p></div>
+                    <div><span className="text-muted-foreground">Risk Score</span><p className={`font-medium ${riskColor}`}>{activeMember.riskScore}/100</p></div>
+                    <div><span className="text-muted-foreground">Created</span><p className="font-medium">{new Date(activeMember.createdAt).toLocaleDateString()}</p></div>
+                    <div><span className="text-muted-foreground">Last Login</span><p className="font-medium">{activeMember.lastLogin ? new Date(activeMember.lastLogin).toLocaleString() : "N/A"}</p></div>
                     <div><span className="text-muted-foreground">Contributions</span><p className="font-medium">{contributions?.data?.length ?? 0} payments</p></div>
                     <div><span className="text-muted-foreground">Loans</span><p className="font-medium">{loans?.data?.length ?? 0} loans</p></div>
                   </div>
@@ -492,13 +553,13 @@ export default function MemberProfile() {
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
                     <div className="flex items-center gap-2">
-                      {member.kycVerified ? <BadgeCheck className="h-5 w-5 text-emerald-600" /> : <Clock className="h-5 w-5 text-amber-600" />}
+                      {activeMember.kycVerified ? <BadgeCheck className="h-5 w-5 text-emerald-600" /> : <Clock className="h-5 w-5 text-amber-600" />}
                       <div>
                         <p className="font-medium">Identity Verification</p>
                         <p className="text-xs text-muted-foreground">NIN / BVN / Passport</p>
                       </div>
                     </div>
-                    <Badge className={member.kycVerified ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}>{member.kycVerified ? "Verified" : "Pending"}</Badge>
+                    <Badge className={activeMember.kycVerified ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}>{activeMember.kycVerified ? "Verified" : "Pending"}</Badge>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                     <div className="flex items-center gap-2">
@@ -508,7 +569,7 @@ export default function MemberProfile() {
                         <p className="text-xs text-muted-foreground">Email address confirmed</p>
                       </div>
                     </div>
-                    <Badge className={member.emailVerified ? "bg-emerald-100 text-emerald-800" : "bg-gray-100 text-gray-600"}>{member.emailVerified ? "Verified" : "Pending"}</Badge>
+                    <Badge className={activeMember.emailVerified ? "bg-emerald-100 text-emerald-800" : "bg-gray-100 text-gray-600"}>{activeMember.emailVerified ? "Verified" : "Pending"}</Badge>
                   </div>
                 </CardContent>
               </Card>
