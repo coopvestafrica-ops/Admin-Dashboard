@@ -12,11 +12,11 @@ import { defineConfig } from "vite";
       react(),
       tailwindcss(),
     ],
+    // Expose env vars as JSON strings - Vercel will inject these during build
     define: {
-      // Expose env vars to window for runtime access
-      'window.ENV_VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL || ''),
-      'window.ENV_VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY || ''),
-      'window.ENV_VITE_API_BASE_URL': JSON.stringify(process.env.VITE_API_BASE_URL || ''),
+      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL || ''),
+      'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY || ''),
+      'import.meta.env.VITE_API_BASE_URL': JSON.stringify(process.env.VITE_API_BASE_URL || ''),
     },
     resolve: {
       alias: {

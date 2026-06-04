@@ -33,7 +33,6 @@ import ReferralProgram from "@/pages/referral-program/index";
 import GuarantorSystem from "@/pages/guarantor-system/index";
 import ExcelManager from "@/pages/excel-manager/index";
 import ResetPassword from "@/pages/reset-password";
-import { useState, useEffect } from "react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -108,25 +107,10 @@ function ConfigError() {
 }
 
 function App() {
-  const [hasSupabase, setHasSupabase] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Check for required environment variables at runtime
-    const supabaseUrl = window.ENV_VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = window.ENV_VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
-    setHasSupabase(Boolean(supabaseUrl && supabaseKey));
-    setIsLoading(false);
-  }, []);
-
-  // Show loading state while checking
-  if (isLoading) {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // Check for required environment variables at runtime
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const hasSupabase = Boolean(supabaseUrl && supabaseKey);
 
   // Show config error if Supabase is not configured
   if (!hasSupabase) {
