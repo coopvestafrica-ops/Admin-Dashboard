@@ -30,7 +30,6 @@ export async function requireAuth(
   // Read the user's role from app_metadata (set by your admin edge function / Supabase backend)
   const role =
     (data.user.app_metadata?.role as string | undefined) ??
-    (data.user.user_metadata?.role as string | undefined) ??
     "member";
 
   (req as AuthenticatedRequest).user = {
