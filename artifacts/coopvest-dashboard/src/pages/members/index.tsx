@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetMembers, useGetMemberStats, useUpdateMember } from "@workspace/api-client-react";
-import { Search, UserPlus, Users, UserCheck, UserX, Clock, ShieldAlert, AlertTriangle, CheckCircle2, MoreVertical, Ban, Lock, KeyRound, Unlock, CreditCard, ArrowUpDown, Download, Upload } from "lucide-react";
+import { Search, UserPlus, Users, UserCheck, UserX, Clock, ShieldAlert, AlertTriangle, CheckCircle2, MoreVertical, Ban, Lock, KeyRound, Unlock, CreditCard, ArrowUpDown, Download, Upload, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
@@ -45,7 +45,7 @@ const statusColors: Record<string, string> = {
   frozen: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
 };
 
-type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verify" | "restrict_loans" | "upgrade" | "downgrade" | "change_contribution";
+type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verify" | "restrict_loans" | "upgrade" | "downgrade" | "change_contribution" | "delete";
 
 export default function Members() {
   const [, setLocation] = useLocation();
@@ -153,10 +153,25 @@ export default function Members() {
       upgrade: `${memberName}'s account has been upgraded.`,
       downgrade: `${memberName}'s account has been downgraded.`,
       change_contribution: `Contribution method updated for ${memberName}.`,
+      delete: `${memberName} has been deleted.`,
     };
 
     try {
-      if (statusMap[action]) {
+      if (actionDialog.action === "delete") {
+        // Delete member via API
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+        const token = await import('@/lib/supabase').then(m => m.getAccessToken());
+        
+        const response = await fetch(`${baseUrl}/api/members/${memberId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || "Failed to delete member");
+        }
+      } else if (statusMap[action]) {
         await updateMember.mutateAsync({ id: memberId, data: { status: statusMap[action] as any } });
       }
       // For non-status actions we'd call specific endpoints — here we show success toast
@@ -164,8 +179,8 @@ export default function Members() {
       queryClient.invalidateQueries({ queryKey: ["getMembers"] });
       queryClient.invalidateQueries({ queryKey: ["getMemberStats"] });
       closeAction();
-    } catch {
-      toast({ title: "Error", description: "Action failed. Please try again.", variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Action failed. Please try again.", variant: "destructive" });
     }
   }
 
@@ -386,6 +401,10 @@ export default function Members() {
                                   <DropdownMenuItem onClick={() => openAction(member.id, "downgrade", `${member.firstName} ${member.lastName}`)}>
                                     Downgrade Account
                                   </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => openAction(member.id, "delete", `${member.firstName} ${member.lastName}`)} className="text-red-600">
+                                    <Trash2 className="mr-2 h-4 w-4" /> Delete Member
+                                  </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </td>
@@ -430,12 +449,20 @@ export default function Members() {
               {actionDialog.action === "upgrade" && "Upgrade Account"}
               {actionDialog.action === "downgrade" && "Downgrade Account"}
               {actionDialog.action === "change_contribution" && "Change Contribution Method"}
+              {actionDialog.action === "delete" && "Delete Member"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <p className="text-sm text-muted-foreground">
+            {actionDialog.action === "delete" ? (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-800 font-medium">Are you sure you want to delete this member?</p>
+                <p className="text-red-600 text-sm mt-2">This action cannot be undone. All member data including contributions and loan history will be permanently removed.</p>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
               You are performing this action on <strong>{actionDialog.memberName}</strong>.
-            </p>
+              </p>
+            )}
 
             {actionDialog.action === "change_contribution" && (
               <div className="space-y-1.5">
@@ -468,9 +495,9 @@ export default function Members() {
             <Button
               onClick={executeAction}
               disabled={updateMember.isPending}
-              variant={["suspend", "freeze", "restrict_loans", "downgrade"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
+              variant={["suspend", "freeze", "restrict_loans", "downgrade", "delete"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
             >
-              {updateMember.isPending ? "Processing…" : "Confirm"}
+              {updateMember.isPending ? "Processing…" : actionDialog.action === "delete" ? "Delete Member" : "Confirm"}
             </Button>
           </DialogFooter>
         </DialogContent>
