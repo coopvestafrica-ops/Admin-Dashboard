@@ -129,4 +129,64 @@ router.get("/members/user/:userId", async (req, res): Promise<void> => {
   res.json({ id: profile.id, memberId: profile.user_id, firstName, lastName, email: profile.email, phone: profile.phone ?? "", status: deriveStatus(profile), joinDate: profile.created_at?.slice(0, 10) ?? null, address: null, occupation: null, createdAt: profile.created_at, totalContributions, activeLoan, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" });
 });
 
+// Update member
+router.patch("/members/:id", async (req, res): Promise<void> => {
+  const id = req.params.id;
+  const { firstName, lastName, email, phone, address, occupation, status } = req.body;
+  
+  // Build update object
+  const updates: Record<string, any> = {};
+  if (firstName !== undefined || lastName !== undefined) {
+    const current = await supabase.from("profiles").select("name").eq("id", id).single();
+    const currentName = current.data?.name || "";
+    const parts = currentName.split(" ");
+    const currentFirstName = parts[0] || "";
+    const currentLastName = parts.slice(1).join(" ") || "";
+    updates.name = `${firstName ?? currentFirstName} ${lastName ?? currentLastName}`.trim();
+  }
+  if (email !== undefined) updates.email = email;
+  if (phone !== undefined) updates.phone = phone;
+  if (address !== undefined) updates.address = address;
+  if (occupation !== undefined) updates.occupation = occupation;
+  if (status !== undefined) {
+    if (status === "active") { updates.is_active = true; updates.is_flagged = false; }
+    else if (status === "suspended" || status === "frozen") { updates.is_active = false; updates.is_flagged = true; }
+    else if (status === "inactive") { updates.is_active = false; updates.is_flagged = false; }
+  }
+  
+  if (Object.keys(updates).length === 0) {
+    res.status(400).json({ error: "No fields to update" });
+    return;
+  }
+  
+  const { data: updated, error } = await supabase.from("profiles").update(updates).eq("id", id).select().single();
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  
+  const { firstName: fn, lastName: ln } = splitName(updated.name);
+  res.json({ id: updated.id, memberId: updated.user_id, firstName: fn, lastName: ln, email: updated.email, phone: updated.phone ?? "", status: deriveStatus(updated), joinDate: updated.created_at?.slice(0, 10) ?? null, address: updated.address, occupation: updated.occupation, createdAt: updated.created_at });
+});
+
+// Delete member
+router.delete("/members/:id", async (req, res): Promise<void> => {
+  const id = req.params.id;
+  
+  // Check if member has active loans
+  const { data: activeLoans } = await supabase.from("loans").select("id").eq("profile_id", id).eq("status", "active").limit(1);
+  if (activeLoans && activeLoans.length > 0) {
+    res.status(400).json({ error: "Cannot delete member with active loans. Please resolve all loans first." });
+    return;
+  }
+  
+  // Delete related records first
+  await supabase.from("savings").delete().eq("profile_id", id);
+  await supabase.from("transactions").delete().eq("profile_id", id);
+  await supabase.from("loans").delete().eq("profile_id", id);
+  
+  // Delete the profile
+  const { error } = await supabase.from("profiles").delete().eq("id", id);
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  
+  res.json({ success: true, message: "Member deleted successfully" });
+});
+
 export default router;

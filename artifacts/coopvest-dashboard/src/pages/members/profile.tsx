@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, useParams } from "wouter";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,7 +20,8 @@ import {
   ArrowUpDown, ShieldAlert, Wallet, PiggyBank, TrendingUp, FileText,
   Users, Building2, Clock, AlertTriangle, ArrowUpRight, ArrowDownRight,
   Receipt, DollarSign, CalendarDays, User, BadgeCheck, Shield,
-  Eye, EyeOff, Download, Filter
+  Eye, EyeOff, Download, Filter, Trash2, Edit2, Save, X, RefreshCw,
+  Activity, Banknote, Target, Percent, Calendar, TrendingDown, History
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -29,16 +31,15 @@ const statusColors: Record<string, string> = {
   inactive: "bg-gray-100 text-gray-700",
   suspended: "bg-orange-100 text-orange-800",
   pending: "bg-amber-100 text-amber-800",
+  frozen: "bg-blue-100 text-blue-800",
 };
 
-type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verify" | "restrict_loans" | "change_contribution";
+type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verify" | "restrict_loans" | "change_contribution" | "delete";
 
 export default function MemberProfile() {
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
-  // The ID from URL can be a Supabase UUID (activeMember.id) or numeric database ID
   const memberIdFromUrl = params.id;
-  // Try to parse as number first, fall back to string (UUID)
   const numericId = memberIdFromUrl ? parseInt(memberIdFromUrl, 10) : null;
   const isNumericId = numericId !== null && !isNaN(numericId);
   
@@ -49,95 +50,174 @@ export default function MemberProfile() {
   const [actionNote, setActionNote] = useState("");
   const [contributionMethod, setContributionMethod] = useState("monthly");
   const [showBalances, setShowBalances] = useState(true);
-
-  // Query using the member ID (can be UUID or numeric)
-  const { data: member, isLoading } = useGetMember((isNumericId ? numericId as number : 1) as number, {
-    query: { 
-      enabled: false, // Disable auto-fetch, we'll handle it manually
-      retry: 1,
-    },
+  
+  // Edit mode state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    address: "",
+    occupation: "",
   });
 
-  // Fetch member by finding in the members list (same API that works)
+  // Fetch member by finding in the members list
   const [memberData, setMemberData] = useState<any>(null);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(true);
+  
+  // Financial data state
+  const [financials, setFinancials] = useState<{
+    savings: any[];
+    loans: any[];
+    transactions: any[];
+    walletBalance: number;
+  }>({ savings: [], loans: [], transactions: [], walletBalance: 0 });
 
-  // Fetch related data using numeric member ID (for loans, contributions, etc)
   const memberNumericId = memberData?.id ? parseInt(String(memberData.id).split('-')[0], 10) || 1 : 1;
-  const { data: loans } = useGetLoans({ memberId: memberNumericId }, {
-    query: { enabled: !!memberData, retry: 1 }
-  });
-  const { data: contributions } = useGetContributions({ memberId: memberNumericId }, {
-    query: { enabled: !!memberData, retry: 1 }
-  });
-  const { data: investments } = useGetInvestments({ memberId: memberNumericId }, {
-    query: { enabled: !!memberData, retry: 1 }
-  });
-  // Transactions API is not available, use empty array as placeholder
-  const transactions = { data: [] };
 
-  useEffect(() => {
+  // Fetch member data with real-time updates
+  const fetchMember = useCallback(async () => {
     if (!memberIdFromUrl) {
       setIsFetching(false);
       return;
     }
 
-    // Fetch members list and find the matching member by ID
-    const fetchMember = async () => {
-      setIsFetching(true);
-      setLoadingError(null);
-      try {
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
-        const token = await import('@/lib/supabase').then(m => m.getAccessToken());
+    setIsFetching(true);
+    setLoadingError(null);
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+      const token = await import('@/lib/supabase').then(m => m.getAccessToken());
+      
+      // Fetch member
+      const response = await fetch(`${baseUrl}/api/members?limit=100`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const members = data.data || data;
+        const found = members.find((m: any) => 
+          String(m.id) === String(memberIdFromUrl) ||
+          String(m.memberId) === String(memberIdFromUrl) ||
+          String(m.id).includes(String(memberIdFromUrl))
+        );
         
-        const response = await fetch(`${baseUrl}/api/members?limit=100`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          const members = data.data || data;
-          // Find member with matching ID (UUID) - compare as strings
-          const found = members.find((m: any) => String(m.id) === String(memberIdFromUrl));
-          if (found) {
-            setMemberData(found);
-          } else {
-            // Try alternate: compare memberId field
-            const foundAlt = members.find((m: any) => 
-              String(m.memberId) === String(memberIdFromUrl) || 
-              String(m.id).includes(String(memberIdFromUrl))
-            );
-            if (foundAlt) {
-              setMemberData(foundAlt);
-            } else {
-              console.error('Member not found. Looking for:', memberIdFromUrl);
-              console.error('Available IDs:', members.map((m: any) => m.id));
-              setLoadingError('Member not found');
-            }
-          }
+        if (found) {
+          setMemberData(found);
+          setEditForm({
+            firstName: found.firstName || "",
+            lastName: found.lastName || "",
+            email: found.email || "",
+            phone: found.phone || "",
+            address: found.address || "",
+            occupation: found.occupation || "",
+          });
+          
+          // Fetch financial data for this member
+          await fetchFinancials(found.id, token, baseUrl);
         } else {
-          setLoadingError('Failed to load member');
+          setLoadingError('Member not found');
         }
-      } catch {
-        setLoadingError('Network error');
-      } finally {
-        setIsFetching(false);
+      } else {
+        setLoadingError('Failed to load member');
       }
-    };
-
-    fetchMember();
+    } catch {
+      setLoadingError('Network error');
+    } finally {
+      setIsFetching(false);
+    }
   }, [memberIdFromUrl]);
 
-  const activeMember = memberData || member;
+  // Fetch financial data
+  const fetchFinancials = async (profileId: string, token: string, baseUrl: string) => {
+    try {
+      // Fetch loans
+      const loansRes = await fetch(`${baseUrl}/api/loans?memberId=${profileId}&limit=50`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const loansData = loansRes.ok ? await loansRes.json() : { data: [] };
+      
+      // Fetch contributions (savings)
+      const contribRes = await fetch(`${baseUrl}/api/contributions?memberId=${profileId}&limit=50`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const contribData = contribRes.ok ? await contribRes.json() : { data: [] };
+      
+      // Fetch wallet
+      const walletRes = await fetch(`${baseUrl}/api/wallets`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const walletData = walletRes.ok ? await walletRes.json() : { wallets: [] };
+      const memberWallet = walletData.wallets?.find((w: any) => w.userId === profileId);
+      
+      // Fetch transactions
+      const txRes = await fetch(`${baseUrl}/api/transactions?memberId=${profileId}&limit=50`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const txData = txRes.ok ? await txRes.json() : { data: [] };
+      
+      setFinancials({
+        savings: contribData.data || [],
+        loans: loansData.data || [],
+        transactions: txData.data || [],
+        walletBalance: memberWallet?.balance || 0,
+      });
+    } catch (err) {
+      console.error("Error fetching financials:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchMember();
+  }, [fetchMember]);
+
+  const activeMember = memberData;
+
+  // Save edited member info
+  async function saveChanges() {
+    if (!activeMember) return;
+    
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+      const token = await import('@/lib/supabase').then(m => m.getAccessToken());
+      
+      const response = await fetch(`${baseUrl}/api/members/${activeMember.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName: editForm.firstName,
+          lastName: editForm.lastName,
+          email: editForm.email,
+          phone: editForm.phone,
+        }),
+      });
+      
+      if (response.ok) {
+        const updated = await response.json();
+        setMemberData({ ...activeMember, ...updated });
+        setIsEditing(false);
+        toast({ title: "Success", description: "Member information saved successfully." });
+        queryClient.invalidateQueries({ queryKey: ["getMembers"] });
+      } else {
+        throw new Error("Failed to save");
+      }
+    } catch {
+      toast({ title: "Error", description: "Failed to save changes.", variant: "destructive" });
+    }
+  }
 
   async function executeAction() {
     if (!actionDialog.action || !activeMember) return;
+    
     const statusMap: Partial<Record<AdminAction, string>> = {
       suspend: "suspended", freeze: "frozen", activate: "active", verify: "active",
     };
+    
     const messages: Record<AdminAction, string> = {
       suspend: "Account suspended.",
       freeze: "Account frozen.",
@@ -148,13 +228,34 @@ export default function MemberProfile() {
       upgrade: "Account upgraded.",
       downgrade: "Account downgraded.",
       change_contribution: "Contribution method updated.",
+      delete: "Member deleted.",
     };
+    
     try {
-      if (statusMap[actionDialog.action]) {
+      if (actionDialog.action === "delete") {
+        // Delete member
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+        const token = await import('@/lib/supabase').then(m => m.getAccessToken());
+        
+        const response = await fetch(`${baseUrl}/api/members/${activeMember.id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        
+        if (response.ok) {
+          toast({ title: "Deleted", description: `Member ${activeMember.firstName} ${activeMember.lastName} has been deleted.` });
+          queryClient.invalidateQueries({ queryKey: ["getMembers"] });
+          setLocation("/members");
+        } else {
+          throw new Error("Delete failed");
+        }
+      } else if (statusMap[actionDialog.action]) {
         await updateMember.mutateAsync({ id: activeMember.id, data: { status: statusMap[actionDialog.action] as any } });
+        // Refresh data after status change
+        await fetchMember();
       }
+      
       toast({ title: "Done", description: messages[actionDialog.action] });
-      queryClient.invalidateQueries({ queryKey: getGetMemberQueryKey(memberId as number) });
       setActionDialog({ open: false, action: null });
     } catch {
       toast({ title: "Error", description: "Action failed.", variant: "destructive" });
@@ -204,9 +305,13 @@ export default function MemberProfile() {
     activeMember.riskScore >= 60 ? "text-amber-600" :
     activeMember.riskScore >= 40 ? "text-orange-600" : "text-red-600";
 
-  const totalInvestments = (investments?.data ?? []).reduce((sum, i) => sum + Number(i.amount), 0);
-  const totalLoans = (loans?.data ?? []).reduce((sum, l) => sum + Number(l.amount), 0);
-  const netWorth = (activeMember.totalContributions || 0) + (activeMember.walletBalance || 0) + totalInvestments - (activeMember.activeLoan || 0);
+  // Calculate real financials from fetched data
+  const totalSavings = financials.savings.reduce((sum, s) => sum + Number(s.amount || 0), 0);
+  const totalLoans = financials.loans.reduce((sum, l) => sum + Number(l.amount || 0), 0);
+  const outstandingLoans = financials.loans.reduce((sum, l) => sum + Number(l.balance || l.remaining_balance || 0), 0);
+  const totalCredits = financials.transactions.filter(t => t.type === "credit" || t.category === "credit").reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  const totalDebits = financials.transactions.filter(t => t.type === "debit" || t.category === "debit").reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  const netWorth = (activeMember.totalContributions || totalSavings) + financials.walletBalance - outstandingLoans;
 
   return (
     <>
@@ -232,6 +337,23 @@ export default function MemberProfile() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            {isEditing ? (
+              <>
+                <Button size="sm" variant="outline" onClick={() => { setIsEditing(false); setEditForm({ firstName: activeMember.firstName, lastName: activeMember.lastName, email: activeMember.email, phone: activeMember.phone, address: activeMember.address, occupation: activeMember.occupation }); }}>
+                  <X className="h-4 w-4 mr-1" /> Cancel
+                </Button>
+                <Button size="sm" onClick={saveChanges}>
+                  <Save className="h-4 w-4 mr-1" /> Save Changes
+                </Button>
+              </>
+            ) : (
+              <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
+                <Edit2 className="h-4 w-4 mr-1" /> Edit
+              </Button>
+            )}
+            <Button size="sm" variant="outline" onClick={() => fetchMember()}>
+              <RefreshCw className="h-4 w-4 mr-1" /> Refresh
+            </Button>
             {activeMember.status !== "active" && (
               <Button size="sm" variant="outline" className="text-emerald-600" onClick={() => setActionDialog({ open: true, action: "activate" })}>
                 <CheckCircle2 className="h-4 w-4 mr-1" /> Activate
@@ -245,11 +367,8 @@ export default function MemberProfile() {
             <Button size="sm" variant="outline" onClick={() => setActionDialog({ open: true, action: "freeze" })}>
               <Lock className="h-4 w-4 mr-1" /> Freeze
             </Button>
-            <Button size="sm" variant="outline" onClick={() => setActionDialog({ open: true, action: "reset_password" })}>
-              <KeyRound className="h-4 w-4 mr-1" /> Reset Password
-            </Button>
-            <Button size="sm" variant="outline" className="text-blue-600" onClick={() => setActionDialog({ open: true, action: "verify" })}>
-              <BadgeCheck className="h-4 w-4 mr-1" /> Verify
+            <Button size="sm" variant="outline" className="text-red-600" onClick={() => setActionDialog({ open: true, action: "delete" })}>
+              <Trash2 className="h-4 w-4 mr-1" /> Delete
             </Button>
           </div>
         </div>
@@ -262,7 +381,7 @@ export default function MemberProfile() {
                 <span className="text-xs font-medium">Total Contributions</span>
               </div>
               <div className={`text-xl font-bold text-emerald-800 ${!showBalances && "blur-sm select-none"}`}>
-                {formatCurrency(activeMember.totalContributions)}
+                {formatCurrency(activeMember.totalContributions || totalSavings)}
               </div>
             </CardContent>
           </Card>
@@ -270,10 +389,10 @@ export default function MemberProfile() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-amber-700 mb-2">
                 <CreditCard className="h-4 w-4" />
-                <span className="text-xs font-medium">Active Loan</span>
+                <span className="text-xs font-medium">Outstanding Loans</span>
               </div>
               <div className={`text-xl font-bold text-amber-800 ${!showBalances && "blur-sm select-none"}`}>
-                {activeMember.activeLoan > 0 ? formatCurrency(activeMember.activeLoan) : "—"}
+                {outstandingLoans > 0 ? formatCurrency(outstandingLoans) : "—"}
               </div>
             </CardContent>
           </Card>
@@ -284,7 +403,7 @@ export default function MemberProfile() {
                 <span className="text-xs font-medium">Wallet Balance</span>
               </div>
               <div className={`text-xl font-bold text-blue-800 ${!showBalances && "blur-sm select-none"}`}>
-                {formatCurrency(activeMember.walletBalance || 0)}
+                {formatCurrency(financials.walletBalance)}
               </div>
             </CardContent>
           </Card>
@@ -292,10 +411,10 @@ export default function MemberProfile() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-purple-700 mb-2">
                 <TrendingUp className="h-4 w-4" />
-                <span className="text-xs font-medium">Investments</span>
+                <span className="text-xs font-medium">Total Loans Taken</span>
               </div>
               <div className={`text-xl font-bold text-purple-800 ${!showBalances && "blur-sm select-none"}`}>
-                {formatCurrency(totalInvestments)}
+                {formatCurrency(totalLoans)}
               </div>
             </CardContent>
           </Card>
@@ -305,7 +424,7 @@ export default function MemberProfile() {
                 <ShieldAlert className="h-4 w-4" />
                 <span className="text-xs font-medium">Risk Score</span>
               </div>
-              <div className={`text-xl font-bold ${riskColor}`}>{activeMember.riskScore}/100</div>
+              <div className={`text-xl font-bold ${riskColor}`}>{activeMember.riskScore || 0}/100</div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-gray-50 to-gray-100/50 border-gray-200">
@@ -314,7 +433,7 @@ export default function MemberProfile() {
                 <CalendarDays className="h-4 w-4" />
                 <span className="text-xs font-medium">Member Since</span>
               </div>
-              <div className="text-lg font-bold">{new Date(activeMember.createdAt).toLocaleDateString()}</div>
+              <div className="text-lg font-bold">{activeMember.createdAt ? new Date(activeMember.createdAt).toLocaleDateString() : "—"}</div>
             </CardContent>
           </Card>
         </div>
@@ -327,9 +446,9 @@ export default function MemberProfile() {
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="grid grid-cols-6 w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="financials"><Banknote className="h-4 w-4 mr-1" />Financials</TabsTrigger>
             <TabsTrigger value="contributions">Contributions</TabsTrigger>
             <TabsTrigger value="loans">Loans</TabsTrigger>
-            <TabsTrigger value="investments">Investments</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="kyc">KYC & Docs</TabsTrigger>
           </TabsList>
@@ -341,16 +460,37 @@ export default function MemberProfile() {
               <Card>
                 <CardHeader><CardTitle className="text-base flex items-center gap-2"><User className="h-4 w-4" /> Personal Information</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div><span className="text-muted-foreground">First Name</span><p className="font-medium">{activeMember.firstName}</p></div>
-                    <div><span className="text-muted-foreground">Last Name</span><p className="font-medium">{activeMember.lastName}</p></div>
-                    <div><span className="text-muted-foreground">Email</span><p className="font-medium flex items-center gap-1"><Mail className="h-3 w-3" />{activeMember.email}</p></div>
-                    <div><span className="text-muted-foreground">Phone</span><p className="font-medium flex items-center gap-1"><Phone className="h-3 w-3" />{activeMember.phone}</p></div>
-                    <div><span className="text-muted-foreground">Role</span><p className="font-medium capitalize">{activeMember.role || "Member"}</p></div>
-                    <div><span className="text-muted-foreground">Status</span><Badge className={statusColors[activeMember.status]}>{activeMember.status}</Badge></div>
-                    <div><span className="text-muted-foreground">KYC Verified</span><p className="font-medium">{activeMember.kycVerified ? "Yes" : "No"}</p></div>
-                    <div><span className="text-muted-foreground">Email Verified</span><p className="font-medium">{activeMember.emailVerified ? "Yes" : "Pending"}</p></div>
-                  </div>
+                  {isEditing ? (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">First Name</Label>
+                          <Input value={editForm.firstName} onChange={e => setEditForm({...editForm, firstName: e.target.value})} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Last Name</Label>
+                          <Input value={editForm.lastName} onChange={e => setEditForm({...editForm, lastName: e.target.value})} />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Email</Label>
+                        <Input type="email" value={editForm.email} onChange={e => setEditForm({...editForm, email: e.target.value})} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Phone</Label>
+                        <Input value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div><span className="text-muted-foreground">First Name</span><p className="font-medium">{activeMember.firstName}</p></div>
+                      <div><span className="text-muted-foreground">Last Name</span><p className="font-medium">{activeMember.lastName}</p></div>
+                      <div className="col-span-2"><span className="text-muted-foreground">Email</span><p className="font-medium flex items-center gap-1"><Mail className="h-3 w-3" />{activeMember.email}</p></div>
+                      <div className="col-span-2"><span className="text-muted-foreground">Phone</span><p className="font-medium flex items-center gap-1"><Phone className="h-3 w-3" />{activeMember.phone}</p></div>
+                      <div><span className="text-muted-foreground">Role</span><p className="font-medium capitalize">{activeMember.role || "Member"}</p></div>
+                      <div><span className="text-muted-foreground">Status</span><Badge className={statusColors[activeMember.status]}>{activeMember.status}</Badge></div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -360,19 +500,15 @@ export default function MemberProfile() {
                 <CardContent className="space-y-3">
                   <div className="flex justify-between items-center p-3 bg-emerald-50 rounded-lg">
                     <div className="flex items-center gap-2"><PiggyBank className="h-4 w-4 text-emerald-600" /><span className="text-sm">Total Contributions</span></div>
-                    <span className={`font-bold text-emerald-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(activeMember.totalContributions)}</span>
+                    <span className={`font-bold text-emerald-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(activeMember.totalContributions || totalSavings)}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
-                    <div className="flex items-center gap-2"><CreditCard className="h-4 w-4 text-amber-600" /><span className="text-sm">Total Loan Amount</span></div>
-                    <span className={`font-bold text-amber-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(totalLoans)}</span>
+                    <div className="flex items-center gap-2"><CreditCard className="h-4 w-4 text-amber-600" /><span className="text-sm">Outstanding Loans</span></div>
+                    <span className={`font-bold text-amber-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(outstandingLoans)}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
                     <div className="flex items-center gap-2"><Wallet className="h-4 w-4 text-blue-600" /><span className="text-sm">Wallet Balance</span></div>
-                    <span className={`font-bold text-blue-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(activeMember.walletBalance || 0)}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                    <div className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-purple-600" /><span className="text-sm">Investments</span></div>
-                    <span className={`font-bold text-purple-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(totalInvestments)}</span>
+                    <span className={`font-bold text-blue-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(financials.walletBalance)}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between items-center p-3 bg-primary/5 rounded-lg font-semibold">
@@ -388,11 +524,9 @@ export default function MemberProfile() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div><span className="text-muted-foreground">Member ID</span><p className="font-mono font-medium">{activeMember.memberId}</p></div>
-                    <div><span className="text-muted-foreground">Risk Score</span><p className={`font-medium ${riskColor}`}>{activeMember.riskScore}/100</p></div>
-                    <div><span className="text-muted-foreground">Created</span><p className="font-medium">{new Date(activeMember.createdAt).toLocaleDateString()}</p></div>
-                    <div><span className="text-muted-foreground">Last Login</span><p className="font-medium">{activeMember.lastLogin ? new Date(activeMember.lastLogin).toLocaleString() : "N/A"}</p></div>
-                    <div><span className="text-muted-foreground">Contributions</span><p className="font-medium">{contributions?.data?.length ?? 0} payments</p></div>
-                    <div><span className="text-muted-foreground">Loans</span><p className="font-medium">{loans?.data?.length ?? 0} loans</p></div>
+                    <div><span className="text-muted-foreground">Risk Score</span><p className={`font-medium ${riskColor}`}>{activeMember.riskScore || 0}/100</p></div>
+                    <div><span className="text-muted-foreground">Created</span><p className="font-medium">{activeMember.createdAt ? new Date(activeMember.createdAt).toLocaleDateString() : "—"}</p></div>
+                    <div><span className="text-muted-foreground">Records</span><p className="font-medium">{financials.savings.length + financials.loans.length} items</p></div>
                   </div>
                   <Separator />
                   <div className="space-y-2">
@@ -411,6 +545,110 @@ export default function MemberProfile() {
             </div>
           </TabsContent>
 
+          {/* Financials Tab - Real-time Financial Overview */}
+          <TabsContent value="financials" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Savings Summary */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <PiggyBank className="h-4 w-4 text-emerald-600" /> Savings & Contributions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-emerald-50 rounded-lg text-center border border-emerald-100">
+                      <p className="text-xs text-muted-foreground mb-1">Total Savings</p>
+                      <p className={`text-xl font-bold text-emerald-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(totalSavings)}</p>
+                    </div>
+                    <div className="p-4 bg-emerald-50 rounded-lg text-center border border-emerald-100">
+                      <p className="text-xs text-muted-foreground mb-1">Contributions</p>
+                      <p className={`text-xl font-bold text-emerald-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(activeMember.totalContributions || totalSavings)}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{financials.savings.length} contribution records</p>
+                </CardContent>
+              </Card>
+
+              {/* Loans Summary */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-amber-600" /> Loans Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-amber-50 rounded-lg text-center border border-amber-100">
+                      <p className="text-xs text-muted-foreground mb-1">Total Loans</p>
+                      <p className={`text-xl font-bold text-amber-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(totalLoans)}</p>
+                    </div>
+                    <div className="p-4 bg-red-50 rounded-lg text-center border border-red-100">
+                      <p className="text-xs text-muted-foreground mb-1">Outstanding</p>
+                      <p className={`text-xl font-bold text-red-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(outstandingLoans)}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{financials.loans.length} loan records</p>
+                </CardContent>
+              </Card>
+
+              {/* Wallet */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Wallet className="h-4 w-4 text-blue-600" /> Wallet
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-lg text-center border border-blue-200">
+                    <p className="text-xs text-muted-foreground mb-2">Current Balance</p>
+                    <p className={`text-3xl font-bold text-blue-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(financials.walletBalance)}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Transactions Summary */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <History className="h-4 w-4 text-purple-600" /> Transactions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-emerald-50 rounded-lg text-center border border-emerald-100">
+                      <p className="text-xs text-muted-foreground mb-1">Credits</p>
+                      <p className={`text-lg font-bold text-emerald-700 ${!showBalances && "blur-sm select-none"}`}>+{formatCurrency(totalCredits)}</p>
+                    </div>
+                    <div className="p-4 bg-red-50 rounded-lg text-center border border-red-100">
+                      <p className="text-xs text-muted-foreground mb-1">Debits</p>
+                      <p className={`text-lg font-bold text-red-700 ${!showBalances && "blur-sm select-none"}`}>-{formatCurrency(totalDebits)}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{financials.transactions.length} transactions</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Net Worth Card */}
+            <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center">
+                      <TrendingUp className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Net Worth</p>
+                      <p className={`text-2xl font-bold ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(netWorth)}</p>
+                    </div>
+                  </div>
+                  <p className="text-right text-sm text-muted-foreground">Based on all<br/>financial accounts</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Contributions Tab */}
           <TabsContent value="contributions">
             <Card>
@@ -419,7 +657,7 @@ export default function MemberProfile() {
                 <Button size="sm" variant="outline"><Download className="h-4 w-4 mr-1" /> Export</Button>
               </CardHeader>
               <CardContent>
-                {(contributions?.data?.length ?? 0) === 0 ? (
+                {financials.savings.length === 0 ? (
                   <div className="text-center py-12">
                     <PiggyBank className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
                     <p className="text-muted-foreground">No contributions recorded yet</p>
@@ -429,13 +667,13 @@ export default function MemberProfile() {
                     <div className="grid grid-cols-5 gap-4 px-4 py-2 text-xs font-medium text-muted-foreground border-b">
                       <span>Month</span><span>Amount</span><span>Method</span><span>Status</span><span>Date</span>
                     </div>
-                    {(contributions?.data ?? []).map((c, i) => (
-                      <div key={c.id} className={`grid grid-cols-5 gap-4 px-4 py-3 items-center text-sm hover:bg-muted/50 ${i % 2 === 0 ? "bg-muted/20" : ""}`}>
-                        <span className="font-medium">{c.month}</span>
+                    {financials.savings.map((c, i) => (
+                      <div key={c.id || i} className={`grid grid-cols-5 gap-4 px-4 py-3 items-center text-sm hover:bg-muted/50 ${i % 2 === 0 ? "bg-muted/20" : ""}`}>
+                        <span className="font-medium">{c.month || "—"}</span>
                         <span className={`font-semibold ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(c.amount)}</span>
-                        <Badge variant="outline">{c.paymentMethod}</Badge>
-                        <Badge className={c.status === "paid" ? "bg-emerald-100 text-emerald-800" : c.status === "overdue" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}>{c.status}</Badge>
-                        <span className="text-muted-foreground text-xs">{new Date(c.date).toLocaleDateString()}</span>
+                        <Badge variant="outline">{c.paymentMethod || "wallet"}</Badge>
+                        <Badge className={c.status === "paid" ? "bg-emerald-100 text-emerald-800" : c.status === "overdue" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}>{c.status || "pending"}</Badge>
+                        <span className="text-muted-foreground text-xs">{new Date(c.createdAt || Date.now()).toLocaleDateString()}</span>
                       </div>
                     ))}
                   </div>
@@ -452,7 +690,7 @@ export default function MemberProfile() {
                 <Button size="sm" variant="outline"><Download className="h-4 w-4 mr-1" /> Export</Button>
               </CardHeader>
               <CardContent>
-                {(loans?.data?.length ?? 0) === 0 ? (
+                {financials.loans.length === 0 ? (
                   <div className="text-center py-12">
                     <CreditCard className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
                     <p className="text-muted-foreground">No loans found</p>
@@ -463,24 +701,22 @@ export default function MemberProfile() {
                       <thead>
                         <tr className="border-b text-muted-foreground text-xs">
                           <th className="pb-2 text-left">Loan ID</th>
-                          <th className="pb-2 text-left">Type</th>
                           <th className="pb-2 text-left">Purpose</th>
                           <th className="pb-2 text-right">Amount</th>
                           <th className="pb-2 text-right">Balance</th>
                           <th className="pb-2 text-center">Tenure</th>
                           <th className="pb-2 text-center">Status</th>
-                          <th className="pb-2 text-left">Applied</th>
+                          <th className="pb-2 text-left">Date</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-                        {(loans?.data ?? []).map((loan) => (
+                        {financials.loans.map((loan) => (
                           <tr key={loan.id} className="hover:bg-muted/50">
-                            <td className="py-3 font-mono text-xs">{loan.loanId}</td>
-                            <td className="py-3">{loan.loanType || "Standard"}</td>
+                            <td className="py-3 font-mono text-xs">{loan.loanId || loan.id}</td>
                             <td className="py-3">{loan.purpose || "—"}</td>
                             <td className="py-3 text-right font-semibold">{formatCurrency(loan.amount)}</td>
-                            <td className="py-3 text-right">{formatCurrency(loan.outstandingBalance || 0)}</td>
-                            <td className="py-3 text-center">{loan.tenureMonths || loan.tenure} mo</td>
+                            <td className="py-3 text-right">{formatCurrency(loan.balance || loan.remaining_balance || 0)}</td>
+                            <td className="py-3 text-center">{loan.tenureMonths || loan.tenure || 0} mo</td>
                             <td className="py-3 text-center">
                               <Badge className={loan.status === "active" ? "bg-emerald-100 text-emerald-800" : loan.status === "repaid" ? "bg-blue-100 text-blue-800" : loan.status === "defaulted" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}>{loan.status}</Badge>
                             </td>
@@ -544,27 +780,27 @@ export default function MemberProfile() {
                 </div>
               </CardHeader>
               <CardContent>
-                {(transactions?.data?.length ?? 0) === 0 ? (
+                {financials.transactions.length === 0 ? (
                   <div className="text-center py-12">
-                    <Receipt className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                    <History className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
                     <p className="text-muted-foreground">No transactions found</p>
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    {(transactions?.data ?? []).map((tx, i) => (
-                      <div key={tx.id} className={`flex items-center justify-between p-4 hover:bg-muted/50 ${i % 2 === 0 ? "bg-muted/20" : ""}`}>
+                    {financials.transactions.map((tx, i) => (
+                      <div key={tx.id || i} className={`flex items-center justify-between p-4 hover:bg-muted/50 ${i % 2 === 0 ? "bg-muted/20" : ""}`}>
                         <div className="flex items-center gap-3">
-                          <div className={`h-8 w-8 rounded-full flex items-center justify-center ${tx.type === "credit" ? "bg-emerald-100" : "bg-red-100"}`}>
-                            {tx.type === "credit" ? <ArrowDownRight className="h-4 w-4 text-emerald-600" /> : <ArrowUpRight className="h-4 w-4 text-red-600" />}
+                          <div className={`h-8 w-8 rounded-full flex items-center justify-center ${(tx.type === "credit" || tx.category === "credit") ? "bg-emerald-100" : "bg-red-100"}`}>
+                            {(tx.type === "credit" || tx.category === "credit") ? <ArrowDownRight className="h-4 w-4 text-emerald-600" /> : <ArrowUpRight className="h-4 w-4 text-red-600" />}
                           </div>
                           <div>
-                            <p className="font-medium text-sm">{tx.description || tx.type}</p>
-                            <p className="text-xs text-muted-foreground">{new Date(tx.createdAt || tx.date).toLocaleString()}</p>
+                            <p className="font-medium text-sm">{tx.description || tx.type || "Transaction"}</p>
+                            <p className="text-xs text-muted-foreground">{new Date(tx.createdAt || tx.date || Date.now()).toLocaleDateString()}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className={`font-semibold ${tx.type === "credit" ? "text-emerald-600" : "text-red-600"} ${!showBalances && "blur-sm select-none"}`}>
-                            {tx.type === "credit" ? "+" : "-"}{formatCurrency(tx.amount)}
+                          <p className={`font-semibold ${(tx.type === "credit" || tx.category === "credit") ? "text-emerald-600" : "text-red-600"} ${!showBalances && "blur-sm select-none"}`}>
+                            {(tx.type === "credit" || tx.category === "credit") ? "+" : "-"}{formatCurrency(tx.amount)}
                           </p>
                           <Badge variant="outline" className="text-xs">{tx.status || "completed"}</Badge>
                         </div>
@@ -653,10 +889,18 @@ export default function MemberProfile() {
             {actionDialog.action === "verify" && "Verify User"}
             {actionDialog.action === "restrict_loans" && "Restrict Loan Access"}
             {actionDialog.action === "change_contribution" && "Change Contribution Method"}
+            {actionDialog.action === "delete" && "Delete Member"}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
-          <p className="text-sm text-muted-foreground">This action will be applied to <strong>{member?.firstName} {member?.lastName}</strong>.</p>
+          {actionDialog.action === "delete" ? (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-800 font-medium">Are you sure you want to delete this member?</p>
+              <p className="text-red-600 text-sm mt-2">This action cannot be undone. All member data will be permanently removed.</p>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">This action will be applied to <strong>{activeMember?.firstName} {activeMember?.lastName}</strong>.</p>
+          )}
           {actionDialog.action === "change_contribution" && (
             <div className="space-y-1.5">
               <Label>New Contribution Method</Label>
@@ -681,9 +925,9 @@ export default function MemberProfile() {
           <Button
             onClick={executeAction}
             disabled={updateMember.isPending}
-            variant={["suspend", "freeze", "restrict_loans"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
+            variant={["suspend", "freeze", "restrict_loans", "delete"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
           >
-            {updateMember.isPending ? "Processing…" : "Confirm"}
+            {updateMember.isPending ? "Processing…" : actionDialog.action === "delete" ? "Delete Member" : "Confirm"}
           </Button>
         </DialogFooter>
       </DialogContent>
