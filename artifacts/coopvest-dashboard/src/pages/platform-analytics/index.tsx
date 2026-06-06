@@ -56,7 +56,15 @@ async function fetchAnalytics(): Promise<Analytics> {
   try {
     const res = await fetch("/api/analytics");
     if (!res.ok) return EMPTY_ANALYTICS;
-    return res.json();
+    const json = await res.json();
+    // Validate the response has expected structure
+    if (!json || typeof json !== 'object') return EMPTY_ANALYTICS;
+    return {
+      kpis: json.kpis ?? EMPTY_ANALYTICS.kpis,
+      userGrowth: Array.isArray(json.userGrowth) ? json.userGrowth : [],
+      geoDistribution: Array.isArray(json.geoDistribution) ? json.geoDistribution : [],
+      platformHealth: Array.isArray(json.platformHealth) ? json.platformHealth : [],
+    };
   } catch {
     return EMPTY_ANALYTICS;
   }
