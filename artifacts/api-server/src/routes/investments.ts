@@ -16,8 +16,22 @@ const CreateInvestmentBody = z.object({
 });
 
 router.get("/investments/portfolio", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res): Promise<void> => {
-  const { data: pools } = await supabase.from("investment_pools").select("*");
-  const rows = pools ?? [];
+  const { data: pools, error } = await supabase.from("investment_pools").select("*");
+  
+  if (error) {
+    res.status(500).json({ 
+      totalInvested: 0,
+      currentValue: 0,
+      totalReturns: 0,
+      returnPercentage: 0,
+      activeCount: 0,
+      maturedCount: 0,
+      breakdown: [],
+    });
+    return;
+  }
+
+  const rows = Array.isArray(pools) ? pools : [];
 
   const totalInvested = rows.reduce((s, p) => s + Number(p.target_amount || 0), 0);
   const currentValue = rows.reduce((s, p) => s + Number(p.raised_amount || 0), 0);
@@ -69,8 +83,9 @@ router.get("/investments", async (req, res): Promise<void> => {
 
     if (error) { res.status(500).json({ error: error.message }); return; }
 
+    const investments = Array.isArray(userInv) ? userInv : [];
     res.json({
-      data: (userInv ?? []).map(inv => ({
+      data: investments.map(inv => ({
         id: inv.id,
         name: inv.investment_name || "Investment",
         type: inv.investment_type || "pool",
@@ -101,8 +116,9 @@ router.get("/investments", async (req, res): Promise<void> => {
 
   if (error) { res.status(500).json({ error: error.message }); return; }
 
+  const poolData = Array.isArray(pools) ? pools : [];
   res.json({
-    data: (pools ?? []).map(p => ({
+    data: poolData.map(p => ({
       id: p.id,
       name: p.name,
       type: p.category ?? "pool",
