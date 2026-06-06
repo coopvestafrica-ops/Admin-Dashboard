@@ -27,7 +27,13 @@ import {
   BadgeCheck,
   Gift,
   HandshakeIcon,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Server,
+  FileBarChart,
+  Upload,
+  RefreshCw,
+  Monitor,
+  History
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -53,6 +59,17 @@ const sidebarGroups = [
       { title: "Withdrawal Approvals", icon: ArrowDownToLine, href: "/withdrawal-management" },
       { title: "Guarantor System", icon: HandshakeIcon, href: "/guarantor-system" },
       { title: "Interest Rates", icon: Percent, href: "/interest-rates" },
+      { title: "Reconciliation", icon: RefreshCw, href: "/reconciliation" },
+    ],
+  },
+  {
+    title: "Operations",
+    items: [
+      { title: "System Settings", icon: Server, href: "/system-settings" },
+      { title: "Reports", icon: FileBarChart, href: "/reports" },
+      { title: "Bulk Operations", icon: Upload, href: "/bulk-operations" },
+      { title: "Session Management", icon: Monitor, href: "/sessions" },
+      { title: "Login History", icon: History, href: "/login-history" },
     ],
   },
   {

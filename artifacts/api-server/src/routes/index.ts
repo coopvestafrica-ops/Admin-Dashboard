@@ -26,6 +26,13 @@ import withdrawalsRouter from "./withdrawals";
 import verificationRouter from "./verification";
 import referralsRouter from "./referrals";
 import guarantorsRouter from "./guarantors";
+// New feature routes
+import systemRouter from "./system";
+import reportsRouter from "./reports";
+import sessionsRouter from "./sessions";
+import bulkRouter from "./bulk";
+import reconciliationRouter from "./reconciliation";
+import loginHistoryRouter from "./login_history";
 
 const router: IRouter = Router();
 
@@ -59,5 +66,12 @@ router.use(withdrawalsRouter);
 router.use(verificationRouter);
 router.use(referralsRouter);
 router.use(guarantorsRouter);
+// New feature routes
+router.use(systemRouter);
+router.use(reportsRouter);
+router.use(sessionsRouter);
+router.use(bulkRouter);
+router.use(reconciliationRouter);
+router.use(loginHistoryRouter);
 
 export default router;

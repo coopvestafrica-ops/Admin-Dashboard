@@ -35,6 +35,13 @@ import ReferralProgram from "@/pages/referral-program/index";
 import GuarantorSystem from "@/pages/guarantor-system/index";
 import ExcelManager from "@/pages/excel-manager/index";
 import ResetPassword from "@/pages/reset-password";
+// New feature pages
+import SystemSettings from "@/pages/system-settings/index";
+import Reports from "@/pages/reports/index";
+import BulkOperations from "@/pages/bulk-operations/index";
+import Reconciliation from "@/pages/reconciliation/index";
+import Sessions from "@/pages/sessions/index";
+import LoginHistory from "@/pages/login-history/index";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,6 +86,12 @@ function Router() {
       <Route path="/referral-program">{() => <ProtectedRoute component={ReferralProgram} />}</Route>
       <Route path="/guarantor-system">{() => <ProtectedRoute component={GuarantorSystem} />}</Route>
       <Route path="/excel-manager">{() => <ProtectedRoute component={ExcelManager} />}</Route>
+      <Route path="/system-settings">{() => <ProtectedRoute component={SystemSettings} />}</Route>
+      <Route path="/reports">{() => <ProtectedRoute component={Reports} />}</Route>
+      <Route path="/bulk-operations">{() => <ProtectedRoute component={BulkOperations} />}</Route>
+      <Route path="/reconciliation">{() => <ProtectedRoute component={Reconciliation} />}</Route>
+      <Route path="/sessions">{() => <ProtectedRoute component={Sessions} />}</Route>
+      <Route path="/login-history">{() => <ProtectedRoute component={LoginHistory} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );
