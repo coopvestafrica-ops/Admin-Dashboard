@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { SessionTimeoutProvider } from "@/components/SessionTimeoutProvider";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
@@ -19,6 +20,7 @@ import RiskScoring from "@/pages/risk-scoring/index";
 import InterestRates from "@/pages/interest-rates/index";
 import AuditLogs from "@/pages/audit-logs/index";
 import Settings from "@/pages/settings";
+import Profile from "@/pages/profile";
 import Payroll from "@/pages/payroll/index";
 import MobileFeatureControls from "@/pages/mobile-feature-controls/index";
 import RoleManagement from "@/pages/role-management/index";
@@ -63,6 +65,7 @@ function Router() {
       <Route path="/interest-rates">{() => <ProtectedRoute component={InterestRates} />}</Route>
       <Route path="/audit-logs">{() => <ProtectedRoute component={AuditLogs} />}</Route>
       <Route path="/settings">{() => <ProtectedRoute component={Settings} />}</Route>
+      <Route path="/settings/profile">{() => <ProtectedRoute component={Profile} />}</Route>
       <Route path="/payroll">{() => <ProtectedRoute component={Payroll} />}</Route>
       <Route path="/mobile-feature-controls">{() => <ProtectedRoute component={MobileFeatureControls} />}</Route>
       <Route path="/role-management">{() => <ProtectedRoute component={RoleManagement} />}</Route>
@@ -119,16 +122,18 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <WouterRouter base={import.meta.env.BASE_URL?.replace(/\/$/, "") || ""}>
-            <ErrorBoundary>
-              <Router />
-            </ErrorBoundary>
-          </WouterRouter>
-          <Toaster />
-        </TooltipProvider>
-      </QueryClientProvider>
+      <SessionTimeoutProvider timeoutMinutes={30} warningMinutes={5}>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <WouterRouter base={import.meta.env.BASE_URL?.replace(/\/$/, "") || ""}>
+              <ErrorBoundary>
+                <Router />
+              </ErrorBoundary>
+            </WouterRouter>
+            <Toaster />
+          </TooltipProvider>
+        </QueryClientProvider>
+      </SessionTimeoutProvider>
     </ErrorBoundary>
   );
 }

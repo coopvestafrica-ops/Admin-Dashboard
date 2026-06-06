@@ -335,4 +335,36 @@
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
   }
+
+  /* Page transitions */
+  .page-enter {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  
+  .page-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 200ms ease-out, transform 200ms ease-out;
+  }
+  
+  .page-exit {
+    opacity: 1;
+  }
+  
+  .page-exit-active {
+    opacity: 0;
+    transition: opacity 150ms ease-in;
+  }
+
+  /* Smooth scroll */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Focus visible ring */
+  .focus-ring:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring);
+  }
 }
