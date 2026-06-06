@@ -140,7 +140,7 @@ export default function UserVerification() {
       toast({ title: "Error", description: "Review action failed.", variant: "destructive" }),
   });
 
-  const records = data?.data ?? [];
+  const records = data?.data && Array.isArray(data.data) ? data.data : [];
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / 20);
 

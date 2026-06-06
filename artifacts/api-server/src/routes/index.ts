@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { requireAuth } from "../middleware/auth";
 import healthRouter from "./health";
+import setupRouter from "./setup";
 import dashboardRouter from "./dashboard";
 import membersRouter from "./members";
 import loansRouter from "./loans";
@@ -38,6 +39,9 @@ const router: IRouter = Router();
 
 // Public — no auth required
 router.use(healthRouter);
+
+// Setup endpoint — no auth required (but requires setup key)
+router.use(setupRouter);
 
 // Protected — all routes below require a valid Supabase JWT
 router.use(requireAuth);

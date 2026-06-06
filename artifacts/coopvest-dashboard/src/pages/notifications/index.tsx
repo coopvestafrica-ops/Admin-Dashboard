@@ -145,7 +145,7 @@ export default function Notifications() {
     });
   };
 
-  const unreadCount = (data?.data ?? []).filter((n) => !n.isRead).length;
+  const unreadCount = (data?.data && Array.isArray(data.data) ? data.data : []).filter((n) => !n.isRead).length;
 
   return (
     <Layout>
@@ -286,13 +286,13 @@ export default function Notifications() {
               <CardContent>
                 {isLoading ? (
                   <div className="space-y-3">{Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
-                ) : (data?.data ?? []).length === 0 ? (
+                ) : (data?.data && Array.isArray(data.data) ? data.data : []).length === 0 ? (
                   <div className="flex flex-col items-center py-12 gap-3 text-muted-foreground">
                     <Bell className="h-12 w-12 opacity-30" /><p>No notifications</p>
                   </div>
                 ) : (
                   <div className="divide-y">
-                    {(data?.data ?? []).map((notif) => {
+                    {(data?.data && Array.isArray(data.data) ? data.data : []).map((notif) => {
                       const cfg  = typeConfig[notif.type] ?? typeConfig["info"];
                       const Icon = cfg.icon;
                       return (

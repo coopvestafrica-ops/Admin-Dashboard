@@ -63,9 +63,9 @@ export default function Support() {
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / 20);
 
-  const openCount = (data?.data ?? []).filter(t => t.status === "open").length;
-  const inProgressCount = (data?.data ?? []).filter(t => t.status === "in_progress").length;
-  const resolvedCount = (data?.data ?? []).filter(t => t.status === "resolved").length;
+  const openCount = (data?.data && Array.isArray(data.data) ? data.data : []).filter(t => t.status === "open").length;
+  const inProgressCount = (data?.data && Array.isArray(data.data) ? data.data : []).filter(t => t.status === "in_progress").length;
+  const resolvedCount = (data?.data && Array.isArray(data.data) ? data.data : []).filter(t => t.status === "resolved").length;
 
   return (
     <Layout>
@@ -130,13 +130,13 @@ export default function Support() {
         <div className="space-y-3">
           {isLoading ? (
             Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
-          ) : (data?.data ?? []).length === 0 ? (
+          ) : (data?.data && Array.isArray(data.data) ? data.data : []).length === 0 ? (
             <div className="flex flex-col items-center py-16 gap-3 text-muted-foreground">
               <LifeBuoy className="h-12 w-12 opacity-30" />
               <p>No support tickets found</p>
             </div>
           ) : (
-            (data?.data ?? []).map((ticket) => {
+            (data?.data && Array.isArray(data.data) ? data.data : []).map((ticket) => {
               const statusCfg = statusConfig[ticket.status] ?? statusConfig["open"];
               const priorityCfg = priorityConfig[ticket.priority] ?? priorityConfig["low"];
               return (

@@ -4,7 +4,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -12,17 +12,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useGetMember, useGetLoans, useGetContributions, useGetInvestments, useUpdateMember, getGetMemberQueryKey } from "@workspace/api-client-react";
+import { useGetMember, useGetLoans, useGetContributions, useGetInvestments, getGetMemberQueryKey } from "@workspace/api-client-react";
 import { formatCurrency } from "@/lib/format";
 import {
   ArrowLeft, Mail, Phone, Ban, Lock, KeyRound, CheckCircle2, CreditCard,
   ArrowUpDown, ShieldAlert, Wallet, PiggyBank, TrendingUp, FileText,
   Users, Building2, Clock, AlertTriangle, ArrowUpRight, ArrowDownRight,
   Receipt, DollarSign, CalendarDays, User, BadgeCheck, Shield,
-  Eye, EyeOff, Download, Filter
+  Eye, EyeOff, Download, Filter, Crown, Image
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 
 const statusColors: Record<string, string> = {
   active: "bg-emerald-100 text-emerald-800",
@@ -31,51 +32,41 @@ const statusColors: Record<string, string> = {
   pending: "bg-amber-100 text-amber-800",
 };
 
-type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verify" | "restrict_loans" | "change_contribution";
+type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verify" | "restrict_loans" | "change_contribution" | "make_admin" | "remove_admin";
 
 export default function MemberProfile() {
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
-  // The ID from URL can be a Supabase UUID (activeMember.id) or numeric database ID
   const memberIdFromUrl = params.id;
-  // Try to parse as number first, fall back to string (UUID)
-  const numericId = memberIdFromUrl ? parseInt(memberIdFromUrl, 10) : null;
-  const isNumericId = numericId !== null && !isNaN(numericId);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const updateMember = useUpdateMember();
   const [actionDialog, setActionDialog] = useState<{ open: boolean; action: AdminAction | null }>({ open: false, action: null });
   const [actionNote, setActionNote] = useState("");
   const [contributionMethod, setContributionMethod] = useState("monthly");
   const [showBalances, setShowBalances] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // Query using the member ID (can be UUID or numeric)
-  const { data: member, isLoading } = useGetMember((isNumericId ? numericId as number : 1) as number, {
-    query: { 
-      enabled: false, // Disable auto-fetch, we'll handle it manually
-      retry: 1,
-    },
-  });
-
-  // Fetch member by finding in the members list (same API that works)
+  // Fetch member by finding in the members list
   const [memberData, setMemberData] = useState<any>(null);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(true);
 
-  // Fetch related data using numeric member ID (for loans, contributions, etc)
-  const memberNumericId = memberData?.id ? parseInt(String(memberData.id).split('-')[0], 10) || 1 : 1;
-  const { data: loans } = useGetLoans({ memberId: memberNumericId }, {
-    query: { enabled: !!memberData, retry: 1 }
+  // Fetch related data
+  const { data: loans } = useGetLoans({ memberId: 1 }, {
+    query: { enabled: false }
   });
-  const { data: contributions } = useGetContributions({ memberId: memberNumericId }, {
-    query: { enabled: !!memberData, retry: 1 }
+  const { data: contributions } = useGetContributions({ memberId: 1 }, {
+    query: { enabled: false }
   });
-  const { data: investments } = useGetInvestments({ memberId: memberNumericId }, {
-    query: { enabled: !!memberData, retry: 1 }
+  const { data: investments } = useGetInvestments({ memberId: 1 }, {
+    query: { enabled: false }
   });
-  // Transactions API is not available, use empty array as placeholder
-  const transactions = { data: [] };
+  // Ensure these are always arrays
+  const loansData = loans?.data && Array.isArray(loans.data) ? loans.data : [];
+  const contributionsData = contributions?.data && Array.isArray(contributions.data) ? contributions.data : [];
+  const investmentsData = investments?.data && Array.isArray(investments.data) ? investments.data : [];
+  const transactions = { data: [] as any[] };
 
   useEffect(() => {
     if (!memberIdFromUrl) {
@@ -83,29 +74,30 @@ export default function MemberProfile() {
       return;
     }
 
-    // Fetch members list and find the matching member by ID
     const fetchMember = async () => {
       setIsFetching(true);
       setLoadingError(null);
       try {
         const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
-        const token = await import('@/lib/supabase').then(m => m.getAccessToken());
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token || '';
         
         const response = await fetch(`${baseUrl}/api/members?limit=100`, {
           headers: {
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         });
         
         if (response.ok) {
           const data = await response.json();
           const members = data.data || data;
-          // Find member with matching ID (UUID) - compare as strings
+          // Find member with matching ID (UUID)
           const found = members.find((m: any) => String(m.id) === String(memberIdFromUrl));
           if (found) {
             setMemberData(found);
           } else {
-            // Try alternate: compare memberId field
+            // Try alternate: compare memberId field or partial match
             const foundAlt = members.find((m: any) => 
               String(m.memberId) === String(memberIdFromUrl) || 
               String(m.id).includes(String(memberIdFromUrl))
@@ -114,14 +106,14 @@ export default function MemberProfile() {
               setMemberData(foundAlt);
             } else {
               console.error('Member not found. Looking for:', memberIdFromUrl);
-              console.error('Available IDs:', members.map((m: any) => m.id));
               setLoadingError('Member not found');
             }
           }
         } else {
           setLoadingError('Failed to load member');
         }
-      } catch {
+      } catch (err) {
+        console.error('Error fetching member:', err);
         setLoadingError('Network error');
       } finally {
         setIsFetching(false);
@@ -131,33 +123,81 @@ export default function MemberProfile() {
     fetchMember();
   }, [memberIdFromUrl]);
 
-  const activeMember = memberData || member;
+  // Direct API call for member updates
+  const updateMemberApi = async (memberId: string, updates: any) => {
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token || '';
+
+    const response = await fetch(`${baseUrl}/api/members/${memberId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updates),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Update failed');
+    }
+
+    return response.json();
+  };
 
   async function executeAction() {
-    if (!actionDialog.action || !activeMember) return;
-    const statusMap: Partial<Record<AdminAction, string>> = {
-      suspend: "suspended", freeze: "frozen", activate: "active", verify: "active",
+    if (!actionDialog.action || !memberData) return;
+    
+    setIsProcessing(true);
+    const statusMap: Record<string, any> = {
+      suspend: { status: "suspended" },
+      freeze: { status: "frozen" },
+      activate: { status: "active" },
+      verify: { status: "active", kyc_verified: true },
+      make_admin: { role: "admin" },
+      remove_admin: { role: "member" },
     };
-    const messages: Record<AdminAction, string> = {
+    const messages: Record<string, string> = {
       suspend: "Account suspended.",
       freeze: "Account frozen.",
       activate: "Account activated.",
       reset_password: "Password reset email sent.",
-      verify: "User verified.",
+      verify: "User verified and account activated.",
       restrict_loans: "Loan access restricted.",
       upgrade: "Account upgraded.",
       downgrade: "Account downgraded.",
       change_contribution: "Contribution method updated.",
+      make_admin: "Member granted admin privileges.",
+      remove_admin: "Admin privileges removed.",
     };
+    
     try {
-      if (statusMap[actionDialog.action]) {
-        await updateMember.mutateAsync({ id: activeMember.id, data: { status: statusMap[actionDialog.action] as any } });
+      const updates = statusMap[actionDialog.action];
+      if (updates) {
+        await updateMemberApi(memberData.id, updates);
+        
+        // Refresh member data
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token || '';
+        const response = await fetch(`${baseUrl}/api/members?limit=100`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const members = data.data || data;
+          const found = members.find((m: any) => String(m.id) === String(memberIdFromUrl));
+          if (found) setMemberData(found);
+        }
       }
-      toast({ title: "Done", description: messages[actionDialog.action] });
-      queryClient.invalidateQueries({ queryKey: getGetMemberQueryKey(memberId as number) });
+      toast({ title: "Success", description: messages[actionDialog.action] });
       setActionDialog({ open: false, action: null });
-    } catch {
-      toast({ title: "Error", description: "Action failed.", variant: "destructive" });
+    } catch (err: any) {
+      console.error('Update error:', err);
+      toast({ title: "Error", description: err.message || "Action failed. Please try again.", variant: "destructive" });
+    } finally {
+      setIsProcessing(false);
     }
   }
 
@@ -204,8 +244,8 @@ export default function MemberProfile() {
     activeMember.riskScore >= 60 ? "text-amber-600" :
     activeMember.riskScore >= 40 ? "text-orange-600" : "text-red-600";
 
-  const totalInvestments = (investments?.data ?? []).reduce((sum, i) => sum + Number(i.amount), 0);
-  const totalLoans = (loans?.data ?? []).reduce((sum, l) => sum + Number(l.amount), 0);
+  const totalInvestments = investmentsData.reduce((sum, i) => sum + Number(i.amount), 0);
+  const totalLoans = loansData.reduce((sum, l) => sum + Number(l.amount), 0);
   const netWorth = (activeMember.totalContributions || 0) + (activeMember.walletBalance || 0) + totalInvestments - (activeMember.activeLoan || 0);
 
   return (
@@ -217,18 +257,31 @@ export default function MemberProfile() {
             <Button variant="ghost" size="icon" onClick={() => setLocation("/members")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <Avatar className="h-16 w-16 border-2 border-primary/20">
-              <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
-                {activeMember.avatarInitials ?? (activeMember.firstName[0] + activeMember.lastName[0])}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="h-16 w-16 border-2 border-primary/20">
+                {activeMember.profilePicture ? (
+                  <AvatarImage src={activeMember.profilePicture} alt={`${activeMember.firstName} ${activeMember.lastName}`} />
+                ) : null}
+                <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
+                  {(activeMember.avatarInitials || (activeMember.firstName?.[0] || '') + (activeMember.lastName?.[0] || '')).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              {(activeMember.role === 'admin' || activeMember.role === 'super_admin') && (
+                <div className="absolute -bottom-1 -right-1 h-6 w-6 bg-amber-500 rounded-full flex items-center justify-center">
+                  <Crown className="h-3 w-3 text-white" />
+                </div>
+              )}
+            </div>
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-2 flex-wrap">
                 {activeMember.firstName} {activeMember.lastName}
                 <Badge className={statusColors[activeMember.status] || "bg-gray-100"}>{activeMember.status}</Badge>
                 {activeMember.kycVerified && <Badge className="bg-blue-100 text-blue-800"><BadgeCheck className="h-3 w-3 mr-1" />KYC</Badge>}
+                {activeMember.role === 'super_admin' && <Badge className="bg-purple-100 text-purple-800"><Crown className="h-3 w-3 mr-1" />Super Admin</Badge>}
+                {activeMember.role === 'admin' && activeMember.role !== 'super_admin' && <Badge className="bg-amber-100 text-amber-800"><Crown className="h-3 w-3 mr-1" />Admin</Badge>}
               </h1>
               <p className="text-muted-foreground font-mono text-sm">ID: {activeMember.memberId}</p>
+              {activeMember.email && <p className="text-muted-foreground text-sm">{activeMember.email}</p>}
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -251,6 +304,15 @@ export default function MemberProfile() {
             <Button size="sm" variant="outline" className="text-blue-600" onClick={() => setActionDialog({ open: true, action: "verify" })}>
               <BadgeCheck className="h-4 w-4 mr-1" /> Verify
             </Button>
+            {activeMember.role === 'admin' ? (
+              <Button size="sm" variant="outline" className="text-amber-600" onClick={() => setActionDialog({ open: true, action: "remove_admin" })}>
+                <Shield className="h-4 w-4 mr-1" /> Remove Admin
+              </Button>
+            ) : (
+              <Button size="sm" variant="outline" className="text-amber-600" onClick={() => setActionDialog({ open: true, action: "make_admin" })}>
+                <Crown className="h-4 w-4 mr-1" /> Make Admin
+              </Button>
+            )}
           </div>
         </div>
 
@@ -429,7 +491,7 @@ export default function MemberProfile() {
                     <div className="grid grid-cols-5 gap-4 px-4 py-2 text-xs font-medium text-muted-foreground border-b">
                       <span>Month</span><span>Amount</span><span>Method</span><span>Status</span><span>Date</span>
                     </div>
-                    {(contributions?.data ?? []).map((c, i) => (
+                    {(contributionsData ?? []).map((c, i) => (
                       <div key={c.id} className={`grid grid-cols-5 gap-4 px-4 py-3 items-center text-sm hover:bg-muted/50 ${i % 2 === 0 ? "bg-muted/20" : ""}`}>
                         <span className="font-medium">{c.month}</span>
                         <span className={`font-semibold ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(c.amount)}</span>
@@ -452,7 +514,7 @@ export default function MemberProfile() {
                 <Button size="sm" variant="outline"><Download className="h-4 w-4 mr-1" /> Export</Button>
               </CardHeader>
               <CardContent>
-                {(loans?.data?.length ?? 0) === 0 ? (
+                {(loansData?.length ?? 0) === 0 ? (
                   <div className="text-center py-12">
                     <CreditCard className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
                     <p className="text-muted-foreground">No loans found</p>
@@ -473,7 +535,7 @@ export default function MemberProfile() {
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-                        {(loans?.data ?? []).map((loan) => (
+                        {(loansData ?? []).map((loan) => (
                           <tr key={loan.id} className="hover:bg-muted/50">
                             <td className="py-3 font-mono text-xs">{loan.loanId}</td>
                             <td className="py-3">{loan.loanType || "Standard"}</td>
@@ -510,7 +572,7 @@ export default function MemberProfile() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {(investments?.data ?? []).map((inv) => (
+                    {(investmentsData ?? []).map((inv) => (
                       <div key={inv.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
                         <div className="flex items-center gap-4">
                           <div className="h-10 w-10 bg-emerald-100 rounded-lg flex items-center justify-center">
@@ -551,7 +613,7 @@ export default function MemberProfile() {
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    {(transactions?.data ?? []).map((tx, i) => (
+                    {(transactions.data ?? []).map((tx, i) => (
                       <div key={tx.id} className={`flex items-center justify-between p-4 hover:bg-muted/50 ${i % 2 === 0 ? "bg-muted/20" : ""}`}>
                         <div className="flex items-center gap-3">
                           <div className={`h-8 w-8 rounded-full flex items-center justify-center ${tx.type === "credit" ? "bg-emerald-100" : "bg-red-100"}`}>
@@ -680,10 +742,10 @@ export default function MemberProfile() {
           <Button variant="outline" onClick={() => setActionDialog({ open: false, action: null })}>Cancel</Button>
           <Button
             onClick={executeAction}
-            disabled={updateMember.isPending}
-            variant={["suspend", "freeze", "restrict_loans"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
+            disabled={isProcessing}
+            variant={["suspend", "freeze", "restrict_loans", "remove_admin"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
           >
-            {updateMember.isPending ? "Processing…" : "Confirm"}
+            {isProcessing ? "Processing…" : "Confirm"}
           </Button>
         </DialogFooter>
       </DialogContent>

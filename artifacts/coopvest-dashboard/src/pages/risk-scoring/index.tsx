@@ -90,7 +90,7 @@ export default function RiskScoring() {
     },
   });
 
-  const members = resp?.data ?? [];
+  const members = resp?.data && Array.isArray(resp.data) ? resp.data : [];
 
   const filtered = members.filter((m) => {
     const matchSearch = !search || m.memberName.toLowerCase().includes(search.toLowerCase());

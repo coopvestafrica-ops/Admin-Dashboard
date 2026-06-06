@@ -163,7 +163,7 @@ export default function Compliance() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {(data?.data ?? []).map((item) => {
+                    {(data?.data && Array.isArray(data.data) ? data.data : []).map((item) => {
                       const cfg = statusConfig[item.status] ?? statusConfig["pending"];
                       return (
                         <tr key={item.id} className="hover:bg-muted/50 transition-colors" data-testid={`row-kyc-${item.id}`}>
