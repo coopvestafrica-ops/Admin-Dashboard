@@ -30,39 +30,18 @@ interface Analytics {
   platformHealth: { metric: string; value: string; status: "Good" | "Warning" | "Critical" }[];
 }
 
-const MOCK_ANALYTICS: Analytics = {
+const EMPTY_ANALYTICS: Analytics = {
   kpis: {
-    totalUsers: 24847, totalUsersGrowth: 12.4,
-    activeUsers30d: 18320, activeUsersGrowth: 8.1,
-    revenueMTD: 4820000, revenueGrowth: 15.3,
-    loanPortfolio: 312500000, loanGrowth: 22.7,
-    savingsPool: 189400000, savingsGrowth: 18.5,
-    growthRate: 14.2,
+    totalUsers: 0, totalUsersGrowth: 0,
+    activeUsers30d: 0, activeUsersGrowth: 0,
+    revenueMTD: 0, revenueGrowth: 0,
+    loanPortfolio: 0, loanGrowth: 0,
+    savingsPool: 0, savingsGrowth: 0,
+    growthRate: 0,
   },
-  userGrowth: [
-    { month: "Aug", users: 18200, active: 12400 },
-    { month: "Sep", users: 19800, active: 13900 },
-    { month: "Oct", users: 21200, active: 15100 },
-    { month: "Nov", users: 22900, active: 16400 },
-    { month: "Dec", users: 23600, active: 17200 },
-    { month: "Jan", users: 24847, active: 18320 },
-  ],
-  geoDistribution: [
-    { state: "Lagos", users: 9840, percentage: 39.6 },
-    { state: "Abuja", users: 4720, percentage: 19.0 },
-    { state: "Rivers", users: 2980, percentage: 12.0 },
-    { state: "Kano", users: 1840, percentage: 7.4 },
-    { state: "Ogun", users: 1560, percentage: 6.3 },
-    { state: "Others", users: 3907, percentage: 15.7 },
-  ],
-  platformHealth: [
-    { metric: "API Response Time", value: "142ms", status: "Good" },
-    { metric: "Uptime (30d)", value: "99.94%", status: "Good" },
-    { metric: "Failed Transactions", value: "0.8%", status: "Warning" },
-    { metric: "DB Query Time", value: "28ms", status: "Good" },
-    { metric: "Error Rate", value: "0.03%", status: "Good" },
-    { metric: "Active Sessions", value: "1,247", status: "Good" },
-  ],
+  userGrowth: [],
+  geoDistribution: [],
+  platformHealth: [],
 };
 
 const GEO_COLORS = ["#3b82f6", "#8b5cf6", "#06b6d4", "#f59e0b", "#10b981", "#6b7280"];
@@ -74,9 +53,13 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 async function fetchAnalytics(): Promise<Analytics> {
-  const res = await fetch("/api/analytics");
-  if (!res.ok) return MOCK_ANALYTICS;
-  return res.json();
+  try {
+    const res = await fetch("/api/analytics");
+    if (!res.ok) return EMPTY_ANALYTICS;
+    return res.json();
+  } catch {
+    return EMPTY_ANALYTICS;
+  }
 }
 
 function formatCurrency(val: number) {
@@ -105,7 +88,7 @@ export default function PlatformAnalytics() {
     queryFn: fetchAnalytics,
   });
 
-  const data = analytics ?? MOCK_ANALYTICS;
+  const data = analytics ?? EMPTY_ANALYTICS;
 
   const handleExport = () => {
     const rows = [

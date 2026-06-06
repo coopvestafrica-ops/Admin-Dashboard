@@ -102,7 +102,7 @@ export default function Login() {
               )}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" placeholder="admin@coopvest.africa" required autoComplete="email" />
+                <Input id="email" name="email" type="email" placeholder="Enter your email" required autoComplete="email" />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">

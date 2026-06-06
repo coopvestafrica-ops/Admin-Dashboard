@@ -103,8 +103,8 @@ export default function Members() {
     { label: "Active Users", value: 0, icon: UserCheck, color: "text-emerald-600", testid: "active" },
     { label: "Suspended", value: 0, icon: UserX, color: "text-orange-500", testid: "suspended" },
     { label: "Pending Verification", value: 0, icon: Clock, color: "text-amber-500", testid: "pending" },
-    { label: "Loan Defaulters", value: 12, icon: AlertTriangle, color: "text-red-500", testid: "defaulters" },
-    { label: "High-Risk Accounts", value: 8, icon: ShieldAlert, color: "text-rose-600", testid: "high-risk" },
+    { label: "Loan Defaulters", value: 0, icon: AlertTriangle, color: "text-red-500", testid: "defaulters" },
+    { label: "High-Risk Accounts", value: 0, icon: ShieldAlert, color: "text-rose-600", testid: "high-risk" },
   ];
   
   // Make a copy to avoid mutating defaultStats

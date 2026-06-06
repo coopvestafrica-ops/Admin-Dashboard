@@ -14,7 +14,9 @@ import { useGetNotifications } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { getPageInfo, formatPageTitle } from "@/lib/page-titles";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import type { User } from "@supabase/supabase-js";
 
 interface HeaderProps {
   onOpenSearch?: () => void;
@@ -24,9 +26,34 @@ export function Header({ onOpenSearch }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const { data: notifications } = useGetNotifications();
   const [location] = useLocation();
+  const [user, setUser] = useState<User | null>(null);
   const pageInfo = getPageInfo(location);
 
+  // Get current user from Supabase auth
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const unreadCount = notifications?.unreadCount || 0;
+
+  // Get user initials for avatar
+  const getInitials = (email: string | undefined) => {
+    if (!email) return "??";
+    const namePart = email.split("@")[0];
+    const parts = namePart.split(/[._-]/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return namePart.slice(0, 2).toUpperCase();
+  };
 
   // Update page title
   useEffect(() => {
@@ -81,16 +108,20 @@ export function Header({ onOpenSearch }: HeaderProps) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full" aria-label="User menu">
               <Avatar className="h-9 w-9 border">
-                <AvatarFallback className="bg-primary/10 text-primary">OA</AvatarFallback>
+                <AvatarFallback className="bg-primary/10 text-primary">
+                  {getInitials(user?.email)}
+                </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">Oluwaseun Adebayo</p>
+                <p className="text-sm font-medium leading-none">
+                  {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Admin User"}
+                </p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  admin@coopvest.africa
+                  {user?.email || "Not signed in"}
                 </p>
               </div>
             </DropdownMenuLabel>
@@ -102,7 +133,12 @@ export function Header({ onOpenSearch }: HeaderProps) {
               <Link href="/settings">Settings</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">Log out</DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive"
+              onClick={() => supabase.auth.signOut().then(() => window.location.href = "/")}
+            >
+              Log out
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

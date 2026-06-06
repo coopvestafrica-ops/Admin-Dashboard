@@ -36,21 +36,9 @@ interface EditableRow {
   status: string;
 }
 
-const MOCK_UPLOADS: UploadRecord[] = [
-  { id: 1, filename: "may_2025_payroll.xlsx", type: "payroll", uploadedBy: "Admin Okafor", uploadedAt: "2025-05-15 09:30", rows: 842, status: "processed", errors: 0 },
-  { id: 2, filename: "bulk_contributions_apr25.csv", type: "bulk_contributions", uploadedBy: "Admin Fatima", uploadedAt: "2025-04-30 14:22", rows: 521, status: "processed", errors: 3 },
-  { id: 3, filename: "new_members_batch_3.xlsx", type: "user_import", uploadedBy: "Admin Okafor", uploadedAt: "2025-04-20 11:05", rows: 45, status: "processed", errors: 0 },
-  { id: 4, filename: "payroll_reconciliation_q1.xlsx", type: "reconciliation", uploadedBy: "Admin Bello", uploadedAt: "2025-04-01 08:45", rows: 2100, status: "processed", errors: 12 },
-  { id: 5, filename: "may_contributions_draft.xlsx", type: "bulk_contributions", uploadedBy: "Admin Fatima", uploadedAt: "2025-05-20 16:10", rows: 634, status: "reviewing", errors: 0 },
-];
+const MOCK_UPLOADS: UploadRecord[] = [];
 
-const MOCK_EDITABLE_ROWS: EditableRow[] = [
-  { id: 1, memberName: "Adaobi Nwoye", organization: "Lagos Civil Service", amount: 5000, month: "2025-05", method: "payroll_deduction", status: "pending" },
-  { id: 2, memberName: "Kola Abioye", organization: "Lagos Civil Service", amount: 5000, month: "2025-05", method: "payroll_deduction", status: "pending" },
-  { id: 3, memberName: "Zainab Usman", organization: "Lagos Civil Service", amount: 5000, month: "2025-05", method: "payroll_deduction", status: "pending" },
-  { id: 4, memberName: "Emeka Obi", organization: "Access Bank", amount: 8000, month: "2025-05", method: "payroll_deduction", status: "pending" },
-  { id: 5, memberName: "Ngozi Peters", organization: "Access Bank", amount: 8000, month: "2025-05", method: "payroll_deduction", status: "pending" },
-];
+const MOCK_EDITABLE_ROWS: EditableRow[] = [];
 
 const typeColors: Record<string, string> = {
   bulk_contributions: "bg-emerald-100 text-emerald-800",

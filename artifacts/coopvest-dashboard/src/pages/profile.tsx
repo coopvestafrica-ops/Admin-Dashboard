@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,16 +10,19 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Camera, User, Mail, Phone, Building2, Shield, Bell, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 export default function Profile() {
   const [saving, setSaving] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [profile, setProfile] = useState({
-    firstName: "Oluwaseun",
-    lastName: "Adebayo",
-    email: "admin@coopvest.africa",
-    phone: "+234 801 234 5678",
-    role: "Super Admin",
-    department: "Operations",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    role: "Admin",
+    department: "",
     avatar: "",
   });
 
@@ -30,12 +33,57 @@ export default function Profile() {
     securityAlerts: true,
   });
 
+  // Load user data from Supabase
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user);
+        const meta = session.user.user_metadata || {};
+        setProfile({
+          firstName: meta.first_name || meta.full_name?.split(" ")[0] || "",
+          lastName: meta.last_name || meta.full_name?.split(" ").slice(1).join(" ") || "",
+          email: session.user.email || "",
+          phone: meta.phone || "",
+          role: "Admin",
+          department: meta.department || "",
+          avatar: meta.avatar_url || "",
+        });
+      }
+    });
+  }, []);
+
   const handleSave = async () => {
     setSaving(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    toast.success("Profile updated successfully");
-    setSaving(false);
+    
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          first_name: profile.firstName,
+          last_name: profile.lastName,
+          phone: profile.phone,
+          department: profile.department,
+        }
+      });
+
+      if (error) throw error;
+      toast.success("Profile updated successfully");
+    } catch (err) {
+      toast.error("Failed to update profile");
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Get initials for avatar
+  const getInitials = () => {
+    if (profile.firstName && profile.lastName) {
+      return (profile.firstName[0] + profile.lastName[0]).toUpperCase();
+    }
+    if (profile.email) {
+      return profile.email.slice(0, 2).toUpperCase();
+    }
+    return "??";
   };
 
   return (
@@ -60,7 +108,7 @@ export default function Profile() {
                 <Avatar className="h-24 w-24 border-2 border-primary/20">
                   <AvatarImage src={profile.avatar} />
                   <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
-                    {profile.firstName[0]}{profile.lastName[0]}
+                    {getInitials()}
                   </AvatarFallback>
                 </Avatar>
                 <Button

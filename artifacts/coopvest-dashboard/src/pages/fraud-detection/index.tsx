@@ -25,15 +25,7 @@ interface FraudAlert {
   amount?: number;
 }
 
-const MOCK_ALERTS: FraudAlert[] = [
-  { id: 1, user: "John Okafor", userId: "USR-001", action: "Multiple failed login attempts", riskLevel: "Critical", timestamp: "2024-01-15T10:30:00Z", status: "Open", details: "15 failed attempts from 3 different IPs in 10 minutes" },
-  { id: 2, user: "Amina Yusuf", userId: "USR-002", action: "Large withdrawal request", riskLevel: "High", timestamp: "2024-01-15T09:15:00Z", status: "Under Review", details: "\u20a62,500,000 withdrawal \u2014 8x above user average", amount: 2500000 },
-  { id: 3, user: "Emeka Nwosu", userId: "USR-003", action: "Rapid successive transfers", riskLevel: "High", timestamp: "2024-01-15T08:45:00Z", status: "Open", details: "12 transfers to different accounts in 30 minutes", amount: 450000 },
-  { id: 4, user: "Blessing Osei", userId: "USR-004", action: "Profile information mismatch", riskLevel: "Medium", timestamp: "2024-01-14T16:30:00Z", status: "Under Review", details: "BVN name differs from registered account name" },
-  { id: 5, user: "Tunde Fashola", userId: "USR-005", action: "Unusual account activity", riskLevel: "Low", timestamp: "2024-01-14T14:00:00Z", status: "Resolved", details: "Login from new device in different state" },
-  { id: 6, user: "Grace Adeleke", userId: "USR-006", action: "Duplicate transaction attempt", riskLevel: "Medium", timestamp: "2024-01-14T11:20:00Z", status: "Resolved", details: "Same transaction submitted 3 times", amount: 75000 },
-  { id: 7, user: "Ibrahim Sani", userId: "USR-007", action: "Account takeover attempt", riskLevel: "Critical", timestamp: "2024-01-13T09:00:00Z", status: "Escalated", details: "Password reset + email change from unknown device" },
-];
+const MOCK_ALERTS: FraudAlert[] = [];
 
 const RISK_CONFIG: Record<RiskLevel, { color: string; bg: string; border: string; icon: any }> = {
   Critical: { color: "text-red-700", bg: "bg-red-100", border: "border-red-200", icon: Flame },
