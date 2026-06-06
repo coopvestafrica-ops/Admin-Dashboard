@@ -21,7 +21,7 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import { customFetch, setBaseUrl } from "@workspace/api-client-react";
+import { customFetch, setBaseUrl } from "@/lib/api-client";
 import { toast } from "sonner";
 
 interface Organization {

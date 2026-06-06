@@ -8,7 +8,7 @@ import {
   useGetMonthlyContributions,
   useGetLoanStatusBreakdown,
   useGetRecentActivity,
-} from "@workspace/api-client-react";
+} from "@/lib/api-client";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, BarChart, Bar, LineChart, Line,

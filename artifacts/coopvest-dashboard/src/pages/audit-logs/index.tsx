@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetAuditLogs } from "@workspace/api-client-react";
+import { useGetAuditLogs } from "@/lib/api-client";
 import {
   Search, FileText, Shield, User, CreditCard, Settings, Download,
   LogIn, LogOut, Banknote, ToggleLeft, Ban, CheckCircle, AlertTriangle,

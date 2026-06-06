@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useGetContributions, useGetContributionSummary, useGetMonthlyContributions } from "@workspace/api-client-react";
+import { useGetContributions, useGetContributionSummary, useGetMonthlyContributions } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/format";
 import { Search, Wallet, TrendingUp, CheckCircle, AlertCircle, XCircle, Download, Upload, RefreshCw, PlusCircle, FileSpreadsheet, ArrowDownUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -134,7 +134,7 @@ export default function Contributions() {
   }, [singleMemberSearch]);
 
   async function getAccessToken() {
-    const { getAccessToken } = await import("@workspace/api-client-react");
+    const { getAccessToken } = await import("@/lib/api-client");
     return getAccessToken();
   }
 

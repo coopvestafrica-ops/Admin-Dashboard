@@ -1,7 +1,7 @@
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetInvestments, useGetInvestmentPortfolio } from "@workspace/api-client-react";
+import { useGetInvestments, useGetInvestmentPortfolio } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/format";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { TrendingUp, Layers, DollarSign, BarChart2 } from "lucide-react";

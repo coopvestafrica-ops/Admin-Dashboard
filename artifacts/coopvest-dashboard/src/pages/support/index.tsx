@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useGetSupportTickets } from "@workspace/api-client-react";
+import { useGetSupportTickets } from "@/lib/api-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search, LifeBuoy, CheckCircle, Clock, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";

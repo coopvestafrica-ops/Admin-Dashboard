@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { useGetNotifications } from "@workspace/api-client-react";
+import { useGetNotifications } from "@/lib/api-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Bell, BellOff, Info, AlertTriangle, CheckCircle, AlertCircle,

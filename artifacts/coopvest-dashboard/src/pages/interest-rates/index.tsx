@@ -1,8 +1,8 @@
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetInterestRates } from "@workspace/api-client-react";
-import type { InterestRate } from "@workspace/api-client-react";
+import { useGetInterestRates } from "@/lib/api-client";
+import type { InterestRate } from "@/lib/api-client";
 import { Percent, TrendingUp, TrendingDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 

@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useGetLoans, useApproveLoan, useRejectLoan, useGetLoanPortfolioSummary } from "@workspace/api-client-react";
+import { useGetLoans, useApproveLoan, useRejectLoan, useGetLoanPortfolioSummary } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/format";
 import {
   Search, CheckCircle, XCircle, Clock, AlertTriangle, CreditCard,

@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useGetNotifications } from "@workspace/api-client-react";
+import { useGetNotifications } from "@/lib/api-client";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { getPageInfo, formatPageTitle } from "@/lib/page-titles";
