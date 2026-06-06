@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { supabase } from "@workspace/db";
 import { z } from "zod";
-import { requireAuth, requireRole } from "../middleware/auth";
+import { requireAuth } from "../middleware/auth";
 
 const router: IRouter = Router();
 
@@ -18,51 +18,56 @@ const UploadRecordSchema = z.object({
 });
 
 // Get all upload records
-router.get("/excel-uploads", requireAuth, requireRole("operator", "admin", "super_admin"), async (req, res): Promise<void> => {
-  const page = Math.max(1, Number(req.query.page) || 1);
-  const limit = Math.min(100, Number(req.query.limit) || 20);
-  const offset = (page - 1) * limit;
-  const status = req.query.status as string | undefined;
-  const uploadType = req.query.type as string | undefined;
+router.get("/excel-uploads", requireAuth, async (req, res): Promise<void> => {
+  try {
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Number(req.query.limit) || 20);
+    const offset = (page - 1) * limit;
+    const status = req.query.status as string | undefined;
+    const uploadType = req.query.type as string | undefined;
 
-  let query = supabase
-    .from("excel_uploads")
-    .select("*", { count: "exact" })
-    .order("created_at", { ascending: false });
+    let query = supabase
+      .from("excel_uploads")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false });
 
-  if (status) query = query.eq("status", status);
-  if (uploadType) query = query.eq("type", uploadType);
+    if (status) query = query.eq("status", status);
+    if (uploadType) query = query.eq("type", uploadType);
 
-  const { data: records, count, error } = await query.range(offset, offset + limit - 1);
+    const { data: records, count, error } = await query.range(offset, offset + limit - 1);
 
-  if (error) {
-    console.error("Error fetching upload records:", error);
-    res.status(500).json({ error: error.message });
-    return;
+    if (error) {
+      console.error("Error fetching upload records:", error);
+      res.status(500).json({ data: [], total: 0, page, limit });
+      return;
+    }
+
+    const uploads = Array.isArray(records) ? records : [];
+    res.json({
+      data: uploads.map(r => ({
+        id: r.id,
+        filename: r.filename,
+        type: r.type,
+        uploadedBy: r.uploaded_by || "Admin",
+        rows: r.record_count || 0,
+        errors: r.error_count || 0,
+        status: r.status,
+        totalAmount: r.total_amount || 0,
+        uploadedAt: r.created_at,
+        notes: r.notes || null,
+      })),
+      total: count ?? 0,
+      page,
+      limit,
+    });
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    res.status(500).json({ data: [], total: 0, page: 1, limit: 20 });
   }
-
-  const uploads = Array.isArray(records) ? records : [];
-  res.json({
-    data: uploads.map(r => ({
-      id: r.id,
-      filename: r.filename,
-      type: r.type,
-      uploadedBy: r.uploaded_by || "Admin",
-      rows: r.record_count || 0,
-      errors: r.error_count || 0,
-      status: r.status,
-      totalAmount: r.total_amount || 0,
-      uploadedAt: r.created_at,
-      notes: r.notes || null,
-    })),
-    total: count ?? 0,
-    page,
-    limit,
-  });
 });
 
 // Get single upload record
-router.get("/excel-uploads/:id", requireAuth, requireRole("operator", "admin", "super_admin"), async (req, res): Promise<void> => {
+router.get("/excel-uploads/:id", requireAuth, async (req, res): Promise<void> => {
   const { id } = req.params;
 
   const { data: record, error } = await supabase
@@ -91,7 +96,7 @@ router.get("/excel-uploads/:id", requireAuth, requireRole("operator", "admin", "
 });
 
 // Create new upload record
-router.post("/excel-uploads", requireAuth, requireRole("operator", "admin", "super_admin"), async (req, res): Promise<void> => {
+router.post("/excel-uploads", requireAuth, async (req, res): Promise<void> => {
   const parsed = UploadRecordSchema.safeParse(req.body);
 
   if (!parsed.success) {
@@ -153,7 +158,7 @@ router.post("/excel-uploads", requireAuth, requireRole("operator", "admin", "sup
 });
 
 // Update upload record status
-router.patch("/excel-uploads/:id", requireAuth, requireRole("operator", "admin", "super_admin"), async (req, res): Promise<void> => {
+router.patch("/excel-uploads/:id", requireAuth, async (req, res): Promise<void> => {
   const { id } = req.params;
   const { status, error_count, notes, record_count } = req.body;
 
@@ -196,7 +201,7 @@ router.patch("/excel-uploads/:id", requireAuth, requireRole("operator", "admin",
 });
 
 // Delete upload record
-router.delete("/excel-uploads/:id", requireAuth, requireRole("super_admin"), async (req, res): Promise<void> => {
+router.delete("/excel-uploads/:id", requireAuth, async (req, res): Promise<void> => {
   const { id } = req.params;
 
   const { error } = await supabase
