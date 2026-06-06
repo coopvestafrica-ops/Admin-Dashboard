@@ -441,17 +441,21 @@ router.delete("/members/:id", requireAuth, requireRole("super_admin"), async (re
     return;
   }
 
+  // Get current user's email
+  const currentUserEmail = (req as AuthenticatedRequest).user?.email;
+
   // Prevent deleting yourself
-  const userId = (req as any).user?.id;
-  if (profile.id === userId) {
+  if (profile.id === (req as AuthenticatedRequest).user?.profileId) {
     res.status(400).json({ error: "Cannot delete your own account" });
     return;
   }
 
-  // Prevent deleting other super_admins
+  // Only ayanlowo89@gmail.com can delete other super_admins
   if (profile.role === "super_admin") {
-    res.status(403).json({ error: "Cannot delete another super admin" });
-    return;
+    if (currentUserEmail !== "ayanlowo89@gmail.com") {
+      res.status(403).json({ error: "Only the primary admin can delete other super admins" });
+      return;
+    }
   }
 
   // Delete the profile
