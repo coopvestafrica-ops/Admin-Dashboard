@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import {
   FileSpreadsheet, Upload, Download, Edit2, Trash2, CheckCircle, AlertCircle,
-  RefreshCw, Eye, Plus, Users, Wallet, Briefcase, ArrowDownToLine, Clock
+  RefreshCw, Eye, Plus, Users, Wallet, Briefcase, ArrowDownToLine, Clock, Loader2
 } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
+import { getAccessToken } from "@/lib/supabase";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface UploadRecord {
   id: number;
@@ -35,10 +37,6 @@ interface EditableRow {
   method: string;
   status: string;
 }
-
-const MOCK_UPLOADS: UploadRecord[] = [];
-
-const MOCK_EDITABLE_ROWS: EditableRow[] = [];
 
 const typeColors: Record<string, string> = {
   bulk_contributions: "bg-emerald-100 text-emerald-800",
@@ -63,15 +61,42 @@ const statusColors: Record<string, string> = {
 
 export default function ExcelManager() {
   const [activeTab, setActiveTab] = useState("uploads");
-  const [uploads, setUploads] = useState<UploadRecord[]>(MOCK_UPLOADS);
-  const [editRows, setEditRows] = useState<EditableRow[]>(MOCK_EDITABLE_ROWS);
+  const [uploads, setUploads] = useState<UploadRecord[]>([]);
+  const [editRows, setEditRows] = useState<EditableRow[]>([]);
   const [editingRow, setEditingRow] = useState<EditableRow | null>(null);
   const [uploadType, setUploadType] = useState("bulk_contributions");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Fetch uploads from API
+  const fetchUploads = async () => {
+    setLoading(true);
+    try {
+      const token = await getAccessToken();
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+      const response = await fetch(`${apiUrl}/api/excel-uploads?limit=100`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUploads(Array.isArray(data.data) ? data.data : []);
+      }
+    } catch (e) {
+      console.error('Failed to fetch uploads:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "uploads") {
+      fetchUploads();
+    }
+  }, [activeTab]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -86,21 +111,44 @@ export default function ExcelManager() {
   async function submitUpload() {
     if (!uploadFile) return;
     setUploading(true);
-    await new Promise(r => setTimeout(r, 1800));
-    const newRecord: UploadRecord = {
-      id: uploads.length + 1,
-      filename: uploadFile.name,
-      type: uploadType as UploadRecord["type"],
-      uploadedBy: "Current Admin",
-      uploadedAt: new Date().toLocaleString("en-NG"),
-      rows: Math.floor(Math.random() * 500) + 50,
-      status: "reviewing",
-    };
-    setUploads(prev => [newRecord, ...prev]);
-    toast({ title: "File Uploaded", description: `${uploadFile.name} is now under review.` });
-    setUploadFile(null);
-    setUploading(false);
-    setShowUploadDialog(false);
+    try {
+      const token = await getAccessToken();
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+      
+      // Count rows in the file (approximate for CSV)
+      let rowCount = 0;
+      const text = await uploadFile.text();
+      const lines = text.split('\n').filter(l => l.trim());
+      rowCount = Math.max(0, lines.length - 1); // Subtract header row
+
+      const response = await fetch(`${apiUrl}/api/excel-uploads`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          filename: uploadFile.name,
+          type: uploadType,
+          record_count: rowCount,
+          status: 'reviewing',
+        }),
+      });
+
+      if (response.ok) {
+        const newRecord = await response.json();
+        setUploads(prev => [newRecord, ...prev]);
+        toast({ title: "File Uploaded", description: `${uploadFile.name} is now under review.` });
+        setUploadFile(null);
+        setShowUploadDialog(false);
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (e) {
+      toast({ title: "Upload Failed", description: "Could not upload file. Please try again.", variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
   }
 
   function downloadTemplate(type: string) {
@@ -204,71 +252,90 @@ export default function ExcelManager() {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base">All Uploads</CardTitle>
-                  <Button variant="outline" size="sm" onClick={exportAll}>
-                    <Download className="mr-2 h-3.5 w-3.5" /> Export Log
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={fetchUploads}>
+                      <RefreshCw className="mr-2 h-3.5 w-3.5" /> Refresh
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={exportAll}>
+                      <Download className="mr-2 h-3.5 w-3.5" /> Export Log
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-muted/40 text-xs font-semibold uppercase text-muted-foreground">
-                        <th className="px-4 py-3 text-left">Filename</th>
-                        <th className="px-4 py-3 text-left">Type</th>
-                        <th className="px-4 py-3 text-left">Uploaded By</th>
-                        <th className="px-4 py-3 text-center">Rows</th>
-                        <th className="px-4 py-3 text-center">Errors</th>
-                        <th className="px-4 py-3 text-center">Status</th>
-                        <th className="px-4 py-3 text-center">Date</th>
-                        <th className="px-4 py-3 text-center">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {uploads.map(u => (
-                        <tr key={u.id} className="hover:bg-muted/30">
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
-                              <span className="font-medium">{u.filename}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge className={typeColors[u.type]} variant="outline">{typeLabels[u.type]}</Badge>
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">{u.uploadedBy}</td>
-                          <td className="px-4 py-3 text-center">{u.rows.toLocaleString()}</td>
-                          <td className="px-4 py-3 text-center">
-                            {(u.errors ?? 0) > 0 ? (
-                              <span className="text-red-600 font-semibold">{u.errors}</span>
-                            ) : (
-                              <span className="text-emerald-600">✓</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <Badge className={statusColors[u.status]} variant="outline">{u.status}</Badge>
-                          </td>
-                          <td className="px-4 py-3 text-center text-xs text-muted-foreground">{u.uploadedAt}</td>
-                          <td className="px-4 py-3 text-center">
-                            <div className="flex justify-center gap-1">
-                              <Button variant="ghost" size="sm">
-                                <Eye className="h-3.5 w-3.5" />
-                              </Button>
-                              {u.status === "reviewing" && (
-                                <Button variant="ghost" size="sm" className="text-emerald-600"
-                                  onClick={() => {
-                                    setUploads(prev => prev.map(r => r.id === u.id ? { ...r, status: "processed" } : r));
-                                    toast({ title: "Approved", description: `${u.filename} has been approved.` });
-                                  }}>
-                                  <CheckCircle className="h-3.5 w-3.5" />
-                                </Button>
-                              )}
-                            </div>
-                          </td>
+                  {loading ? (
+                    <div className="p-8 space-y-3">
+                      {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+                    </div>
+                  ) : uploads.length === 0 ? (
+                    <div className="text-center py-12">
+                      <FileSpreadsheet className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                      <p className="text-muted-foreground mb-2">No uploads found</p>
+                      <p className="text-sm text-muted-foreground/70">Upload your first file to get started.</p>
+                    </div>
+                  ) : (
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b bg-muted/40 text-xs font-semibold uppercase text-muted-foreground">
+                          <th className="px-4 py-3 text-left">Filename</th>
+                          <th className="px-4 py-3 text-left">Type</th>
+                          <th className="px-4 py-3 text-left">Uploaded By</th>
+                          <th className="px-4 py-3 text-center">Rows</th>
+                          <th className="px-4 py-3 text-center">Errors</th>
+                          <th className="px-4 py-3 text-center">Status</th>
+                          <th className="px-4 py-3 text-center">Date</th>
+                          <th className="px-4 py-3 text-center">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y">
+                        {uploads.map(u => (
+                          <tr key={u.id} className="hover:bg-muted/30">
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                                <span className="font-medium">{u.filename}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <Badge className={typeColors[u.type]} variant="outline">{typeLabels[u.type]}</Badge>
+                            </td>
+                            <td className="px-4 py-3 text-muted-foreground">{u.uploadedBy}</td>
+                            <td className="px-4 py-3 text-center">{u.rows?.toLocaleString() ?? 0}</td>
+                            <td className="px-4 py-3 text-center">
+                              {(u.errors ?? 0) > 0 ? (
+                                <span className="text-red-600 font-semibold">{u.errors}</span>
+                              ) : (
+                                <span className="text-emerald-600">✓</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <Badge className={statusColors[u.status]} variant="outline">{u.status}</Badge>
+                            </td>
+                            <td className="px-4 py-3 text-center text-xs text-muted-foreground">
+                              {u.uploadedAt ? new Date(u.uploadedAt).toLocaleDateString() : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <div className="flex justify-center gap-1">
+                                <Button variant="ghost" size="sm">
+                                  <Eye className="h-3.5 w-3.5" />
+                                </Button>
+                                {u.status === "reviewing" && (
+                                  <Button variant="ghost" size="sm" className="text-emerald-600"
+                                    onClick={() => {
+                                      setUploads(prev => prev.map(r => r.id === u.id ? { ...r, status: "processed" } : r));
+                                      toast({ title: "Approved", description: `${u.filename} has been approved.` });
+                                    }}>
+                                    <CheckCircle className="h-3.5 w-3.5" />
+                                  </Button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
               </CardContent>
             </Card>

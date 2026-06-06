@@ -34,6 +34,7 @@ import sessionsRouter from "./sessions";
 import bulkRouter from "./bulk";
 import reconciliationRouter from "./reconciliation";
 import loginHistoryRouter from "./login_history";
+import excelUploadsRouter from "./excel-uploads";
 
 const router: IRouter = Router();
 
@@ -77,5 +78,6 @@ router.use(sessionsRouter);
 router.use(bulkRouter);
 router.use(reconciliationRouter);
 router.use(loginHistoryRouter);
+router.use(excelUploadsRouter);
 
 export default router;
