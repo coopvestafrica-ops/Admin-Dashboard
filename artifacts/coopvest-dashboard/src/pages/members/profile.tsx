@@ -62,7 +62,11 @@ export default function MemberProfile() {
   const { data: investments } = useGetInvestments({ memberId: 1 }, {
     query: { enabled: false }
   });
-  const transactions = { data: [] };
+  // Ensure these are always arrays
+  const loansData = loans?.data && Array.isArray(loans.data) ? loans.data : [];
+  const contributionsData = contributions?.data && Array.isArray(contributions.data) ? contributions.data : [];
+  const investmentsData = investments?.data && Array.isArray(investments.data) ? investments.data : [];
+  const transactions = { data: [] as any[] };
 
   useEffect(() => {
     if (!memberIdFromUrl) {
@@ -240,8 +244,8 @@ export default function MemberProfile() {
     activeMember.riskScore >= 60 ? "text-amber-600" :
     activeMember.riskScore >= 40 ? "text-orange-600" : "text-red-600";
 
-  const totalInvestments = (investments?.data ?? []).reduce((sum, i) => sum + Number(i.amount), 0);
-  const totalLoans = (loans?.data ?? []).reduce((sum, l) => sum + Number(l.amount), 0);
+  const totalInvestments = investmentsData.reduce((sum, i) => sum + Number(i.amount), 0);
+  const totalLoans = loansData.reduce((sum, l) => sum + Number(l.amount), 0);
   const netWorth = (activeMember.totalContributions || 0) + (activeMember.walletBalance || 0) + totalInvestments - (activeMember.activeLoan || 0);
 
   return (
@@ -487,7 +491,7 @@ export default function MemberProfile() {
                     <div className="grid grid-cols-5 gap-4 px-4 py-2 text-xs font-medium text-muted-foreground border-b">
                       <span>Month</span><span>Amount</span><span>Method</span><span>Status</span><span>Date</span>
                     </div>
-                    {(contributions?.data ?? []).map((c, i) => (
+                    {(contributionsData ?? []).map((c, i) => (
                       <div key={c.id} className={`grid grid-cols-5 gap-4 px-4 py-3 items-center text-sm hover:bg-muted/50 ${i % 2 === 0 ? "bg-muted/20" : ""}`}>
                         <span className="font-medium">{c.month}</span>
                         <span className={`font-semibold ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(c.amount)}</span>
@@ -510,7 +514,7 @@ export default function MemberProfile() {
                 <Button size="sm" variant="outline"><Download className="h-4 w-4 mr-1" /> Export</Button>
               </CardHeader>
               <CardContent>
-                {(loans?.data?.length ?? 0) === 0 ? (
+                {(loansData?.length ?? 0) === 0 ? (
                   <div className="text-center py-12">
                     <CreditCard className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
                     <p className="text-muted-foreground">No loans found</p>
@@ -531,7 +535,7 @@ export default function MemberProfile() {
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-                        {(loans?.data ?? []).map((loan) => (
+                        {(loansData ?? []).map((loan) => (
                           <tr key={loan.id} className="hover:bg-muted/50">
                             <td className="py-3 font-mono text-xs">{loan.loanId}</td>
                             <td className="py-3">{loan.loanType || "Standard"}</td>
@@ -568,7 +572,7 @@ export default function MemberProfile() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {(investments?.data ?? []).map((inv) => (
+                    {(investmentsData ?? []).map((inv) => (
                       <div key={inv.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
                         <div className="flex items-center gap-4">
                           <div className="h-10 w-10 bg-emerald-100 rounded-lg flex items-center justify-center">
@@ -609,7 +613,7 @@ export default function MemberProfile() {
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    {(transactions?.data ?? []).map((tx, i) => (
+                    {(transactions.data ?? []).map((tx, i) => (
                       <div key={tx.id} className={`flex items-center justify-between p-4 hover:bg-muted/50 ${i % 2 === 0 ? "bg-muted/20" : ""}`}>
                         <div className="flex items-center gap-3">
                           <div className={`h-8 w-8 rounded-full flex items-center justify-center ${tx.type === "credit" ? "bg-emerald-100" : "bg-red-100"}`}>

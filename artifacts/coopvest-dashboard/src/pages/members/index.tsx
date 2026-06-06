@@ -140,7 +140,16 @@ export default function Members() {
   }, [data, isLoading, error]);
 
   // Safely extract members data with fallbacks
-  const members = extractArray<any>(data);
+  const rawData = data;
+  let members: any[] = [];
+  
+  if (Array.isArray(rawData)) {
+    members = rawData;
+  } else if (rawData && typeof rawData === 'object' && 'data' in rawData) {
+    const d = (rawData as any).data;
+    members = Array.isArray(d) ? d : [];
+  }
+  
   const total = (data && typeof data === 'object' && typeof (data as any).total === 'number') ? (data as any).total : 0;
   const totalPages = total > 0 ? Math.ceil(total / 20) : 0;
 
@@ -157,7 +166,7 @@ export default function Members() {
   // Make a copy to avoid mutating defaultStats
   const safeStats: StatCard[] = [...defaultStats];
   
-  // Override with API data if available
+  // Override with API data if available - with proper null checks
   if (statsData && typeof statsData === 'object' && !Array.isArray(statsData)) {
     const sd = statsData as Record<string, unknown>;
     if (typeof sd.total === 'number') safeStats[0].value = sd.total;
