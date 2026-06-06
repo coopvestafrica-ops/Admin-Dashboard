@@ -72,6 +72,60 @@ router.get("/loans", async (req, res): Promise<void> => {
 });
 
 // Fix #2: Validate POST body with Zod before inserting
+// POST /loans/apply - Mobile app endpoint for applying loans
+router.post("/loans/apply", async (req, res): Promise<void> => {
+  try {
+    // Mobile app sends: { memberId, amount, tenure, purpose, guarantorIds? }
+    const { memberId, amount, tenure, purpose, guarantorIds } = req.body;
+    
+    if (!memberId || !amount || !tenure) {
+      res.status(400).json({ error: "Missing required fields: memberId, amount, tenure" });
+      return;
+    }
+
+    const loanId = "LN-" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
+    const interestRate = 10; // 10% base rate
+    const monthlyPayment = (amount * (interestRate / 100 / 12)) / (1 - Math.pow(1 + interestRate / 100 / 12, -tenure));
+
+    const { data: loan, error } = await supabase.from("loans").insert({
+      loan_id: loanId, profile_id: memberId, loan_type: "Quick Loan",
+      amount, tenure_months: tenure, purpose: purpose || "Personal",
+      base_interest_rate: interestRate, referral_bonus_percent: 0,
+      effective_interest_rate: interestRate,
+      monthly_repayment: Number(monthlyPayment.toFixed(2)),
+      total_repayment: Number((monthlyPayment * tenure).toFixed(2)),
+      remaining_balance: amount, remaining_months: tenure, status: "pending",
+    }).select().single();
+
+    if (error) { res.status(500).json({ error: error.message }); return; }
+
+    // Add guarantors if provided
+    if (guarantorIds && Array.isArray(guarantorIds)) {
+      const guarantorRecords = guarantorIds.map((gid: string) => ({
+        loan_id: loan.id, profile_id: gid, status: "pending", confirmed_at: null,
+      }));
+      await supabase.from("loan_guarantors").insert(guarantorRecords);
+    }
+
+    const { data: profile } = await supabase.from("profiles").select("name").eq("id", memberId).single();
+
+    res.status(201).json({
+      success: true, loanId: loan.loan_id,
+      message: "Loan application submitted successfully",
+      loan: {
+        id: loan.id, loanId: loan.loan_id, memberId: loan.profile_id,
+        memberName: profile?.name ?? "", amount: Number(loan.amount),
+        balance: Number(loan.remaining_balance), interestRate: Number(loan.effective_interest_rate),
+        tenure: loan.tenure_months, status: loan.status, purpose: loan.purpose,
+        monthlyPayment: Number(loan.monthly_repayment), createdAt: loan.created_at,
+      },
+    });
+  } catch (err) {
+    console.error("Loan apply error:", err);
+    res.status(500).json({ error: "Failed to process loan application" });
+  }
+});
+
 router.post("/loans", async (req, res): Promise<void> => {
   const parsed = CreateLoanBody.safeParse(req.body);
   if (!parsed.success) {
