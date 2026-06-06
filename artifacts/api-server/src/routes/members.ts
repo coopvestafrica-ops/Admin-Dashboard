@@ -129,4 +129,142 @@ router.get("/members/user/:userId", async (req, res): Promise<void> => {
   res.json({ id: profile.id, memberId: profile.user_id, firstName, lastName, email: profile.email, phone: profile.phone ?? "", status: deriveStatus(profile), joinDate: profile.created_at?.slice(0, 10) ?? null, address: null, occupation: null, createdAt: profile.created_at, totalContributions, activeLoan, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" });
 });
 
+// Update member status and other fields
+router.patch("/members/:id", async (req, res): Promise<void> => {
+  const id = req.params.id;
+  const { status, kyc_verified, is_flagged, is_active } = req.body;
+
+  // Build update object
+  const updates: Record<string, any> = {};
+  
+  if (status !== undefined) {
+    // Map status string to database fields
+    switch (status) {
+      case "active":
+        updates.is_active = true;
+        updates.kyc_verified = true;
+        updates.is_flagged = false;
+        break;
+      case "suspended":
+        updates.is_active = false;
+        updates.is_flagged = true;
+        break;
+      case "inactive":
+        updates.is_active = false;
+        updates.is_flagged = false;
+        break;
+      case "pending":
+        updates.is_active = true;
+        updates.kyc_verified = false;
+        updates.is_flagged = false;
+        break;
+      case "frozen":
+        updates.is_active = false;
+        updates.is_flagged = true;
+        break;
+    }
+  }
+
+  // Allow direct field updates too
+  if (kyc_verified !== undefined) updates.kyc_verified = kyc_verified;
+  if (is_flagged !== undefined) updates.is_flagged = is_flagged;
+  if (is_active !== undefined) updates.is_active = is_active;
+
+  if (Object.keys(updates).length === 0) {
+    res.status(400).json({ error: "No valid fields to update" });
+    return;
+  }
+
+  updates.updated_at = new Date().toISOString();
+
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) { 
+    console.error("Error updating member:", error);
+    res.status(500).json({ error: error.message }); 
+    return; 
+  }
+  
+  if (!profile) {
+    res.status(404).json({ error: "Member not found" });
+    return;
+  }
+
+  const { firstName, lastName } = splitName(profile.name);
+  res.json({ id: profile.id, memberId: profile.user_id, firstName, lastName, email: profile.email, phone: profile.phone ?? "", status: deriveStatus(profile), joinDate: profile.created_at?.slice(0, 10) ?? null, address: null, occupation: null, createdAt: profile.created_at, totalContributions: 0, activeLoan: 0, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" });
+});
+
+// Also support PUT method for update (OpenAPI spec uses PUT)
+router.put("/members/:id", async (req, res): Promise<void> => {
+  const id = req.params.id;
+  const { status, kyc_verified, is_flagged, is_active } = req.body;
+
+  // Build update object
+  const updates: Record<string, any> = {};
+  
+  if (status !== undefined) {
+    switch (status) {
+      case "active":
+        updates.is_active = true;
+        updates.kyc_verified = true;
+        updates.is_flagged = false;
+        break;
+      case "suspended":
+        updates.is_active = false;
+        updates.is_flagged = true;
+        break;
+      case "inactive":
+        updates.is_active = false;
+        updates.is_flagged = false;
+        break;
+      case "pending":
+        updates.is_active = true;
+        updates.kyc_verified = false;
+        updates.is_flagged = false;
+        break;
+      case "frozen":
+        updates.is_active = false;
+        updates.is_flagged = true;
+        break;
+    }
+  }
+
+  if (kyc_verified !== undefined) updates.kyc_verified = kyc_verified;
+  if (is_flagged !== undefined) updates.is_flagged = is_flagged;
+  if (is_active !== undefined) updates.is_active = is_active;
+
+  if (Object.keys(updates).length === 0) {
+    res.status(400).json({ error: "No valid fields to update" });
+    return;
+  }
+
+  updates.updated_at = new Date().toISOString();
+
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) { 
+    console.error("Error updating member:", error);
+    res.status(500).json({ error: error.message }); 
+    return; 
+  }
+  
+  if (!profile) {
+    res.status(404).json({ error: "Member not found" });
+    return;
+  }
+
+  const { firstName, lastName } = splitName(profile.name);
+  res.json({ id: profile.id, memberId: profile.user_id, firstName, lastName, email: profile.email, phone: profile.phone ?? "", status: deriveStatus(profile), joinDate: profile.created_at?.slice(0, 10) ?? null, address: null, occupation: null, createdAt: profile.created_at, totalContributions: 0, activeLoan: 0, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" });
+});
+
 export default router;
