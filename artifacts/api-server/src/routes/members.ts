@@ -406,4 +406,51 @@ router.post("/members/:id/role", requireAuth, requireRole("super_admin"), async 
   });
 });
 
+// Delete member - only super_admin can delete members
+router.delete("/members/:id", requireAuth, requireRole("super_admin"), async (req, res): Promise<void> => {
+  const id = req.params.id;
+
+  // First check if member exists
+  const { data: profile, error: fetchError } = await supabase
+    .from("profiles")
+    .select("id, email, name, role")
+    .eq("id", id)
+    .single();
+
+  if (fetchError || !profile) {
+    res.status(404).json({ error: "Member not found" });
+    return;
+  }
+
+  // Prevent deleting yourself
+  const userId = (req as any).user?.id;
+  if (profile.id === userId) {
+    res.status(400).json({ error: "Cannot delete your own account" });
+    return;
+  }
+
+  // Prevent deleting other super_admins
+  if (profile.role === "super_admin") {
+    res.status(403).json({ error: "Cannot delete another super admin" });
+    return;
+  }
+
+  // Delete the profile
+  const { error: deleteError } = await supabase
+    .from("profiles")
+    .delete()
+    .eq("id", id);
+
+  if (deleteError) {
+    console.error("Error deleting member:", deleteError);
+    res.status(500).json({ error: deleteError.message });
+    return;
+  }
+
+  res.json({ 
+    success: true, 
+    message: `Member ${profile.name} (${profile.email}) has been deleted` 
+  });
+});
+
 export default router;

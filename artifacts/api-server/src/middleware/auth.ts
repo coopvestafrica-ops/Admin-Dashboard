@@ -3,7 +3,7 @@ import { supabase } from "@workspace/db";
 
 // Extend Express Request to carry the authenticated user and their role
 export interface AuthenticatedRequest extends Request {
-  user: { id: string; email?: string; role?: string };
+  user: { id: string; email?: string; role?: string; profileId?: string };
 }
 
 // ── Fix #4: requireAuth – verify JWT and attach user + role ──────────────────
@@ -27,16 +27,31 @@ export async function requireAuth(
     return;
   }
 
-  // Read the user's role from app_metadata (set by your admin edge function / Supabase backend)
-  const role =
-    (data.user.app_metadata?.role as string | undefined) ??
-    (data.user.user_metadata?.role as string | undefined) ??
-    "member";
+  // Get user email for profile lookup
+  const userEmail = data.user.email;
+
+  // Fetch user role from profiles table
+  let userRole = "member";
+  let profileId = "";
+
+  if (userEmail) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, role")
+      .eq("email", userEmail)
+      .single();
+
+    if (profile) {
+      userRole = profile.role || "member";
+      profileId = profile.id;
+    }
+  }
 
   (req as AuthenticatedRequest).user = {
     id: data.user.id,
-    email: data.user.email,
-    role,
+    email: userEmail,
+    role: userRole,
+    profileId,
   };
 
   next();

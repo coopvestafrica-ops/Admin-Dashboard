@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetMembers, useGetMemberStats } from "@workspace/api-client-react";
-import { Search, UserPlus, Users, UserCheck, UserX, Clock, ShieldAlert, AlertTriangle, CheckCircle2, MoreVertical, Ban, Lock, KeyRound, Unlock, CreditCard, ArrowUpDown, Download, Upload, Crown, Shield } from "lucide-react";
+import { Search, UserPlus, Users, UserCheck, UserX, Clock, ShieldAlert, AlertTriangle, CheckCircle2, MoreVertical, Ban, Lock, KeyRound, Unlock, CreditCard, ArrowUpDown, Download, Upload, Crown, Shield, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
@@ -46,7 +46,7 @@ const statusColors: Record<string, string> = {
   frozen: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
 };
 
-type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verify" | "restrict_loans" | "upgrade" | "downgrade" | "change_contribution" | "make_admin" | "remove_admin";
+type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verify" | "restrict_loans" | "upgrade" | "downgrade" | "change_contribution" | "make_admin" | "remove_admin" | "delete";
 
 export default function Members() {
   const [, setLocation] = useLocation();
@@ -105,6 +105,28 @@ export default function Members() {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to update role');
+    }
+
+    return response.json();
+  };
+
+  // Direct API call for deleting members (only super_admin can do this)
+  const deleteMember = async (memberId: string) => {
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token || '';
+
+    const response = await fetch(`${baseUrl}/api/members/${memberId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to delete member');
     }
 
     return response.json();
@@ -212,6 +234,7 @@ export default function Members() {
       change_contribution: `Contribution method updated for ${memberName}.`,
       make_admin: `${memberName} has been granted admin privileges.`,
       remove_admin: `Admin privileges removed from ${memberName}.`,
+      delete: `${memberName} has been deleted.`,
     };
 
     try {
@@ -221,6 +244,9 @@ export default function Members() {
         toast({ title: "Success", description: messages[action] || "Action completed." });
       } else if (action === "remove_admin") {
         await updateMemberRole(memberId, "member");
+        toast({ title: "Success", description: messages[action] || "Action completed." });
+      } else if (action === "delete") {
+        await deleteMember(memberId);
         toast({ title: "Success", description: messages[action] || "Action completed." });
       } else {
         const updates = statusMap[action];
@@ -467,6 +493,10 @@ export default function Members() {
                                       <Crown className="mr-2 h-4 w-4" /> Make Admin
                                     </DropdownMenuItem>
                                   )}
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => openAction(member.id, "delete", `${member.firstName} ${member.lastName}`)} className="text-red-600 font-semibold">
+                                    <Trash2 className="mr-2 h-4 w-4" /> Delete Member
+                                  </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </td>
@@ -511,6 +541,9 @@ export default function Members() {
               {actionDialog.action === "upgrade" && "Upgrade Account"}
               {actionDialog.action === "downgrade" && "Downgrade Account"}
               {actionDialog.action === "change_contribution" && "Change Contribution Method"}
+              {actionDialog.action === "make_admin" && "Make Admin"}
+              {actionDialog.action === "remove_admin" && "Remove Admin"}
+              {actionDialog.action === "delete" && "Delete Member"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -549,7 +582,7 @@ export default function Members() {
             <Button
               onClick={executeAction}
               disabled={isProcessing}
-              variant={["suspend", "freeze", "restrict_loans", "downgrade", "remove_admin"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
+              variant={["suspend", "freeze", "restrict_loans", "downgrade", "remove_admin", "delete"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
             >
               {isProcessing ? "Processing…" : "Confirm"}
             </Button>
