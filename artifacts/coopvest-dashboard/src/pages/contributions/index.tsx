@@ -42,8 +42,10 @@ export default function Contributions() {
 
   const { data: summary, isLoading: loadingSummary } = useGetContributionSummary();
   const { data, isLoading } = useGetContributions({ page, limit: 20 });
-  const { data: trendsData } = useGetMonthlyContributions();
+  const { data: trendsRaw } = useGetMonthlyContributions();
 
+  const contributions = Array.isArray(data?.data) ? data.data : [];
+  const trendsData = Array.isArray(trendsRaw) ? trendsRaw : [];
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / 20);
 
@@ -201,10 +203,10 @@ export default function Contributions() {
                           </tr>
                         </thead>
                         <tbody className="divide-y">
-                          {data.data
+                          {contributions
                             .filter((c) => {
-                              if (tab === "pending") return c.status === "pending";
-                              if (tab === "missed") return c.status === "overdue";
+                              if (activeTab === "pending") return c.status === "pending";
+                              if (activeTab === "missed") return c.status === "overdue";
                               return true;
                             })
                             .filter((c) => !search || c.memberName?.toLowerCase().includes(search.toLowerCase()))
@@ -316,13 +318,14 @@ export default function Contributions() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {((trendsData ?? []).map((t) => ({ month: t.month, collected: t.value, missed: 0 }))).map((t: { month: string; collected: number; missed: number }) => {
-                      const rate = ((t.collected / (t.collected + t.missed)) * 100).toFixed(1);
+                    {trendsData.map((t) => {
+                      const transformed = { month: t.month, collected: t.value, missed: 0 };
+                      const rate = ((transformed.collected / (transformed.collected + transformed.missed)) * 100).toFixed(1);
                       return (
-                        <tr key={t.month} className="hover:bg-muted/30">
-                          <td className="px-4 py-2.5">{t.month}</td>
-                          <td className="px-4 py-2.5 text-right font-medium text-emerald-700">{formatCurrency(t.collected)}</td>
-                          <td className="px-4 py-2.5 text-right text-red-600">{formatCurrency(t.missed)}</td>
+                        <tr key={transformed.month} className="hover:bg-muted/30">
+                          <td className="px-4 py-2.5">{transformed.month}</td>
+                          <td className="px-4 py-2.5 text-right font-medium text-emerald-700">{formatCurrency(transformed.collected)}</td>
+                          <td className="px-4 py-2.5 text-right text-red-600">{formatCurrency(transformed.missed)}</td>
                           <td className="px-4 py-2.5 text-right">
                             <span className={`font-semibold ${Number(rate) >= 95 ? "text-emerald-600" : Number(rate) >= 85 ? "text-amber-600" : "text-red-600"}`}>
                               {rate}%
