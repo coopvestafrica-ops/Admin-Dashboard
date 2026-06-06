@@ -461,7 +461,7 @@ export default function ExcelManager() {
                       </tr>
                     </thead>
                     <tbody className="divide-y">
-                      {uploads.filter(u => u.type === "reconciliation" || u.type === "payroll").map(u => (
+                      {(uploads.filter(u => u.type === "reconciliation" || u.type === "payroll") || []).map(u => (
                         <tr key={u.id} className="hover:bg-muted/30">
                           <td className="px-4 py-2.5">
                             <div className="flex items-center gap-2">
