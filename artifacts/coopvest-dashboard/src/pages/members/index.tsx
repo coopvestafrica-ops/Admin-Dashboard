@@ -7,16 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetMembers, useGetMemberStats, useUpdateMember } from "@workspace/api-client-react";
-import { Search, UserPlus, Users, UserCheck, UserX, Clock, ShieldAlert, AlertTriangle, CheckCircle2, MoreVertical, Ban, Lock, KeyRound, Unlock, CreditCard, ArrowUpDown, Download, Upload } from "lucide-react";
+import { useGetMembers, useGetMemberStats } from "@workspace/api-client-react";
+import { Search, UserPlus, Users, UserCheck, UserX, Clock, ShieldAlert, AlertTriangle, CheckCircle2, MoreVertical, Ban, Lock, KeyRound, Unlock, CreditCard, ArrowUpDown, Download, Upload, Crown, Shield } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 
 // Type for stats cards
 interface StatCard {
@@ -45,7 +46,7 @@ const statusColors: Record<string, string> = {
   frozen: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
 };
 
-type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verify" | "restrict_loans" | "upgrade" | "downgrade" | "change_contribution";
+type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verify" | "restrict_loans" | "upgrade" | "downgrade" | "change_contribution" | "make_admin" | "remove_admin";
 
 export default function Members() {
   const [, setLocation] = useLocation();
@@ -54,14 +55,37 @@ export default function Members() {
   const [riskFilter, setRiskFilter] = useState<string>("");
   const [page, setPage] = useState(1);
   const [activeTab, setActiveTab] = useState("all");
-  const [actionDialog, setActionDialog] = useState<{ open: boolean; memberId: number | null; action: AdminAction | null; memberName: string }>({
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [actionDialog, setActionDialog] = useState<{ open: boolean; memberId: string | null; action: AdminAction | null; memberName: string }>({
     open: false, memberId: null, action: null, memberName: "",
   });
   const [actionNote, setActionNote] = useState("");
   const [contributionMethod, setContributionMethod] = useState("monthly");
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const updateMember = useUpdateMember();
+
+  // Direct API call for member updates
+  const updateMemberApi = async (memberId: string, updates: any) => {
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token || '';
+
+    const response = await fetch(`${baseUrl}/api/members/${memberId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updates),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Update failed');
+    }
+
+    return response.json();
+  };
 
   // Map tabs to filter params
   const tabToStatus: Record<string, string> = {
@@ -134,16 +158,19 @@ export default function Members() {
 
   async function executeAction() {
     if (!actionDialog.memberId || !actionDialog.action) return;
+    setIsProcessing(true);
     const { action, memberId, memberName } = actionDialog;
 
-    const statusMap: Partial<Record<AdminAction, string>> = {
-      suspend: "suspended",
-      freeze: "frozen",
-      activate: "active",
-      verify: "active",
+    const statusMap: Record<string, any> = {
+      suspend: { status: "suspended" },
+      freeze: { status: "frozen" },
+      activate: { status: "active" },
+      verify: { status: "active", kyc_verified: true },
+      make_admin: { role: "admin" },
+      remove_admin: { role: "member" },
     };
 
-    const messages: Record<AdminAction, string> = {
+    const messages: Record<string, string> = {
       suspend: `${memberName} has been suspended.`,
       freeze: `${memberName}'s account has been frozen.`,
       activate: `${memberName}'s account has been activated.`,
@@ -153,19 +180,24 @@ export default function Members() {
       upgrade: `${memberName}'s account has been upgraded.`,
       downgrade: `${memberName}'s account has been downgraded.`,
       change_contribution: `Contribution method updated for ${memberName}.`,
+      make_admin: `${memberName} has been granted admin privileges.`,
+      remove_admin: `Admin privileges removed from ${memberName}.`,
     };
 
     try {
-      if (statusMap[action]) {
-        await updateMember.mutateAsync({ id: memberId, data: { status: statusMap[action] as any } });
+      const updates = statusMap[action];
+      if (updates) {
+        await updateMemberApi(memberId, updates);
       }
-      // For non-status actions we'd call specific endpoints — here we show success toast
-      toast({ title: "Action Completed", description: messages[action] });
+      toast({ title: "Success", description: messages[action] || "Action completed." });
       queryClient.invalidateQueries({ queryKey: ["getMembers"] });
       queryClient.invalidateQueries({ queryKey: ["getMemberStats"] });
       closeAction();
-    } catch {
-      toast({ title: "Error", description: "Action failed. Please try again.", variant: "destructive" });
+    } catch (err: any) {
+      console.error('Update error:', err);
+      toast({ title: "Error", description: err.message || "Action failed. Please try again.", variant: "destructive" });
+    } finally {
+      setIsProcessing(false);
     }
   }
 
@@ -380,12 +412,15 @@ export default function Members() {
                                     <ArrowUpDown className="mr-2 h-4 w-4" /> Change Contribution Method
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem onClick={() => openAction(member.id, "upgrade", `${member.firstName} ${member.lastName}`)}>
-                                    Upgrade Account
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => openAction(member.id, "downgrade", `${member.firstName} ${member.lastName}`)}>
-                                    Downgrade Account
-                                  </DropdownMenuItem>
+                                  {member.role === 'admin' ? (
+                                    <DropdownMenuItem onClick={() => openAction(member.id, "remove_admin", `${member.firstName} ${member.lastName}`)} className="text-amber-600">
+                                      <Shield className="mr-2 h-4 w-4" /> Remove Admin
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem onClick={() => openAction(member.id, "make_admin", `${member.firstName} ${member.lastName}`)} className="text-amber-600">
+                                      <Crown className="mr-2 h-4 w-4" /> Make Admin
+                                    </DropdownMenuItem>
+                                  )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </td>
@@ -467,10 +502,10 @@ export default function Members() {
             <Button variant="outline" onClick={closeAction}>Cancel</Button>
             <Button
               onClick={executeAction}
-              disabled={updateMember.isPending}
-              variant={["suspend", "freeze", "restrict_loans", "downgrade"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
+              disabled={isProcessing}
+              variant={["suspend", "freeze", "restrict_loans", "downgrade", "remove_admin"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
             >
-              {updateMember.isPending ? "Processing…" : "Confirm"}
+              {isProcessing ? "Processing…" : "Confirm"}
             </Button>
           </DialogFooter>
         </DialogContent>

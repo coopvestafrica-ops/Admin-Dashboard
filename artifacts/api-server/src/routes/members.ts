@@ -84,7 +84,28 @@ router.get("/members", async (req, res): Promise<void> => {
   res.json({
     data: (profiles ?? []).map(p => {
       const { firstName, lastName } = splitName(p.name);
-      return { id: p.id, memberId: p.user_id, firstName, lastName, email: p.email, phone: p.phone ?? "", status: deriveStatus(p), joinDate: p.created_at ? p.created_at.slice(0, 10) : null, address: null, occupation: null, createdAt: p.created_at, totalContributions: savingsMap.get(p.id) ?? 0, activeLoan: loanMap.get(p.id) ?? 0, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" };
+      return { 
+        id: p.id, 
+        memberId: p.user_id, 
+        firstName, 
+        lastName, 
+        email: p.email, 
+        phone: p.phone ?? "", 
+        status: deriveStatus(p), 
+        role: p.role || "member",
+        kycVerified: p.kyc_verified || false,
+        profilePicture: p.avatar_url || null,
+        occupation: p.occupation || null,
+        organization: p.organization || null,
+        employer: p.employer || null,
+        address: p.address || null,
+        joinDate: p.created_at ? p.created_at.slice(0, 10) : null, 
+        createdAt: p.created_at, 
+        totalContributions: savingsMap.get(p.id) ?? 0, 
+        activeLoan: loanMap.get(p.id) ?? 0, 
+        riskScore: 0, 
+        avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" 
+      };
     }),
     total: count ?? 0, page, limit,
   });
@@ -130,79 +151,9 @@ router.get("/members/user/:userId", async (req, res): Promise<void> => {
 });
 
 // Update member status and other fields
-router.patch("/members/:id", async (req, res): Promise<void> => {
-  const id = req.params.id;
-  const { status, kyc_verified, is_flagged, is_active } = req.body;
-
-  // Build update object
-  const updates: Record<string, any> = {};
-  
-  if (status !== undefined) {
-    // Map status string to database fields
-    switch (status) {
-      case "active":
-        updates.is_active = true;
-        updates.kyc_verified = true;
-        updates.is_flagged = false;
-        break;
-      case "suspended":
-        updates.is_active = false;
-        updates.is_flagged = true;
-        break;
-      case "inactive":
-        updates.is_active = false;
-        updates.is_flagged = false;
-        break;
-      case "pending":
-        updates.is_active = true;
-        updates.kyc_verified = false;
-        updates.is_flagged = false;
-        break;
-      case "frozen":
-        updates.is_active = false;
-        updates.is_flagged = true;
-        break;
-    }
-  }
-
-  // Allow direct field updates too
-  if (kyc_verified !== undefined) updates.kyc_verified = kyc_verified;
-  if (is_flagged !== undefined) updates.is_flagged = is_flagged;
-  if (is_active !== undefined) updates.is_active = is_active;
-
-  if (Object.keys(updates).length === 0) {
-    res.status(400).json({ error: "No valid fields to update" });
-    return;
-  }
-
-  updates.updated_at = new Date().toISOString();
-
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .update(updates)
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error) { 
-    console.error("Error updating member:", error);
-    res.status(500).json({ error: error.message }); 
-    return; 
-  }
-  
-  if (!profile) {
-    res.status(404).json({ error: "Member not found" });
-    return;
-  }
-
-  const { firstName, lastName } = splitName(profile.name);
-  res.json({ id: profile.id, memberId: profile.user_id, firstName, lastName, email: profile.email, phone: profile.phone ?? "", status: deriveStatus(profile), joinDate: profile.created_at?.slice(0, 10) ?? null, address: null, occupation: null, createdAt: profile.created_at, totalContributions: 0, activeLoan: 0, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" });
-});
-
-// Also support PUT method for update (OpenAPI spec uses PUT)
 router.put("/members/:id", async (req, res): Promise<void> => {
   const id = req.params.id;
-  const { status, kyc_verified, is_flagged, is_active } = req.body;
+  const { status, kyc_verified, is_flagged, is_active, role } = req.body;
 
   // Build update object
   const updates: Record<string, any> = {};
@@ -237,6 +188,7 @@ router.put("/members/:id", async (req, res): Promise<void> => {
   if (kyc_verified !== undefined) updates.kyc_verified = kyc_verified;
   if (is_flagged !== undefined) updates.is_flagged = is_flagged;
   if (is_active !== undefined) updates.is_active = is_active;
+  if (role !== undefined) updates.role = role;
 
   if (Object.keys(updates).length === 0) {
     res.status(400).json({ error: "No valid fields to update" });
@@ -264,7 +216,118 @@ router.put("/members/:id", async (req, res): Promise<void> => {
   }
 
   const { firstName, lastName } = splitName(profile.name);
-  res.json({ id: profile.id, memberId: profile.user_id, firstName, lastName, email: profile.email, phone: profile.phone ?? "", status: deriveStatus(profile), joinDate: profile.created_at?.slice(0, 10) ?? null, address: null, occupation: null, createdAt: profile.created_at, totalContributions: 0, activeLoan: 0, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" });
+  res.json({ 
+    id: profile.id, 
+    memberId: profile.user_id, 
+    firstName, 
+    lastName, 
+    email: profile.email, 
+    phone: profile.phone ?? "", 
+    status: deriveStatus(profile), 
+    role: profile.role || "member",
+    kycVerified: profile.kyc_verified || false,
+    profilePicture: profile.avatar_url || null,
+    occupation: profile.occupation || null,
+    organization: profile.organization || null,
+    employer: profile.employer || null,
+    joinDate: profile.created_at?.slice(0, 10) ?? null, 
+    address: profile.address || null,
+    occupation: profile.occupation || null, 
+    createdAt: profile.created_at, 
+    totalContributions: 0, 
+    activeLoan: 0, 
+    riskScore: 0, 
+    avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" 
+  });
+});
+
+// Also support PATCH method
+router.patch("/members/:id", async (req, res): Promise<void> => {
+  const id = req.params.id;
+  const { status, kyc_verified, is_flagged, is_active, role } = req.body;
+
+  const updates: Record<string, any> = {};
+  
+  if (status !== undefined) {
+    switch (status) {
+      case "active":
+        updates.is_active = true;
+        updates.kyc_verified = true;
+        updates.is_flagged = false;
+        break;
+      case "suspended":
+        updates.is_active = false;
+        updates.is_flagged = true;
+        break;
+      case "inactive":
+        updates.is_active = false;
+        updates.is_flagged = false;
+        break;
+      case "pending":
+        updates.is_active = true;
+        updates.kyc_verified = false;
+        updates.is_flagged = false;
+        break;
+      case "frozen":
+        updates.is_active = false;
+        updates.is_flagged = true;
+        break;
+    }
+  }
+
+  if (kyc_verified !== undefined) updates.kyc_verified = kyc_verified;
+  if (is_flagged !== undefined) updates.is_flagged = is_flagged;
+  if (is_active !== undefined) updates.is_active = is_active;
+  if (role !== undefined) updates.role = role;
+
+  if (Object.keys(updates).length === 0) {
+    res.status(400).json({ error: "No valid fields to update" });
+    return;
+  }
+
+  updates.updated_at = new Date().toISOString();
+
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) { 
+    console.error("Error updating member:", error);
+    res.status(500).json({ error: error.message }); 
+    return; 
+  }
+  
+  if (!profile) {
+    res.status(404).json({ error: "Member not found" });
+    return;
+  }
+
+  const { firstName, lastName } = splitName(profile.name);
+  res.json({ 
+    id: profile.id, 
+    memberId: profile.user_id, 
+    firstName, 
+    lastName, 
+    email: profile.email, 
+    phone: profile.phone ?? "", 
+    status: deriveStatus(profile), 
+    role: profile.role || "member",
+    kycVerified: profile.kyc_verified || false,
+    profilePicture: profile.avatar_url || null,
+    occupation: profile.occupation || null,
+    organization: profile.organization || null,
+    employer: profile.employer || null,
+    joinDate: profile.created_at?.slice(0, 10) ?? null, 
+    address: profile.address || null,
+    createdAt: profile.created_at, 
+    totalContributions: 0, 
+    activeLoan: 0, 
+    riskScore: 0, 
+    avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" 
+  });
 });
 
 export default router;
