@@ -21,7 +21,7 @@ export default function Investments() {
   const { data: portfolio, isLoading: loadingPortfolio } = useGetInvestmentPortfolio();
   const { data, isLoading } = useGetInvestments({ limit: 50 });
 
-  const investments = data?.data ?? [];
+  const investments = data?.data && Array.isArray(data.data) ? data.data : [];
 
   const typeBreakdown = Object.entries(
     investments.reduce((acc, inv) => {

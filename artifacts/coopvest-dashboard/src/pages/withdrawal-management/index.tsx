@@ -171,7 +171,7 @@ export default function WithdrawalManagement() {
       toast({ title: "Error", description: "Failed to update limit.", variant: "destructive" }),
   });
 
-  const withdrawals = data?.data ?? [];
+  const withdrawals = data?.data && Array.isArray(data.data) ? data.data : [];
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / 20);
 

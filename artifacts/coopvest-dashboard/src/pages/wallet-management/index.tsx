@@ -134,7 +134,7 @@ export default function WalletManagement() {
       toast({ title: "Error", description: "Failed to adjust balance.", variant: "destructive" }),
   });
 
-  const wallets = data?.data ?? [];
+  const wallets = data?.data && Array.isArray(data.data) ? data.data : [];
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / 20);
 
