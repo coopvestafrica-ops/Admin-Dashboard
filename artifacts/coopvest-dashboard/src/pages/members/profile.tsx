@@ -306,6 +306,8 @@ export default function MemberProfile() {
     );
   }
 
+  const activeMember = memberData;
+
   if (!activeMember) {
     return (
       <Layout>
