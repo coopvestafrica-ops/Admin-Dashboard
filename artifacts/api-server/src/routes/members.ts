@@ -144,37 +144,139 @@ router.post("/members", async (req, res): Promise<void> => {
   res.status(201).json({ id: profile.id, memberId: profile.user_id, firstName, lastName, email: profile.email, phone: profile.phone, status: "pending", joinDate: profile.created_at?.slice(0, 10) ?? null, address: address ?? null, occupation: occupation ?? null, createdAt: profile.created_at, totalContributions: 0, activeLoan: 0, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() });
 });
 
+// Pull a string field from a registration data blob, trying several key spellings.
+function pick(data: Record<string, any> | null | undefined, ...keys: string[]): string | null {
+  if (!data) return null;
+  for (const k of keys) {
+    const v = data[k];
+    if (v !== undefined && v !== null && String(v).trim() !== "") return String(v);
+  }
+  return null;
+}
+
+// Build the full member detail payload, gathering every piece of data the member
+// supplied at registration plus their KYC, documents, savings, wallet and loans.
+async function buildMemberDetail(profile: any) {
+  const id = profile.id;
+  const [
+    { data: savings },
+    { data: wallet },
+    { data: activeLoans },
+    { data: kyc },
+    { data: documents },
+    { data: bankAccounts },
+    { data: userRow },
+  ] = await Promise.all([
+    supabase.from("savings").select("*").eq("profile_id", id).maybeSingle(),
+    supabase.from("wallets").select("*").eq("profile_id", id).maybeSingle(),
+    supabase.from("loans").select("remaining_balance").eq("profile_id", id).eq("status", "active"),
+    supabase.from("kyc").select("*").eq("profile_id", id).maybeSingle(),
+    supabase.from("kyc_documents").select("*").eq("profile_id", id),
+    supabase.from("bank_accounts").select("*").eq("profile_id", id),
+    supabase.from("users").select("*").eq("email", profile.email).maybeSingle(),
+  ]);
+
+  // The full registration form lives in kyc_submissions.data (JSONB), keyed by the
+  // signup email. Fall back to the most recent submission for this email.
+  let registration: Record<string, any> | null = null;
+  let submittedAt: string | null = null;
+  if (profile.email) {
+    const { data: subs } = await supabase
+      .from("kyc_submissions")
+      .select("data, submitted_at")
+      .eq("data->>email", profile.email)
+      .order("submitted_at", { ascending: false })
+      .limit(1);
+    if (subs && subs.length > 0) {
+      registration = (subs[0].data as Record<string, any>) ?? null;
+      submittedAt = subs[0].submitted_at ?? null;
+    }
+  }
+
+  const totalContributions = Number(savings?.total_saved ?? 0);
+  const activeLoan = (activeLoans ?? []).reduce((sum: number, l: any) => sum + Number(l.remaining_balance || 0), 0);
+  const { firstName, lastName } = splitName(profile.name);
+
+  // Profile picture: prefer KYC selfie, then any photo field in the registration
+  // form, then a document front image.
+  const profilePicture =
+    (kyc as any)?.selfie ||
+    pick(registration, "selfie", "photo", "picture", "avatar", "passport", "passport_photo", "profile_picture", "image") ||
+    (documents && documents.length > 0 ? (documents[0] as any).front_image_url : null) ||
+    profile.avatar_url ||
+    null;
+
+  return {
+    id: profile.id,
+    memberId: profile.user_id,
+    firstName,
+    lastName,
+    fullName: profile.name ?? `${firstName} ${lastName}`.trim(),
+    email: profile.email,
+    phone: profile.phone ?? pick(registration, "phone") ?? "",
+    status: deriveStatus(profile),
+    role: profile.role || "member",
+    kycVerified: profile.kyc_verified || false,
+    kycStatus: (kyc as any)?.status || userRow?.kyc_status || (profile.kyc_verified ? "verified" : "pending"),
+    isActive: profile.is_active ?? null,
+    isFlagged: profile.is_flagged ?? null,
+    flaggedReason: profile.flagged_reason ?? null,
+    profilePicture,
+    // Registration / personal details (registration form first, then profile)
+    gender: pick(registration, "gender"),
+    dateOfBirth: pick(registration, "date_of_birth", "dob") || (kyc as any)?.date_of_birth || null,
+    address: pick(registration, "address") || (kyc as any)?.address || profile.address || null,
+    state: pick(registration, "state"),
+    lga: pick(registration, "lga"),
+    occupation: pick(registration, "occupation") || profile.occupation || null,
+    employer: pick(registration, "employer_name", "employer") || profile.employer || null,
+    workAddress: pick(registration, "work_address"),
+    employmentType: pick(registration, "employment_type"),
+    yearsOfEmployment: pick(registration, "years_of_employment"),
+    staffId: pick(registration, "staff_id", "employer_staff_id"),
+    idType: pick(registration, "id_type"),
+    idNumber: pick(registration, "id_number") || (kyc as any)?.national_id || null,
+    bvn: pick(registration, "bvn"),
+    nin: pick(registration, "nin"),
+    // Next of kin
+    nextOfKin: {
+      name: pick(registration, "nok_name"),
+      phone: pick(registration, "nok_phone"),
+      address: pick(registration, "nok_address"),
+      relationship: pick(registration, "nok_relationship"),
+    },
+    // Contribution preferences chosen at signup
+    monthlyAmount: pick(registration, "monthly_amount"),
+    contributionMethod: pick(registration, "contribution_method") || "monthly",
+    preferredPaymentDay: pick(registration, "preferred_payment_day"),
+    // Membership / account
+    membershipStatus: userRow?.membership_status ?? null,
+    referralCode: userRow?.referral_code ?? null,
+    emailVerified: userRow?.email_verified ?? null,
+    // Financials
+    walletBalance: Number((wallet as any)?.balance ?? 0),
+    totalContributions,
+    monthlySavings: Number(savings?.monthly_savings ?? 0),
+    consecutiveMonths: Number(savings?.consecutive_months ?? 0),
+    activeLoan,
+    riskScore: 0,
+    // Raw / nested data so the UI can render anything not explicitly mapped above
+    registration: registration ?? {},
+    kyc: kyc ?? null,
+    documents: documents ?? [],
+    bankAccounts: bankAccounts ?? [],
+    registrationSubmittedAt: submittedAt,
+    joinDate: profile.created_at?.slice(0, 10) ?? null,
+    createdAt: profile.created_at,
+    avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??",
+  };
+}
+
 router.get("/members/:id", async (req, res): Promise<void> => {
   const id = req.params.id;
   const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", id).single();
   if (error || !profile) { res.status(404).json({ error: "Member not found" }); return; }
-  const { data: savings }     = await supabase.from("savings").select("total_saved").eq("profile_id", id).single();
-  const { data: activeLoans } = await supabase.from("loans").select("remaining_balance").eq("profile_id", id).eq("status", "active");
-  const totalContributions = Number(savings?.total_saved ?? 0);
-  const activeLoan = (activeLoans ?? []).reduce((sum, l) => sum + Number(l.remaining_balance || 0), 0);
-  const { firstName, lastName } = splitName(profile.name);
-  res.json({ 
-    id: profile.id, 
-    memberId: profile.user_id, 
-    firstName, 
-    lastName, 
-    email: profile.email, 
-    phone: profile.phone ?? "", 
-    status: deriveStatus(profile), 
-    role: profile.role || "member",
-    kycVerified: profile.kyc_verified || false,
-    profilePicture: profile.avatar_url || null,
-    occupation: profile.occupation || null,
-    organization: profile.organization || null,
-    employer: profile.employer || null,
-    address: profile.address || null,
-    joinDate: profile.created_at?.slice(0, 10) ?? null, 
-    createdAt: profile.created_at, 
-    totalContributions, 
-    activeLoan, 
-    riskScore: 0, 
-    avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" 
-  });
+  res.json(await buildMemberDetail(profile));
 });
 
 // Get member by user_id (CVA-XXX format) - used by admin dashboard
@@ -182,33 +284,7 @@ router.get("/members/user/:userId", async (req, res): Promise<void> => {
   const userId = req.params.userId;
   const { data: profile, error } = await supabase.from("profiles").select("*").eq("user_id", userId).single();
   if (error || !profile) { res.status(404).json({ error: "Member not found" }); return; }
-  const { data: savings }     = await supabase.from("savings").select("total_saved").eq("profile_id", profile.id).single();
-  const { data: activeLoans } = await supabase.from("loans").select("remaining_balance").eq("profile_id", profile.id).eq("status", "active");
-  const totalContributions = Number(savings?.total_saved ?? 0);
-  const activeLoan = (activeLoans ?? []).reduce((sum, l) => sum + Number(l.remaining_balance || 0), 0);
-  const { firstName, lastName } = splitName(profile.name);
-  res.json({ 
-    id: profile.id, 
-    memberId: profile.user_id, 
-    firstName, 
-    lastName, 
-    email: profile.email, 
-    phone: profile.phone ?? "", 
-    status: deriveStatus(profile), 
-    role: profile.role || "member",
-    kycVerified: profile.kyc_verified || false,
-    profilePicture: profile.avatar_url || null,
-    occupation: profile.occupation || null,
-    organization: profile.organization || null,
-    employer: profile.employer || null,
-    address: profile.address || null,
-    joinDate: profile.created_at?.slice(0, 10) ?? null, 
-    createdAt: profile.created_at, 
-    totalContributions, 
-    activeLoan, 
-    riskScore: 0, 
-    avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" 
-  });
+  res.json(await buildMemberDetail(profile));
 });
 
 // Update member status and other fields
@@ -363,7 +439,6 @@ router.put("/members/:id", async (req, res): Promise<void> => {
     employer: profile.employer || null,
     joinDate: profile.created_at?.slice(0, 10) ?? null, 
     address: profile.address || null,
-    occupation: profile.occupation || null, 
     createdAt: profile.created_at, 
     totalContributions: 0, 
     activeLoan: 0, 
