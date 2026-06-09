@@ -13,6 +13,14 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
+function formatRole(role?: string | null): string {
+  if (!role) return "Member";
+  return role
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -35,37 +43,69 @@ export default function Profile() {
 
   // Load user data from Supabase
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user);
-        const meta = session.user.user_metadata || {};
-        setProfile({
-          firstName: meta.first_name || meta.full_name?.split(" ")[0] || "",
-          lastName: meta.last_name || meta.full_name?.split(" ").slice(1).join(" ") || "",
-          email: session.user.email || "",
-          phone: meta.phone || "",
-          role: "Admin",
-          department: meta.department || "",
-          avatar: meta.avatar_url || "",
-        });
-      }
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session?.user) return;
+      setUser(session.user);
+
+      const meta = session.user.user_metadata || {};
+      const email = session.user.email || "";
+
+      // Prefer the canonical profile row (real name, phone, role, department).
+      const { data: row } = await supabase
+        .from("profiles")
+        .select("name, phone, role, department")
+        .eq("email", email)
+        .single();
+
+      const fullName: string = row?.name || meta.name || meta.full_name || "";
+      const firstName = meta.first_name || fullName.split(" ")[0] || "";
+      const lastName =
+        meta.last_name || fullName.split(" ").slice(1).join(" ") || "";
+
+      setProfile({
+        firstName,
+        lastName,
+        email,
+        phone: row?.phone || meta.phone || "",
+        role: formatRole(row?.role),
+        department: row?.department || meta.department || "",
+        avatar: meta.avatar_url || "",
+      });
     });
   }, []);
 
   const handleSave = async () => {
     setSaving(true);
-    
+
+    const fullName = `${profile.firstName} ${profile.lastName}`.trim();
+
     try {
+      // Persist to the profiles table (source of truth shown across the app).
+      if (user?.email) {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update({
+            name: fullName,
+            phone: profile.phone,
+            department: profile.department || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("email", user.email);
+        if (profileError) throw profileError;
+      }
+
+      // Keep auth metadata in sync so it survives if the profile row is absent.
       const { error } = await supabase.auth.updateUser({
         data: {
+          name: fullName,
           first_name: profile.firstName,
           last_name: profile.lastName,
           phone: profile.phone,
           department: profile.department,
-        }
+        },
       });
-
       if (error) throw error;
+
       toast.success("Profile updated successfully");
     } catch (err) {
       toast.error("Failed to update profile");
