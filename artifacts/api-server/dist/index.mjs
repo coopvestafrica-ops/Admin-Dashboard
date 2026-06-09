@@ -36763,19 +36763,39 @@ var defaultContentSections = [
   { key: "about", label: "About Us", value: "Coopvest Africa is a cooperative investment and savings platform dedicated to empowering individuals and organizations through collective financial growth." }
 ];
 router16.get("/mobile-features", async (_req, res) => {
-  const features = await readData("mobile_features.json", defaultFeatures);
+  const { data: rows } = await supabase.from("mobile_features").select("key, label, enabled, updated_at");
+  const overrides = {};
+  for (const r of rows ?? []) overrides[r.key] = { enabled: r.enabled, updated_at: r.updated_at, label: r.label };
+  const features = defaultFeatures.map((f) => {
+    const o = overrides[f.id];
+    return {
+      ...f,
+      name: o?.label || f.name,
+      enabled: o ? !!o.enabled : f.enabled,
+      lastUpdated: o?.updated_at || f.updatedAt,
+      updatedAt: o?.updated_at || f.updatedAt,
+      updatedBy: f.updatedBy
+    };
+  });
   res.json({ features });
 });
 router16.put("/mobile-features/:id", async (req, res) => {
-  const features = await readData("mobile_features.json", defaultFeatures);
-  const idx = features.findIndex((f) => f.id === req.params.id);
-  if (idx === -1) {
+  const catalog = defaultFeatures.find((f) => f.id === req.params.id);
+  if (!catalog) {
     res.status(404).json({ error: "Feature not found" });
     return;
   }
-  features[idx] = { ...features[idx], ...req.body, updatedAt: (/* @__PURE__ */ new Date()).toISOString() };
-  await writeData("mobile_features.json", features);
-  res.json({ feature: features[idx], message: "Feature updated successfully" });
+  const enabled = req.body?.enabled !== void 0 ? !!req.body.enabled : catalog.enabled;
+  const now = (/* @__PURE__ */ new Date()).toISOString();
+  const { error } = await supabase.from("mobile_features").upsert({ key: req.params.id, label: req.body?.name || catalog.name, enabled, updated_at: now }, { onConflict: "key" });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({
+    feature: { ...catalog, enabled, lastUpdated: now, updatedAt: now },
+    message: "Feature updated successfully"
+  });
 });
 router16.get("/mobile-content/onboarding", async (_req, res) => {
   const slides = await readData("mobile_slides.json", defaultSlides);
@@ -36825,45 +36845,64 @@ var mobile_features_default = router16;
 // src/routes/roles.ts
 var import_express17 = __toESM(require_express2(), 1);
 var router17 = (0, import_express17.Router)();
-var defaultAdminUsers = [
-  { id: "1", name: "Olatunji Ayanlowo", email: "founder@coopvestafrica.com", role: "super_admin", status: "active", lastActive: (/* @__PURE__ */ new Date()).toISOString(), createdAt: "2024-01-01T00:00:00Z" },
-  { id: "2", name: "Adaeze Okonkwo", email: "adaeze@coopvestafrica.com", role: "admin", status: "active", lastActive: new Date(Date.now() - 864e5).toISOString(), createdAt: "2024-02-01T00:00:00Z" },
-  { id: "3", name: "Chukwuemeka Nwosu", email: "emeka@coopvestafrica.com", role: "operator", status: "active", lastActive: new Date(Date.now() - 36e5).toISOString(), createdAt: "2024-03-01T00:00:00Z" },
-  { id: "4", name: "Fatima Bello", email: "fatima@coopvestafrica.com", role: "operator", status: "active", lastActive: new Date(Date.now() - 72e5).toISOString(), createdAt: "2024-03-15T00:00:00Z" },
-  { id: "5", name: "Samuel Adeyemi", email: "samuel@coopvestafrica.com", role: "viewer", status: "inactive", lastActive: new Date(Date.now() - 6048e5).toISOString(), createdAt: "2024-04-01T00:00:00Z" }
-];
+var ADMIN_ROLES = ["super_admin", "admin", "operator", "viewer"];
 var ROLE_HIERARCHY2 = { super_admin: 4, admin: 3, operator: 2, viewer: 1 };
+function toAdmin(p) {
+  return {
+    id: p.id,
+    name: p.name || p.email || "Unknown",
+    email: p.email || "",
+    role: p.role || "viewer",
+    status: p.is_active ? "active" : "inactive",
+    lastActive: p.updated_at,
+    createdAt: p.created_at
+  };
+}
 router17.use(requireAuth);
 router17.get("/roles", requireRole("admin"), async (_req, res) => {
-  const adminUsers = await readData("admin_users.json", defaultAdminUsers);
-  res.json({ admins: adminUsers, roleHierarchy: ROLE_HIERARCHY2 });
-});
-router17.post("/roles", requireRole("admin"), async (req, res) => {
-  const adminUsers = await readData("admin_users.json", defaultAdminUsers);
-  const { name, email, role } = req.body;
-  const newUser = { id: String(Date.now()), name, email, role, status: "active", lastActive: (/* @__PURE__ */ new Date()).toISOString(), createdAt: (/* @__PURE__ */ new Date()).toISOString() };
-  adminUsers.push(newUser);
-  await writeData("admin_users.json", adminUsers);
-  res.status(201).json({ admin: newUser, message: "Admin user created successfully" });
-});
-router17.put("/roles/:id", requireRole("admin"), async (req, res) => {
-  const adminUsers = await readData("admin_users.json", defaultAdminUsers);
-  const { id } = req.params;
-  const { role, status } = req.body;
-  const idx = adminUsers.findIndex((u) => u.id === id);
-  if (idx === -1) {
-    res.status(404).json({ error: "User not found" });
+  const { data, error } = await supabase.from("profiles").select("id, name, email, role, is_active, updated_at, created_at").in("role", ADMIN_ROLES).order("created_at", { ascending: true });
+  if (error) {
+    res.status(500).json({ error: error.message });
     return;
   }
-  adminUsers[idx] = { ...adminUsers[idx], ...role && { role }, ...status && { status } };
-  await writeData("admin_users.json", adminUsers);
-  res.json({ admin: adminUsers[idx], message: "Role updated successfully" });
+  res.json({ admins: (data ?? []).map((p) => toAdmin(p)), roleHierarchy: ROLE_HIERARCHY2 });
+});
+router17.post("/roles", requireRole("admin"), async (req, res) => {
+  const { email, role } = req.body ?? {};
+  if (!email || !role) {
+    res.status(400).json({ error: "email and role are required" });
+    return;
+  }
+  const { data: profile } = await supabase.from("profiles").select("id").eq("email", email).maybeSingle();
+  if (!profile?.id) {
+    res.status(404).json({ error: "No registered user with that email. Ask them to sign up first." });
+    return;
+  }
+  const { data, error } = await supabase.from("profiles").update({ role, is_active: true, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", profile.id).select("id, name, email, role, is_active, updated_at, created_at").single();
+  if (error || !data) {
+    res.status(500).json({ error: error?.message || "Failed to assign role" });
+    return;
+  }
+  res.status(201).json({ admin: toAdmin(data), message: "Admin role assigned" });
+});
+router17.put("/roles/:id", requireRole("admin"), async (req, res) => {
+  const { role, status } = req.body ?? {};
+  const update = { updated_at: (/* @__PURE__ */ new Date()).toISOString() };
+  if (role) update.role = role;
+  if (status) update.is_active = status === "active";
+  const { data, error } = await supabase.from("profiles").update(update).eq("id", req.params.id).select("id, name, email, role, is_active, updated_at, created_at").single();
+  if (error || !data) {
+    res.status(404).json({ error: error?.message || "User not found" });
+    return;
+  }
+  res.json({ admin: toAdmin(data), message: "Role updated successfully" });
 });
 router17.delete("/roles/:id", requireRole("super_admin"), async (req, res) => {
-  let adminUsers = await readData("admin_users.json", defaultAdminUsers);
-  const { id } = req.params;
-  adminUsers = adminUsers.filter((u) => u.id !== id);
-  await writeData("admin_users.json", adminUsers);
+  const { error } = await supabase.from("profiles").update({ role: "member", updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", req.params.id);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
   res.json({ message: "Admin access revoked" });
 });
 var roles_default = router17;
@@ -36871,74 +36910,159 @@ var roles_default = router17;
 // src/routes/fraud_detection.ts
 var import_express18 = __toESM(require_express2(), 1);
 var router18 = (0, import_express18.Router)();
-var defaultFraudFlags = [];
+var RISK_LABEL = {
+  critical: "Critical",
+  high: "High",
+  medium: "Medium",
+  low: "Low"
+};
+var STATUS_LABEL = {
+  open: "Open",
+  under_review: "Under Review",
+  resolved: "Resolved",
+  escalated: "Escalated",
+  frozen: "Under Review"
+};
+function toCamel(a) {
+  return {
+    id: a.id,
+    user: a.user_name || "Unknown",
+    userId: a.user_id || "",
+    action: a.action || "",
+    riskLevel: RISK_LABEL[String(a.risk_level)] ?? a.risk_level ?? "Low",
+    timestamp: a.created_at,
+    status: STATUS_LABEL[String(a.status)] ?? a.status ?? "Open",
+    details: a.details || "",
+    amount: a.amount != null ? Number(a.amount) : void 0
+  };
+}
 router18.get("/fraud-detection", async (req, res) => {
-  const fraudFlags = await readData("fraud_flags.json", defaultFraudFlags);
-  const { riskLevel, status, page = 1, limit = 20 } = req.query;
-  let filtered = [...fraudFlags];
-  if (riskLevel) filtered = filtered.filter((f) => f.riskLevel === riskLevel);
-  if (status) filtered = filtered.filter((f) => f.status === status);
-  res.json({ flags: filtered, total: filtered.length, page: Number(page), limit: Number(limit) });
-});
-router18.get("/fraud-detection/stats", async (_req, res) => {
-  const fraudFlags = await readData("fraud_flags.json", defaultFraudFlags);
-  res.json({
-    totalFlagsToday: fraudFlags.filter((f) => new Date(f.timestamp) > new Date(Date.now() - 864e5)).length,
-    highRiskUsers: fraudFlags.filter((f) => f.riskLevel === "critical" || f.riskLevel === "high").length,
-    flaggedTransactions: fraudFlags.filter((f) => f.amount !== null).length,
-    resolvedCases: fraudFlags.filter((f) => f.status === "resolved").length,
-    openCases: fraudFlags.filter((f) => f.status === "open").length
-  });
-});
-router18.put("/fraud-detection/:id/action", async (req, res) => {
-  const fraudFlags = await readData("fraud_flags.json", defaultFraudFlags);
-  const { id } = req.params;
-  const { action } = req.body;
-  const flag = fraudFlags.find((f) => f.id === id);
-  if (!flag) {
-    res.status(404).json({ error: "Flag not found" });
+  const { riskLevel, status } = req.query;
+  let query = supabase.from("fraud_alerts").select("*").order("created_at", { ascending: false });
+  if (riskLevel) query = query.eq("risk_level", String(riskLevel).toLowerCase());
+  if (status) query = query.eq("status", String(status).toLowerCase());
+  const { data, error } = await query;
+  if (error) {
+    res.status(500).json({ error: error.message });
     return;
   }
-  const statusMap = { freeze: "frozen", clear: "resolved", escalate: "escalated", review: "under_review" };
-  flag.status = statusMap[action] ?? flag.status;
-  await writeData("fraud_flags.json", fraudFlags);
-  res.json({ flag, message: `Action '${action}' applied successfully` });
+  res.json((data ?? []).map((a) => toCamel(a)));
+});
+router18.get("/fraud-detection/stats", async (_req, res) => {
+  const { data } = await supabase.from("fraud_alerts").select("risk_level, status, amount, created_at");
+  const rows = data ?? [];
+  const since = Date.now() - 864e5;
+  res.json({
+    totalFlagsToday: rows.filter((f) => f.created_at && new Date(f.created_at).getTime() > since).length,
+    highRiskUsers: rows.filter((f) => f.risk_level === "critical" || f.risk_level === "high").length,
+    flaggedTransactions: rows.filter((f) => f.amount != null).length,
+    resolvedCases: rows.filter((f) => f.status === "resolved").length,
+    openCases: rows.filter((f) => f.status === "open").length
+  });
+});
+var ACTION_STATUS = {
+  freeze: "under_review",
+  clear: "resolved",
+  escalate: "escalated",
+  review: "under_review",
+  resolve: "resolved"
+};
+router18.patch("/fraud-detection/:id", async (req, res) => {
+  const action = String(req.body?.action ?? "");
+  const newStatus = ACTION_STATUS[action];
+  if (!newStatus) {
+    res.status(400).json({ error: "Unknown action" });
+    return;
+  }
+  const { data, error } = await supabase.from("fraud_alerts").update({ status: newStatus, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", req.params.id).select("*").single();
+  if (error || !data) {
+    res.status(404).json({ error: error?.message || "Alert not found" });
+    return;
+  }
+  res.json({ alert: toCamel(data), message: `Action '${action}' applied` });
+});
+router18.put("/fraud-detection/:id/action", async (req, res) => {
+  const action = String(req.body?.action ?? "");
+  const newStatus = ACTION_STATUS[action];
+  if (!newStatus) {
+    res.status(400).json({ error: "Unknown action" });
+    return;
+  }
+  const { data, error } = await supabase.from("fraud_alerts").update({ status: newStatus, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", req.params.id).select("*").single();
+  if (error || !data) {
+    res.status(404).json({ error: error?.message || "Alert not found" });
+    return;
+  }
+  res.json({ flag: toCamel(data), message: `Action '${action}' applied successfully` });
 });
 var fraud_detection_default = router18;
 
 // src/routes/organizations.ts
 var import_express19 = __toESM(require_express2(), 1);
 var router19 = (0, import_express19.Router)();
-var organizations = [
-  { id: "1", name: "Federal Ministry of Finance", type: "government", memberCount: 450, status: "active", dateAdded: "2024-01-15T00:00:00Z", contactEmail: "hr@finance.gov.ng", address: "Abuja, Nigeria" },
-  { id: "2", name: "First Bank of Nigeria", type: "private", memberCount: 320, status: "active", dateAdded: "2024-02-01T00:00:00Z", contactEmail: "staff@firstbank.com", address: "Lagos, Nigeria" },
-  { id: "3", name: "Lagos State University", type: "education", memberCount: 890, status: "active", dateAdded: "2024-02-20T00:00:00Z", contactEmail: "admin@lasu.edu.ng", address: "Lagos, Nigeria" },
-  { id: "4", name: "Dangote Group", type: "private", memberCount: 1200, status: "active", dateAdded: "2024-03-01T00:00:00Z", contactEmail: "hr@dangote.com", address: "Lagos, Nigeria" },
-  { id: "5", name: "Kano State Government", type: "government", memberCount: 670, status: "pending", dateAdded: "2024-05-10T00:00:00Z", contactEmail: "hr@kanostate.gov.ng", address: "Kano, Nigeria" }
-];
-var staff = {
-  "1": [{ id: "s1", name: "Abubakar Musa", email: "a.musa@finance.gov.ng", designation: "Senior Officer", memberId: "MBR-001" }, { id: "s2", name: "Grace Okafor", email: "g.okafor@finance.gov.ng", designation: "Analyst", memberId: "MBR-002" }],
-  "2": [{ id: "s3", name: "Tunde Bakare", email: "t.bakare@firstbank.com", designation: "Branch Manager", memberId: "MBR-003" }]
-};
+function toCamel2(o) {
+  return {
+    id: o.id,
+    name: o.name || "",
+    type: o.type || "",
+    memberCount: o.member_count ?? 0,
+    status: o.status || "active",
+    dateAdded: o.date_added,
+    contactEmail: o.contact_email || "",
+    address: o.address || ""
+  };
+}
 router19.get("/organizations", async (_req, res) => {
+  const { data, error } = await supabase.from("organizations").select("*").order("date_added", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  const organizations = (data ?? []).map((o) => toCamel2(o));
   res.json({ organizations, total: organizations.length });
 });
 router19.post("/organizations", async (req, res) => {
-  const org = { id: String(Date.now()), ...req.body, memberCount: 0, dateAdded: (/* @__PURE__ */ new Date()).toISOString() };
-  organizations.push(org);
-  res.status(201).json({ organization: org });
-});
-router19.put("/organizations/:id", async (req, res) => {
-  const idx = organizations.findIndex((o) => o.id === req.params.id);
-  if (idx === -1) {
-    res.status(404).json({ error: "Organization not found" });
+  const b = req.body ?? {};
+  const { data, error } = await supabase.from("organizations").insert({
+    name: b.name,
+    type: (b.type || "").toLowerCase(),
+    contact_email: b.contactEmail,
+    address: b.address,
+    status: b.status || "pending",
+    member_count: 0,
+    date_added: (/* @__PURE__ */ new Date()).toISOString()
+  }).select("*").single();
+  if (error || !data) {
+    res.status(500).json({ error: error?.message || "Failed to create organization" });
     return;
   }
-  organizations[idx] = { ...organizations[idx], ...req.body };
-  res.json({ organization: organizations[idx] });
+  res.status(201).json({ organization: toCamel2(data) });
+});
+router19.put("/organizations/:id", async (req, res) => {
+  const b = req.body ?? {};
+  const update = { updated_at: (/* @__PURE__ */ new Date()).toISOString() };
+  if (b.name !== void 0) update.name = b.name;
+  if (b.type !== void 0) update.type = String(b.type).toLowerCase();
+  if (b.contactEmail !== void 0) update.contact_email = b.contactEmail;
+  if (b.address !== void 0) update.address = b.address;
+  if (b.status !== void 0) update.status = b.status;
+  const { data, error } = await supabase.from("organizations").update(update).eq("id", req.params.id).select("*").single();
+  if (error || !data) {
+    res.status(404).json({ error: error?.message || "Organization not found" });
+    return;
+  }
+  res.json({ organization: toCamel2(data) });
 });
 router19.get("/organizations/:id/staff", async (req, res) => {
-  res.json({ staff: staff[req.params.id] ?? [], organizationId: req.params.id });
+  const { data } = await supabase.from("profiles").select("id, name, email, role, department").eq("organization_id", req.params.id);
+  const staff = (data ?? []).map((p) => ({
+    id: p.id,
+    name: p.name || p.email || "Unknown",
+    email: p.email || "",
+    designation: p.department || p.role || "Member",
+    memberId: p.id
+  }));
+  res.json({ staff, organizationId: req.params.id });
 });
 var organizations_default = router19;
 
@@ -37043,275 +37167,573 @@ var analytics_default = router20;
 // src/routes/security.ts
 var import_express21 = __toESM(require_express2(), 1);
 var router21 = (0, import_express21.Router)();
-var defaultActiveSessions = [
-  { id: "1", userId: "ADM001", userName: "Olatunji Ayanlowo", role: "super_admin", ipAddress: "102.89.45.12", device: "Chrome / MacOS", location: "Lagos, Nigeria", loginTime: new Date(Date.now() - 36e5).toISOString(), isCurrentSession: true },
-  { id: "2", userId: "ADM002", userName: "Adaeze Okonkwo", role: "admin", ipAddress: "41.190.78.90", device: "Firefox / Windows", location: "Abuja, Nigeria", loginTime: new Date(Date.now() - 72e5).toISOString(), isCurrentSession: false },
-  { id: "3", userId: "ADM003", userName: "Emeka Nwosu", role: "operator", ipAddress: "197.210.34.56", device: "Safari / iPhone", location: "Enugu, Nigeria", loginTime: new Date(Date.now() - 18e5).toISOString(), isCurrentSession: false }
-];
-var defaultSecurityEvents = [
-  { id: "1", event: "Failed login attempt", user: "unknown", ipAddress: "185.220.101.45", severity: "high", timestamp: new Date(Date.now() - 18e5).toISOString(), details: "5 consecutive failed login attempts" },
-  { id: "2", event: "New admin login", user: "Adaeze Okonkwo", ipAddress: "41.190.78.90", severity: "info", timestamp: new Date(Date.now() - 72e5).toISOString(), details: "Login from new device" },
-  { id: "3", event: "IP blocked", user: "System", ipAddress: "185.220.101.45", severity: "critical", timestamp: new Date(Date.now() - 9e5).toISOString(), details: "Automatic block after 10 failed attempts" }
-];
-var defaultSecuritySettings = { twoFactorRequired: true, sessionTimeoutMinutes: 60, maxLoginAttempts: 5, ipAllowlistEnabled: false, allowedIPs: [], blockedIPs: ["185.220.101.45"], passwordExpiryDays: 90 };
+function settingsToCamel(s) {
+  return {
+    twoFactorRequired: s?.two_factor_required ?? false,
+    sessionTimeoutMinutes: s?.session_timeout_minutes ?? 60,
+    maxLoginAttempts: s?.max_login_attempts ?? 5,
+    ipAllowlistEnabled: s?.ip_allowlist_enabled ?? false,
+    allowedIPs: s?.allowed_ips ?? [],
+    blockedIPs: s?.blocked_ips ?? [],
+    passwordExpiryDays: s?.password_expiry_days ?? 90
+  };
+}
+async function loadSettingsRow() {
+  const { data } = await supabase.from("security_settings").select("*").limit(1).maybeSingle();
+  return data ?? null;
+}
 router21.get("/security/sessions", async (_req, res) => {
-  const activeSessions = await readData("security_sessions.json", defaultActiveSessions);
-  res.json({ sessions: activeSessions, total: activeSessions.length });
+  const { data, error } = await supabase.from("security_sessions").select("*").order("login_time", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  const sessions = (data ?? []).map((s) => ({
+    id: s.id,
+    userId: s.user_id || "",
+    userName: s.user_name || "Unknown",
+    role: s.role || "member",
+    ipAddress: s.ip_address || "",
+    device: s.device || "",
+    location: s.location || "",
+    loginTime: s.login_time,
+    isCurrentSession: !!s.is_current
+  }));
+  res.json({ sessions, total: sessions.length });
 });
 router21.delete("/security/sessions/:id", async (req, res) => {
-  let activeSessions = await readData("security_sessions.json", defaultActiveSessions);
-  activeSessions = activeSessions.filter((s) => s.id !== req.params.id);
-  await writeData("security_sessions.json", activeSessions);
+  const { error } = await supabase.from("security_sessions").delete().eq("id", req.params.id);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
   res.json({ message: "Session terminated" });
 });
 router21.get("/security/events", async (_req, res) => {
-  const securityEvents = await readData("security_events.json", defaultSecurityEvents);
-  res.json({ events: securityEvents, total: securityEvents.length });
-});
-router21.post("/security/ip-block", async (req, res) => {
-  const securitySettings = await readData("security_settings.json", defaultSecuritySettings);
-  const { ip, action } = req.body;
-  if (action === "block") {
-    securitySettings.blockedIPs = [.../* @__PURE__ */ new Set([...securitySettings.blockedIPs, ip])];
-  } else {
-    securitySettings.blockedIPs = securitySettings.blockedIPs.filter((i) => i !== ip);
+  const { data, error } = await supabase.from("security_events").select("*").order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
   }
-  await writeData("security_settings.json", securitySettings);
-  res.json({ message: `IP ${ip} ${action === "block" ? "blocked" : "unblocked"}`, blockedIPs: securitySettings.blockedIPs });
+  const events = (data ?? []).map((e) => ({
+    id: e.id,
+    event: e.event || "",
+    user: e.username || "",
+    ipAddress: e.ip_address || "",
+    severity: e.severity || "info",
+    timestamp: e.created_at,
+    details: e.details || "",
+    resolved: !!e.resolved
+  }));
+  res.json({ events, total: events.length });
 });
 router21.get("/security/settings", async (_req, res) => {
-  const securitySettings = await readData("security_settings.json", defaultSecuritySettings);
-  res.json({ settings: securitySettings });
+  res.json({ settings: settingsToCamel(await loadSettingsRow()) });
 });
 router21.put("/security/settings", async (req, res) => {
-  const securitySettings = await readData("security_settings.json", defaultSecuritySettings);
-  const updatedSettings = { ...securitySettings, ...req.body };
-  await writeData("security_settings.json", updatedSettings);
-  res.json({ settings: updatedSettings, message: "Security settings updated" });
+  const b = req.body ?? {};
+  const update = { updated_at: (/* @__PURE__ */ new Date()).toISOString() };
+  if (b.twoFactorRequired !== void 0) update.two_factor_required = !!b.twoFactorRequired;
+  if (b.sessionTimeoutMinutes !== void 0) update.session_timeout_minutes = Number(b.sessionTimeoutMinutes);
+  if (b.maxLoginAttempts !== void 0) update.max_login_attempts = Number(b.maxLoginAttempts);
+  if (b.ipAllowlistEnabled !== void 0) update.ip_allowlist_enabled = !!b.ipAllowlistEnabled;
+  if (b.allowedIPs !== void 0) update.allowed_ips = b.allowedIPs;
+  if (b.blockedIPs !== void 0) update.blocked_ips = b.blockedIPs;
+  if (b.passwordExpiryDays !== void 0) update.password_expiry_days = Number(b.passwordExpiryDays);
+  const existing = await loadSettingsRow();
+  if (existing?.id) {
+    await supabase.from("security_settings").update(update).eq("id", existing.id);
+  } else {
+    await supabase.from("security_settings").insert(update);
+  }
+  res.json({ settings: settingsToCamel(await loadSettingsRow()), message: "Security settings updated" });
+});
+router21.post("/security/ip-block", async (req, res) => {
+  const { ip, action } = req.body ?? {};
+  if (!ip) {
+    res.status(400).json({ error: "ip is required" });
+    return;
+  }
+  const existing = await loadSettingsRow();
+  const blocked = new Set(existing?.blocked_ips ?? []);
+  if (action === "unblock") blocked.delete(ip);
+  else blocked.add(ip);
+  const update = { blocked_ips: [...blocked], updated_at: (/* @__PURE__ */ new Date()).toISOString() };
+  if (existing?.id) {
+    await supabase.from("security_settings").update(update).eq("id", existing.id);
+  } else {
+    await supabase.from("security_settings").insert(update);
+  }
+  res.json({ settings: settingsToCamel(await loadSettingsRow()), message: action === "unblock" ? "IP unblocked" : "IP blocked" });
 });
 var security_default = router21;
 
 // src/routes/wallets.ts
 var import_express22 = __toESM(require_express2(), 1);
 var router22 = (0, import_express22.Router)();
-var defaultWallets = [];
+function newRef(prefix) {
+  return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+}
 router22.get("/wallets", async (req, res) => {
-  const wallets = await readData("wallets.json", defaultWallets);
-  const { page = 1, limit = 20, status } = req.query;
-  let filtered = [...wallets];
-  if (status) filtered = filtered.filter((w) => w.status === status);
-  res.json({ wallets: filtered, total: filtered.length, page: Number(page), limit: Number(limit) });
+  const { status, search } = req.query;
+  const { data: walletRows, error } = await supabase.from("wallets").select("id, profile_id, balance, is_active, last_updated").order("last_updated", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  const wallets = walletRows ?? [];
+  const profileIds = [...new Set(wallets.map((w) => w.profile_id).filter(Boolean))];
+  const profileMap = {};
+  if (profileIds.length) {
+    const { data: profs } = await supabase.from("profiles").select("id, name, email").in("id", profileIds);
+    for (const p of profs ?? []) profileMap[p.id] = { name: p.name, email: p.email };
+  }
+  let data = wallets.map((w) => {
+    const prof = profileMap[w.profile_id] ?? { name: null, email: null };
+    return {
+      id: w.id,
+      userId: w.profile_id,
+      userName: prof.name || prof.email || "Unknown",
+      userEmail: prof.email || "",
+      balance: Number(w.balance || 0),
+      status: w.is_active ? "active" : "frozen",
+      lastTransactionAt: w.last_updated,
+      lastTransactionAmount: 0
+    };
+  });
+  if (status && status !== "all") data = data.filter((w) => w.status === status);
+  if (search) {
+    const q = String(search).toLowerCase();
+    data = data.filter(
+      (w) => w.userName.toLowerCase().includes(q) || w.userEmail.toLowerCase().includes(q)
+    );
+  }
+  const totalBalance = wallets.reduce((s, w) => s + Number(w.balance || 0), 0);
+  const frozenCount = wallets.filter((w) => !w.is_active).length;
+  const { count: pendingTransfers } = await supabase.from("withdrawal_requests").select("id", { count: "exact", head: true }).eq("status", "pending");
+  const startOfDay = /* @__PURE__ */ new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const { data: todayTx } = await supabase.from("transactions").select("amount").gte("created_at", startOfDay.toISOString());
+  const todayVolume = (todayTx ?? []).reduce((s, t) => s + Number(t.amount || 0), 0);
+  res.json({
+    data,
+    total: data.length,
+    pendingTransfers: pendingTransfers ?? 0,
+    todayVolume,
+    frozenCount,
+    totalBalance
+  });
 });
 router22.get("/wallets/stats", async (_req, res) => {
-  const wallets = await readData("wallets.json", defaultWallets);
-  const total = wallets.reduce((s, w) => s + w.balance, 0);
-  res.json({ totalBalance: total, activeWallets: wallets.filter((w) => w.status === "active").length, frozenWallets: wallets.filter((w) => w.status === "frozen").length, suspendedWallets: wallets.filter((w) => w.status === "suspended").length, totalWallets: wallets.length });
+  const { data: wallets } = await supabase.from("wallets").select("balance, is_active");
+  const rows = wallets ?? [];
+  res.json({
+    totalBalance: rows.reduce((s, w) => s + Number(w.balance || 0), 0),
+    activeWallets: rows.filter((w) => w.is_active).length,
+    frozenWallets: rows.filter((w) => !w.is_active).length,
+    suspendedWallets: 0,
+    totalWallets: rows.length
+  });
 });
-router22.put("/wallets/:id/freeze", async (req, res) => {
-  const wallets = await readData("wallets.json", defaultWallets);
-  const wallet = wallets.find((w) => w.id === req.params.id);
-  if (!wallet) {
-    res.status(404).json({ error: "Wallet not found" });
+router22.patch("/wallets/:id/status", async (req, res) => {
+  const { status } = req.body;
+  const isActive = status === "active";
+  const { data, error } = await supabase.from("wallets").update({ is_active: isActive, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", req.params.id).select("*").single();
+  if (error || !data) {
+    res.status(404).json({ error: error?.message || "Wallet not found" });
     return;
   }
-  wallet.status = "frozen";
-  await writeData("wallets.json", wallets);
-  res.json({ wallet, message: "Wallet frozen successfully" });
+  res.json({ wallet: data, message: "Wallet status updated" });
 });
-router22.put("/wallets/:id/unfreeze", async (req, res) => {
-  const wallets = await readData("wallets.json", defaultWallets);
-  const wallet = wallets.find((w) => w.id === req.params.id);
-  if (!wallet) {
-    res.status(404).json({ error: "Wallet not found" });
+router22.post("/wallets/:id/adjust", async (req, res) => {
+  const amount = Number(req.body?.amount ?? 0);
+  const note = String(req.body?.note ?? "Manual adjustment");
+  if (!Number.isFinite(amount) || amount === 0) {
+    res.status(400).json({ error: "A non-zero amount is required" });
     return;
   }
-  wallet.status = "active";
-  await writeData("wallets.json", wallets);
-  res.json({ wallet, message: "Wallet unfrozen successfully" });
+  const { data: wallet, error: fetchErr } = await supabase.from("wallets").select("id, profile_id, balance").eq("id", req.params.id).single();
+  if (fetchErr || !wallet) {
+    res.status(404).json({ error: fetchErr?.message || "Wallet not found" });
+    return;
+  }
+  const balanceBefore = Number(wallet.balance || 0);
+  const balanceAfter = balanceBefore + amount;
+  const { data: updated, error: updErr } = await supabase.from("wallets").update({ balance: balanceAfter, last_updated: (/* @__PURE__ */ new Date()).toISOString(), updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", req.params.id).select("*").single();
+  if (updErr || !updated) {
+    res.status(500).json({ error: updErr?.message || "Failed to adjust balance" });
+    return;
+  }
+  await supabase.from("transactions").insert({
+    transaction_id: newRef("ADJ"),
+    reference: newRef("ADJ"),
+    profile_id: wallet.profile_id,
+    wallet_id: wallet.id,
+    type: amount >= 0 ? "credit" : "debit",
+    category: "adjustment",
+    amount: Math.abs(amount),
+    status: "completed",
+    description: note,
+    balance_before: balanceBefore,
+    balance_after: balanceAfter
+  });
+  res.json({ wallet: updated, message: "Balance adjusted successfully" });
 });
 var wallets_default = router22;
 
 // src/routes/withdrawals.ts
 var import_express23 = __toESM(require_express2(), 1);
 var router23 = (0, import_express23.Router)();
-var defaultWithdrawalRequests = [];
-var defaultWithdrawalSettings = { dailyLimit: 1e6, requireApprovalAbove: 5e5, autoApproveBelow: 5e3, maxPendingPerUser: 3 };
+function toCamel3(w) {
+  return {
+    id: w.id,
+    userId: w.user_id,
+    userName: w.user_name || "Unknown",
+    amount: Number(w.amount || 0),
+    bankName: w.bank_name || "",
+    accountNumber: w.account_number || "",
+    accountName: w.account_name || "",
+    requestedAt: w.created_at,
+    status: w.status || "pending",
+    riskFlag: !!w.risk_flag,
+    riskReason: w.risk_reason || void 0
+  };
+}
 router23.get("/withdrawals", async (req, res) => {
-  const withdrawalRequests = await readData("withdrawal_requests.json", defaultWithdrawalRequests);
-  const { status } = req.query;
-  const filtered = status ? withdrawalRequests.filter((w) => w.status === status) : withdrawalRequests;
-  res.json({ withdrawals: filtered, total: filtered.length, pendingCount: withdrawalRequests.filter((w) => w.status === "pending").length });
-});
-router23.put("/withdrawals/:id/approve", async (req, res) => {
-  const withdrawalRequests = await readData("withdrawal_requests.json", defaultWithdrawalRequests);
-  const w = withdrawalRequests.find((r) => r.id === req.params.id);
-  if (!w) {
-    res.status(404).json({ error: "Request not found" });
+  const { status, search } = req.query;
+  let query = supabase.from("withdrawal_requests").select("*").order("created_at", { ascending: false });
+  if (status && status !== "all") query = query.eq("status", status);
+  const { data, error } = await query;
+  if (error) {
+    res.status(500).json({ error: error.message });
     return;
   }
-  w.status = "approved";
-  await writeData("withdrawal_requests.json", withdrawalRequests);
-  res.json({ withdrawal: w, message: "Withdrawal approved" });
+  let rows = (data ?? []).map(toCamel3);
+  if (search) {
+    const q = String(search).toLowerCase();
+    rows = rows.filter(
+      (w) => w.userName.toLowerCase().includes(q) || w.accountNumber.toLowerCase().includes(q) || w.bankName.toLowerCase().includes(q)
+    );
+  }
+  res.json({ data: rows, total: rows.length });
 });
-router23.put("/withdrawals/:id/reject", async (req, res) => {
-  const withdrawalRequests = await readData("withdrawal_requests.json", defaultWithdrawalRequests);
-  const w = withdrawalRequests.find((r) => r.id === req.params.id);
-  if (!w) {
-    res.status(404).json({ error: "Request not found" });
+var ACTION_STATUS2 = {
+  approve: "approved",
+  reject: "rejected",
+  hold: "on_hold",
+  flag: "pending"
+};
+router23.post("/withdrawals/:id/:action", async (req, res) => {
+  const { id, action } = req.params;
+  const newStatus = ACTION_STATUS2[action];
+  if (!newStatus) {
+    res.status(400).json({ error: "Unknown action" });
     return;
   }
-  w.status = "rejected";
-  await writeData("withdrawal_requests.json", withdrawalRequests);
-  res.json({ withdrawal: w, message: "Withdrawal rejected" });
-});
-router23.put("/withdrawals/:id/hold", async (req, res) => {
-  const withdrawalRequests = await readData("withdrawal_requests.json", defaultWithdrawalRequests);
-  const w = withdrawalRequests.find((r) => r.id === req.params.id);
-  if (!w) {
-    res.status(404).json({ error: "Request not found" });
+  const update = { status: newStatus, updated_at: (/* @__PURE__ */ new Date()).toISOString() };
+  if (action === "flag") {
+    update.risk_flag = true;
+    if (req.body?.reason) update.risk_reason = String(req.body.reason);
+  }
+  if (action === "reject" && req.body?.reason) update.risk_reason = String(req.body.reason);
+  const { data, error } = await supabase.from("withdrawal_requests").update(update).eq("id", id).select("*").single();
+  if (error || !data) {
+    res.status(404).json({ error: error?.message || "Request not found" });
     return;
   }
-  w.status = "on_hold";
-  await writeData("withdrawal_requests.json", withdrawalRequests);
-  res.json({ withdrawal: w, message: "Withdrawal placed on hold" });
+  res.json({ withdrawal: toCamel3(data), message: `Withdrawal ${newStatus}` });
+});
+router23.post("/withdrawals/bulk-approve", async (req, res) => {
+  const ids = Array.isArray(req.body?.ids) ? req.body.ids.map(String) : [];
+  if (!ids.length) {
+    res.status(400).json({ error: "No ids provided" });
+    return;
+  }
+  const { error } = await supabase.from("withdrawal_requests").update({ status: "approved", updated_at: (/* @__PURE__ */ new Date()).toISOString() }).in("id", ids);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ message: `${ids.length} withdrawal(s) approved`, count: ids.length });
 });
 router23.get("/withdrawals/settings", async (_req, res) => {
-  const settings = await readData("withdrawal_settings.json", defaultWithdrawalSettings);
-  res.json({ settings });
+  const { data } = await supabase.from("withdrawal_settings").select("*").limit(1).maybeSingle();
+  res.json({
+    settings: {
+      dailyLimit: Number(data?.daily_limit ?? 1e6),
+      requireApprovalAbove: Number(data?.require_approval_above ?? 5e5),
+      autoApproveBelow: Number(data?.auto_approve_below ?? 5e3),
+      maxPendingPerUser: Number(data?.max_pending_per_user ?? 3)
+    }
+  });
 });
-router23.put("/withdrawals/settings", async (req, res) => {
-  const settings = await readData("withdrawal_settings.json", defaultWithdrawalSettings);
-  const updatedSettings = { ...settings, ...req.body };
-  await writeData("withdrawal_settings.json", updatedSettings);
-  res.json({ settings: updatedSettings, message: "Withdrawal settings updated" });
+router23.put("/withdrawals/daily-limit", async (req, res) => {
+  const limit = Number(req.body?.limit ?? 0);
+  const { data: existing } = await supabase.from("withdrawal_settings").select("id").limit(1).maybeSingle();
+  if (existing?.id) {
+    await supabase.from("withdrawal_settings").update({ daily_limit: limit, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", existing.id);
+  } else {
+    await supabase.from("withdrawal_settings").insert({ daily_limit: limit });
+  }
+  res.json({ message: "Daily limit updated", dailyLimit: limit });
 });
 var withdrawals_default = router23;
 
 // src/routes/verification.ts
 var import_express24 = __toESM(require_express2(), 1);
 var router24 = (0, import_express24.Router)();
-var defaultKycSubmissions = [
-  { id: "1", userId: "USR001", userName: "Bola Adeyemi", email: "bola@email.com", documentType: "NIN", documentNumber: "1234****890", submittedAt: new Date(Date.now() - 864e5).toISOString(), status: "pending", rejectionReason: null },
-  { id: "2", userId: "USR002", userName: "Chioma Obi", email: "chioma@email.com", documentType: "BVN", documentNumber: "2234****891", submittedAt: new Date(Date.now() - 1728e5).toISOString(), status: "verified", rejectionReason: null },
-  { id: "3", userId: "USR003", userName: "Emeka Nze", email: "emeka@email.com", documentType: "Passport", documentNumber: "A1234****", submittedAt: new Date(Date.now() - 2592e5).toISOString(), status: "rejected", rejectionReason: "Document expired" },
-  { id: "4", userId: "USR004", userName: "Fatima Yusuf", email: "fatima@email.com", documentType: "NIN", documentNumber: "3344****892", submittedAt: new Date(Date.now() - 432e5).toISOString(), status: "pending", rejectionReason: null },
-  { id: "5", userId: "USR005", userName: "Gbenga Ola", email: "gbenga@email.com", documentType: "BVN", documentNumber: "4454****893", submittedAt: new Date(Date.now() - 36e5).toISOString(), status: "pending", rejectionReason: null }
-];
+function deriveDocType(data) {
+  const raw = String(data?.idType ?? data?.documentType ?? "").toLowerCase();
+  if (raw.includes("nin")) return "NIN";
+  if (raw.includes("bvn")) return "BVN";
+  if (raw.includes("passport")) return "passport";
+  if (raw.includes("licen")) return "drivers_license";
+  if (data?.nin) return "NIN";
+  if (data?.bvn) return "BVN";
+  return "NIN";
+}
+function deriveStatus2(p) {
+  if (!p) return "pending";
+  if (p.kyc_verified) return "verified";
+  if (p.is_flagged) return "rejected";
+  return "pending";
+}
 router24.get("/verification", async (req, res) => {
-  const kycSubmissions = await readData("kyc_submissions.json", defaultKycSubmissions);
-  const { status, documentType } = req.query;
-  let filtered = [...kycSubmissions];
-  if (status) filtered = filtered.filter((v) => v.status === status);
-  if (documentType) filtered = filtered.filter((v) => v.documentType === documentType);
-  res.json({ submissions: filtered, pendingCount: kycSubmissions.filter((v) => v.status === "pending").length, total: kycSubmissions.length });
-});
-router24.put("/verification/:id/verify", async (req, res) => {
-  const kycSubmissions = await readData("kyc_submissions.json", defaultKycSubmissions);
-  const { id } = req.params;
-  const sub = kycSubmissions.find((v) => v.id === id);
-  if (!sub) {
-    res.status(404).json({ error: "KYC Submission not found" });
+  const { status, search, page = "1", limit = "20" } = req.query;
+  const { data: subs, error } = await supabase.from("kyc_submissions").select("id, user_id, data, submitted_at").order("submitted_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
     return;
   }
-  sub.status = "verified";
-  await writeData("kyc_submissions.json", kycSubmissions);
-  res.json({ submission: sub, message: "KYC submission verified" });
+  const submissions = subs ?? [];
+  const userIds = [...new Set(submissions.map((s) => s.user_id).filter(Boolean))];
+  const profMap = {};
+  if (userIds.length) {
+    const { data: profs } = await supabase.from("profiles").select("id, name, email, kyc_verified, is_flagged, flagged_reason, updated_at").in("id", userIds);
+    for (const p2 of profs ?? []) profMap[p2.id] = p2;
+  }
+  let records = submissions.map((s) => {
+    const p2 = s.user_id ? profMap[s.user_id] : void 0;
+    return {
+      id: s.id,
+      userId: s.user_id || "",
+      userName: p2?.name || p2?.email || "Unknown",
+      userEmail: p2?.email || "",
+      submittedAt: s.submitted_at,
+      documentType: deriveDocType(s.data),
+      status: deriveStatus2(p2),
+      reviewedAt: p2?.kyc_verified || p2?.is_flagged ? p2?.updated_at : void 0,
+      rejectionReason: p2?.flagged_reason || void 0
+    };
+  });
+  const startOfDay = /* @__PURE__ */ new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const pendingCount = records.filter((r) => r.status === "pending").length;
+  const rejectedCount = records.filter((r) => r.status === "rejected").length;
+  const totalVerified = records.filter((r) => r.status === "verified").length;
+  const verifiedToday = records.filter(
+    (r) => r.status === "verified" && r.reviewedAt && new Date(r.reviewedAt) >= startOfDay
+  ).length;
+  if (status && status !== "all") records = records.filter((r) => r.status === status);
+  if (search) {
+    const q = String(search).toLowerCase();
+    records = records.filter(
+      (r) => r.userName.toLowerCase().includes(q) || r.userEmail.toLowerCase().includes(q)
+    );
+  }
+  const total = records.length;
+  const p = Math.max(1, Number(page));
+  const l = Math.max(1, Number(limit));
+  const paged = records.slice((p - 1) * l, (p - 1) * l + l);
+  res.json({ data: paged, total, pendingCount, verifiedToday, rejectedCount, totalVerified });
 });
-router24.put("/verification/:id/reject", async (req, res) => {
-  const kycSubmissions = await readData("kyc_submissions.json", defaultKycSubmissions);
-  const { id } = req.params;
-  const { reason } = req.body;
-  const sub = kycSubmissions.find((v) => v.id === id);
-  if (!sub) {
-    res.status(404).json({ error: "KYC Submission not found" });
+router24.post("/verification/:id/:action", async (req, res) => {
+  const { id, action } = req.params;
+  const reason = req.body?.reason;
+  const { data: sub } = await supabase.from("kyc_submissions").select("id, user_id").eq("id", id).maybeSingle();
+  if (!sub?.user_id) {
+    res.status(404).json({ error: "Submission not found" });
     return;
   }
-  sub.status = "rejected";
-  sub.rejectionReason = reason || "Rejection reason not provided";
-  await writeData("kyc_submissions.json", kycSubmissions);
-  res.json({ submission: sub, message: "KYC submission rejected" });
+  let update;
+  if (action === "verify") {
+    update = { kyc_verified: true, is_active: true, is_flagged: false, flagged_reason: null };
+  } else if (action === "reject" || action === "request_resubmission") {
+    update = { kyc_verified: false, is_flagged: true, flagged_reason: reason || (action === "reject" ? "KYC rejected" : "Re-submission requested") };
+  } else {
+    res.status(400).json({ error: "Unknown action" });
+    return;
+  }
+  update.updated_at = (/* @__PURE__ */ new Date()).toISOString();
+  const { error } = await supabase.from("profiles").update(update).eq("id", sub.user_id);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ message: `KYC ${action.replace("_", " ")} applied` });
 });
 var verification_default = router24;
 
 // src/routes/referrals.ts
 var import_express25 = __toESM(require_express2(), 1);
 var router25 = (0, import_express25.Router)();
-var defaultReferrers = [
-  { rank: 1, userId: "USR010", userName: "Tunde Alabi", referralsMade: 47, bonusEarned: 94e3, status: "active", joinDate: "2024-01-15" },
-  { rank: 2, userId: "USR022", userName: "Amaka Osei", referralsMade: 35, bonusEarned: 7e4, status: "active", joinDate: "2024-02-01" },
-  { rank: 3, userId: "USR031", userName: "Emeka Diala", referralsMade: 28, bonusEarned: 56e3, status: "active", joinDate: "2024-02-20" },
-  { rank: 4, userId: "USR045", userName: "Ngozi Adaeze", referralsMade: 22, bonusEarned: 44e3, status: "active", joinDate: "2024-03-05" },
-  { rank: 5, userId: "USR056", userName: "Biodun Akin", referralsMade: 18, bonusEarned: 36e3, status: "suspended", joinDate: "2024-03-15" },
-  { rank: 6, userId: "USR067", userName: "Hauwa Bello", referralsMade: 14, bonusEarned: 28e3, status: "active", joinDate: "2024-04-01" },
-  { rank: 7, userId: "USR078", userName: "Chidi Okeke", referralsMade: 11, bonusEarned: 22e3, status: "active", joinDate: "2024-04-10" }
-];
-var defaultReferralSettings = { programEnabled: true, bonusPerReferral: 2e3, maxReferralsPerUser: 50, minimumDepositForBonus: 5e3, bonusPayoutDelayDays: 7 };
+async function loadSettings() {
+  const { data } = await supabase.from("referral_settings").select("*").limit(1).maybeSingle();
+  return {
+    enabled: data?.program_enabled ?? true,
+    bonusAmount: Number(data?.bonus_per_referral ?? 0),
+    maxReferralsPerUser: Number(data?.max_referrals_per_user ?? 0)
+  };
+}
 router25.get("/referrals", async (_req, res) => {
-  const referrers = await readData("referrers.json", defaultReferrers);
-  const totalReferrals = referrers.reduce((s, r) => s + r.referralsMade, 0);
-  const totalBonuses = referrers.reduce((s, r) => s + r.bonusEarned, 0);
-  res.json({ leaderboard: referrers, stats: { totalReferralsThisMonth: 156, totalBonusesPaid: totalBonuses, conversionRate: 68.4, topReferrers: totalReferrals } });
+  const { data: refs, error } = await supabase.from("referrals").select("profile_id, referral_count, confirmed_referral_count, current_tier_bonus").order("referral_count", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  const rows = refs ?? [];
+  const profileIds = [...new Set(rows.map((r) => r.profile_id).filter(Boolean))];
+  const nameMap = {};
+  if (profileIds.length) {
+    const { data: profs } = await supabase.from("profiles").select("id, name, email").in("id", profileIds);
+    for (const p of profs ?? []) nameMap[p.id] = p.name || p.email || "Unknown";
+  }
+  const settings = await loadSettings();
+  const leaderboard = rows.map((r, i) => ({
+    rank: i + 1,
+    userId: r.profile_id,
+    userName: r.profile_id ? nameMap[r.profile_id] || "Unknown" : "Unknown",
+    referralsMade: Number(r.referral_count || 0),
+    bonusEarned: Number(r.current_tier_bonus || 0) || Number(r.confirmed_referral_count || 0) * settings.bonusAmount,
+    status: "active"
+  }));
+  const totalReferrals = leaderboard.reduce((s, r) => s + r.referralsMade, 0);
+  const totalConfirmed = rows.reduce((s, r) => s + Number(r.confirmed_referral_count || 0), 0);
+  const totalBonusPaid = leaderboard.reduce((s, r) => s + r.bonusEarned, 0);
+  const startOfMonth = /* @__PURE__ */ new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+  const { count: thisMonth } = await supabase.from("referrals").select("id", { count: "exact", head: true }).gte("created_at", startOfMonth.toISOString());
+  res.json({
+    settings,
+    leaderboard,
+    analytics: {
+      totalThisMonth: thisMonth ?? 0,
+      totalBonusPaid,
+      conversionRate: totalReferrals > 0 ? Math.round(totalConfirmed / totalReferrals * 1e3) / 10 : 0
+    }
+  });
 });
 router25.get("/referrals/settings", async (_req, res) => {
-  const settings = await readData("referral_settings.json", defaultReferralSettings);
-  res.json({ settings });
+  res.json({ settings: await loadSettings() });
 });
 router25.put("/referrals/settings", async (req, res) => {
-  const settings = await readData("referral_settings.json", defaultReferralSettings);
-  const updatedSettings = { ...settings, ...req.body };
-  await writeData("referral_settings.json", updatedSettings);
-  res.json({ settings: updatedSettings, message: "Referral settings updated" });
+  const b = req.body ?? {};
+  const update = {
+    program_enabled: b.enabled !== void 0 ? !!b.enabled : void 0,
+    bonus_per_referral: b.bonusAmount !== void 0 ? Number(b.bonusAmount) : void 0,
+    max_referrals_per_user: b.maxReferralsPerUser !== void 0 ? Number(b.maxReferralsPerUser) : void 0,
+    updated_at: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  const { data: existing } = await supabase.from("referral_settings").select("id").limit(1).maybeSingle();
+  if (existing?.id) {
+    await supabase.from("referral_settings").update(update).eq("id", existing.id);
+  } else {
+    await supabase.from("referral_settings").insert(update);
+  }
+  res.json({ settings: await loadSettings(), message: "Referral settings updated" });
 });
 var referrals_default = router25;
 
 // src/routes/guarantors.ts
 var import_express26 = __toESM(require_express2(), 1);
 var router26 = (0, import_express26.Router)();
-var defaultGuarantorRelationships = [
-  { id: "1", borrowerId: "USR001", borrowerName: "Bola Adeyemi", guarantorId: "USR010", guarantorName: "Tunde Alabi", loanAmount: 5e5, loanId: "LN-001", status: "active", createdAt: "2024-03-01T00:00:00Z" },
-  { id: "2", borrowerId: "USR002", borrowerName: "Chioma Obi", guarantorId: "USR022", guarantorName: "Amaka Osei", loanAmount: 25e4, loanId: "LN-002", status: "active", createdAt: "2024-03-15T00:00:00Z" },
-  { id: "3", borrowerId: "USR003", borrowerName: "Emeka Nze", guarantorId: "USR031", guarantorName: "Emeka Diala", loanAmount: 1e6, loanId: "LN-003", status: "pending", createdAt: "2024-04-01T00:00:00Z" },
-  { id: "4", borrowerId: "USR004", borrowerName: "Fatima Yusuf", guarantorId: "USR045", guarantorName: "Ngozi Adaeze", loanAmount: 35e4, loanId: "LN-004", status: "pending", createdAt: "2024-04-10T00:00:00Z" },
-  { id: "5", borrowerId: "USR005", borrowerName: "Gbenga Ola", guarantorId: "USR056", guarantorName: "Biodun Akin", loanAmount: 15e4, loanId: "LN-005", status: "declined", createdAt: "2024-04-15T00:00:00Z" }
-];
-var defaultGuarantorSettings = { systemEnabled: true, minimumBalanceForGuarantor: 1e5, minimumMembershipMonths: 6, maxLoansAsGuarantor: 3, guarantorMustBeVerified: true };
-router26.get("/guarantors", async (req, res) => {
-  const relationships = await readData("guarantor_relationships.json", defaultGuarantorRelationships);
-  const { status } = req.query;
-  const filtered = status ? relationships.filter((g) => g.status === status) : relationships;
-  res.json({ relationships: filtered, pendingCount: relationships.filter((g) => g.status === "pending").length, total: relationships.length });
-});
-router26.get("/guarantors/settings", async (_req, res) => {
-  const settings = await readData("guarantor_settings.json", defaultGuarantorSettings);
-  res.json({ settings });
+var ACTIVE_STATUSES = ["confirmed", "consented", "active", "accepted"];
+var PENDING_STATUSES = ["pending", "requested", "scanned"];
+async function loadSettings2() {
+  const { data } = await supabase.from("guarantor_settings").select("*").limit(1).maybeSingle();
+  return {
+    requireGuarantor: data?.system_enabled ?? false,
+    minimumGuarantorBalance: Number(data?.minimum_balance ?? 0),
+    minimumMembershipMonths: Number(data?.minimum_membership_months ?? 0)
+  };
+}
+router26.get("/guarantors", async (_req, res) => {
+  const { data: links, error } = await supabase.from("loan_guarantors").select("id, loan_id, guarantor_id, status, consented_at, created_at").order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  const rows = links ?? [];
+  const loanIds = [...new Set(rows.map((r) => r.loan_id).filter(Boolean))];
+  const loanMap = {};
+  if (loanIds.length) {
+    const { data: loans } = await supabase.from("loans").select("id, amount, profile_id").in("id", loanIds);
+    for (const l of loans ?? []) loanMap[l.id] = { amount: Number(l.amount || 0), profile_id: l.profile_id };
+  }
+  const profileIds = [
+    ...new Set([
+      ...rows.map((r) => r.guarantor_id),
+      ...Object.values(loanMap).map((l) => l.profile_id)
+    ].filter(Boolean))
+  ];
+  const nameMap = {};
+  if (profileIds.length) {
+    const { data: profs } = await supabase.from("profiles").select("id, name, email").in("id", profileIds);
+    for (const p of profs ?? []) nameMap[p.id] = p.name || p.email || "Unknown";
+  }
+  const mapRow = (r) => {
+    const loan = loanMap[r.loan_id] ?? { amount: 0, profile_id: null };
+    return {
+      id: r.id,
+      borrowerId: loan.profile_id,
+      borrowerName: loan.profile_id ? nameMap[loan.profile_id] || "Unknown" : "Unknown",
+      guarantorId: r.guarantor_id,
+      guarantorName: r.guarantor_id ? nameMap[r.guarantor_id] || "Unknown" : "Unknown",
+      loanAmount: loan.amount,
+      status: ACTIVE_STATUSES.includes(String(r.status)) ? "active" : r.status || "pending",
+      startedAt: r.consented_at || r.created_at,
+      requestedAt: r.created_at
+    };
+  };
+  const relationships = rows.filter((r) => ACTIVE_STATUSES.includes(String(r.status))).map(mapRow);
+  const pendingRequests = rows.filter((r) => PENDING_STATUSES.includes(String(r.status))).map(mapRow);
+  res.json({
+    relationships,
+    pendingRequests,
+    settings: await loadSettings2(),
+    totalRelationships: relationships.length
+  });
 });
 router26.put("/guarantors/settings", async (req, res) => {
-  const settings = await readData("guarantor_settings.json", defaultGuarantorSettings);
-  const updatedSettings = { ...settings, ...req.body };
-  await writeData("guarantor_settings.json", updatedSettings);
-  res.json({ settings: updatedSettings, message: "Guarantor settings updated" });
+  const body = req.body ?? {};
+  const update = {
+    system_enabled: !!body.requireGuarantor,
+    minimum_balance: Number(body.minimumGuarantorBalance ?? 0),
+    minimum_membership_months: Number(body.minimumMembershipMonths ?? 0),
+    updated_at: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  const { data: existing } = await supabase.from("guarantor_settings").select("id").limit(1).maybeSingle();
+  if (existing?.id) {
+    await supabase.from("guarantor_settings").update(update).eq("id", existing.id);
+  } else {
+    await supabase.from("guarantor_settings").insert(update);
+  }
+  res.json({ settings: await loadSettings2(), message: "Guarantor settings updated" });
 });
-router26.put("/guarantors/:id/approve", async (req, res) => {
-  const relationships = await readData("guarantor_relationships.json", defaultGuarantorRelationships);
-  const rel = relationships.find((g) => g.id === req.params.id);
-  if (!rel) {
-    res.status(404).json({ error: "Relationship not found" });
+router26.post("/guarantors/requests/:id/:action", async (req, res) => {
+  const { id, action } = req.params;
+  const newStatus = action === "approve" ? "confirmed" : "rejected";
+  const { data, error } = await supabase.from("loan_guarantors").update({
+    status: newStatus,
+    ...action === "approve" ? { consented_at: (/* @__PURE__ */ new Date()).toISOString() } : {},
+    updated_at: (/* @__PURE__ */ new Date()).toISOString()
+  }).eq("id", id).select("*").single();
+  if (error || !data) {
+    res.status(404).json({ error: error?.message || "Request not found" });
     return;
   }
-  rel.status = "active";
-  await writeData("guarantor_relationships.json", relationships);
-  res.json({ relationship: rel, message: "Guarantor relationship approved" });
-});
-router26.put("/guarantors/:id/decline", async (req, res) => {
-  const relationships = await readData("guarantor_relationships.json", defaultGuarantorRelationships);
-  const rel = relationships.find((g) => g.id === req.params.id);
-  if (!rel) {
-    res.status(404).json({ error: "Relationship not found" });
-    return;
-  }
-  rel.status = "declined";
-  await writeData("guarantor_relationships.json", relationships);
-  res.json({ relationship: rel, message: "Guarantor relationship declined" });
+  res.json({ message: `Request ${action}d`, request: data });
 });
 var guarantors_default = router26;
 
@@ -37846,7 +38268,7 @@ router30.get("/bulk/export-members", requireRole("admin", "super_admin"), async 
       p.name,
       p.email,
       p.phone || "",
-      deriveStatus2(p),
+      deriveStatus3(p),
       p.created_at?.slice(0, 10) || ""
     ]);
     const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
@@ -37950,7 +38372,7 @@ router30.post("/bulk/log", requireRole("admin", "super_admin"), async (req, res)
   }
   res.json(data);
 });
-function deriveStatus2(row) {
+function deriveStatus3(row) {
   if (row.is_flagged) return "suspended";
   if (!row.is_active) return "inactive";
   if (row.is_active && !row.kyc_verified) return "pending";
