@@ -567,7 +567,7 @@ export default function MemberProfile() {
                 <Button size="sm" variant="outline"><Download className="h-4 w-4 mr-1" /> Export</Button>
               </CardHeader>
               <CardContent>
-                {(contributions?.data?.length ?? 0) === 0 ? (
+                {(contributionsData?.length ?? 0) === 0 ? (
                   <div className="text-center py-12">
                     <PiggyBank className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
                     <p className="text-muted-foreground">No contributions recorded yet</p>
@@ -804,7 +804,7 @@ export default function MemberProfile() {
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
-          <p className="text-sm text-muted-foreground">This action will be applied to <strong>{member?.firstName} {member?.lastName}</strong>.</p>
+          <p className="text-sm text-muted-foreground">This action will be applied to <strong>{activeMember?.firstName} {activeMember?.lastName}</strong>.</p>
           {actionDialog.action === "change_contribution" && (
             <div className="space-y-1.5">
               <Label>New Contribution Method</Label>
