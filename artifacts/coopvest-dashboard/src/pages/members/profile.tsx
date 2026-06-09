@@ -46,6 +46,15 @@ export default function MemberProfile() {
   const [showBalances, setShowBalances] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Record-contribution form state
+  const [contribDialogOpen, setContribDialogOpen] = useState(false);
+  const [savingContribution, setSavingContribution] = useState(false);
+  const [contribForm, setContribForm] = useState<{ amount: string; month: string; paymentMethod: string }>({
+    amount: "",
+    month: new Date().toISOString().slice(0, 7),
+    paymentMethod: "bank_transfer",
+  });
+
   // Member data state
   const [memberData, setMemberData] = useState<any>(null);
   const [loadingError, setLoadingError] = useState<string | null>(null);
@@ -229,6 +238,52 @@ export default function MemberProfile() {
       console.log('Refresh error:', e);
     }
   };
+
+  // Record a monthly contribution for this member.
+  async function recordContribution() {
+    if (!memberData?.id) return;
+    const amount = Number(contribForm.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast({ title: "Invalid amount", description: "Enter a contribution amount greater than 0.", variant: "destructive" });
+      return;
+    }
+    if (!contribForm.month) {
+      toast({ title: "Missing month", description: "Select the contribution month.", variant: "destructive" });
+      return;
+    }
+    setSavingContribution(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || '';
+      const response = await fetch(`${baseUrl}/api/contributions`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberId: memberData.id,
+          amount,
+          month: contribForm.month,
+          paymentMethod: contribForm.paymentMethod,
+        }),
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || 'Failed to record contribution');
+      }
+      toast({ title: "Contribution recorded", description: `${formatCurrency(amount)} recorded for ${contribForm.month}. It will reflect in the member's app.` });
+      setContribDialogOpen(false);
+      setContribForm({ amount: "", month: new Date().toISOString().slice(0, 7), paymentMethod: "bank_transfer" });
+      // Refresh totals and contribution history
+      await refreshMemberData();
+      const { data: { session: s2 } } = await supabase.auth.getSession();
+      fetchRelatedData(baseUrl, s2?.access_token || '', memberData.id);
+    } catch (err: any) {
+      console.error('Record contribution error:', err);
+      toast({ title: "Error", description: err.message || "Could not record contribution.", variant: "destructive" });
+    } finally {
+      setSavingContribution(false);
+    }
+  }
 
   async function executeAction() {
     if (!actionDialog.action || !memberData?.id) return;
@@ -469,8 +524,9 @@ export default function MemberProfile() {
         </Button>
 
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid grid-cols-6 w-full">
+          <TabsList className="grid grid-cols-7 w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="registration">Registration</TabsTrigger>
             <TabsTrigger value="contributions">Contributions</TabsTrigger>
             <TabsTrigger value="loans">Loans</TabsTrigger>
             <TabsTrigger value="investments">Investments</TabsTrigger>
@@ -559,12 +615,158 @@ export default function MemberProfile() {
             </div>
           </TabsContent>
 
+          {/* Registration Tab — everything the member submitted at sign-up */}
+          <TabsContent value="registration" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Profile Photo */}
+              <Card>
+                <CardHeader><CardTitle className="text-base flex items-center gap-2"><User className="h-4 w-4" /> Profile Photo</CardTitle></CardHeader>
+                <CardContent className="flex flex-col items-center gap-3">
+                  {activeMember.profilePicture ? (
+                    <img src={activeMember.profilePicture} alt="Member" className="h-40 w-40 rounded-lg object-cover border" />
+                  ) : (
+                    <div className="h-40 w-40 rounded-lg border flex flex-col items-center justify-center text-muted-foreground bg-muted/30">
+                      <User className="h-10 w-10 mb-2 opacity-50" />
+                      <span className="text-xs">No photo on file</span>
+                    </div>
+                  )}
+                  <div className="text-center">
+                    <p className="font-medium">{activeMember.fullName || `${activeMember.firstName} ${activeMember.lastName}`}</p>
+                    <p className="text-xs text-muted-foreground font-mono">{activeMember.memberId}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Personal Details */}
+              <Card className="lg:col-span-2">
+                <CardHeader><CardTitle className="text-base flex items-center gap-2"><User className="h-4 w-4" /> Personal Details</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div><span className="text-muted-foreground">Full Name</span><p className="font-medium">{activeMember.fullName || "—"}</p></div>
+                    <div><span className="text-muted-foreground">Gender</span><p className="font-medium capitalize">{activeMember.gender || "—"}</p></div>
+                    <div><span className="text-muted-foreground">Date of Birth</span><p className="font-medium">{activeMember.dateOfBirth || "—"}</p></div>
+                    <div><span className="text-muted-foreground">Phone</span><p className="font-medium">{activeMember.phone || "—"}</p></div>
+                    <div className="col-span-2"><span className="text-muted-foreground">Email</span><p className="font-medium">{activeMember.email || "—"}</p></div>
+                    <div className="col-span-2"><span className="text-muted-foreground">Residential Address</span><p className="font-medium">{activeMember.address || "—"}</p></div>
+                    <div><span className="text-muted-foreground">State</span><p className="font-medium">{activeMember.state || "—"}</p></div>
+                    <div><span className="text-muted-foreground">LGA</span><p className="font-medium">{activeMember.lga || "—"}</p></div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Identification */}
+              <Card>
+                <CardHeader><CardTitle className="text-base flex items-center gap-2"><BadgeCheck className="h-4 w-4" /> Identification</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div><span className="text-muted-foreground">ID Type</span><p className="font-medium capitalize">{activeMember.idType || "—"}</p></div>
+                    <div><span className="text-muted-foreground">ID Number</span><p className="font-medium">{activeMember.idNumber || "—"}</p></div>
+                    <div><span className="text-muted-foreground">BVN</span><p className="font-medium">{activeMember.bvn || "—"}</p></div>
+                    <div><span className="text-muted-foreground">NIN</span><p className="font-medium">{activeMember.nin || "—"}</p></div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Employment */}
+              <Card>
+                <CardHeader><CardTitle className="text-base flex items-center gap-2"><Building2 className="h-4 w-4" /> Employment</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div><span className="text-muted-foreground">Occupation</span><p className="font-medium">{activeMember.occupation || "—"}</p></div>
+                    <div><span className="text-muted-foreground">Employer</span><p className="font-medium">{activeMember.employer || "—"}</p></div>
+                    <div><span className="text-muted-foreground">Employment Type</span><p className="font-medium capitalize">{activeMember.employmentType || "—"}</p></div>
+                    <div><span className="text-muted-foreground">Years of Employment</span><p className="font-medium">{activeMember.yearsOfEmployment || "—"}</p></div>
+                    <div><span className="text-muted-foreground">Staff ID</span><p className="font-medium">{activeMember.staffId || "—"}</p></div>
+                    <div className="col-span-2"><span className="text-muted-foreground">Work Address</span><p className="font-medium">{activeMember.workAddress || "—"}</p></div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Next of Kin */}
+              <Card>
+                <CardHeader><CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4" /> Next of Kin</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div><span className="text-muted-foreground">Name</span><p className="font-medium">{activeMember.nextOfKin?.name || "—"}</p></div>
+                    <div><span className="text-muted-foreground">Relationship</span><p className="font-medium capitalize">{activeMember.nextOfKin?.relationship || "—"}</p></div>
+                    <div><span className="text-muted-foreground">Phone</span><p className="font-medium">{activeMember.nextOfKin?.phone || "—"}</p></div>
+                    <div className="col-span-2"><span className="text-muted-foreground">Address</span><p className="font-medium">{activeMember.nextOfKin?.address || "—"}</p></div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Contribution Preference */}
+              <Card>
+                <CardHeader><CardTitle className="text-base flex items-center gap-2"><PiggyBank className="h-4 w-4" /> Contribution Preference</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div><span className="text-muted-foreground">Chosen Monthly Amount</span><p className="font-medium">{activeMember.monthlyAmount ? formatCurrency(Number(activeMember.monthlyAmount)) : "—"}</p></div>
+                    <div><span className="text-muted-foreground">Method</span><p className="font-medium capitalize">{activeMember.contributionMethod || "—"}</p></div>
+                    <div><span className="text-muted-foreground">Preferred Payment Day</span><p className="font-medium">{activeMember.preferredPaymentDay || "—"}</p></div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Bank Accounts */}
+            {activeMember.bankAccounts && activeMember.bankAccounts.length > 0 && (
+              <Card>
+                <CardHeader><CardTitle className="text-base flex items-center gap-2"><CreditCard className="h-4 w-4" /> Bank Accounts</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                  {activeMember.bankAccounts.map((b: any, i: number) => (
+                    <div key={b.id || i} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg text-sm">
+                      <div>
+                        <p className="font-medium">{b.bank_name || "Bank"} · {b.account_number}</p>
+                        <p className="text-xs text-muted-foreground">{b.account_name} {b.account_type ? `· ${b.account_type}` : ""}</p>
+                      </div>
+                      {b.is_primary && <Badge className="bg-blue-100 text-blue-800">Primary</Badge>}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Every submitted field (raw) — ensures nothing is hidden */}
+            {activeMember.registration && Object.keys(activeMember.registration).length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4" /> All Submitted Fields</CardTitle>
+                  {activeMember.registrationSubmittedAt && (
+                    <p className="text-xs text-muted-foreground">Submitted {new Date(activeMember.registrationSubmittedAt).toLocaleString()}</p>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                    {Object.entries(activeMember.registration).map(([k, v]) => (
+                      <div key={k}>
+                        <span className="text-muted-foreground capitalize">{k.replace(/_/g, " ")}</span>
+                        <p className="font-medium break-words">{v === null || v === undefined || String(v) === "" ? "—" : String(v)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {(!activeMember.registration || Object.keys(activeMember.registration).length === 0) && (
+              <Card>
+                <CardContent className="text-center py-8 text-muted-foreground">
+                  <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No registration form data found for this member.</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
           {/* Contributions Tab */}
           <TabsContent value="contributions">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-base flex items-center gap-2"><PiggyBank className="h-4 w-4" /> Contribution History</CardTitle>
-                <Button size="sm" variant="outline"><Download className="h-4 w-4 mr-1" /> Export</Button>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => setContribDialogOpen(true)}><PiggyBank className="h-4 w-4 mr-1" /> Record Contribution</Button>
+                  <Button size="sm" variant="outline"><Download className="h-4 w-4 mr-1" /> Export</Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {(contributionsData?.length ?? 0) === 0 ? (
@@ -583,7 +785,7 @@ export default function MemberProfile() {
                         <span className={`font-semibold ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(c.amount)}</span>
                         <Badge variant="outline">{c.paymentMethod}</Badge>
                         <Badge className={c.status === "paid" ? "bg-emerald-100 text-emerald-800" : c.status === "overdue" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}>{c.status}</Badge>
-                        <span className="text-muted-foreground text-xs">{new Date(c.date).toLocaleDateString()}</span>
+                        <span className="text-muted-foreground text-xs">{c.createdAt || c.date ? new Date(c.createdAt || c.date).toLocaleDateString() : "—"}</span>
                       </div>
                     ))}
                   </div>
@@ -756,10 +958,27 @@ export default function MemberProfile() {
               <Card>
                 <CardHeader><CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4" /> Submitted Documents</CardTitle></CardHeader>
                 <CardContent>
-                  <div className="text-center py-4 text-muted-foreground">
-                    <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No documents uploaded yet</p>
-                  </div>
+                  {activeMember.documents && activeMember.documents.length > 0 ? (
+                    <div className="space-y-4">
+                      {activeMember.documents.map((doc: any, i: number) => (
+                        <div key={doc.id || i} className="border rounded-lg p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <p className="font-medium capitalize text-sm">{(doc.type || "Document").replace(/_/g, " ")}{doc.document_number ? ` · ${doc.document_number}` : ""}</p>
+                            <Badge className={doc.status === "verified" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}>{doc.status || "pending"}</Badge>
+                          </div>
+                          <div className="flex gap-2 flex-wrap">
+                            {doc.front_image_url && <a href={doc.front_image_url} target="_blank" rel="noreferrer"><img src={doc.front_image_url} alt="front" className="h-24 w-auto rounded border object-cover" /></a>}
+                            {doc.back_image_url && <a href={doc.back_image_url} target="_blank" rel="noreferrer"><img src={doc.back_image_url} alt="back" className="h-24 w-auto rounded border object-cover" /></a>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-muted-foreground">
+                      <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No documents uploaded yet</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -832,6 +1051,62 @@ export default function MemberProfile() {
             variant={["suspend", "freeze", "restrict_loans", "remove_admin"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
           >
             {isProcessing ? "Processing…" : "Confirm"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    {/* Record Contribution Dialog */}
+    <Dialog open={contribDialogOpen} onOpenChange={(o) => { if (!savingContribution) setContribDialogOpen(o); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Record Monthly Contribution</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Recording a contribution for <span className="font-medium text-foreground">{activeMember.firstName} {activeMember.lastName}</span>. It updates their savings total and shows up in their mobile app.
+          </p>
+          <div className="space-y-2">
+            <Label htmlFor="contrib-amount">Amount (₦)</Label>
+            <input
+              id="contrib-amount"
+              type="number"
+              min="0"
+              inputMode="decimal"
+              placeholder="e.g. 5000"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              value={contribForm.amount}
+              onChange={(e) => setContribForm({ ...contribForm, amount: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="contrib-month">Month</Label>
+            <input
+              id="contrib-month"
+              type="month"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              value={contribForm.month}
+              onChange={(e) => setContribForm({ ...contribForm, month: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Payment Method</Label>
+            <Select value={contribForm.paymentMethod} onValueChange={(v) => setContribForm({ ...contribForm, paymentMethod: v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                <SelectItem value="cash">Cash</SelectItem>
+                <SelectItem value="wallet">Wallet</SelectItem>
+                <SelectItem value="card">Card</SelectItem>
+                <SelectItem value="deduction">Salary Deduction</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setContribDialogOpen(false)} disabled={savingContribution}>Cancel</Button>
+          <Button onClick={recordContribution} disabled={savingContribution}>
+            {savingContribution ? <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Saving…</> : "Record Contribution"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -5,21 +5,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import express from "express";
 
-const mockTxn = { id: "txn-1", profile_id: "member-1", amount: "5000", type: "savings_deposit", status: "completed", reference: "TXN-12345678", created_at: "2024-06-01T00:00:00Z", profiles: { name: "Amaka Obi" } };
+const mockContribution = { id: "con-1", profile_id: "member-1", amount: "5000", status: "successful", contribution_month: "2024-06", payment_method: "wallet", transaction_reference: "TXN-12345678", created_at: "2024-06-01T00:00:00Z" };
 
-const db: any = { from: vi.fn().mockReturnThis(), select: vi.fn().mockReturnThis(), insert: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), in: vi.fn().mockReturnThis(), gte: vi.fn().mockReturnThis(), lt: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), range: vi.fn().mockReturnThis(), single: vi.fn() };
+const db: any = { from: vi.fn().mockReturnThis(), select: vi.fn().mockReturnThis(), insert: vi.fn().mockReturnThis(), update: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), in: vi.fn().mockReturnThis(), gte: vi.fn().mockReturnThis(), lt: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), range: vi.fn().mockReturnThis(), single: vi.fn(), maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) };
 
 vi.mock("@workspace/db", () => ({ supabase: db }));
-
-vi.mock("@workspace/api-zod", () => ({
-  CreateContributionBody: {
-    safeParse: (b: any) => {
-      if (!b.memberId || !b.amount || !b.month || !b.paymentMethod)
-        return { success: false, error: { flatten: () => ({ fieldErrors: { memberId: ["Required"] } }) } };
-      return { success: true, data: b };
-    },
-  },
-}));
 
 vi.mock("../middleware/auth", () => ({
   requireAuth: (_: any, __: any, next: any) => next(),
@@ -40,8 +30,9 @@ describe("POST /api/contributions – validation", () => {
     expect(res.body.error).toBe("Validation failed");
   });
   it("creates a contribution with valid payload", async () => {
-    db.from.mockReturnThis(); db.insert.mockReturnThis(); db.select.mockReturnThis();
-    db.single.mockResolvedValueOnce({ data: mockTxn, error: null })
+    db.from.mockReturnThis(); db.insert.mockReturnThis(); db.select.mockReturnThis(); db.update.mockReturnThis();
+    db.maybeSingle.mockResolvedValue({ data: null, error: null });
+    db.single.mockResolvedValueOnce({ data: mockContribution, error: null })
              .mockResolvedValueOnce({ data: { name: "Amaka Obi" }, error: null });
     const app = await buildApp();
     const res = await request(app).post("/api/contributions").send({ memberId: "m1", amount: 5000, month: "2024-06", paymentMethod: "wallet" });

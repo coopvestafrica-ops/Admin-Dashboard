@@ -34915,6 +34915,111 @@ router4.post("/members", async (req, res) => {
   }
   res.status(201).json({ id: profile.id, memberId: profile.user_id, firstName, lastName, email: profile.email, phone: profile.phone, status: "pending", joinDate: profile.created_at?.slice(0, 10) ?? null, address: address ?? null, occupation: occupation ?? null, createdAt: profile.created_at, totalContributions: 0, activeLoan: 0, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() });
 });
+function pick(data, ...keys) {
+  if (!data) return null;
+  for (const k of keys) {
+    const v = data[k];
+    if (v !== void 0 && v !== null && String(v).trim() !== "") return String(v);
+  }
+  return null;
+}
+async function buildMemberDetail(profile) {
+  const id = profile.id;
+  const [
+    { data: savings },
+    { data: wallet },
+    { data: activeLoans },
+    { data: kyc },
+    { data: documents },
+    { data: bankAccounts },
+    { data: userRow }
+  ] = await Promise.all([
+    supabase.from("savings").select("*").eq("profile_id", id).maybeSingle(),
+    supabase.from("wallets").select("*").eq("profile_id", id).maybeSingle(),
+    supabase.from("loans").select("remaining_balance").eq("profile_id", id).eq("status", "active"),
+    supabase.from("kyc").select("*").eq("profile_id", id).maybeSingle(),
+    supabase.from("kyc_documents").select("*").eq("profile_id", id),
+    supabase.from("bank_accounts").select("*").eq("profile_id", id),
+    supabase.from("users").select("*").eq("email", profile.email).maybeSingle()
+  ]);
+  let registration = null;
+  let submittedAt = null;
+  if (profile.email) {
+    const { data: subs } = await supabase.from("kyc_submissions").select("data, submitted_at").eq("data->>email", profile.email).order("submitted_at", { ascending: false }).limit(1);
+    if (subs && subs.length > 0) {
+      registration = subs[0].data ?? null;
+      submittedAt = subs[0].submitted_at ?? null;
+    }
+  }
+  const totalContributions = Number(savings?.total_saved ?? 0);
+  const activeLoan = (activeLoans ?? []).reduce((sum, l) => sum + Number(l.remaining_balance || 0), 0);
+  const { firstName, lastName } = splitName(profile.name);
+  const profilePicture = kyc?.selfie || pick(registration, "selfie", "photo", "picture", "avatar", "passport", "passport_photo", "profile_picture", "image") || (documents && documents.length > 0 ? documents[0].front_image_url : null) || profile.avatar_url || null;
+  return {
+    id: profile.id,
+    memberId: profile.user_id,
+    firstName,
+    lastName,
+    fullName: profile.name ?? `${firstName} ${lastName}`.trim(),
+    email: profile.email,
+    phone: profile.phone ?? pick(registration, "phone") ?? "",
+    status: deriveStatus(profile),
+    role: profile.role || "member",
+    kycVerified: profile.kyc_verified || false,
+    kycStatus: kyc?.status || userRow?.kyc_status || (profile.kyc_verified ? "verified" : "pending"),
+    isActive: profile.is_active ?? null,
+    isFlagged: profile.is_flagged ?? null,
+    flaggedReason: profile.flagged_reason ?? null,
+    profilePicture,
+    // Registration / personal details (registration form first, then profile)
+    gender: pick(registration, "gender"),
+    dateOfBirth: pick(registration, "date_of_birth", "dob") || kyc?.date_of_birth || null,
+    address: pick(registration, "address") || kyc?.address || profile.address || null,
+    state: pick(registration, "state"),
+    lga: pick(registration, "lga"),
+    occupation: pick(registration, "occupation") || profile.occupation || null,
+    employer: pick(registration, "employer_name", "employer") || profile.employer || null,
+    workAddress: pick(registration, "work_address"),
+    employmentType: pick(registration, "employment_type"),
+    yearsOfEmployment: pick(registration, "years_of_employment"),
+    staffId: pick(registration, "staff_id", "employer_staff_id"),
+    idType: pick(registration, "id_type"),
+    idNumber: pick(registration, "id_number") || kyc?.national_id || null,
+    bvn: pick(registration, "bvn"),
+    nin: pick(registration, "nin"),
+    // Next of kin
+    nextOfKin: {
+      name: pick(registration, "nok_name"),
+      phone: pick(registration, "nok_phone"),
+      address: pick(registration, "nok_address"),
+      relationship: pick(registration, "nok_relationship")
+    },
+    // Contribution preferences chosen at signup
+    monthlyAmount: pick(registration, "monthly_amount"),
+    contributionMethod: pick(registration, "contribution_method") || "monthly",
+    preferredPaymentDay: pick(registration, "preferred_payment_day"),
+    // Membership / account
+    membershipStatus: userRow?.membership_status ?? null,
+    referralCode: userRow?.referral_code ?? null,
+    emailVerified: userRow?.email_verified ?? null,
+    // Financials
+    walletBalance: Number(wallet?.balance ?? 0),
+    totalContributions,
+    monthlySavings: Number(savings?.monthly_savings ?? 0),
+    consecutiveMonths: Number(savings?.consecutive_months ?? 0),
+    activeLoan,
+    riskScore: 0,
+    // Raw / nested data so the UI can render anything not explicitly mapped above
+    registration: registration ?? {},
+    kyc: kyc ?? null,
+    documents: documents ?? [],
+    bankAccounts: bankAccounts ?? [],
+    registrationSubmittedAt: submittedAt,
+    joinDate: profile.created_at?.slice(0, 10) ?? null,
+    createdAt: profile.created_at,
+    avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??"
+  };
+}
 router4.get("/members/:id", async (req, res) => {
   const id = req.params.id;
   const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", id).single();
@@ -34922,33 +35027,7 @@ router4.get("/members/:id", async (req, res) => {
     res.status(404).json({ error: "Member not found" });
     return;
   }
-  const { data: savings } = await supabase.from("savings").select("total_saved").eq("profile_id", id).single();
-  const { data: activeLoans } = await supabase.from("loans").select("remaining_balance").eq("profile_id", id).eq("status", "active");
-  const totalContributions = Number(savings?.total_saved ?? 0);
-  const activeLoan = (activeLoans ?? []).reduce((sum, l) => sum + Number(l.remaining_balance || 0), 0);
-  const { firstName, lastName } = splitName(profile.name);
-  res.json({
-    id: profile.id,
-    memberId: profile.user_id,
-    firstName,
-    lastName,
-    email: profile.email,
-    phone: profile.phone ?? "",
-    status: deriveStatus(profile),
-    role: profile.role || "member",
-    kycVerified: profile.kyc_verified || false,
-    profilePicture: profile.avatar_url || null,
-    occupation: profile.occupation || null,
-    organization: profile.organization || null,
-    employer: profile.employer || null,
-    address: profile.address || null,
-    joinDate: profile.created_at?.slice(0, 10) ?? null,
-    createdAt: profile.created_at,
-    totalContributions,
-    activeLoan,
-    riskScore: 0,
-    avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??"
-  });
+  res.json(await buildMemberDetail(profile));
 });
 router4.get("/members/user/:userId", async (req, res) => {
   const userId = req.params.userId;
@@ -34957,33 +35036,7 @@ router4.get("/members/user/:userId", async (req, res) => {
     res.status(404).json({ error: "Member not found" });
     return;
   }
-  const { data: savings } = await supabase.from("savings").select("total_saved").eq("profile_id", profile.id).single();
-  const { data: activeLoans } = await supabase.from("loans").select("remaining_balance").eq("profile_id", profile.id).eq("status", "active");
-  const totalContributions = Number(savings?.total_saved ?? 0);
-  const activeLoan = (activeLoans ?? []).reduce((sum, l) => sum + Number(l.remaining_balance || 0), 0);
-  const { firstName, lastName } = splitName(profile.name);
-  res.json({
-    id: profile.id,
-    memberId: profile.user_id,
-    firstName,
-    lastName,
-    email: profile.email,
-    phone: profile.phone ?? "",
-    status: deriveStatus(profile),
-    role: profile.role || "member",
-    kycVerified: profile.kyc_verified || false,
-    profilePicture: profile.avatar_url || null,
-    occupation: profile.occupation || null,
-    organization: profile.organization || null,
-    employer: profile.employer || null,
-    address: profile.address || null,
-    joinDate: profile.created_at?.slice(0, 10) ?? null,
-    createdAt: profile.created_at,
-    totalContributions,
-    activeLoan,
-    riskScore: 0,
-    avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??"
-  });
+  res.json(await buildMemberDetail(profile));
 });
 router4.patch("/members/:id", async (req, res) => {
   const id = req.params.id;
@@ -35102,7 +35155,6 @@ router4.put("/members/:id", async (req, res) => {
     employer: profile.employer || null,
     joinDate: profile.created_at?.slice(0, 10) ?? null,
     address: profile.address || null,
-    occupation: profile.occupation || null,
     createdAt: profile.created_at,
     totalContributions: 0,
     activeLoan: 0,
@@ -35472,34 +35524,52 @@ router6.get("/contributions", requireRole("viewer", "operator", "admin", "super_
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
-  const memberId = req.query.memberId;
+  const memberId = req.query.memberId || req.query.profileId;
   const month = req.query.month;
-  let query = supabase.from("transactions").select("id, profile_id, amount, type, status, reference, created_at, profiles!transactions_profile_id_fkey(name)", { count: "exact" }).in("type", ["savings_deposit", "deposit"]);
+  let query = supabase.from("contributions").select("id, profile_id, amount, status, contribution_month, payment_method, transaction_reference, description, created_at, profiles!contributions_profile_id_fkey(name)", { count: "exact" });
   if (memberId) query = query.eq("profile_id", memberId);
-  if (month) {
-    const [y, m] = month.split("-");
-    if (y && m) {
-      const start = `${y}-${m}-01T00:00:00Z`;
-      const end = new Date(Number(y), Number(m), 1).toISOString();
-      query = query.gte("created_at", start).lt("created_at", end);
-    }
-  }
-  const { data: txns, count, error } = await query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+  if (month) query = query.eq("contribution_month", month);
+  const { data: rows, count, error } = await query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
   if (error) {
-    res.status(500).json({ error: error.message });
+    let fallback = supabase.from("contributions").select("id, profile_id, amount, status, contribution_month, payment_method, transaction_reference, description, created_at", { count: "exact" });
+    if (memberId) fallback = fallback.eq("profile_id", memberId);
+    if (month) fallback = fallback.eq("contribution_month", month);
+    const { data: rows2, count: count2, error: error2 } = await fallback.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+    if (error2) {
+      res.status(500).json({ error: error2.message });
+      return;
+    }
+    res.json({
+      data: (rows2 ?? []).map((r) => ({
+        id: r.id,
+        memberId: r.profile_id,
+        memberName: "",
+        amount: Number(r.amount),
+        month: r.contribution_month ?? (r.created_at ? r.created_at.slice(0, 7) : ""),
+        paymentMethod: r.payment_method ?? "wallet",
+        status: r.status === "successful" ? "paid" : r.status,
+        transactionRef: r.transaction_reference ?? null,
+        description: r.description ?? null,
+        createdAt: r.created_at
+      })),
+      total: count2 ?? 0,
+      page,
+      limit
+    });
     return;
   }
   res.json({
-    data: (txns ?? []).map((t) => ({
-      id: t.id,
-      memberId: t.profile_id,
-      memberName: (t.profiles ?? {}).name ?? "",
-      amount: Number(t.amount),
-      month: t.created_at ? t.created_at.slice(0, 7) : "",
-      paymentMethod: "wallet",
-      status: t.status === "completed" ? "paid" : t.status === "pending" ? "pending" : "overdue",
-      transactionRef: t.reference ?? null,
-      createdAt: t.created_at
+    data: (rows ?? []).map((r) => ({
+      id: r.id,
+      memberId: r.profile_id,
+      memberName: (r.profiles ?? {}).name ?? "",
+      amount: Number(r.amount),
+      month: r.contribution_month ?? (r.created_at ? r.created_at.slice(0, 7) : ""),
+      paymentMethod: r.payment_method ?? "wallet",
+      status: r.status === "successful" ? "paid" : r.status,
+      transactionRef: r.transaction_reference ?? null,
+      description: r.description ?? null,
+      createdAt: r.created_at
     })),
     total: count ?? 0,
     page,
@@ -35507,15 +35577,39 @@ router6.get("/contributions", requireRole("viewer", "operator", "admin", "super_
   });
 });
 router6.post("/contributions", requireRole("operator", "admin", "super_admin"), async (req, res) => {
-  const parsed = CreateContributionBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
+  const body = req.body ?? {};
+  const memberId = typeof body.memberId === "string" ? body.memberId.trim() : "";
+  const amount = Number(body.amount);
+  const month = typeof body.month === "string" ? body.month.trim() : "";
+  const paymentMethod = typeof body.paymentMethod === "string" && body.paymentMethod.trim() ? body.paymentMethod.trim() : "manual";
+  const fieldErrors = {};
+  if (!memberId) fieldErrors.memberId = ["Required"];
+  if (!Number.isFinite(amount) || amount <= 0) fieldErrors.amount = ["Must be a positive number"];
+  if (!month) fieldErrors.month = ["Required"];
+  if (Object.keys(fieldErrors).length > 0) {
+    res.status(400).json({ error: "Validation failed", details: fieldErrors });
     return;
   }
-  const { memberId, amount, month, paymentMethod } = parsed.data;
   const ref = "TXN-" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
   const txnId = "TX-" + crypto.randomUUID().slice(0, 8);
-  const { data: txn, error } = await supabase.from("transactions").insert({
+  const nowIso = (/* @__PURE__ */ new Date()).toISOString();
+  const { data: contribution, error: contribErr } = await supabase.from("contributions").insert({
+    profile_id: memberId,
+    amount,
+    status: "successful",
+    contribution_month: month,
+    contribution_type: "monthly",
+    payment_method: paymentMethod,
+    transaction_reference: ref,
+    description: `Monthly contribution for ${month}`,
+    posted_date: nowIso,
+    processed_date: nowIso
+  }).select().single();
+  if (contribErr) {
+    res.status(500).json({ error: contribErr.message });
+    return;
+  }
+  await supabase.from("transactions").insert({
     transaction_id: txnId,
     profile_id: memberId,
     type: "savings_deposit",
@@ -35525,22 +35619,45 @@ router6.post("/contributions", requireRole("operator", "admin", "super_admin"), 
     payment_method: paymentMethod,
     description: `Monthly contribution for ${month}`,
     reference: ref
-  }).select().single();
-  if (error) {
-    res.status(500).json({ error: error.message });
-    return;
+  });
+  const { data: existingSavings } = await supabase.from("savings").select("id, total_saved, consecutive_months").eq("profile_id", memberId).maybeSingle();
+  if (existingSavings) {
+    await supabase.from("savings").update({
+      total_saved: Number(existingSavings.total_saved || 0) + Number(amount),
+      monthly_savings: Number(amount),
+      last_savings_date: nowIso,
+      consecutive_months: Number(existingSavings.consecutive_months || 0) + 1,
+      updated_at: nowIso
+    }).eq("id", existingSavings.id);
+  } else {
+    await supabase.from("savings").insert({
+      profile_id: memberId,
+      total_saved: Number(amount),
+      monthly_savings: Number(amount),
+      first_savings_date: nowIso,
+      last_savings_date: nowIso,
+      consecutive_months: 1
+    });
+  }
+  const { data: plan } = await supabase.from("contribution_plans").select("id").eq("profile_id", memberId).maybeSingle();
+  if (!plan) {
+    await supabase.from("contribution_plans").insert({
+      profile_id: memberId,
+      current_monthly_amount: Number(amount),
+      minimum_amount: Number(amount)
+    });
   }
   const { data: profile } = await supabase.from("profiles").select("name").eq("id", memberId).single();
   res.status(201).json({
-    id: txn.id,
-    memberId: txn.profile_id,
+    id: contribution.id,
+    memberId: contribution.profile_id,
     memberName: profile?.name ?? "",
-    amount: Number(txn.amount),
+    amount: Number(contribution.amount),
     month,
     paymentMethod,
     status: "paid",
-    transactionRef: txn.reference,
-    createdAt: txn.created_at
+    transactionRef: contribution.transaction_reference,
+    createdAt: contribution.created_at
   });
 });
 var contributions_default = router6;
