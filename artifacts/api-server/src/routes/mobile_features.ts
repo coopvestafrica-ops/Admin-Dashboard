@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { readData, writeData } from "../lib/store";
+import { supabase } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -28,19 +29,41 @@ const defaultContentSections = [
   { key: "about",            label: "About Us",                   value: "Coopvest Africa is a cooperative investment and savings platform dedicated to empowering individuals and organizations through collective financial growth." },
 ];
 
-// Features List
+// Features List — backed by the real `mobile_features` table, merged with the
+// known feature catalog so newly added catalog entries always appear.
 router.get("/mobile-features", async (_req, res) => {
-  const features = await readData("mobile_features.json", defaultFeatures);
+  const { data: rows } = await supabase
+    .from("mobile_features")
+    .select("key, label, enabled, updated_at");
+  const overrides: Record<string, { enabled: boolean; updated_at: string | null; label: string | null }> = {};
+  for (const r of rows ?? []) overrides[r.key] = { enabled: r.enabled, updated_at: r.updated_at, label: r.label };
+  const features = defaultFeatures.map((f) => {
+    const o = overrides[f.id];
+    return {
+      ...f,
+      name: o?.label || f.name,
+      enabled: o ? !!o.enabled : f.enabled,
+      lastUpdated: o?.updated_at || f.updatedAt,
+      updatedAt: o?.updated_at || f.updatedAt,
+      updatedBy: f.updatedBy,
+    };
+  });
   res.json({ features });
 });
 
 router.put("/mobile-features/:id", async (req, res) => {
-  const features = await readData("mobile_features.json", defaultFeatures);
-  const idx = features.findIndex((f) => f.id === req.params.id);
-  if (idx === -1) { res.status(404).json({ error: "Feature not found" }); return; }
-  features[idx] = { ...features[idx], ...req.body, updatedAt: new Date().toISOString() };
-  await writeData("mobile_features.json", features);
-  res.json({ feature: features[idx], message: "Feature updated successfully" });
+  const catalog = defaultFeatures.find((f) => f.id === req.params.id);
+  if (!catalog) { res.status(404).json({ error: "Feature not found" }); return; }
+  const enabled = req.body?.enabled !== undefined ? !!req.body.enabled : catalog.enabled;
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from("mobile_features")
+    .upsert({ key: req.params.id, label: req.body?.name || catalog.name, enabled, updated_at: now }, { onConflict: "key" });
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  res.json({
+    feature: { ...catalog, enabled, lastUpdated: now, updatedAt: now },
+    message: "Feature updated successfully",
+  });
 });
 
 // Slides/Onboarding Content

@@ -1,39 +1,101 @@
 import { Router, type IRouter } from "express";
+import { supabase } from "@workspace/db";
 
 const router: IRouter = Router();
 
-let organizations = [
-  { id: "1", name: "Federal Ministry of Finance", type: "government", memberCount: 450, status: "active", dateAdded: "2024-01-15T00:00:00Z", contactEmail: "hr@finance.gov.ng", address: "Abuja, Nigeria" },
-  { id: "2", name: "First Bank of Nigeria", type: "private", memberCount: 320, status: "active", dateAdded: "2024-02-01T00:00:00Z", contactEmail: "staff@firstbank.com", address: "Lagos, Nigeria" },
-  { id: "3", name: "Lagos State University", type: "education", memberCount: 890, status: "active", dateAdded: "2024-02-20T00:00:00Z", contactEmail: "admin@lasu.edu.ng", address: "Lagos, Nigeria" },
-  { id: "4", name: "Dangote Group", type: "private", memberCount: 1200, status: "active", dateAdded: "2024-03-01T00:00:00Z", contactEmail: "hr@dangote.com", address: "Lagos, Nigeria" },
-  { id: "5", name: "Kano State Government", type: "government", memberCount: 670, status: "pending", dateAdded: "2024-05-10T00:00:00Z", contactEmail: "hr@kanostate.gov.ng", address: "Kano, Nigeria" },
-];
+interface OrgRow {
+  id: string;
+  name: string | null;
+  type: string | null;
+  member_count: number | null;
+  status: string | null;
+  date_added: string | null;
+  contact_email: string | null;
+  address: string | null;
+}
 
-const staff: Record<string, { id: string; name: string; email: string; designation: string; memberId: string }[]> = {
-  "1": [{ id: "s1", name: "Abubakar Musa", email: "a.musa@finance.gov.ng", designation: "Senior Officer", memberId: "MBR-001" }, { id: "s2", name: "Grace Okafor", email: "g.okafor@finance.gov.ng", designation: "Analyst", memberId: "MBR-002" }],
-  "2": [{ id: "s3", name: "Tunde Bakare", email: "t.bakare@firstbank.com", designation: "Branch Manager", memberId: "MBR-003" }],
-};
+function toCamel(o: OrgRow) {
+  return {
+    id: o.id,
+    name: o.name || "",
+    type: o.type || "",
+    memberCount: o.member_count ?? 0,
+    status: o.status || "active",
+    dateAdded: o.date_added,
+    contactEmail: o.contact_email || "",
+    address: o.address || "",
+  };
+}
 
 router.get("/organizations", async (_req, res): Promise<void> => {
+  const { data, error } = await supabase
+    .from("organizations")
+    .select("*")
+    .order("date_added", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  const organizations = (data ?? []).map((o) => toCamel(o as OrgRow));
   res.json({ organizations, total: organizations.length });
 });
 
 router.post("/organizations", async (req, res): Promise<void> => {
-  const org = { id: String(Date.now()), ...req.body, memberCount: 0, dateAdded: new Date().toISOString() };
-  organizations.push(org);
-  res.status(201).json({ organization: org });
+  const b = req.body ?? {};
+  const { data, error } = await supabase
+    .from("organizations")
+    .insert({
+      name: b.name,
+      type: (b.type || "").toLowerCase(),
+      contact_email: b.contactEmail,
+      address: b.address,
+      status: b.status || "pending",
+      member_count: 0,
+      date_added: new Date().toISOString(),
+    })
+    .select("*")
+    .single();
+  if (error || !data) {
+    res.status(500).json({ error: error?.message || "Failed to create organization" });
+    return;
+  }
+  res.status(201).json({ organization: toCamel(data as OrgRow) });
 });
 
 router.put("/organizations/:id", async (req, res): Promise<void> => {
-  const idx = organizations.findIndex((o) => o.id === req.params.id);
-  if (idx === -1) { res.status(404).json({ error: "Organization not found" }); return; }
-  organizations[idx] = { ...organizations[idx], ...req.body };
-  res.json({ organization: organizations[idx] });
+  const b = req.body ?? {};
+  const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (b.name !== undefined) update.name = b.name;
+  if (b.type !== undefined) update.type = String(b.type).toLowerCase();
+  if (b.contactEmail !== undefined) update.contact_email = b.contactEmail;
+  if (b.address !== undefined) update.address = b.address;
+  if (b.status !== undefined) update.status = b.status;
+  const { data, error } = await supabase
+    .from("organizations")
+    .update(update)
+    .eq("id", req.params.id)
+    .select("*")
+    .single();
+  if (error || !data) {
+    res.status(404).json({ error: error?.message || "Organization not found" });
+    return;
+  }
+  res.json({ organization: toCamel(data as OrgRow) });
 });
 
 router.get("/organizations/:id/staff", async (req, res): Promise<void> => {
-  res.json({ staff: staff[req.params.id] ?? [], organizationId: req.params.id });
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, name, email, role, department")
+    .eq("organization_id", req.params.id);
+  const staff = (data ?? []).map((p) => ({
+    id: p.id,
+    name: p.name || p.email || "Unknown",
+    email: p.email || "",
+    designation: p.department || p.role || "Member",
+    memberId: p.id,
+  }));
+  res.json({ staff, organizationId: req.params.id });
 });
 
 export default router;

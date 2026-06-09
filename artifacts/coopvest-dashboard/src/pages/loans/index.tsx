@@ -117,12 +117,12 @@ export default function Loans() {
     if (!actionDialog.loan || !actionDialog.action) return;
     const { loan, action } = actionDialog;
     if (action === "approve") {
-      apiApprove({ id: Number(loan.id) }, {
+      apiApprove({ id: loan.id }, {
         onSuccess: () => toast({ title: "Loan Approved", description: `Loan for ${loan.memberName} approved.` }),
         onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
       });
     } else if (action === "reject") {
-      apiReject({ id: Number(loan.id), data: { reason: actionNote } }, {
+      apiReject({ id: loan.id, data: { reason: actionNote } }, {
         onSuccess: () => toast({ title: "Loan Rejected", description: `Loan for ${loan.memberName} rejected.` }),
         onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
       });

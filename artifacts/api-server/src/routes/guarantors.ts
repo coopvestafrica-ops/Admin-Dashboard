@@ -1,53 +1,121 @@
 import { Router, type IRouter } from "express";
-import { readData, writeData } from "../lib/store";
+import { supabase } from "@workspace/db";
 
 const router: IRouter = Router();
 
-const defaultGuarantorRelationships = [
-  { id: "1", borrowerId: "USR001", borrowerName: "Bola Adeyemi", guarantorId: "USR010", guarantorName: "Tunde Alabi", loanAmount: 500000, loanId: "LN-001", status: "active", createdAt: "2024-03-01T00:00:00Z" },
-  { id: "2", borrowerId: "USR002", borrowerName: "Chioma Obi", guarantorId: "USR022", guarantorName: "Amaka Osei", loanAmount: 250000, loanId: "LN-002", status: "active", createdAt: "2024-03-15T00:00:00Z" },
-  { id: "3", borrowerId: "USR003", borrowerName: "Emeka Nze", guarantorId: "USR031", guarantorName: "Emeka Diala", loanAmount: 1000000, loanId: "LN-003", status: "pending", createdAt: "2024-04-01T00:00:00Z" },
-  { id: "4", borrowerId: "USR004", borrowerName: "Fatima Yusuf", guarantorId: "USR045", guarantorName: "Ngozi Adaeze", loanAmount: 350000, loanId: "LN-004", status: "pending", createdAt: "2024-04-10T00:00:00Z" },
-  { id: "5", borrowerId: "USR005", borrowerName: "Gbenga Ola", guarantorId: "USR056", guarantorName: "Biodun Akin", loanAmount: 150000, loanId: "LN-005", status: "declined", createdAt: "2024-04-15T00:00:00Z" },
-];
+const ACTIVE_STATUSES = ["confirmed", "consented", "active", "accepted"];
+const PENDING_STATUSES = ["pending", "requested", "scanned"];
 
-const defaultGuarantorSettings = { systemEnabled: true, minimumBalanceForGuarantor: 100000, minimumMembershipMonths: 6, maxLoansAsGuarantor: 3, guarantorMustBeVerified: true };
+async function loadSettings() {
+  const { data } = await supabase.from("guarantor_settings").select("*").limit(1).maybeSingle();
+  return {
+    requireGuarantor: data?.system_enabled ?? false,
+    minimumGuarantorBalance: Number(data?.minimum_balance ?? 0),
+    minimumMembershipMonths: Number(data?.minimum_membership_months ?? 0),
+  };
+}
 
-router.get("/guarantors", async (req, res): Promise<void> => {
-  const relationships = await readData("guarantor_relationships.json", defaultGuarantorRelationships);
-  const { status } = req.query;
-  const filtered = status ? relationships.filter((g) => g.status === status) : relationships;
-  res.json({ relationships: filtered, pendingCount: relationships.filter((g) => g.status === "pending").length, total: relationships.length });
+// GET /guarantors — real loan_guarantors joined with loans + profiles
+router.get("/guarantors", async (_req, res): Promise<void> => {
+  const { data: links, error } = await supabase
+    .from("loan_guarantors")
+    .select("id, loan_id, guarantor_id, status, consented_at, created_at")
+    .order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  const rows = links ?? [];
+
+  const loanIds = [...new Set(rows.map((r) => r.loan_id).filter(Boolean))];
+  const loanMap: Record<string, { amount: number; profile_id: string | null }> = {};
+  if (loanIds.length) {
+    const { data: loans } = await supabase
+      .from("loans")
+      .select("id, amount, profile_id")
+      .in("id", loanIds);
+    for (const l of loans ?? []) loanMap[l.id] = { amount: Number(l.amount || 0), profile_id: l.profile_id };
+  }
+
+  const profileIds = [
+    ...new Set([
+      ...rows.map((r) => r.guarantor_id),
+      ...Object.values(loanMap).map((l) => l.profile_id),
+    ].filter(Boolean) as string[]),
+  ];
+  const nameMap: Record<string, string> = {};
+  if (profileIds.length) {
+    const { data: profs } = await supabase.from("profiles").select("id, name, email").in("id", profileIds);
+    for (const p of profs ?? []) nameMap[p.id] = p.name || p.email || "Unknown";
+  }
+
+  const mapRow = (r: (typeof rows)[number]) => {
+    const loan = loanMap[r.loan_id] ?? { amount: 0, profile_id: null };
+    return {
+      id: r.id,
+      borrowerId: loan.profile_id,
+      borrowerName: loan.profile_id ? nameMap[loan.profile_id] || "Unknown" : "Unknown",
+      guarantorId: r.guarantor_id,
+      guarantorName: r.guarantor_id ? nameMap[r.guarantor_id] || "Unknown" : "Unknown",
+      loanAmount: loan.amount,
+      status: ACTIVE_STATUSES.includes(String(r.status)) ? "active" : (r.status || "pending"),
+      startedAt: r.consented_at || r.created_at,
+      requestedAt: r.created_at,
+    };
+  };
+
+  const relationships = rows
+    .filter((r) => ACTIVE_STATUSES.includes(String(r.status)))
+    .map(mapRow);
+  const pendingRequests = rows
+    .filter((r) => PENDING_STATUSES.includes(String(r.status)))
+    .map(mapRow);
+
+  res.json({
+    relationships,
+    pendingRequests,
+    settings: await loadSettings(),
+    totalRelationships: relationships.length,
+  });
 });
 
-router.get("/guarantors/settings", async (_req, res): Promise<void> => {
-  const settings = await readData("guarantor_settings.json", defaultGuarantorSettings);
-  res.json({ settings });
-});
-
+// PUT /guarantors/settings
 router.put("/guarantors/settings", async (req, res): Promise<void> => {
-  const settings = await readData("guarantor_settings.json", defaultGuarantorSettings);
-  const updatedSettings = { ...settings, ...req.body };
-  await writeData("guarantor_settings.json", updatedSettings);
-  res.json({ settings: updatedSettings, message: "Guarantor settings updated" });
+  const body = req.body ?? {};
+  const update = {
+    system_enabled: !!body.requireGuarantor,
+    minimum_balance: Number(body.minimumGuarantorBalance ?? 0),
+    minimum_membership_months: Number(body.minimumMembershipMonths ?? 0),
+    updated_at: new Date().toISOString(),
+  };
+  const { data: existing } = await supabase.from("guarantor_settings").select("id").limit(1).maybeSingle();
+  if (existing?.id) {
+    await supabase.from("guarantor_settings").update(update).eq("id", existing.id);
+  } else {
+    await supabase.from("guarantor_settings").insert(update);
+  }
+  res.json({ settings: await loadSettings(), message: "Guarantor settings updated" });
 });
 
-router.put("/guarantors/:id/approve", async (req, res): Promise<void> => {
-  const relationships = await readData("guarantor_relationships.json", defaultGuarantorRelationships);
-  const rel = relationships.find((g) => g.id === req.params.id);
-  if (!rel) { res.status(404).json({ error: "Relationship not found" }); return; }
-  rel.status = "active";
-  await writeData("guarantor_relationships.json", relationships);
-  res.json({ relationship: rel, message: "Guarantor relationship approved" });
-});
-
-router.put("/guarantors/:id/decline", async (req, res): Promise<void> => {
-  const relationships = await readData("guarantor_relationships.json", defaultGuarantorRelationships);
-  const rel = relationships.find((g) => g.id === req.params.id);
-  if (!rel) { res.status(404).json({ error: "Relationship not found" }); return; }
-  rel.status = "declined";
-  await writeData("guarantor_relationships.json", relationships);
-  res.json({ relationship: rel, message: "Guarantor relationship declined" });
+// POST /guarantors/requests/:id/:action (approve|reject)
+router.post("/guarantors/requests/:id/:action", async (req, res): Promise<void> => {
+  const { id, action } = req.params;
+  const newStatus = action === "approve" ? "confirmed" : "rejected";
+  const { data, error } = await supabase
+    .from("loan_guarantors")
+    .update({
+      status: newStatus,
+      ...(action === "approve" ? { consented_at: new Date().toISOString() } : {}),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error || !data) {
+    res.status(404).json({ error: error?.message || "Request not found" });
+    return;
+  }
+  res.json({ message: `Request ${action}d`, request: data });
 });
 
 export default router;

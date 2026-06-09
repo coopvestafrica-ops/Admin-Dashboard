@@ -367,7 +367,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         "200":
           description: Loan details
@@ -386,7 +386,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         "200":
           description: Loan approved
@@ -405,7 +405,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       requestBody:
         required: true
         content:
@@ -994,11 +994,11 @@ components:
       type: object
       properties:
         id:
-          type: integer
+          type: string
         loanId:
           type: string
         memberId:
-          type: integer
+          type: string
         memberName:
           type: string
         amount:

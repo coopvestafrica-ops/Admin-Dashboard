@@ -140,9 +140,9 @@ export const LoanStatus = {
 } as const;
 
 export interface Loan {
-  id: number;
+  id: string;
   loanId: string;
-  memberId: number;
+  memberId: string;
   memberName: string;
   amount: number;
   balance: number;
