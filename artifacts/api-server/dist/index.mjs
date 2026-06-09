@@ -21,6 +21,10 @@ var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require
 var __commonJS = (cb, mod) => function __require2() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
     for (let key of __getOwnPropNames(from))
@@ -38,9 +42,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// node_modules/.pnpm/ms@2.1.3/node_modules/ms/index.js
+// ../../node_modules/.pnpm/ms@2.1.3/node_modules/ms/index.js
 var require_ms = __commonJS({
-  "node_modules/.pnpm/ms@2.1.3/node_modules/ms/index.js"(exports, module) {
+  "../../node_modules/.pnpm/ms@2.1.3/node_modules/ms/index.js"(exports, module) {
     var s = 1e3;
     var m = s * 60;
     var h = m * 60;
@@ -154,9 +158,9 @@ var require_ms = __commonJS({
   }
 });
 
-// node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/common.js
+// ../../node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/common.js
 var require_common = __commonJS({
-  "node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/common.js"(exports, module) {
+  "../../node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/common.js"(exports, module) {
     function setup(env) {
       createDebug.debug = createDebug;
       createDebug.default = createDebug;
@@ -331,9 +335,9 @@ var require_common = __commonJS({
   }
 });
 
-// node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/browser.js
+// ../../node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/browser.js
 var require_browser = __commonJS({
-  "node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/browser.js"(exports, module) {
+  "../../node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/browser.js"(exports, module) {
     exports.formatArgs = formatArgs;
     exports.save = save;
     exports.load = load;
@@ -501,9 +505,9 @@ var require_browser = __commonJS({
   }
 });
 
-// node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/node.js
+// ../../node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/node.js
 var require_node = __commonJS({
-  "node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/node.js"(exports, module) {
+  "../../node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/node.js"(exports, module) {
     var tty = __require("tty");
     var util2 = __require("util");
     exports.init = init;
@@ -675,9 +679,9 @@ var require_node = __commonJS({
   }
 });
 
-// node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/index.js
+// ../../node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/index.js
 var require_src = __commonJS({
-  "node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/index.js"(exports, module) {
+  "../../node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/index.js"(exports, module) {
     if (typeof process === "undefined" || process.type === "renderer" || process.browser === true || process.__nwjs) {
       module.exports = require_browser();
     } else {
@@ -686,9 +690,9 @@ var require_src = __commonJS({
   }
 });
 
-// node_modules/.pnpm/depd@2.0.0/node_modules/depd/index.js
+// ../../node_modules/.pnpm/depd@2.0.0/node_modules/depd/index.js
 var require_depd = __commonJS({
-  "node_modules/.pnpm/depd@2.0.0/node_modules/depd/index.js"(exports, module) {
+  "../../node_modules/.pnpm/depd@2.0.0/node_modules/depd/index.js"(exports, module) {
     var relative = __require("path").relative;
     module.exports = depd;
     var basePath = process.cwd();
@@ -992,9 +996,9 @@ var require_depd = __commonJS({
   }
 });
 
-// node_modules/.pnpm/setprototypeof@1.2.0/node_modules/setprototypeof/index.js
+// ../../node_modules/.pnpm/setprototypeof@1.2.0/node_modules/setprototypeof/index.js
 var require_setprototypeof = __commonJS({
-  "node_modules/.pnpm/setprototypeof@1.2.0/node_modules/setprototypeof/index.js"(exports, module) {
+  "../../node_modules/.pnpm/setprototypeof@1.2.0/node_modules/setprototypeof/index.js"(exports, module) {
     "use strict";
     module.exports = Object.setPrototypeOf || ({ __proto__: [] } instanceof Array ? setProtoOf : mixinProperties);
     function setProtoOf(obj, proto) {
@@ -1012,9 +1016,9 @@ var require_setprototypeof = __commonJS({
   }
 });
 
-// node_modules/.pnpm/statuses@2.0.2/node_modules/statuses/codes.json
+// ../../node_modules/.pnpm/statuses@2.0.2/node_modules/statuses/codes.json
 var require_codes = __commonJS({
-  "node_modules/.pnpm/statuses@2.0.2/node_modules/statuses/codes.json"(exports, module) {
+  "../../node_modules/.pnpm/statuses@2.0.2/node_modules/statuses/codes.json"(exports, module) {
     module.exports = {
       "100": "Continue",
       "101": "Switching Protocols",
@@ -1083,9 +1087,9 @@ var require_codes = __commonJS({
   }
 });
 
-// node_modules/.pnpm/statuses@2.0.2/node_modules/statuses/index.js
+// ../../node_modules/.pnpm/statuses@2.0.2/node_modules/statuses/index.js
 var require_statuses = __commonJS({
-  "node_modules/.pnpm/statuses@2.0.2/node_modules/statuses/index.js"(exports, module) {
+  "../../node_modules/.pnpm/statuses@2.0.2/node_modules/statuses/index.js"(exports, module) {
     "use strict";
     var codes = require_codes();
     module.exports = status;
@@ -1154,9 +1158,9 @@ var require_statuses = __commonJS({
   }
 });
 
-// node_modules/.pnpm/inherits@2.0.4/node_modules/inherits/inherits_browser.js
+// ../../node_modules/.pnpm/inherits@2.0.4/node_modules/inherits/inherits_browser.js
 var require_inherits_browser = __commonJS({
-  "node_modules/.pnpm/inherits@2.0.4/node_modules/inherits/inherits_browser.js"(exports, module) {
+  "../../node_modules/.pnpm/inherits@2.0.4/node_modules/inherits/inherits_browser.js"(exports, module) {
     if (typeof Object.create === "function") {
       module.exports = function inherits(ctor, superCtor) {
         if (superCtor) {
@@ -1186,9 +1190,9 @@ var require_inherits_browser = __commonJS({
   }
 });
 
-// node_modules/.pnpm/inherits@2.0.4/node_modules/inherits/inherits.js
+// ../../node_modules/.pnpm/inherits@2.0.4/node_modules/inherits/inherits.js
 var require_inherits = __commonJS({
-  "node_modules/.pnpm/inherits@2.0.4/node_modules/inherits/inherits.js"(exports, module) {
+  "../../node_modules/.pnpm/inherits@2.0.4/node_modules/inherits/inherits.js"(exports, module) {
     try {
       util2 = __require("util");
       if (typeof util2.inherits !== "function") throw "";
@@ -1200,9 +1204,9 @@ var require_inherits = __commonJS({
   }
 });
 
-// node_modules/.pnpm/toidentifier@1.0.1/node_modules/toidentifier/index.js
+// ../../node_modules/.pnpm/toidentifier@1.0.1/node_modules/toidentifier/index.js
 var require_toidentifier = __commonJS({
-  "node_modules/.pnpm/toidentifier@1.0.1/node_modules/toidentifier/index.js"(exports, module) {
+  "../../node_modules/.pnpm/toidentifier@1.0.1/node_modules/toidentifier/index.js"(exports, module) {
     "use strict";
     module.exports = toIdentifier;
     function toIdentifier(str) {
@@ -1213,9 +1217,9 @@ var require_toidentifier = __commonJS({
   }
 });
 
-// node_modules/.pnpm/http-errors@2.0.1/node_modules/http-errors/index.js
+// ../../node_modules/.pnpm/http-errors@2.0.1/node_modules/http-errors/index.js
 var require_http_errors = __commonJS({
-  "node_modules/.pnpm/http-errors@2.0.1/node_modules/http-errors/index.js"(exports, module) {
+  "../../node_modules/.pnpm/http-errors@2.0.1/node_modules/http-errors/index.js"(exports, module) {
     "use strict";
     var deprecate = require_depd()("http-errors");
     var setPrototypeOf = require_setprototypeof();
@@ -1377,9 +1381,9 @@ var require_http_errors = __commonJS({
   }
 });
 
-// node_modules/.pnpm/bytes@3.1.2/node_modules/bytes/index.js
+// ../../node_modules/.pnpm/bytes@3.1.2/node_modules/bytes/index.js
 var require_bytes = __commonJS({
-  "node_modules/.pnpm/bytes@3.1.2/node_modules/bytes/index.js"(exports, module) {
+  "../../node_modules/.pnpm/bytes@3.1.2/node_modules/bytes/index.js"(exports, module) {
     "use strict";
     module.exports = bytes;
     module.exports.format = format;
@@ -1466,9 +1470,9 @@ var require_bytes = __commonJS({
   }
 });
 
-// node_modules/.pnpm/safer-buffer@2.1.2/node_modules/safer-buffer/safer.js
+// ../../node_modules/.pnpm/safer-buffer@2.1.2/node_modules/safer-buffer/safer.js
 var require_safer = __commonJS({
-  "node_modules/.pnpm/safer-buffer@2.1.2/node_modules/safer-buffer/safer.js"(exports, module) {
+  "../../node_modules/.pnpm/safer-buffer@2.1.2/node_modules/safer-buffer/safer.js"(exports, module) {
     "use strict";
     var buffer = __require("buffer");
     var Buffer3 = buffer.Buffer;
@@ -1534,9 +1538,9 @@ var require_safer = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/bom-handling.js
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/bom-handling.js
 var require_bom_handling = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/bom-handling.js"(exports) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/bom-handling.js"(exports) {
     "use strict";
     var BOMChar = "\uFEFF";
     exports.PrependBOM = PrependBOMWrapper;
@@ -1580,9 +1584,9 @@ var require_bom_handling = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/helpers/merge-exports.js
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/helpers/merge-exports.js
 var require_merge_exports = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/helpers/merge-exports.js"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/helpers/merge-exports.js"(exports, module) {
     "use strict";
     var hasOwn = typeof Object.hasOwn === "undefined" ? Function.call.bind(Object.prototype.hasOwnProperty) : Object.hasOwn;
     function mergeModules(target, module2) {
@@ -1596,9 +1600,9 @@ var require_merge_exports = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/internal.js
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/internal.js
 var require_internal = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/internal.js"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/internal.js"(exports, module) {
     "use strict";
     var Buffer3 = require_safer().Buffer;
     module.exports = {
@@ -1777,9 +1781,9 @@ var require_internal = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/utf32.js
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/utf32.js
 var require_utf32 = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/utf32.js"(exports) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/utf32.js"(exports) {
     "use strict";
     var Buffer3 = require_safer().Buffer;
     exports._utf32 = Utf32Codec;
@@ -2008,9 +2012,9 @@ var require_utf32 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/utf16.js
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/utf16.js
 var require_utf16 = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/utf16.js"(exports) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/utf16.js"(exports) {
     "use strict";
     var Buffer3 = require_safer().Buffer;
     exports.utf16be = Utf16BECodec;
@@ -2151,9 +2155,9 @@ var require_utf16 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/utf7.js
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/utf7.js
 var require_utf7 = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/utf7.js"(exports) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/utf7.js"(exports) {
     "use strict";
     var Buffer3 = require_safer().Buffer;
     exports.utf7 = Utf7Codec;
@@ -2369,9 +2373,9 @@ var require_utf7 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/sbcs-codec.js
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/sbcs-codec.js
 var require_sbcs_codec = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/sbcs-codec.js"(exports) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/sbcs-codec.js"(exports) {
     "use strict";
     var Buffer3 = require_safer().Buffer;
     exports._sbcs = SBCSCodec;
@@ -2431,9 +2435,9 @@ var require_sbcs_codec = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/sbcs-data.js
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/sbcs-data.js
 var require_sbcs_data = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/sbcs-data.js"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/sbcs-data.js"(exports, module) {
     "use strict";
     module.exports = {
       // Not supported by iconv, not sure why.
@@ -2584,9 +2588,9 @@ var require_sbcs_data = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/sbcs-data-generated.js
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/sbcs-data-generated.js
 var require_sbcs_data_generated = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/sbcs-data-generated.js"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/sbcs-data-generated.js"(exports, module) {
     "use strict";
     module.exports = {
       "437": "cp437",
@@ -3039,9 +3043,9 @@ var require_sbcs_data_generated = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/dbcs-codec.js
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/dbcs-codec.js
 var require_dbcs_codec = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/dbcs-codec.js"(exports) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/dbcs-codec.js"(exports) {
     "use strict";
     var Buffer3 = require_safer().Buffer;
     exports._dbcs = DBCSCodec;
@@ -3499,9 +3503,9 @@ var require_dbcs_codec = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/shiftjis.json
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/shiftjis.json
 var require_shiftjis = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/shiftjis.json"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/shiftjis.json"(exports, module) {
     module.exports = [
       ["0", "\0", 128],
       ["a1", "\uFF61", 62],
@@ -3630,9 +3634,9 @@ var require_shiftjis = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/eucjp.json
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/eucjp.json
 var require_eucjp = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/eucjp.json"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/eucjp.json"(exports, module) {
     module.exports = [
       ["0", "\0", 127],
       ["8ea1", "\uFF61", 62],
@@ -3818,9 +3822,9 @@ var require_eucjp = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/cp936.json
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/cp936.json
 var require_cp936 = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/cp936.json"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/cp936.json"(exports, module) {
     module.exports = [
       ["0", "\0", 127, "\u20AC"],
       ["8140", "\u4E02\u4E04\u4E05\u4E06\u4E0F\u4E12\u4E17\u4E1F\u4E20\u4E21\u4E23\u4E26\u4E29\u4E2E\u4E2F\u4E31\u4E33\u4E35\u4E37\u4E3C\u4E40\u4E41\u4E42\u4E44\u4E46\u4E4A\u4E51\u4E55\u4E57\u4E5A\u4E5B\u4E62\u4E63\u4E64\u4E65\u4E67\u4E68\u4E6A", 5, "\u4E72\u4E74", 9, "\u4E7F", 6, "\u4E87\u4E8A"],
@@ -4088,9 +4092,9 @@ var require_cp936 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/gbk-added.json
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/gbk-added.json
 var require_gbk_added = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/gbk-added.json"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/gbk-added.json"(exports, module) {
     module.exports = [
       ["a140", "\uE4C6", 62],
       ["a180", "\uE505", 32],
@@ -4150,16 +4154,16 @@ var require_gbk_added = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/gb18030-ranges.json
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/gb18030-ranges.json
 var require_gb18030_ranges = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/gb18030-ranges.json"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/gb18030-ranges.json"(exports, module) {
     module.exports = { uChars: [128, 165, 169, 178, 184, 216, 226, 235, 238, 244, 248, 251, 253, 258, 276, 284, 300, 325, 329, 334, 364, 463, 465, 467, 469, 471, 473, 475, 477, 506, 594, 610, 712, 716, 730, 930, 938, 962, 970, 1026, 1104, 1106, 8209, 8215, 8218, 8222, 8231, 8241, 8244, 8246, 8252, 8365, 8452, 8454, 8458, 8471, 8482, 8556, 8570, 8596, 8602, 8713, 8720, 8722, 8726, 8731, 8737, 8740, 8742, 8748, 8751, 8760, 8766, 8777, 8781, 8787, 8802, 8808, 8816, 8854, 8858, 8870, 8896, 8979, 9322, 9372, 9548, 9588, 9616, 9622, 9634, 9652, 9662, 9672, 9676, 9680, 9702, 9735, 9738, 9793, 9795, 11906, 11909, 11913, 11917, 11928, 11944, 11947, 11951, 11956, 11960, 11964, 11979, 12284, 12292, 12312, 12319, 12330, 12351, 12436, 12447, 12535, 12543, 12586, 12842, 12850, 12964, 13200, 13215, 13218, 13253, 13263, 13267, 13270, 13384, 13428, 13727, 13839, 13851, 14617, 14703, 14801, 14816, 14964, 15183, 15471, 15585, 16471, 16736, 17208, 17325, 17330, 17374, 17623, 17997, 18018, 18212, 18218, 18301, 18318, 18760, 18811, 18814, 18820, 18823, 18844, 18848, 18872, 19576, 19620, 19738, 19887, 40870, 59244, 59336, 59367, 59413, 59417, 59423, 59431, 59437, 59443, 59452, 59460, 59478, 59493, 63789, 63866, 63894, 63976, 63986, 64016, 64018, 64021, 64025, 64034, 64037, 64042, 65074, 65093, 65107, 65112, 65127, 65132, 65375, 65510, 65536], gbChars: [0, 36, 38, 45, 50, 81, 89, 95, 96, 100, 103, 104, 105, 109, 126, 133, 148, 172, 175, 179, 208, 306, 307, 308, 309, 310, 311, 312, 313, 341, 428, 443, 544, 545, 558, 741, 742, 749, 750, 805, 819, 820, 7922, 7924, 7925, 7927, 7934, 7943, 7944, 7945, 7950, 8062, 8148, 8149, 8152, 8164, 8174, 8236, 8240, 8262, 8264, 8374, 8380, 8381, 8384, 8388, 8390, 8392, 8393, 8394, 8396, 8401, 8406, 8416, 8419, 8424, 8437, 8439, 8445, 8482, 8485, 8496, 8521, 8603, 8936, 8946, 9046, 9050, 9063, 9066, 9076, 9092, 9100, 9108, 9111, 9113, 9131, 9162, 9164, 9218, 9219, 11329, 11331, 11334, 11336, 11346, 11361, 11363, 11366, 11370, 11372, 11375, 11389, 11682, 11686, 11687, 11692, 11694, 11714, 11716, 11723, 11725, 11730, 11736, 11982, 11989, 12102, 12336, 12348, 12350, 12384, 12393, 12395, 12397, 12510, 12553, 12851, 12962, 12973, 13738, 13823, 13919, 13933, 14080, 14298, 14585, 14698, 15583, 15847, 16318, 16434, 16438, 16481, 16729, 17102, 17122, 17315, 17320, 17402, 17418, 17859, 17909, 17911, 17915, 17916, 17936, 17939, 17961, 18664, 18703, 18814, 18962, 19043, 33469, 33470, 33471, 33484, 33485, 33490, 33497, 33501, 33505, 33513, 33520, 33536, 33550, 37845, 37921, 37948, 38029, 38038, 38064, 38065, 38066, 38069, 38075, 38076, 38078, 39108, 39109, 39113, 39114, 39115, 39116, 39265, 39394, 189e3] };
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/cp949.json
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/cp949.json
 var require_cp949 = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/cp949.json"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/cp949.json"(exports, module) {
     module.exports = [
       ["0", "\0", 127],
       ["8141", "\uAC02\uAC03\uAC05\uAC06\uAC0B", 4, "\uAC18\uAC1E\uAC1F\uAC21\uAC22\uAC23\uAC25", 6, "\uAC2E\uAC32\uAC33\uAC34"],
@@ -4436,9 +4440,9 @@ var require_cp949 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/cp950.json
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/cp950.json
 var require_cp950 = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/cp950.json"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/cp950.json"(exports, module) {
     module.exports = [
       ["0", "\0", 127],
       ["a140", "\u3000\uFF0C\u3001\u3002\uFF0E\u2027\uFF1B\uFF1A\uFF1F\uFF01\uFE30\u2026\u2025\uFE50\uFE51\uFE52\xB7\uFE54\uFE55\uFE56\uFE57\uFF5C\u2013\uFE31\u2014\uFE33\u2574\uFE34\uFE4F\uFF08\uFF09\uFE35\uFE36\uFF5B\uFF5D\uFE37\uFE38\u3014\u3015\uFE39\uFE3A\u3010\u3011\uFE3B\uFE3C\u300A\u300B\uFE3D\uFE3E\u3008\u3009\uFE3F\uFE40\u300C\u300D\uFE41\uFE42\u300E\u300F\uFE43\uFE44\uFE59\uFE5A"],
@@ -4619,9 +4623,9 @@ var require_cp950 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/big5-added.json
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/big5-added.json
 var require_big5_added = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/big5-added.json"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/tables/big5-added.json"(exports, module) {
     module.exports = [
       ["8740", "\u43F0\u4C32\u4603\u45A6\u4578\u{27267}\u4D77\u45B3\u{27CB1}\u4CE2\u{27CC5}\u3B95\u4736\u4744\u4C47\u4C40\u{242BF}\u{23617}\u{27352}\u{26E8B}\u{270D2}\u4C57\u{2A351}\u474F\u45DA\u4C85\u{27C6C}\u4D07\u4AA4\u46A1\u{26B23}\u7225\u{25A54}\u{21A63}\u{23E06}\u{23F61}\u664D\u56FB"],
       ["8767", "\u7D95\u591D\u{28BB9}\u3DF4\u9734\u{27BEF}\u5BDB\u{21D5E}\u5AA4\u3625\u{29EB0}\u5AD1\u5BB7\u5CFC\u676E\u8593\u{29945}\u7461\u749D\u3875\u{21D53}\u{2369E}\u{26021}\u3EEC"],
@@ -4747,9 +4751,9 @@ var require_big5_added = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/dbcs-data.js
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/dbcs-data.js
 var require_dbcs_data = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/dbcs-data.js"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/dbcs-data.js"(exports, module) {
     "use strict";
     module.exports = {
       // == Japanese/ShiftJIS ====================================================
@@ -4994,9 +4998,9 @@ var require_dbcs_data = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/index.js
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/index.js
 var require_encodings = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/index.js"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/encodings/index.js"(exports, module) {
     "use strict";
     var mergeModules = require_merge_exports();
     var modules = [
@@ -5019,9 +5023,9 @@ var require_encodings = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/streams.js
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/streams.js
 var require_streams = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/streams.js"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/streams.js"(exports, module) {
     "use strict";
     var Buffer3 = require_safer().Buffer;
     module.exports = function(streamModule) {
@@ -5116,9 +5120,9 @@ var require_streams = __commonJS({
   }
 });
 
-// node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/index.js
+// ../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/index.js
 var require_lib = __commonJS({
-  "node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/index.js"(exports, module) {
+  "../../node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite/lib/index.js"(exports, module) {
     "use strict";
     var Buffer3 = require_safer().Buffer;
     var bomHandling = require_bom_handling();
@@ -5248,9 +5252,9 @@ var require_lib = __commonJS({
   }
 });
 
-// node_modules/.pnpm/unpipe@1.0.0/node_modules/unpipe/index.js
+// ../../node_modules/.pnpm/unpipe@1.0.0/node_modules/unpipe/index.js
 var require_unpipe = __commonJS({
-  "node_modules/.pnpm/unpipe@1.0.0/node_modules/unpipe/index.js"(exports, module) {
+  "../../node_modules/.pnpm/unpipe@1.0.0/node_modules/unpipe/index.js"(exports, module) {
     "use strict";
     module.exports = unpipe;
     function hasPipeDataListeners(stream) {
@@ -5286,9 +5290,9 @@ var require_unpipe = __commonJS({
   }
 });
 
-// node_modules/.pnpm/raw-body@3.0.2/node_modules/raw-body/index.js
+// ../../node_modules/.pnpm/raw-body@3.0.2/node_modules/raw-body/index.js
 var require_raw_body = __commonJS({
-  "node_modules/.pnpm/raw-body@3.0.2/node_modules/raw-body/index.js"(exports, module) {
+  "../../node_modules/.pnpm/raw-body@3.0.2/node_modules/raw-body/index.js"(exports, module) {
     "use strict";
     var asyncHooks = tryRequireAsyncHooks();
     var bytes = require_bytes();
@@ -5475,9 +5479,9 @@ var require_raw_body = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ee-first@1.1.1/node_modules/ee-first/index.js
+// ../../node_modules/.pnpm/ee-first@1.1.1/node_modules/ee-first/index.js
 var require_ee_first = __commonJS({
-  "node_modules/.pnpm/ee-first@1.1.1/node_modules/ee-first/index.js"(exports, module) {
+  "../../node_modules/.pnpm/ee-first@1.1.1/node_modules/ee-first/index.js"(exports, module) {
     "use strict";
     module.exports = first;
     function first(stuff, done) {
@@ -5531,9 +5535,9 @@ var require_ee_first = __commonJS({
   }
 });
 
-// node_modules/.pnpm/on-finished@2.4.1/node_modules/on-finished/index.js
+// ../../node_modules/.pnpm/on-finished@2.4.1/node_modules/on-finished/index.js
 var require_on_finished = __commonJS({
-  "node_modules/.pnpm/on-finished@2.4.1/node_modules/on-finished/index.js"(exports, module) {
+  "../../node_modules/.pnpm/on-finished@2.4.1/node_modules/on-finished/index.js"(exports, module) {
     "use strict";
     module.exports = onFinished;
     module.exports.isFinished = isFinished;
@@ -5635,113 +5639,140 @@ var require_on_finished = __commonJS({
   }
 });
 
-// node_modules/.pnpm/content-type@1.0.5/node_modules/content-type/index.js
-var require_content_type = __commonJS({
-  "node_modules/.pnpm/content-type@1.0.5/node_modules/content-type/index.js"(exports) {
+// ../../node_modules/.pnpm/content-type@2.0.0/node_modules/content-type/dist/index.js
+var require_dist = __commonJS({
+  "../../node_modules/.pnpm/content-type@2.0.0/node_modules/content-type/dist/index.js"(exports) {
     "use strict";
-    var PARAM_REGEXP = /; *([!#$%&'*+.^_`|~0-9A-Za-z-]+) *= *("(?:[\u000b\u0020\u0021\u0023-\u005b\u005d-\u007e\u0080-\u00ff]|\\[\u000b\u0020-\u00ff])*"|[!#$%&'*+.^_`|~0-9A-Za-z-]+) */g;
-    var TEXT_REGEXP = /^[\u000b\u0020-\u007e\u0080-\u00ff]+$/;
-    var TOKEN_REGEXP = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
-    var QESC_REGEXP = /\\([\u000b\u0020-\u00ff])/g;
-    var QUOTE_REGEXP = /([\\"])/g;
-    var TYPE_REGEXP = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+\/[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
+    Object.defineProperty(exports, "__esModule", { value: true });
     exports.format = format;
     exports.parse = parse;
+    var TEXT_REGEXP = /^[\u0009\u0020-\u007e\u0080-\u00ff]*$/;
+    var TOKEN_REGEXP = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
+    var QUOTE_REGEXP = /[\\"]/g;
+    var TYPE_REGEXP = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+\/[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
+    var NullObject = /* @__PURE__ */ (() => {
+      const C = function() {
+      };
+      C.prototype = /* @__PURE__ */ Object.create(null);
+      return C;
+    })();
     function format(obj) {
-      if (!obj || typeof obj !== "object") {
-        throw new TypeError("argument obj is required");
-      }
-      var parameters = obj.parameters;
-      var type = obj.type;
+      const { type, parameters } = obj;
       if (!type || !TYPE_REGEXP.test(type)) {
-        throw new TypeError("invalid type");
+        throw new TypeError(`Invalid type: ${type}`);
       }
-      var string = type;
-      if (parameters && typeof parameters === "object") {
-        var param;
-        var params = Object.keys(parameters).sort();
-        for (var i = 0; i < params.length; i++) {
-          param = params[i];
+      let result = type;
+      if (parameters) {
+        for (const param of Object.keys(parameters)) {
           if (!TOKEN_REGEXP.test(param)) {
-            throw new TypeError("invalid parameter name");
+            throw new TypeError(`Invalid parameter name: ${param}`);
           }
-          string += "; " + param + "=" + qstring(parameters[param]);
+          result += `; ${param}=${qstring(parameters[param])}`;
         }
       }
-      return string;
+      return result;
     }
-    function parse(string) {
-      if (!string) {
-        throw new TypeError("argument string is required");
-      }
-      var header = typeof string === "object" ? getcontenttype(string) : string;
-      if (typeof header !== "string") {
-        throw new TypeError("argument string is required to be a string");
-      }
-      var index = header.indexOf(";");
-      var type = index !== -1 ? header.slice(0, index).trim() : header.trim();
-      if (!TYPE_REGEXP.test(type)) {
-        throw new TypeError("invalid media type");
-      }
-      var obj = new ContentType(type.toLowerCase());
-      if (index !== -1) {
-        var key;
-        var match;
-        var value;
-        PARAM_REGEXP.lastIndex = index;
-        while (match = PARAM_REGEXP.exec(header)) {
-          if (match.index !== index) {
-            throw new TypeError("invalid parameter format");
-          }
-          index += match[0].length;
-          key = match[1].toLowerCase();
-          value = match[2];
-          if (value.charCodeAt(0) === 34) {
-            value = value.slice(1, -1);
-            if (value.indexOf("\\") !== -1) {
-              value = value.replace(QESC_REGEXP, "$1");
+    function parse(header, options) {
+      const len = header.length;
+      let index = skipOWS(header, 0, len);
+      const valueStart = index;
+      index = skipValue(header, index, len);
+      const valueEnd = trailingOWS(header, valueStart, index);
+      const type = header.slice(valueStart, valueEnd).toLowerCase();
+      const parameters = options?.parameters === false ? new NullObject() : parseParameters(header, index, len);
+      return { type, parameters };
+    }
+    var SP = 32;
+    var HTAB = 9;
+    var SEMI = 59;
+    var EQ = 61;
+    var DQUOTE = 34;
+    var BSLASH = 92;
+    function parseParameters(header, index, len) {
+      const parameters = new NullObject();
+      parameter: while (index < len) {
+        index = skipOWS(header, index + 1, len);
+        const keyStart = index;
+        while (index < len) {
+          const code = header.charCodeAt(index);
+          if (code === SEMI)
+            continue parameter;
+          if (code === EQ) {
+            const keyEnd = trailingOWS(header, keyStart, index);
+            const key = header.slice(keyStart, keyEnd).toLowerCase();
+            index = skipOWS(header, index + 1, len);
+            if (index < len && header.charCodeAt(index) === DQUOTE) {
+              index++;
+              let value = "";
+              while (index < len) {
+                const code2 = header.charCodeAt(index++);
+                if (code2 === DQUOTE) {
+                  index = skipValue(header, index, len);
+                  if (parameters[key] === void 0)
+                    parameters[key] = value;
+                  break;
+                }
+                if (code2 === BSLASH && index < len) {
+                  value += header[index++];
+                  continue;
+                }
+                value += String.fromCharCode(code2);
+              }
+              continue parameter;
             }
+            const valueStart = index;
+            index = skipValue(header, index, len);
+            if (parameters[key] === void 0) {
+              const valueEnd = trailingOWS(header, valueStart, index);
+              parameters[key] = header.slice(valueStart, valueEnd);
+            }
+            continue parameter;
           }
-          obj.parameters[key] = value;
-        }
-        if (index !== header.length) {
-          throw new TypeError("invalid parameter format");
+          index++;
         }
       }
-      return obj;
+      return parameters;
     }
-    function getcontenttype(obj) {
-      var header;
-      if (typeof obj.getHeader === "function") {
-        header = obj.getHeader("content-type");
-      } else if (typeof obj.headers === "object") {
-        header = obj.headers && obj.headers["content-type"];
+    function skipValue(str, index, len) {
+      while (index < len) {
+        const char = str.charCodeAt(index);
+        if (char === SEMI)
+          break;
+        index++;
       }
-      if (typeof header !== "string") {
-        throw new TypeError("content-type header is missing from object");
-      }
-      return header;
+      return index;
     }
-    function qstring(val) {
-      var str = String(val);
-      if (TOKEN_REGEXP.test(str)) {
+    function skipOWS(header, index, len) {
+      while (index < len) {
+        const char = header.charCodeAt(index);
+        if (char !== SP && char !== HTAB)
+          break;
+        index++;
+      }
+      return index;
+    }
+    function trailingOWS(header, start, end) {
+      while (end > start) {
+        const char = header.charCodeAt(end - 1);
+        if (char !== SP && char !== HTAB)
+          break;
+        end--;
+      }
+      return end;
+    }
+    function qstring(str) {
+      if (TOKEN_REGEXP.test(str))
         return str;
-      }
-      if (str.length > 0 && !TEXT_REGEXP.test(str)) {
-        throw new TypeError("invalid parameter value");
-      }
-      return '"' + str.replace(QUOTE_REGEXP, "\\$1") + '"';
-    }
-    function ContentType(type) {
-      this.parameters = /* @__PURE__ */ Object.create(null);
-      this.type = type;
+      if (TEXT_REGEXP.test(str))
+        return `"${str.replace(QUOTE_REGEXP, "\\$&")}"`;
+      throw new TypeError(`Invalid parameter value: ${str}`);
     }
   }
 });
 
-// node_modules/.pnpm/mime-db@1.54.0/node_modules/mime-db/db.json
+// ../../node_modules/.pnpm/mime-db@1.54.0/node_modules/mime-db/db.json
 var require_db = __commonJS({
-  "node_modules/.pnpm/mime-db@1.54.0/node_modules/mime-db/db.json"(exports, module) {
+  "../../node_modules/.pnpm/mime-db@1.54.0/node_modules/mime-db/db.json"(exports, module) {
     module.exports = {
       "application/1d-interleaved-parityfec": {
         source: "iana"
@@ -15087,16 +15118,16 @@ var require_db = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mime-db@1.54.0/node_modules/mime-db/index.js
+// ../../node_modules/.pnpm/mime-db@1.54.0/node_modules/mime-db/index.js
 var require_mime_db = __commonJS({
-  "node_modules/.pnpm/mime-db@1.54.0/node_modules/mime-db/index.js"(exports, module) {
+  "../../node_modules/.pnpm/mime-db@1.54.0/node_modules/mime-db/index.js"(exports, module) {
     module.exports = require_db();
   }
 });
 
-// node_modules/.pnpm/mime-types@3.0.2/node_modules/mime-types/mimeScore.js
+// ../../node_modules/.pnpm/mime-types@3.0.2/node_modules/mime-types/mimeScore.js
 var require_mimeScore = __commonJS({
-  "node_modules/.pnpm/mime-types@3.0.2/node_modules/mime-types/mimeScore.js"(exports, module) {
+  "../../node_modules/.pnpm/mime-types@3.0.2/node_modules/mime-types/mimeScore.js"(exports, module) {
     var FACET_SCORES = {
       "prs.": 100,
       "x-": 200,
@@ -15138,9 +15169,9 @@ var require_mimeScore = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mime-types@3.0.2/node_modules/mime-types/index.js
+// ../../node_modules/.pnpm/mime-types@3.0.2/node_modules/mime-types/index.js
 var require_mime_types = __commonJS({
-  "node_modules/.pnpm/mime-types@3.0.2/node_modules/mime-types/index.js"(exports) {
+  "../../node_modules/.pnpm/mime-types@3.0.2/node_modules/mime-types/index.js"(exports) {
     "use strict";
     var db = require_mime_db();
     var extname = __require("path").extname;
@@ -15244,9 +15275,9 @@ var require_mime_types = __commonJS({
   }
 });
 
-// node_modules/.pnpm/media-typer@1.1.0/node_modules/media-typer/index.js
+// ../../node_modules/.pnpm/media-typer@1.1.0/node_modules/media-typer/index.js
 var require_media_typer = __commonJS({
-  "node_modules/.pnpm/media-typer@1.1.0/node_modules/media-typer/index.js"(exports) {
+  "../../node_modules/.pnpm/media-typer@1.1.0/node_modules/media-typer/index.js"(exports) {
     "use strict";
     var SUBTYPE_NAME_REGEXP = /^[A-Za-z0-9][A-Za-z0-9!#$&^_.-]{0,126}$/;
     var TYPE_NAME_REGEXP = /^[A-Za-z0-9][A-Za-z0-9!#$&^_-]{0,126}$/;
@@ -15314,11 +15345,11 @@ var require_media_typer = __commonJS({
   }
 });
 
-// node_modules/.pnpm/type-is@2.0.1/node_modules/type-is/index.js
+// ../../node_modules/.pnpm/type-is@2.1.0/node_modules/type-is/index.js
 var require_type_is = __commonJS({
-  "node_modules/.pnpm/type-is@2.0.1/node_modules/type-is/index.js"(exports, module) {
+  "../../node_modules/.pnpm/type-is@2.1.0/node_modules/type-is/index.js"(exports, module) {
     "use strict";
-    var contentType = require_content_type();
+    var contentType = require_dist();
     var mime = require_mime_types();
     var typer = require_media_typer();
     module.exports = typeofrequest;
@@ -15327,9 +15358,12 @@ var require_type_is = __commonJS({
     module.exports.normalize = normalize;
     module.exports.match = mimeMatch;
     function typeis(value, types_) {
+      if (value && typeof value === "object") {
+        value = value.headers["content-type"];
+      }
       var i;
       var types = types_;
-      var val = tryNormalizeType(value);
+      var val = normalizeType(value);
       if (!val) {
         return false;
       }
@@ -15395,22 +15429,120 @@ var require_type_is = __commonJS({
       return true;
     }
     function normalizeType(value) {
-      var type = contentType.parse(value).type;
+      if (!value) return null;
+      var type = contentType.parse(value, { parameters: false }).type;
       return typer.test(type) ? type : null;
-    }
-    function tryNormalizeType(value) {
-      try {
-        return value ? normalizeType(value) : null;
-      } catch (err) {
-        return null;
-      }
     }
   }
 });
 
-// node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/utils.js
+// ../../node_modules/.pnpm/content-type@1.0.5/node_modules/content-type/index.js
+var require_content_type = __commonJS({
+  "../../node_modules/.pnpm/content-type@1.0.5/node_modules/content-type/index.js"(exports) {
+    "use strict";
+    var PARAM_REGEXP = /; *([!#$%&'*+.^_`|~0-9A-Za-z-]+) *= *("(?:[\u000b\u0020\u0021\u0023-\u005b\u005d-\u007e\u0080-\u00ff]|\\[\u000b\u0020-\u00ff])*"|[!#$%&'*+.^_`|~0-9A-Za-z-]+) */g;
+    var TEXT_REGEXP = /^[\u000b\u0020-\u007e\u0080-\u00ff]+$/;
+    var TOKEN_REGEXP = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
+    var QESC_REGEXP = /\\([\u000b\u0020-\u00ff])/g;
+    var QUOTE_REGEXP = /([\\"])/g;
+    var TYPE_REGEXP = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+\/[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
+    exports.format = format;
+    exports.parse = parse;
+    function format(obj) {
+      if (!obj || typeof obj !== "object") {
+        throw new TypeError("argument obj is required");
+      }
+      var parameters = obj.parameters;
+      var type = obj.type;
+      if (!type || !TYPE_REGEXP.test(type)) {
+        throw new TypeError("invalid type");
+      }
+      var string = type;
+      if (parameters && typeof parameters === "object") {
+        var param;
+        var params = Object.keys(parameters).sort();
+        for (var i = 0; i < params.length; i++) {
+          param = params[i];
+          if (!TOKEN_REGEXP.test(param)) {
+            throw new TypeError("invalid parameter name");
+          }
+          string += "; " + param + "=" + qstring(parameters[param]);
+        }
+      }
+      return string;
+    }
+    function parse(string) {
+      if (!string) {
+        throw new TypeError("argument string is required");
+      }
+      var header = typeof string === "object" ? getcontenttype(string) : string;
+      if (typeof header !== "string") {
+        throw new TypeError("argument string is required to be a string");
+      }
+      var index = header.indexOf(";");
+      var type = index !== -1 ? header.slice(0, index).trim() : header.trim();
+      if (!TYPE_REGEXP.test(type)) {
+        throw new TypeError("invalid media type");
+      }
+      var obj = new ContentType(type.toLowerCase());
+      if (index !== -1) {
+        var key;
+        var match;
+        var value;
+        PARAM_REGEXP.lastIndex = index;
+        while (match = PARAM_REGEXP.exec(header)) {
+          if (match.index !== index) {
+            throw new TypeError("invalid parameter format");
+          }
+          index += match[0].length;
+          key = match[1].toLowerCase();
+          value = match[2];
+          if (value.charCodeAt(0) === 34) {
+            value = value.slice(1, -1);
+            if (value.indexOf("\\") !== -1) {
+              value = value.replace(QESC_REGEXP, "$1");
+            }
+          }
+          obj.parameters[key] = value;
+        }
+        if (index !== header.length) {
+          throw new TypeError("invalid parameter format");
+        }
+      }
+      return obj;
+    }
+    function getcontenttype(obj) {
+      var header;
+      if (typeof obj.getHeader === "function") {
+        header = obj.getHeader("content-type");
+      } else if (typeof obj.headers === "object") {
+        header = obj.headers && obj.headers["content-type"];
+      }
+      if (typeof header !== "string") {
+        throw new TypeError("content-type header is missing from object");
+      }
+      return header;
+    }
+    function qstring(val) {
+      var str = String(val);
+      if (TOKEN_REGEXP.test(str)) {
+        return str;
+      }
+      if (str.length > 0 && !TEXT_REGEXP.test(str)) {
+        throw new TypeError("invalid parameter value");
+      }
+      return '"' + str.replace(QUOTE_REGEXP, "\\$1") + '"';
+    }
+    function ContentType(type) {
+      this.parameters = /* @__PURE__ */ Object.create(null);
+      this.type = type;
+    }
+  }
+});
+
+// ../../node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/utils.js
 var require_utils = __commonJS({
-  "node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/utils.js"(exports, module) {
+  "../../node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/utils.js"(exports, module) {
     "use strict";
     var bytes = require_bytes();
     var contentType = require_content_type();
@@ -15459,9 +15591,9 @@ var require_utils = __commonJS({
   }
 });
 
-// node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/read.js
+// ../../node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/read.js
 var require_read = __commonJS({
-  "node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/read.js"(exports, module) {
+  "../../node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/read.js"(exports, module) {
     "use strict";
     var createError = require_http_errors();
     var getBody = require_raw_body();
@@ -15617,9 +15749,9 @@ var require_read = __commonJS({
   }
 });
 
-// node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/json.js
+// ../../node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/json.js
 var require_json = __commonJS({
-  "node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/json.js"(exports, module) {
+  "../../node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/json.js"(exports, module) {
     "use strict";
     var debug = require_src()("body-parser:json");
     var read = require_read();
@@ -15699,9 +15831,9 @@ var require_json = __commonJS({
   }
 });
 
-// node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/raw.js
+// ../../node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/raw.js
 var require_raw = __commonJS({
-  "node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/raw.js"(exports, module) {
+  "../../node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/raw.js"(exports, module) {
     "use strict";
     var debug = require_src()("body-parser:raw");
     var read = require_read();
@@ -15721,9 +15853,9 @@ var require_raw = __commonJS({
   }
 });
 
-// node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/text.js
+// ../../node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/text.js
 var require_text = __commonJS({
-  "node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/text.js"(exports, module) {
+  "../../node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/text.js"(exports, module) {
     "use strict";
     var debug = require_src()("body-parser:text");
     var read = require_read();
@@ -15738,24 +15870,24 @@ var require_text = __commonJS({
   }
 });
 
-// node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/type.js
+// ../../node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/type.js
 var require_type = __commonJS({
-  "node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/type.js"(exports, module) {
+  "../../node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/type.js"(exports, module) {
     "use strict";
     module.exports = TypeError;
   }
 });
 
-// node_modules/.pnpm/object-inspect@1.13.4/node_modules/object-inspect/util.inspect.js
+// ../../node_modules/.pnpm/object-inspect@1.13.4/node_modules/object-inspect/util.inspect.js
 var require_util_inspect = __commonJS({
-  "node_modules/.pnpm/object-inspect@1.13.4/node_modules/object-inspect/util.inspect.js"(exports, module) {
+  "../../node_modules/.pnpm/object-inspect@1.13.4/node_modules/object-inspect/util.inspect.js"(exports, module) {
     module.exports = __require("util").inspect;
   }
 });
 
-// node_modules/.pnpm/object-inspect@1.13.4/node_modules/object-inspect/index.js
+// ../../node_modules/.pnpm/object-inspect@1.13.4/node_modules/object-inspect/index.js
 var require_object_inspect = __commonJS({
-  "node_modules/.pnpm/object-inspect@1.13.4/node_modules/object-inspect/index.js"(exports, module) {
+  "../../node_modules/.pnpm/object-inspect@1.13.4/node_modules/object-inspect/index.js"(exports, module) {
     var hasMap = typeof Map === "function" && Map.prototype;
     var mapSizeDescriptor = Object.getOwnPropertyDescriptor && hasMap ? Object.getOwnPropertyDescriptor(Map.prototype, "size") : null;
     var mapSize = hasMap && mapSizeDescriptor && typeof mapSizeDescriptor.get === "function" ? mapSizeDescriptor.get : null;
@@ -16284,9 +16416,9 @@ var require_object_inspect = __commonJS({
   }
 });
 
-// node_modules/.pnpm/side-channel-list@1.0.1/node_modules/side-channel-list/index.js
+// ../../node_modules/.pnpm/side-channel-list@1.0.1/node_modules/side-channel-list/index.js
 var require_side_channel_list = __commonJS({
-  "node_modules/.pnpm/side-channel-list@1.0.1/node_modules/side-channel-list/index.js"(exports, module) {
+  "../../node_modules/.pnpm/side-channel-list@1.0.1/node_modules/side-channel-list/index.js"(exports, module) {
     "use strict";
     var inspect = require_object_inspect();
     var $TypeError = require_type();
@@ -16377,113 +16509,113 @@ var require_side_channel_list = __commonJS({
   }
 });
 
-// node_modules/.pnpm/es-object-atoms@1.1.1/node_modules/es-object-atoms/index.js
+// ../../node_modules/.pnpm/es-object-atoms@1.1.2/node_modules/es-object-atoms/index.js
 var require_es_object_atoms = __commonJS({
-  "node_modules/.pnpm/es-object-atoms@1.1.1/node_modules/es-object-atoms/index.js"(exports, module) {
+  "../../node_modules/.pnpm/es-object-atoms@1.1.2/node_modules/es-object-atoms/index.js"(exports, module) {
     "use strict";
     module.exports = Object;
   }
 });
 
-// node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/index.js
+// ../../node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/index.js
 var require_es_errors = __commonJS({
-  "node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/index.js"(exports, module) {
+  "../../node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/index.js"(exports, module) {
     "use strict";
     module.exports = Error;
   }
 });
 
-// node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/eval.js
+// ../../node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/eval.js
 var require_eval = __commonJS({
-  "node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/eval.js"(exports, module) {
+  "../../node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/eval.js"(exports, module) {
     "use strict";
     module.exports = EvalError;
   }
 });
 
-// node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/range.js
+// ../../node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/range.js
 var require_range = __commonJS({
-  "node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/range.js"(exports, module) {
+  "../../node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/range.js"(exports, module) {
     "use strict";
     module.exports = RangeError;
   }
 });
 
-// node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/ref.js
+// ../../node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/ref.js
 var require_ref = __commonJS({
-  "node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/ref.js"(exports, module) {
+  "../../node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/ref.js"(exports, module) {
     "use strict";
     module.exports = ReferenceError;
   }
 });
 
-// node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/syntax.js
+// ../../node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/syntax.js
 var require_syntax = __commonJS({
-  "node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/syntax.js"(exports, module) {
+  "../../node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/syntax.js"(exports, module) {
     "use strict";
     module.exports = SyntaxError;
   }
 });
 
-// node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/uri.js
+// ../../node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/uri.js
 var require_uri = __commonJS({
-  "node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/uri.js"(exports, module) {
+  "../../node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors/uri.js"(exports, module) {
     "use strict";
     module.exports = URIError;
   }
 });
 
-// node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/abs.js
+// ../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/abs.js
 var require_abs = __commonJS({
-  "node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/abs.js"(exports, module) {
+  "../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/abs.js"(exports, module) {
     "use strict";
     module.exports = Math.abs;
   }
 });
 
-// node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/floor.js
+// ../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/floor.js
 var require_floor = __commonJS({
-  "node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/floor.js"(exports, module) {
+  "../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/floor.js"(exports, module) {
     "use strict";
     module.exports = Math.floor;
   }
 });
 
-// node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/max.js
+// ../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/max.js
 var require_max = __commonJS({
-  "node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/max.js"(exports, module) {
+  "../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/max.js"(exports, module) {
     "use strict";
     module.exports = Math.max;
   }
 });
 
-// node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/min.js
+// ../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/min.js
 var require_min = __commonJS({
-  "node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/min.js"(exports, module) {
+  "../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/min.js"(exports, module) {
     "use strict";
     module.exports = Math.min;
   }
 });
 
-// node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/pow.js
+// ../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/pow.js
 var require_pow = __commonJS({
-  "node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/pow.js"(exports, module) {
+  "../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/pow.js"(exports, module) {
     "use strict";
     module.exports = Math.pow;
   }
 });
 
-// node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/round.js
+// ../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/round.js
 var require_round = __commonJS({
-  "node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/round.js"(exports, module) {
+  "../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/round.js"(exports, module) {
     "use strict";
     module.exports = Math.round;
   }
 });
 
-// node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/isNaN.js
+// ../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/isNaN.js
 var require_isNaN = __commonJS({
-  "node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/isNaN.js"(exports, module) {
+  "../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/isNaN.js"(exports, module) {
     "use strict";
     module.exports = Number.isNaN || function isNaN2(a) {
       return a !== a;
@@ -16491,9 +16623,9 @@ var require_isNaN = __commonJS({
   }
 });
 
-// node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/sign.js
+// ../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/sign.js
 var require_sign = __commonJS({
-  "node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/sign.js"(exports, module) {
+  "../../node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics/sign.js"(exports, module) {
     "use strict";
     var $isNaN = require_isNaN();
     module.exports = function sign(number) {
@@ -16505,17 +16637,17 @@ var require_sign = __commonJS({
   }
 });
 
-// node_modules/.pnpm/gopd@1.2.0/node_modules/gopd/gOPD.js
+// ../../node_modules/.pnpm/gopd@1.2.0/node_modules/gopd/gOPD.js
 var require_gOPD = __commonJS({
-  "node_modules/.pnpm/gopd@1.2.0/node_modules/gopd/gOPD.js"(exports, module) {
+  "../../node_modules/.pnpm/gopd@1.2.0/node_modules/gopd/gOPD.js"(exports, module) {
     "use strict";
     module.exports = Object.getOwnPropertyDescriptor;
   }
 });
 
-// node_modules/.pnpm/gopd@1.2.0/node_modules/gopd/index.js
+// ../../node_modules/.pnpm/gopd@1.2.0/node_modules/gopd/index.js
 var require_gopd = __commonJS({
-  "node_modules/.pnpm/gopd@1.2.0/node_modules/gopd/index.js"(exports, module) {
+  "../../node_modules/.pnpm/gopd@1.2.0/node_modules/gopd/index.js"(exports, module) {
     "use strict";
     var $gOPD = require_gOPD();
     if ($gOPD) {
@@ -16529,9 +16661,9 @@ var require_gopd = __commonJS({
   }
 });
 
-// node_modules/.pnpm/es-define-property@1.0.1/node_modules/es-define-property/index.js
+// ../../node_modules/.pnpm/es-define-property@1.0.1/node_modules/es-define-property/index.js
 var require_es_define_property = __commonJS({
-  "node_modules/.pnpm/es-define-property@1.0.1/node_modules/es-define-property/index.js"(exports, module) {
+  "../../node_modules/.pnpm/es-define-property@1.0.1/node_modules/es-define-property/index.js"(exports, module) {
     "use strict";
     var $defineProperty = Object.defineProperty || false;
     if ($defineProperty) {
@@ -16545,9 +16677,9 @@ var require_es_define_property = __commonJS({
   }
 });
 
-// node_modules/.pnpm/has-symbols@1.1.0/node_modules/has-symbols/shams.js
+// ../../node_modules/.pnpm/has-symbols@1.1.0/node_modules/has-symbols/shams.js
 var require_shams = __commonJS({
-  "node_modules/.pnpm/has-symbols@1.1.0/node_modules/has-symbols/shams.js"(exports, module) {
+  "../../node_modules/.pnpm/has-symbols@1.1.0/node_modules/has-symbols/shams.js"(exports, module) {
     "use strict";
     module.exports = function hasSymbols() {
       if (typeof Symbol !== "function" || typeof Object.getOwnPropertySymbols !== "function") {
@@ -16600,9 +16732,9 @@ var require_shams = __commonJS({
   }
 });
 
-// node_modules/.pnpm/has-symbols@1.1.0/node_modules/has-symbols/index.js
+// ../../node_modules/.pnpm/has-symbols@1.1.0/node_modules/has-symbols/index.js
 var require_has_symbols = __commonJS({
-  "node_modules/.pnpm/has-symbols@1.1.0/node_modules/has-symbols/index.js"(exports, module) {
+  "../../node_modules/.pnpm/has-symbols@1.1.0/node_modules/has-symbols/index.js"(exports, module) {
     "use strict";
     var origSymbol = typeof Symbol !== "undefined" && Symbol;
     var hasSymbolSham = require_shams();
@@ -16624,26 +16756,26 @@ var require_has_symbols = __commonJS({
   }
 });
 
-// node_modules/.pnpm/get-proto@1.0.1/node_modules/get-proto/Reflect.getPrototypeOf.js
+// ../../node_modules/.pnpm/get-proto@1.0.1/node_modules/get-proto/Reflect.getPrototypeOf.js
 var require_Reflect_getPrototypeOf = __commonJS({
-  "node_modules/.pnpm/get-proto@1.0.1/node_modules/get-proto/Reflect.getPrototypeOf.js"(exports, module) {
+  "../../node_modules/.pnpm/get-proto@1.0.1/node_modules/get-proto/Reflect.getPrototypeOf.js"(exports, module) {
     "use strict";
     module.exports = typeof Reflect !== "undefined" && Reflect.getPrototypeOf || null;
   }
 });
 
-// node_modules/.pnpm/get-proto@1.0.1/node_modules/get-proto/Object.getPrototypeOf.js
+// ../../node_modules/.pnpm/get-proto@1.0.1/node_modules/get-proto/Object.getPrototypeOf.js
 var require_Object_getPrototypeOf = __commonJS({
-  "node_modules/.pnpm/get-proto@1.0.1/node_modules/get-proto/Object.getPrototypeOf.js"(exports, module) {
+  "../../node_modules/.pnpm/get-proto@1.0.1/node_modules/get-proto/Object.getPrototypeOf.js"(exports, module) {
     "use strict";
     var $Object = require_es_object_atoms();
     module.exports = $Object.getPrototypeOf || null;
   }
 });
 
-// node_modules/.pnpm/function-bind@1.1.2/node_modules/function-bind/implementation.js
+// ../../node_modules/.pnpm/function-bind@1.1.2/node_modules/function-bind/implementation.js
 var require_implementation = __commonJS({
-  "node_modules/.pnpm/function-bind@1.1.2/node_modules/function-bind/implementation.js"(exports, module) {
+  "../../node_modules/.pnpm/function-bind@1.1.2/node_modules/function-bind/implementation.js"(exports, module) {
     "use strict";
     var ERROR_MESSAGE = "Function.prototype.bind called on incompatible ";
     var toStr = Object.prototype.toString;
@@ -16717,42 +16849,42 @@ var require_implementation = __commonJS({
   }
 });
 
-// node_modules/.pnpm/function-bind@1.1.2/node_modules/function-bind/index.js
+// ../../node_modules/.pnpm/function-bind@1.1.2/node_modules/function-bind/index.js
 var require_function_bind = __commonJS({
-  "node_modules/.pnpm/function-bind@1.1.2/node_modules/function-bind/index.js"(exports, module) {
+  "../../node_modules/.pnpm/function-bind@1.1.2/node_modules/function-bind/index.js"(exports, module) {
     "use strict";
     var implementation = require_implementation();
     module.exports = Function.prototype.bind || implementation;
   }
 });
 
-// node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/functionCall.js
+// ../../node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/functionCall.js
 var require_functionCall = __commonJS({
-  "node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/functionCall.js"(exports, module) {
+  "../../node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/functionCall.js"(exports, module) {
     "use strict";
     module.exports = Function.prototype.call;
   }
 });
 
-// node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/functionApply.js
+// ../../node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/functionApply.js
 var require_functionApply = __commonJS({
-  "node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/functionApply.js"(exports, module) {
+  "../../node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/functionApply.js"(exports, module) {
     "use strict";
     module.exports = Function.prototype.apply;
   }
 });
 
-// node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/reflectApply.js
+// ../../node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/reflectApply.js
 var require_reflectApply = __commonJS({
-  "node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/reflectApply.js"(exports, module) {
+  "../../node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/reflectApply.js"(exports, module) {
     "use strict";
     module.exports = typeof Reflect !== "undefined" && Reflect && Reflect.apply;
   }
 });
 
-// node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/actualApply.js
+// ../../node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/actualApply.js
 var require_actualApply = __commonJS({
-  "node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/actualApply.js"(exports, module) {
+  "../../node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/actualApply.js"(exports, module) {
     "use strict";
     var bind = require_function_bind();
     var $apply = require_functionApply();
@@ -16762,9 +16894,9 @@ var require_actualApply = __commonJS({
   }
 });
 
-// node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/index.js
+// ../../node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/index.js
 var require_call_bind_apply_helpers = __commonJS({
-  "node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/index.js"(exports, module) {
+  "../../node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers/index.js"(exports, module) {
     "use strict";
     var bind = require_function_bind();
     var $TypeError = require_type();
@@ -16779,9 +16911,9 @@ var require_call_bind_apply_helpers = __commonJS({
   }
 });
 
-// node_modules/.pnpm/dunder-proto@1.0.1/node_modules/dunder-proto/get.js
+// ../../node_modules/.pnpm/dunder-proto@1.0.1/node_modules/dunder-proto/get.js
 var require_get = __commonJS({
-  "node_modules/.pnpm/dunder-proto@1.0.1/node_modules/dunder-proto/get.js"(exports, module) {
+  "../../node_modules/.pnpm/dunder-proto@1.0.1/node_modules/dunder-proto/get.js"(exports, module) {
     "use strict";
     var callBind = require_call_bind_apply_helpers();
     var gOPD = require_gopd();
@@ -16810,9 +16942,9 @@ var require_get = __commonJS({
   }
 });
 
-// node_modules/.pnpm/get-proto@1.0.1/node_modules/get-proto/index.js
+// ../../node_modules/.pnpm/get-proto@1.0.1/node_modules/get-proto/index.js
 var require_get_proto = __commonJS({
-  "node_modules/.pnpm/get-proto@1.0.1/node_modules/get-proto/index.js"(exports, module) {
+  "../../node_modules/.pnpm/get-proto@1.0.1/node_modules/get-proto/index.js"(exports, module) {
     "use strict";
     var reflectGetProto = require_Reflect_getPrototypeOf();
     var originalGetProto = require_Object_getPrototypeOf();
@@ -16830,9 +16962,9 @@ var require_get_proto = __commonJS({
   }
 });
 
-// node_modules/.pnpm/hasown@2.0.3/node_modules/hasown/index.js
+// ../../node_modules/.pnpm/hasown@2.0.4/node_modules/hasown/index.js
 var require_hasown = __commonJS({
-  "node_modules/.pnpm/hasown@2.0.3/node_modules/hasown/index.js"(exports, module) {
+  "../../node_modules/.pnpm/hasown@2.0.4/node_modules/hasown/index.js"(exports, module) {
     "use strict";
     var call = Function.prototype.call;
     var $hasOwn = Object.prototype.hasOwnProperty;
@@ -16841,9 +16973,9 @@ var require_hasown = __commonJS({
   }
 });
 
-// node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/get-intrinsic/index.js
+// ../../node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/get-intrinsic/index.js
 var require_get_intrinsic = __commonJS({
-  "node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/get-intrinsic/index.js"(exports, module) {
+  "../../node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/get-intrinsic/index.js"(exports, module) {
     "use strict";
     var undefined2;
     var $Object = require_es_object_atoms();
@@ -17172,9 +17304,9 @@ var require_get_intrinsic = __commonJS({
   }
 });
 
-// node_modules/.pnpm/call-bound@1.0.4/node_modules/call-bound/index.js
+// ../../node_modules/.pnpm/call-bound@1.0.4/node_modules/call-bound/index.js
 var require_call_bound = __commonJS({
-  "node_modules/.pnpm/call-bound@1.0.4/node_modules/call-bound/index.js"(exports, module) {
+  "../../node_modules/.pnpm/call-bound@1.0.4/node_modules/call-bound/index.js"(exports, module) {
     "use strict";
     var GetIntrinsic = require_get_intrinsic();
     var callBindBasic = require_call_bind_apply_helpers();
@@ -17195,9 +17327,9 @@ var require_call_bound = __commonJS({
   }
 });
 
-// node_modules/.pnpm/side-channel-map@1.0.1/node_modules/side-channel-map/index.js
+// ../../node_modules/.pnpm/side-channel-map@1.0.1/node_modules/side-channel-map/index.js
 var require_side_channel_map = __commonJS({
-  "node_modules/.pnpm/side-channel-map@1.0.1/node_modules/side-channel-map/index.js"(exports, module) {
+  "../../node_modules/.pnpm/side-channel-map@1.0.1/node_modules/side-channel-map/index.js"(exports, module) {
     "use strict";
     var GetIntrinsic = require_get_intrinsic();
     var callBound = require_call_bound();
@@ -17251,9 +17383,9 @@ var require_side_channel_map = __commonJS({
   }
 });
 
-// node_modules/.pnpm/side-channel-weakmap@1.0.2/node_modules/side-channel-weakmap/index.js
+// ../../node_modules/.pnpm/side-channel-weakmap@1.0.2/node_modules/side-channel-weakmap/index.js
 var require_side_channel_weakmap = __commonJS({
-  "node_modules/.pnpm/side-channel-weakmap@1.0.2/node_modules/side-channel-weakmap/index.js"(exports, module) {
+  "../../node_modules/.pnpm/side-channel-weakmap@1.0.2/node_modules/side-channel-weakmap/index.js"(exports, module) {
     "use strict";
     var GetIntrinsic = require_get_intrinsic();
     var callBound = require_call_bound();
@@ -17324,9 +17456,9 @@ var require_side_channel_weakmap = __commonJS({
   }
 });
 
-// node_modules/.pnpm/side-channel@1.1.0/node_modules/side-channel/index.js
+// ../../node_modules/.pnpm/side-channel@1.1.0/node_modules/side-channel/index.js
 var require_side_channel = __commonJS({
-  "node_modules/.pnpm/side-channel@1.1.0/node_modules/side-channel/index.js"(exports, module) {
+  "../../node_modules/.pnpm/side-channel@1.1.0/node_modules/side-channel/index.js"(exports, module) {
     "use strict";
     var $TypeError = require_type();
     var inspect = require_object_inspect();
@@ -17363,9 +17495,9 @@ var require_side_channel = __commonJS({
   }
 });
 
-// node_modules/.pnpm/qs@6.15.1/node_modules/qs/lib/formats.js
+// ../../node_modules/.pnpm/qs@6.15.2/node_modules/qs/lib/formats.js
 var require_formats = __commonJS({
-  "node_modules/.pnpm/qs@6.15.1/node_modules/qs/lib/formats.js"(exports, module) {
+  "../../node_modules/.pnpm/qs@6.15.2/node_modules/qs/lib/formats.js"(exports, module) {
     "use strict";
     var replace = String.prototype.replace;
     var percentTwenties = /%20/g;
@@ -17389,9 +17521,9 @@ var require_formats = __commonJS({
   }
 });
 
-// node_modules/.pnpm/qs@6.15.1/node_modules/qs/lib/utils.js
+// ../../node_modules/.pnpm/qs@6.15.2/node_modules/qs/lib/utils.js
 var require_utils2 = __commonJS({
-  "node_modules/.pnpm/qs@6.15.1/node_modules/qs/lib/utils.js"(exports, module) {
+  "../../node_modules/.pnpm/qs@6.15.2/node_modules/qs/lib/utils.js"(exports, module) {
     "use strict";
     var formats = require_formats();
     var getSideChannel = require_side_channel();
@@ -17653,9 +17785,9 @@ var require_utils2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/qs@6.15.1/node_modules/qs/lib/stringify.js
+// ../../node_modules/.pnpm/qs@6.15.2/node_modules/qs/lib/stringify.js
 var require_stringify = __commonJS({
-  "node_modules/.pnpm/qs@6.15.1/node_modules/qs/lib/stringify.js"(exports, module) {
+  "../../node_modules/.pnpm/qs@6.15.2/node_modules/qs/lib/stringify.js"(exports, module) {
     "use strict";
     var getSideChannel = require_side_channel();
     var utils = require_utils2();
@@ -17741,7 +17873,7 @@ var require_stringify = __commonJS({
       }
       if (obj === null) {
         if (strictNullHandling) {
-          return encoder && !encodeValuesOnly ? encoder(prefix, defaults.encoder, charset, "key", format) : prefix;
+          return formatter(encoder && !encodeValuesOnly ? encoder(prefix, defaults.encoder, charset, "key", format) : prefix);
         }
         obj = "";
       }
@@ -17759,7 +17891,9 @@ var require_stringify = __commonJS({
       var objKeys;
       if (generateArrayPrefix === "comma" && isArray(obj)) {
         if (encodeValuesOnly && encoder) {
-          obj = utils.maybeMap(obj, encoder);
+          obj = utils.maybeMap(obj, function(v) {
+            return v == null ? v : encoder(v);
+          });
         }
         objKeys = [{ value: obj.length > 0 ? obj.join(",") || null : void 0 }];
       } else if (isArray(filter)) {
@@ -17897,6 +18031,9 @@ var require_stringify = __commonJS({
       var sideChannel = getSideChannel();
       for (var i = 0; i < objKeys.length; ++i) {
         var key = objKeys[i];
+        if (typeof key === "undefined" || key === null) {
+          continue;
+        }
         var value = obj[key];
         if (options.skipNulls && value === null) {
           continue;
@@ -17926,9 +18063,9 @@ var require_stringify = __commonJS({
       var prefix = options.addQueryPrefix === true ? "?" : "";
       if (options.charsetSentinel) {
         if (options.charset === "iso-8859-1") {
-          prefix += "utf8=%26%2310003%3B&";
+          prefix += "utf8=%26%2310003%3B" + options.delimiter;
         } else {
-          prefix += "utf8=%E2%9C%93&";
+          prefix += "utf8=%E2%9C%93" + options.delimiter;
         }
       }
       return joined.length > 0 ? prefix + joined : "";
@@ -17936,9 +18073,9 @@ var require_stringify = __commonJS({
   }
 });
 
-// node_modules/.pnpm/qs@6.15.1/node_modules/qs/lib/parse.js
+// ../../node_modules/.pnpm/qs@6.15.2/node_modules/qs/lib/parse.js
 var require_parse = __commonJS({
-  "node_modules/.pnpm/qs@6.15.1/node_modules/qs/lib/parse.js"(exports, module) {
+  "../../node_modules/.pnpm/qs@6.15.2/node_modules/qs/lib/parse.js"(exports, module) {
     "use strict";
     var utils = require_utils2();
     var has = Object.prototype.hasOwnProperty;
@@ -18111,8 +18248,8 @@ var require_parse = __commonJS({
       }
       return leaf;
     };
-    var splitKeyIntoSegments = function splitKeyIntoSegments2(givenKey, options) {
-      var key = options.allowDots ? givenKey.replace(/\.([^.[]+)/g, "[$1]") : givenKey;
+    var splitKeyIntoSegments = function splitKeyIntoSegments2(originalKey, options) {
+      var key = options.allowDots ? originalKey.replace(/\.([^.[]+)/g, "[$1]") : originalKey;
       if (options.depth <= 0) {
         if (!options.plainObjects && has.call(Object.prototype, key)) {
           if (!options.allowPrototypes) {
@@ -18121,37 +18258,56 @@ var require_parse = __commonJS({
         }
         return [key];
       }
-      var brackets = /(\[[^[\]]*])/;
-      var child = /(\[[^[\]]*])/g;
-      var segment = brackets.exec(key);
-      var parent = segment ? key.slice(0, segment.index) : key;
-      var keys = [];
+      var segments = [];
+      var first = key.indexOf("[");
+      var parent = first >= 0 ? key.slice(0, first) : key;
       if (parent) {
         if (!options.plainObjects && has.call(Object.prototype, parent)) {
           if (!options.allowPrototypes) {
             return;
           }
         }
-        keys[keys.length] = parent;
+        segments[segments.length] = parent;
       }
-      var i = 0;
-      while ((segment = child.exec(key)) !== null && i < options.depth) {
-        i += 1;
-        var segmentContent = segment[1].slice(1, -1);
-        if (!options.plainObjects && has.call(Object.prototype, segmentContent)) {
-          if (!options.allowPrototypes) {
-            return;
+      var n = key.length;
+      var open = first;
+      var collected = 0;
+      while (open >= 0 && collected < options.depth) {
+        var level = 1;
+        var i = open + 1;
+        var close = -1;
+        while (i < n && close < 0) {
+          var cu = key.charCodeAt(i);
+          if (cu === 91) {
+            level += 1;
+          } else if (cu === 93) {
+            level -= 1;
+            if (level === 0) {
+              close = i;
+            }
           }
+          i += 1;
         }
-        keys[keys.length] = segment[1];
+        if (close < 0) {
+          segments[segments.length] = "[" + key.slice(open) + "]";
+          return segments;
+        }
+        var seg = key.slice(open, close + 1);
+        var content = seg.slice(1, -1);
+        if (!options.plainObjects && has.call(Object.prototype, content) && !options.allowPrototypes) {
+          return;
+        }
+        segments[segments.length] = seg;
+        collected += 1;
+        open = key.indexOf("[", close + 1);
       }
-      if (segment) {
+      if (open >= 0) {
         if (options.strictDepth === true) {
           throw new RangeError("Input depth exceeded depth option of " + options.depth + " and strictDepth is true");
         }
-        keys[keys.length] = "[" + key.slice(segment.index) + "]";
+        segments[segments.length] = "[" + key.slice(open) + "]";
       }
-      return keys;
+      return segments;
     };
     var parseKeys = function parseQueryStringKeys(givenKey, val, options, valuesParsed) {
       if (!givenKey) {
@@ -18235,9 +18391,9 @@ var require_parse = __commonJS({
   }
 });
 
-// node_modules/.pnpm/qs@6.15.1/node_modules/qs/lib/index.js
+// ../../node_modules/.pnpm/qs@6.15.2/node_modules/qs/lib/index.js
 var require_lib2 = __commonJS({
-  "node_modules/.pnpm/qs@6.15.1/node_modules/qs/lib/index.js"(exports, module) {
+  "../../node_modules/.pnpm/qs@6.15.2/node_modules/qs/lib/index.js"(exports, module) {
     "use strict";
     var stringify = require_stringify();
     var parse = require_parse();
@@ -18250,9 +18406,9 @@ var require_lib2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/urlencoded.js
+// ../../node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/urlencoded.js
 var require_urlencoded = __commonJS({
-  "node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/urlencoded.js"(exports, module) {
+  "../../node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/lib/types/urlencoded.js"(exports, module) {
     "use strict";
     var createError = require_http_errors();
     var debug = require_src()("body-parser:urlencoded");
@@ -18338,9 +18494,9 @@ var require_urlencoded = __commonJS({
   }
 });
 
-// node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/index.js
+// ../../node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/index.js
 var require_body_parser = __commonJS({
-  "node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/index.js"(exports, module) {
+  "../../node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser/index.js"(exports, module) {
     "use strict";
     exports = module.exports = bodyParser;
     Object.defineProperty(exports, "json", {
@@ -18369,9 +18525,9 @@ var require_body_parser = __commonJS({
   }
 });
 
-// node_modules/.pnpm/merge-descriptors@2.0.0/node_modules/merge-descriptors/index.js
+// ../../node_modules/.pnpm/merge-descriptors@2.0.0/node_modules/merge-descriptors/index.js
 var require_merge_descriptors = __commonJS({
-  "node_modules/.pnpm/merge-descriptors@2.0.0/node_modules/merge-descriptors/index.js"(exports, module) {
+  "../../node_modules/.pnpm/merge-descriptors@2.0.0/node_modules/merge-descriptors/index.js"(exports, module) {
     "use strict";
     function mergeDescriptors(destination, source, overwrite = true) {
       if (!destination) {
@@ -18393,9 +18549,9 @@ var require_merge_descriptors = __commonJS({
   }
 });
 
-// node_modules/.pnpm/encodeurl@2.0.0/node_modules/encodeurl/index.js
+// ../../node_modules/.pnpm/encodeurl@2.0.0/node_modules/encodeurl/index.js
 var require_encodeurl = __commonJS({
-  "node_modules/.pnpm/encodeurl@2.0.0/node_modules/encodeurl/index.js"(exports, module) {
+  "../../node_modules/.pnpm/encodeurl@2.0.0/node_modules/encodeurl/index.js"(exports, module) {
     "use strict";
     module.exports = encodeUrl;
     var ENCODE_CHARS_REGEXP = /(?:[^\x21\x23-\x3B\x3D\x3F-\x5F\x61-\x7A\x7C\x7E]|%(?:[^0-9A-Fa-f]|[0-9A-Fa-f][^0-9A-Fa-f]|$))+/g;
@@ -18407,9 +18563,9 @@ var require_encodeurl = __commonJS({
   }
 });
 
-// node_modules/.pnpm/escape-html@1.0.3/node_modules/escape-html/index.js
+// ../../node_modules/.pnpm/escape-html@1.0.3/node_modules/escape-html/index.js
 var require_escape_html = __commonJS({
-  "node_modules/.pnpm/escape-html@1.0.3/node_modules/escape-html/index.js"(exports, module) {
+  "../../node_modules/.pnpm/escape-html@1.0.3/node_modules/escape-html/index.js"(exports, module) {
     "use strict";
     var matchHtmlRegExp = /["'&<>]/;
     module.exports = escapeHtml;
@@ -18454,9 +18610,9 @@ var require_escape_html = __commonJS({
   }
 });
 
-// node_modules/.pnpm/parseurl@1.3.3/node_modules/parseurl/index.js
+// ../../node_modules/.pnpm/parseurl@1.3.3/node_modules/parseurl/index.js
 var require_parseurl = __commonJS({
-  "node_modules/.pnpm/parseurl@1.3.3/node_modules/parseurl/index.js"(exports, module) {
+  "../../node_modules/.pnpm/parseurl@1.3.3/node_modules/parseurl/index.js"(exports, module) {
     "use strict";
     var url = __require("url");
     var parse = url.parse;
@@ -18538,9 +18694,9 @@ var require_parseurl = __commonJS({
   }
 });
 
-// node_modules/.pnpm/finalhandler@2.1.1/node_modules/finalhandler/index.js
+// ../../node_modules/.pnpm/finalhandler@2.1.1/node_modules/finalhandler/index.js
 var require_finalhandler = __commonJS({
-  "node_modules/.pnpm/finalhandler@2.1.1/node_modules/finalhandler/index.js"(exports, module) {
+  "../../node_modules/.pnpm/finalhandler@2.1.1/node_modules/finalhandler/index.js"(exports, module) {
     "use strict";
     var debug = require_src()("finalhandler");
     var encodeUrl = require_encodeurl();
@@ -18665,9 +18821,9 @@ var require_finalhandler = __commonJS({
   }
 });
 
-// node_modules/.pnpm/express@5.2.1/node_modules/express/lib/view.js
+// ../../node_modules/.pnpm/express@5.2.1/node_modules/express/lib/view.js
 var require_view = __commonJS({
-  "node_modules/.pnpm/express@5.2.1/node_modules/express/lib/view.js"(exports, module) {
+  "../../node_modules/.pnpm/express@5.2.1/node_modules/express/lib/view.js"(exports, module) {
     "use strict";
     var debug = require_src()("express:view");
     var path2 = __require("node:path");
@@ -18759,9 +18915,9 @@ var require_view = __commonJS({
   }
 });
 
-// node_modules/.pnpm/etag@1.8.1/node_modules/etag/index.js
+// ../../node_modules/.pnpm/etag@1.8.1/node_modules/etag/index.js
 var require_etag = __commonJS({
-  "node_modules/.pnpm/etag@1.8.1/node_modules/etag/index.js"(exports, module) {
+  "../../node_modules/.pnpm/etag@1.8.1/node_modules/etag/index.js"(exports, module) {
     "use strict";
     module.exports = etag;
     var crypto2 = __require("crypto");
@@ -18801,9 +18957,9 @@ var require_etag = __commonJS({
   }
 });
 
-// node_modules/.pnpm/forwarded@0.2.0/node_modules/forwarded/index.js
+// ../../node_modules/.pnpm/forwarded@0.2.0/node_modules/forwarded/index.js
 var require_forwarded = __commonJS({
-  "node_modules/.pnpm/forwarded@0.2.0/node_modules/forwarded/index.js"(exports, module) {
+  "../../node_modules/.pnpm/forwarded@0.2.0/node_modules/forwarded/index.js"(exports, module) {
     "use strict";
     module.exports = forwarded;
     function forwarded(req) {
@@ -18848,9 +19004,9 @@ var require_forwarded = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ipaddr.js@1.9.1/node_modules/ipaddr.js/lib/ipaddr.js
+// ../../node_modules/.pnpm/ipaddr.js@1.9.1/node_modules/ipaddr.js/lib/ipaddr.js
 var require_ipaddr = __commonJS({
-  "node_modules/.pnpm/ipaddr.js@1.9.1/node_modules/ipaddr.js/lib/ipaddr.js"(exports, module) {
+  "../../node_modules/.pnpm/ipaddr.js@1.9.1/node_modules/ipaddr.js/lib/ipaddr.js"(exports, module) {
     (function() {
       var expandIPv6, ipaddr, ipv4Part, ipv4Regexes, ipv6Part, ipv6Regexes, matchCIDR, root, zoneIndex;
       ipaddr = {};
@@ -19470,9 +19626,9 @@ var require_ipaddr = __commonJS({
   }
 });
 
-// node_modules/.pnpm/proxy-addr@2.0.7/node_modules/proxy-addr/index.js
+// ../../node_modules/.pnpm/proxy-addr@2.0.7/node_modules/proxy-addr/index.js
 var require_proxy_addr = __commonJS({
-  "node_modules/.pnpm/proxy-addr@2.0.7/node_modules/proxy-addr/index.js"(exports, module) {
+  "../../node_modules/.pnpm/proxy-addr@2.0.7/node_modules/proxy-addr/index.js"(exports, module) {
     "use strict";
     module.exports = proxyaddr;
     module.exports.all = alladdrs;
@@ -19629,9 +19785,9 @@ var require_proxy_addr = __commonJS({
   }
 });
 
-// node_modules/.pnpm/express@5.2.1/node_modules/express/lib/utils.js
+// ../../node_modules/.pnpm/express@5.2.1/node_modules/express/lib/utils.js
 var require_utils3 = __commonJS({
-  "node_modules/.pnpm/express@5.2.1/node_modules/express/lib/utils.js"(exports) {
+  "../../node_modules/.pnpm/express@5.2.1/node_modules/express/lib/utils.js"(exports) {
     "use strict";
     var { METHODS } = __require("node:http");
     var contentType = require_content_type();
@@ -19756,9 +19912,9 @@ var require_utils3 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/wrappy@1.0.2/node_modules/wrappy/wrappy.js
+// ../../node_modules/.pnpm/wrappy@1.0.2/node_modules/wrappy/wrappy.js
 var require_wrappy = __commonJS({
-  "node_modules/.pnpm/wrappy@1.0.2/node_modules/wrappy/wrappy.js"(exports, module) {
+  "../../node_modules/.pnpm/wrappy@1.0.2/node_modules/wrappy/wrappy.js"(exports, module) {
     module.exports = wrappy;
     function wrappy(fn, cb) {
       if (fn && cb) return wrappy(fn)(cb);
@@ -19786,9 +19942,9 @@ var require_wrappy = __commonJS({
   }
 });
 
-// node_modules/.pnpm/once@1.4.0/node_modules/once/once.js
+// ../../node_modules/.pnpm/once@1.4.0/node_modules/once/once.js
 var require_once = __commonJS({
-  "node_modules/.pnpm/once@1.4.0/node_modules/once/once.js"(exports, module) {
+  "../../node_modules/.pnpm/once@1.4.0/node_modules/once/once.js"(exports, module) {
     var wrappy = require_wrappy();
     module.exports = wrappy(once);
     module.exports.strict = wrappy(onceStrict);
@@ -19830,9 +19986,9 @@ var require_once = __commonJS({
   }
 });
 
-// node_modules/.pnpm/is-promise@4.0.0/node_modules/is-promise/index.js
+// ../../node_modules/.pnpm/is-promise@4.0.0/node_modules/is-promise/index.js
 var require_is_promise = __commonJS({
-  "node_modules/.pnpm/is-promise@4.0.0/node_modules/is-promise/index.js"(exports, module) {
+  "../../node_modules/.pnpm/is-promise@4.0.0/node_modules/is-promise/index.js"(exports, module) {
     module.exports = isPromise;
     module.exports.default = isPromise;
     function isPromise(obj) {
@@ -19841,9 +19997,9 @@ var require_is_promise = __commonJS({
   }
 });
 
-// node_modules/.pnpm/path-to-regexp@8.4.2/node_modules/path-to-regexp/dist/index.js
-var require_dist = __commonJS({
-  "node_modules/.pnpm/path-to-regexp@8.4.2/node_modules/path-to-regexp/dist/index.js"(exports) {
+// ../../node_modules/.pnpm/path-to-regexp@8.4.2/node_modules/path-to-regexp/dist/index.js
+var require_dist2 = __commonJS({
+  "../../node_modules/.pnpm/path-to-regexp@8.4.2/node_modules/path-to-regexp/dist/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.PathError = exports.TokenData = void 0;
@@ -20210,12 +20366,12 @@ var require_dist = __commonJS({
   }
 });
 
-// node_modules/.pnpm/router@2.2.0/node_modules/router/lib/layer.js
+// ../../node_modules/.pnpm/router@2.2.0/node_modules/router/lib/layer.js
 var require_layer = __commonJS({
-  "node_modules/.pnpm/router@2.2.0/node_modules/router/lib/layer.js"(exports, module) {
+  "../../node_modules/.pnpm/router@2.2.0/node_modules/router/lib/layer.js"(exports, module) {
     "use strict";
     var isPromise = require_is_promise();
-    var pathRegexp = require_dist();
+    var pathRegexp = require_dist2();
     var debug = require_src()("router:layer");
     var deprecate = require_depd()("router");
     var TRAILING_SLASH_REGEXP = /\/+$/;
@@ -20360,9 +20516,9 @@ var require_layer = __commonJS({
   }
 });
 
-// node_modules/.pnpm/router@2.2.0/node_modules/router/lib/route.js
+// ../../node_modules/.pnpm/router@2.2.0/node_modules/router/lib/route.js
 var require_route = __commonJS({
-  "node_modules/.pnpm/router@2.2.0/node_modules/router/lib/route.js"(exports, module) {
+  "../../node_modules/.pnpm/router@2.2.0/node_modules/router/lib/route.js"(exports, module) {
     "use strict";
     var debug = require_src()("router:route");
     var Layer = require_layer();
@@ -20480,9 +20636,9 @@ var require_route = __commonJS({
   }
 });
 
-// node_modules/.pnpm/router@2.2.0/node_modules/router/index.js
+// ../../node_modules/.pnpm/router@2.2.0/node_modules/router/index.js
 var require_router = __commonJS({
-  "node_modules/.pnpm/router@2.2.0/node_modules/router/index.js"(exports, module) {
+  "../../node_modules/.pnpm/router@2.2.0/node_modules/router/index.js"(exports, module) {
     "use strict";
     var isPromise = require_is_promise();
     var Layer = require_layer();
@@ -20494,27 +20650,27 @@ var require_router = __commonJS({
     var slice = Array.prototype.slice;
     var flatten = Array.prototype.flat;
     var methods = METHODS.map((method) => method.toLowerCase());
-    module.exports = Router27;
+    module.exports = Router35;
     module.exports.Route = Route;
-    function Router27(options) {
-      if (!(this instanceof Router27)) {
-        return new Router27(options);
+    function Router35(options) {
+      if (!(this instanceof Router35)) {
+        return new Router35(options);
       }
       const opts = options || {};
-      function router27(req, res, next) {
-        router27.handle(req, res, next);
+      function router35(req, res, next) {
+        router35.handle(req, res, next);
       }
-      Object.setPrototypeOf(router27, this);
-      router27.caseSensitive = opts.caseSensitive;
-      router27.mergeParams = opts.mergeParams;
-      router27.params = {};
-      router27.strict = opts.strict;
-      router27.stack = [];
-      return router27;
+      Object.setPrototypeOf(router35, this);
+      router35.caseSensitive = opts.caseSensitive;
+      router35.mergeParams = opts.mergeParams;
+      router35.params = {};
+      router35.strict = opts.strict;
+      router35.stack = [];
+      return router35;
     }
-    Router27.prototype = function() {
+    Router35.prototype = function() {
     };
-    Router27.prototype.param = function param(name, fn) {
+    Router35.prototype.param = function param(name, fn) {
       if (!name) {
         throw new TypeError("argument name is required");
       }
@@ -20534,7 +20690,7 @@ var require_router = __commonJS({
       params.push(fn);
       return this;
     };
-    Router27.prototype.handle = function handle(req, res, callback) {
+    Router35.prototype.handle = function handle(req, res, callback) {
       if (!callback) {
         throw new TypeError("argument callback is required");
       }
@@ -20661,7 +20817,7 @@ var require_router = __commonJS({
         }
       }
     };
-    Router27.prototype.use = function use(handler) {
+    Router35.prototype.use = function use(handler) {
       let offset = 0;
       let path2 = "/";
       if (typeof handler !== "function") {
@@ -20694,7 +20850,7 @@ var require_router = __commonJS({
       }
       return this;
     };
-    Router27.prototype.route = function route(path2) {
+    Router35.prototype.route = function route(path2) {
       const route2 = new Route(path2);
       const layer = new Layer(path2, {
         sensitive: this.caseSensitive,
@@ -20709,7 +20865,7 @@ var require_router = __commonJS({
       return route2;
     };
     methods.concat("all").forEach(function(method) {
-      Router27.prototype[method] = function(path2) {
+      Router35.prototype[method] = function(path2) {
         const route = this.route(path2);
         route[method].apply(route, slice.call(arguments, 1));
         return this;
@@ -20878,9 +21034,9 @@ var require_router = __commonJS({
   }
 });
 
-// node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js
+// ../../node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js
 var require_application = __commonJS({
-  "node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js"(exports, module) {
+  "../../node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js"(exports, module) {
     "use strict";
     var finalhandler = require_finalhandler();
     var debug = require_src()("express:application");
@@ -20892,13 +21048,13 @@ var require_application = __commonJS({
     var compileTrust = require_utils3().compileTrust;
     var resolve = __require("node:path").resolve;
     var once = require_once();
-    var Router27 = require_router();
+    var Router35 = require_router();
     var slice = Array.prototype.slice;
     var flatten = Array.prototype.flat;
     var app2 = exports = module.exports = {};
     var trustProxyDefaultSymbol = "@@symbol:trust_proxy_default";
     app2.init = function init() {
-      var router27 = null;
+      var router35 = null;
       this.cache = /* @__PURE__ */ Object.create(null);
       this.engines = /* @__PURE__ */ Object.create(null);
       this.settings = /* @__PURE__ */ Object.create(null);
@@ -20907,13 +21063,13 @@ var require_application = __commonJS({
         configurable: true,
         enumerable: true,
         get: function getrouter() {
-          if (router27 === null) {
-            router27 = new Router27({
+          if (router35 === null) {
+            router35 = new Router35({
               caseSensitive: this.enabled("case sensitive routing"),
               strict: this.enabled("strict routing")
             });
           }
-          return router27;
+          return router35;
         }
       });
     };
@@ -20984,15 +21140,15 @@ var require_application = __commonJS({
       if (fns.length === 0) {
         throw new TypeError("app.use() requires a middleware function");
       }
-      var router27 = this.router;
+      var router35 = this.router;
       fns.forEach(function(fn2) {
         if (!fn2 || !fn2.handle || !fn2.set) {
-          return router27.use(path2, fn2);
+          return router35.use(path2, fn2);
         }
         debug(".use app under %s", path2);
         fn2.mountpath = path2;
         fn2.parent = this;
-        router27.use(path2, function mounted_app(req, res, next) {
+        router35.use(path2, function mounted_app(req, res, next) {
           var orig = req.app;
           fn2.handle(req, res, function(err) {
             Object.setPrototypeOf(req, orig.request);
@@ -21139,9 +21295,9 @@ var require_application = __commonJS({
   }
 });
 
-// node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/charset.js
+// ../../node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/charset.js
 var require_charset = __commonJS({
-  "node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/charset.js"(exports, module) {
+  "../../node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/charset.js"(exports, module) {
     "use strict";
     module.exports = preferredCharsets;
     module.exports.preferredCharsets = preferredCharsets;
@@ -21226,9 +21382,9 @@ var require_charset = __commonJS({
   }
 });
 
-// node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/encoding.js
+// ../../node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/encoding.js
 var require_encoding = __commonJS({
-  "node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/encoding.js"(exports, module) {
+  "../../node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/encoding.js"(exports, module) {
     "use strict";
     module.exports = preferredEncodings;
     module.exports.preferredEncodings = preferredEncodings;
@@ -21339,9 +21495,9 @@ var require_encoding = __commonJS({
   }
 });
 
-// node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/language.js
+// ../../node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/language.js
 var require_language = __commonJS({
-  "node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/language.js"(exports, module) {
+  "../../node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/language.js"(exports, module) {
     "use strict";
     module.exports = preferredLanguages;
     module.exports.preferredLanguages = preferredLanguages;
@@ -21434,9 +21590,9 @@ var require_language = __commonJS({
   }
 });
 
-// node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/mediaType.js
+// ../../node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/mediaType.js
 var require_mediaType = __commonJS({
-  "node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/mediaType.js"(exports, module) {
+  "../../node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/lib/mediaType.js"(exports, module) {
     "use strict";
     module.exports = preferredMediaTypes;
     module.exports.preferredMediaTypes = preferredMediaTypes;
@@ -21596,9 +21752,9 @@ var require_mediaType = __commonJS({
   }
 });
 
-// node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/index.js
+// ../../node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/index.js
 var require_negotiator = __commonJS({
-  "node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/index.js"(exports, module) {
+  "../../node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator/index.js"(exports, module) {
     "use strict";
     var preferredCharsets = require_charset();
     var preferredEncodings = require_encoding();
@@ -21652,9 +21808,9 @@ var require_negotiator = __commonJS({
   }
 });
 
-// node_modules/.pnpm/accepts@2.0.0/node_modules/accepts/index.js
+// ../../node_modules/.pnpm/accepts@2.0.0/node_modules/accepts/index.js
 var require_accepts = __commonJS({
-  "node_modules/.pnpm/accepts@2.0.0/node_modules/accepts/index.js"(exports, module) {
+  "../../node_modules/.pnpm/accepts@2.0.0/node_modules/accepts/index.js"(exports, module) {
     "use strict";
     var Negotiator = require_negotiator();
     var mime = require_mime_types();
@@ -21733,9 +21889,9 @@ var require_accepts = __commonJS({
   }
 });
 
-// node_modules/.pnpm/fresh@2.0.0/node_modules/fresh/index.js
+// ../../node_modules/.pnpm/fresh@2.0.0/node_modules/fresh/index.js
 var require_fresh = __commonJS({
-  "node_modules/.pnpm/fresh@2.0.0/node_modules/fresh/index.js"(exports, module) {
+  "../../node_modules/.pnpm/fresh@2.0.0/node_modules/fresh/index.js"(exports, module) {
     "use strict";
     var CACHE_CONTROL_NO_CACHE_REGEXP = /(?:^|,)\s*?no-cache\s*?(?:,|$)/;
     module.exports = fresh;
@@ -21805,9 +21961,9 @@ var require_fresh = __commonJS({
   }
 });
 
-// node_modules/.pnpm/range-parser@1.2.1/node_modules/range-parser/index.js
+// ../../node_modules/.pnpm/range-parser@1.2.1/node_modules/range-parser/index.js
 var require_range_parser = __commonJS({
-  "node_modules/.pnpm/range-parser@1.2.1/node_modules/range-parser/index.js"(exports, module) {
+  "../../node_modules/.pnpm/range-parser@1.2.1/node_modules/range-parser/index.js"(exports, module) {
     "use strict";
     module.exports = rangeParser;
     function rangeParser(size, str, options) {
@@ -21886,9 +22042,9 @@ var require_range_parser = __commonJS({
   }
 });
 
-// node_modules/.pnpm/express@5.2.1/node_modules/express/lib/request.js
+// ../../node_modules/.pnpm/express@5.2.1/node_modules/express/lib/request.js
 var require_request = __commonJS({
-  "node_modules/.pnpm/express@5.2.1/node_modules/express/lib/request.js"(exports, module) {
+  "../../node_modules/.pnpm/express@5.2.1/node_modules/express/lib/request.js"(exports, module) {
     "use strict";
     var accepts = require_accepts();
     var isIP2 = __require("node:net").isIP;
@@ -22034,9 +22190,9 @@ var require_request = __commonJS({
   }
 });
 
-// node_modules/.pnpm/content-disposition@1.1.0/node_modules/content-disposition/index.js
+// ../../node_modules/.pnpm/content-disposition@1.1.0/node_modules/content-disposition/index.js
 var require_content_disposition = __commonJS({
-  "node_modules/.pnpm/content-disposition@1.1.0/node_modules/content-disposition/index.js"(exports, module) {
+  "../../node_modules/.pnpm/content-disposition@1.1.0/node_modules/content-disposition/index.js"(exports, module) {
     "use strict";
     module.exports = contentDisposition;
     module.exports.parse = parse;
@@ -22243,9 +22399,9 @@ var require_content_disposition = __commonJS({
   }
 });
 
-// node_modules/.pnpm/cookie-signature@1.2.2/node_modules/cookie-signature/index.js
+// ../../node_modules/.pnpm/cookie-signature@1.2.2/node_modules/cookie-signature/index.js
 var require_cookie_signature = __commonJS({
-  "node_modules/.pnpm/cookie-signature@1.2.2/node_modules/cookie-signature/index.js"(exports) {
+  "../../node_modules/.pnpm/cookie-signature@1.2.2/node_modules/cookie-signature/index.js"(exports) {
     var crypto2 = __require("crypto");
     exports.sign = function(val, secret) {
       if ("string" != typeof val) throw new TypeError("Cookie value must be provided as a string.");
@@ -22261,9 +22417,9 @@ var require_cookie_signature = __commonJS({
   }
 });
 
-// node_modules/.pnpm/cookie@0.7.2/node_modules/cookie/index.js
+// ../../node_modules/.pnpm/cookie@0.7.2/node_modules/cookie/index.js
 var require_cookie = __commonJS({
-  "node_modules/.pnpm/cookie@0.7.2/node_modules/cookie/index.js"(exports) {
+  "../../node_modules/.pnpm/cookie@0.7.2/node_modules/cookie/index.js"(exports) {
     "use strict";
     exports.parse = parse;
     exports.serialize = serialize;
@@ -22427,9 +22583,9 @@ var require_cookie = __commonJS({
   }
 });
 
-// node_modules/.pnpm/send@1.2.1/node_modules/send/index.js
+// ../../node_modules/.pnpm/send@1.2.1/node_modules/send/index.js
 var require_send = __commonJS({
-  "node_modules/.pnpm/send@1.2.1/node_modules/send/index.js"(exports, module) {
+  "../../node_modules/.pnpm/send@1.2.1/node_modules/send/index.js"(exports, module) {
     "use strict";
     var createError = require_http_errors();
     var debug = require_src()("send");
@@ -22910,9 +23066,9 @@ var require_send = __commonJS({
   }
 });
 
-// node_modules/.pnpm/vary@1.1.2/node_modules/vary/index.js
+// ../../node_modules/.pnpm/vary@1.1.2/node_modules/vary/index.js
 var require_vary = __commonJS({
-  "node_modules/.pnpm/vary@1.1.2/node_modules/vary/index.js"(exports, module) {
+  "../../node_modules/.pnpm/vary@1.1.2/node_modules/vary/index.js"(exports, module) {
     "use strict";
     module.exports = vary;
     module.exports.append = append;
@@ -22983,9 +23139,9 @@ var require_vary = __commonJS({
   }
 });
 
-// node_modules/.pnpm/express@5.2.1/node_modules/express/lib/response.js
+// ../../node_modules/.pnpm/express@5.2.1/node_modules/express/lib/response.js
 var require_response = __commonJS({
-  "node_modules/.pnpm/express@5.2.1/node_modules/express/lib/response.js"(exports, module) {
+  "../../node_modules/.pnpm/express@5.2.1/node_modules/express/lib/response.js"(exports, module) {
     "use strict";
     var contentDisposition = require_content_disposition();
     var createError = require_http_errors();
@@ -23453,9 +23609,9 @@ var require_response = __commonJS({
   }
 });
 
-// node_modules/.pnpm/serve-static@2.2.1/node_modules/serve-static/index.js
+// ../../node_modules/.pnpm/serve-static@2.2.1/node_modules/serve-static/index.js
 var require_serve_static = __commonJS({
-  "node_modules/.pnpm/serve-static@2.2.1/node_modules/serve-static/index.js"(exports, module) {
+  "../../node_modules/.pnpm/serve-static@2.2.1/node_modules/serve-static/index.js"(exports, module) {
     "use strict";
     var encodeUrl = require_encodeurl();
     var escapeHtml = require_escape_html();
@@ -23557,15 +23713,15 @@ var require_serve_static = __commonJS({
   }
 });
 
-// node_modules/.pnpm/express@5.2.1/node_modules/express/lib/express.js
+// ../../node_modules/.pnpm/express@5.2.1/node_modules/express/lib/express.js
 var require_express = __commonJS({
-  "node_modules/.pnpm/express@5.2.1/node_modules/express/lib/express.js"(exports, module) {
+  "../../node_modules/.pnpm/express@5.2.1/node_modules/express/lib/express.js"(exports, module) {
     "use strict";
     var bodyParser = require_body_parser();
     var EventEmitter = __require("node:events").EventEmitter;
     var mixin = require_merge_descriptors();
     var proto = require_application();
-    var Router27 = require_router();
+    var Router35 = require_router();
     var req = require_request();
     var res = require_response();
     exports = module.exports = createApplication;
@@ -23587,8 +23743,8 @@ var require_express = __commonJS({
     exports.application = proto;
     exports.request = req;
     exports.response = res;
-    exports.Route = Router27.Route;
-    exports.Router = Router27;
+    exports.Route = Router35.Route;
+    exports.Router = Router35;
     exports.json = bodyParser.json;
     exports.raw = bodyParser.raw;
     exports.static = require_serve_static();
@@ -23597,17 +23753,17 @@ var require_express = __commonJS({
   }
 });
 
-// node_modules/.pnpm/express@5.2.1/node_modules/express/index.js
+// ../../node_modules/.pnpm/express@5.2.1/node_modules/express/index.js
 var require_express2 = __commonJS({
-  "node_modules/.pnpm/express@5.2.1/node_modules/express/index.js"(exports, module) {
+  "../../node_modules/.pnpm/express@5.2.1/node_modules/express/index.js"(exports, module) {
     "use strict";
     module.exports = require_express();
   }
 });
 
-// node_modules/.pnpm/object-assign@4.1.1/node_modules/object-assign/index.js
+// ../../node_modules/.pnpm/object-assign@4.1.1/node_modules/object-assign/index.js
 var require_object_assign = __commonJS({
-  "node_modules/.pnpm/object-assign@4.1.1/node_modules/object-assign/index.js"(exports, module) {
+  "../../node_modules/.pnpm/object-assign@4.1.1/node_modules/object-assign/index.js"(exports, module) {
     "use strict";
     var getOwnPropertySymbols = Object.getOwnPropertySymbols;
     var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -23675,9 +23831,9 @@ var require_object_assign = __commonJS({
   }
 });
 
-// node_modules/.pnpm/cors@2.8.6/node_modules/cors/lib/index.js
+// ../../node_modules/.pnpm/cors@2.8.6/node_modules/cors/lib/index.js
 var require_lib3 = __commonJS({
-  "node_modules/.pnpm/cors@2.8.6/node_modules/cors/lib/index.js"(exports, module) {
+  "../../node_modules/.pnpm/cors@2.8.6/node_modules/cors/lib/index.js"(exports, module) {
     (function() {
       "use strict";
       var assign = require_object_assign();
@@ -23883,1927 +24039,9 @@ var require_lib3 = __commonJS({
   }
 });
 
-// artifacts/api-server/node_modules/ip-address/dist/address-error.js
-var require_address_error = __commonJS({
-  "artifacts/api-server/node_modules/ip-address/dist/address-error.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.AddressError = void 0;
-    var AddressError = class extends Error {
-      constructor(message, parseMessage) {
-        super(message);
-        this.name = "AddressError";
-        this.parseMessage = parseMessage;
-      }
-    };
-    exports.AddressError = AddressError;
-  }
-});
-
-// artifacts/api-server/node_modules/ip-address/dist/common.js
-var require_common2 = __commonJS({
-  "artifacts/api-server/node_modules/ip-address/dist/common.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.isInSubnet = isInSubnet;
-    exports.isCorrect = isCorrect;
-    exports.prefixLengthFromMask = prefixLengthFromMask;
-    exports.numberToPaddedHex = numberToPaddedHex;
-    exports.stringToPaddedHex = stringToPaddedHex;
-    exports.testBit = testBit;
-    var address_error_1 = require_address_error();
-    function isInSubnet(address) {
-      if (this.subnetMask < address.subnetMask) {
-        return false;
-      }
-      if (this.mask(address.subnetMask) === address.mask()) {
-        return true;
-      }
-      return false;
-    }
-    function isCorrect(defaultBits) {
-      return function() {
-        if (this.addressMinusSuffix !== this.correctForm()) {
-          return false;
-        }
-        if (this.subnetMask === defaultBits && !this.parsedSubnet) {
-          return true;
-        }
-        return this.parsedSubnet === String(this.subnetMask);
-      };
-    }
-    function prefixLengthFromMask(value, totalBits) {
-      const binary = value.toString(2).padStart(totalBits, "0");
-      if (binary.length > totalBits) {
-        throw new address_error_1.AddressError("Invalid subnet mask.");
-      }
-      const firstZero = binary.indexOf("0");
-      if (firstZero === -1) {
-        return totalBits;
-      }
-      if (binary.slice(firstZero).includes("1")) {
-        throw new address_error_1.AddressError("Invalid subnet mask.");
-      }
-      return firstZero;
-    }
-    function numberToPaddedHex(number) {
-      return number.toString(16).padStart(2, "0");
-    }
-    function stringToPaddedHex(numberString) {
-      return numberToPaddedHex(parseInt(numberString, 10));
-    }
-    function testBit(binaryValue, position) {
-      const { length } = binaryValue;
-      if (position > length) {
-        return false;
-      }
-      const positionInString = length - position;
-      return binaryValue.substring(positionInString, positionInString + 1) === "1";
-    }
-  }
-});
-
-// artifacts/api-server/node_modules/ip-address/dist/v4/constants.js
-var require_constants = __commonJS({
-  "artifacts/api-server/node_modules/ip-address/dist/v4/constants.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.RE_SUBNET_STRING = exports.RE_ADDRESS = exports.GROUPS = exports.BITS = void 0;
-    exports.BITS = 32;
-    exports.GROUPS = 4;
-    exports.RE_ADDRESS = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/g;
-    exports.RE_SUBNET_STRING = /\/\d{1,2}$/;
-  }
-});
-
-// artifacts/api-server/node_modules/ip-address/dist/ipv4.js
-var require_ipv4 = __commonJS({
-  "artifacts/api-server/node_modules/ip-address/dist/ipv4.js"(exports) {
-    "use strict";
-    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: function() {
-          return m[k];
-        } };
-      }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? (function(o, v) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
-      o["default"] = v;
-    });
-    var __importStar = exports && exports.__importStar || function(mod) {
-      if (mod && mod.__esModule) return mod;
-      var result = {};
-      if (mod != null) {
-        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-      }
-      __setModuleDefault(result, mod);
-      return result;
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Address4 = void 0;
-    var common = __importStar(require_common2());
-    var constants = __importStar(require_constants());
-    var address_error_1 = require_address_error();
-    var isCorrect4 = common.isCorrect(constants.BITS);
-    var Address4 = class _Address4 {
-      constructor(address) {
-        this.groups = constants.GROUPS;
-        this.parsedAddress = [];
-        this.parsedSubnet = "";
-        this.subnet = "/32";
-        this.subnetMask = 32;
-        this.v4 = true;
-        this.isCorrect = isCorrect4;
-        this.isInSubnet = common.isInSubnet;
-        this.address = address;
-        const subnet = constants.RE_SUBNET_STRING.exec(address);
-        if (subnet) {
-          this.parsedSubnet = subnet[0].replace("/", "");
-          this.subnetMask = parseInt(this.parsedSubnet, 10);
-          this.subnet = `/${this.subnetMask}`;
-          if (this.subnetMask < 0 || this.subnetMask > constants.BITS) {
-            throw new address_error_1.AddressError("Invalid subnet mask.");
-          }
-          address = address.replace(constants.RE_SUBNET_STRING, "");
-        }
-        this.addressMinusSuffix = address;
-        this.parsedAddress = this.parse(address);
-      }
-      /**
-       * Returns true if the given string is a valid IPv4 address (with optional
-       * CIDR subnet), false otherwise. Host bits in the subnet portion are
-       * allowed (e.g. `192.168.1.5/24` is valid); for strict network-address
-       * validation compare `correctForm()` to `startAddress().correctForm()`,
-       * or use `networkForm()`.
-       */
-      static isValid(address) {
-        try {
-          new _Address4(address);
-          return true;
-        } catch (e) {
-          return false;
-        }
-      }
-      /**
-       * Parses an IPv4 address string into its four octet groups and stores the
-       * result on `this.parsedAddress`. Called automatically by the constructor;
-       * you typically don't need to call it directly. Throws `AddressError` if
-       * the input is not a valid IPv4 address.
-       */
-      parse(address) {
-        const groups = address.split(".");
-        if (!address.match(constants.RE_ADDRESS)) {
-          throw new address_error_1.AddressError("Invalid IPv4 address.");
-        }
-        return groups;
-      }
-      /**
-       * Returns the address in correct form: octets joined with `.` and any
-       * leading zeros stripped (e.g. `192.168.1.1`). For IPv4 this matches the
-       * canonical dotted-decimal representation.
-       */
-      correctForm() {
-        return this.parsedAddress.map((part) => parseInt(part, 10)).join(".");
-      }
-      /**
-       * Construct an `Address4` from an address and a dotted-decimal subnet
-       * mask given as separate strings (e.g. as returned by Node's
-       * `os.networkInterfaces()`). Throws `AddressError` if the mask is
-       * non-contiguous (e.g. `255.0.255.0`).
-       * @example
-       * var address = Address4.fromAddressAndMask('192.168.1.1', '255.255.255.0');
-       * address.subnetMask; // 24
-       */
-      static fromAddressAndMask(address, mask) {
-        const bits = common.prefixLengthFromMask(new _Address4(mask).bigInt(), constants.BITS);
-        return new _Address4(`${address}/${bits}`);
-      }
-      /**
-       * Construct an `Address4` from an address and a Cisco-style wildcard mask
-       * given as separate strings (e.g. `0.0.0.255` for a `/24`). The wildcard
-       * mask is the bitwise inverse of the subnet mask. Throws `AddressError`
-       * if the mask is non-contiguous (e.g. `0.255.0.255`).
-       * @example
-       * var address = Address4.fromAddressAndWildcardMask('10.0.0.1', '0.0.0.255');
-       * address.subnetMask; // 24
-       */
-      static fromAddressAndWildcardMask(address, wildcardMask) {
-        const wildcard = new _Address4(wildcardMask).bigInt();
-        const allOnes = (BigInt(1) << BigInt(constants.BITS)) - BigInt(1);
-        const mask = wildcard ^ allOnes;
-        const bits = common.prefixLengthFromMask(mask, constants.BITS);
-        return new _Address4(`${address}/${bits}`);
-      }
-      /**
-       * Construct an `Address4` from a wildcard pattern with trailing `*`
-       * octets. The number of trailing wildcards determines the prefix
-       * length: each `*` represents 8 bits.
-       *
-       * Only trailing whole-octet wildcards are supported. Partial-octet
-       * wildcards (e.g. `192.168.0.1*`) and interior wildcards (e.g.
-       * `192.*.0.1`) throw `AddressError`.
-       * @example
-       * Address4.fromWildcard('192.168.0.*').subnet;   // '/24'
-       * Address4.fromWildcard('192.168.*.*').subnet;   // '/16'
-       * Address4.fromWildcard('*.*.*.*').subnet;       // '/0'
-       */
-      static fromWildcard(input) {
-        const groups = input.split(".");
-        if (groups.length !== constants.GROUPS) {
-          throw new address_error_1.AddressError("Wildcard pattern must have 4 octets");
-        }
-        let firstWildcard = -1;
-        for (let i = 0; i < groups.length; i++) {
-          if (groups[i] === "*") {
-            if (firstWildcard === -1) {
-              firstWildcard = i;
-            }
-          } else if (firstWildcard !== -1) {
-            throw new address_error_1.AddressError("Wildcard `*` must only appear in trailing octets (e.g. `192.168.0.*`)");
-          }
-        }
-        const trailing = firstWildcard === -1 ? 0 : groups.length - firstWildcard;
-        const replaced = groups.map((g) => g === "*" ? "0" : g);
-        const subnetBits = constants.BITS - trailing * 8;
-        return new _Address4(`${replaced.join(".")}/${subnetBits}`);
-      }
-      /**
-       * Converts a hex string to an IPv4 address object. Accepts 8 hex digits
-       * with optional `:` separators (e.g. `'7f000001'` or `'7f:00:00:01'`).
-       * Throws `AddressError` for any other length or for non-hex characters.
-       * @param {string} hex - a hex string to convert
-       * @returns {Address4}
-       */
-      static fromHex(hex) {
-        const stripped = hex.replace(/:/g, "");
-        if (!/^[0-9a-fA-F]{8}$/.test(stripped)) {
-          throw new address_error_1.AddressError("IPv4 hex must be exactly 8 hex digits");
-        }
-        const groups = [];
-        for (let i = 0; i < 8; i += 2) {
-          groups.push(parseInt(stripped.slice(i, i + 2), 16));
-        }
-        return new _Address4(groups.join("."));
-      }
-      /**
-       * Converts an integer into a IPv4 address object. The integer must be a
-       * non-negative safe integer in the range `[0, 2**32 - 1]`; otherwise
-       * `AddressError` is thrown.
-       * @param {integer} integer - a number to convert
-       * @returns {Address4}
-       */
-      static fromInteger(integer) {
-        if (!Number.isInteger(integer) || integer < 0 || integer > 4294967295) {
-          throw new address_error_1.AddressError("IPv4 integer must be in the range 0 to 2**32 - 1");
-        }
-        return _Address4.fromHex(integer.toString(16).padStart(8, "0"));
-      }
-      /**
-       * Return an address from in-addr.arpa form
-       * @param {string} arpaFormAddress - an 'in-addr.arpa' form ipv4 address
-       * @returns {Adress4}
-       * @example
-       * var address = Address4.fromArpa(42.2.0.192.in-addr.arpa.)
-       * address.correctForm(); // '192.0.2.42'
-       */
-      static fromArpa(arpaFormAddress) {
-        const leader = arpaFormAddress.replace(/(\.in-addr\.arpa)?\.$/, "");
-        const address = leader.split(".").reverse().join(".");
-        return new _Address4(address);
-      }
-      /**
-       * Converts an IPv4 address object to a hex string
-       * @returns {String}
-       */
-      toHex() {
-        return this.parsedAddress.map((part) => common.stringToPaddedHex(part)).join(":");
-      }
-      /**
-       * Converts an IPv4 address object to an array of bytes.
-       *
-       * To get a Node.js `Buffer`, wrap the result: `Buffer.from(address.toArray())`.
-       * @returns {Array}
-       */
-      toArray() {
-        return this.parsedAddress.map((part) => parseInt(part, 10));
-      }
-      /**
-       * Converts an IPv4 address object to an IPv6 address group
-       * @returns {String}
-       */
-      toGroup6() {
-        const output = [];
-        let i;
-        for (i = 0; i < constants.GROUPS; i += 2) {
-          output.push(`${common.stringToPaddedHex(this.parsedAddress[i])}${common.stringToPaddedHex(this.parsedAddress[i + 1])}`);
-        }
-        return output.join(":");
-      }
-      /**
-       * Returns the address as a `bigint`
-       * @returns {bigint}
-       */
-      bigInt() {
-        return BigInt(`0x${this.parsedAddress.map((n) => common.stringToPaddedHex(n)).join("")}`);
-      }
-      /**
-       * Helper function getting start address.
-       * @returns {bigint}
-       */
-      _startAddress() {
-        return BigInt(`0b${this.mask() + "0".repeat(constants.BITS - this.subnetMask)}`);
-      }
-      /**
-       * The first address in the range given by this address' subnet.
-       * Often referred to as the Network Address.
-       * @returns {Address4}
-       */
-      startAddress() {
-        return _Address4.fromBigInt(this._startAddress());
-      }
-      /**
-       * The first host address in the range given by this address's subnet ie
-       * the first address after the Network Address
-       * @returns {Address4}
-       */
-      startAddressExclusive() {
-        const adjust = BigInt("1");
-        return _Address4.fromBigInt(this._startAddress() + adjust);
-      }
-      /**
-       * Helper function getting end address.
-       * @returns {bigint}
-       */
-      _endAddress() {
-        return BigInt(`0b${this.mask() + "1".repeat(constants.BITS - this.subnetMask)}`);
-      }
-      /**
-       * The last address in the range given by this address' subnet
-       * Often referred to as the Broadcast
-       * @returns {Address4}
-       */
-      endAddress() {
-        return _Address4.fromBigInt(this._endAddress());
-      }
-      /**
-       * The last host address in the range given by this address's subnet ie
-       * the last address prior to the Broadcast Address
-       * @returns {Address4}
-       */
-      endAddressExclusive() {
-        const adjust = BigInt("1");
-        return _Address4.fromBigInt(this._endAddress() - adjust);
-      }
-      /**
-       * The dotted-decimal form of the subnet mask, e.g. `255.255.240.0` for
-       * a `/20`. Returns an `Address4`; call `.correctForm()` for the string.
-       * @returns {Address4}
-       */
-      subnetMaskAddress() {
-        return _Address4.fromBigInt(BigInt(`0b${"1".repeat(this.subnetMask)}${"0".repeat(constants.BITS - this.subnetMask)}`));
-      }
-      /**
-       * The Cisco-style wildcard mask, e.g. `0.0.0.255` for a `/24`. This is
-       * the bitwise inverse of `subnetMaskAddress()`. Returns an `Address4`;
-       * call `.correctForm()` for the string.
-       * @returns {Address4}
-       */
-      wildcardMask() {
-        return _Address4.fromBigInt(BigInt(`0b${"0".repeat(this.subnetMask)}${"1".repeat(constants.BITS - this.subnetMask)}`));
-      }
-      /**
-       * The network address in CIDR string form, e.g. `192.168.1.0/24` for
-       * `192.168.1.5/24`. For an address with no explicit subnet the prefix is
-       * `/32`, e.g. `networkForm()` on `192.168.1.5` returns `192.168.1.5/32`.
-       * @returns {string}
-       */
-      networkForm() {
-        return `${this.startAddress().correctForm()}/${this.subnetMask}`;
-      }
-      /**
-       * Converts a BigInt to a v4 address object. The value must be in the
-       * range `[0, 2**32 - 1]`; otherwise `AddressError` is thrown.
-       * @param {bigint} bigInt - a BigInt to convert
-       * @returns {Address4}
-       */
-      static fromBigInt(bigInt) {
-        if (bigInt < 0n || bigInt > 0xffffffffn) {
-          throw new address_error_1.AddressError("IPv4 BigInt must be in the range 0 to 2**32 - 1");
-        }
-        return _Address4.fromHex(bigInt.toString(16).padStart(8, "0"));
-      }
-      /**
-       * Convert a byte array to an Address4 object.
-       *
-       * To convert from a Node.js `Buffer`, spread it: `Address4.fromByteArray([...buf])`.
-       * @param {Array<number>} bytes - an array of 4 bytes (0-255)
-       * @returns {Address4}
-       */
-      static fromByteArray(bytes) {
-        if (bytes.length !== 4) {
-          throw new address_error_1.AddressError("IPv4 addresses require exactly 4 bytes");
-        }
-        for (let i = 0; i < bytes.length; i++) {
-          if (!Number.isInteger(bytes[i]) || bytes[i] < 0 || bytes[i] > 255) {
-            throw new address_error_1.AddressError("All bytes must be integers between 0 and 255");
-          }
-        }
-        return this.fromUnsignedByteArray(bytes);
-      }
-      /**
-       * Convert an unsigned byte array to an Address4 object
-       * @param {Array<number>} bytes - an array of 4 unsigned bytes (0-255)
-       * @returns {Address4}
-       */
-      static fromUnsignedByteArray(bytes) {
-        if (bytes.length !== 4) {
-          throw new address_error_1.AddressError("IPv4 addresses require exactly 4 bytes");
-        }
-        const address = bytes.join(".");
-        return new _Address4(address);
-      }
-      /**
-       * Returns the first n bits of the address, defaulting to the
-       * subnet mask
-       * @returns {String}
-       */
-      mask(mask) {
-        if (mask === void 0) {
-          mask = this.subnetMask;
-        }
-        return this.getBitsBase2(0, mask);
-      }
-      /**
-       * Returns the bits in the given range as a base-2 string
-       * @returns {string}
-       */
-      getBitsBase2(start, end) {
-        return this.binaryZeroPad().slice(start, end);
-      }
-      /**
-       * Return the reversed ip6.arpa form of the address
-       * @param {Object} options
-       * @param {boolean} options.omitSuffix - omit the "in-addr.arpa" suffix
-       * @returns {String}
-       */
-      reverseForm(options) {
-        if (!options) {
-          options = {};
-        }
-        const reversed = this.correctForm().split(".").reverse().join(".");
-        if (options.omitSuffix) {
-          return reversed;
-        }
-        return `${reversed}.in-addr.arpa.`;
-      }
-      /**
-       * Returns true if the given address is a multicast address
-       * @returns {boolean}
-       */
-      isMulticast() {
-        return this.isInSubnet(MULTICAST_V4);
-      }
-      /**
-       * Returns true if the address is in one of the [RFC 1918](https://datatracker.ietf.org/doc/html/rfc1918) private address ranges (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`).
-       * @returns {boolean}
-       */
-      isPrivate() {
-        return PRIVATE_V4.some((subnet) => this.isInSubnet(subnet));
-      }
-      /**
-       * Returns true if the address is in the loopback range `127.0.0.0/8` ([RFC 1122](https://datatracker.ietf.org/doc/html/rfc1122)).
-       * @returns {boolean}
-       */
-      isLoopback() {
-        return this.isInSubnet(LOOPBACK_V4);
-      }
-      /**
-       * Returns true if the address is in the link-local range `169.254.0.0/16` ([RFC 3927](https://datatracker.ietf.org/doc/html/rfc3927)).
-       * @returns {boolean}
-       */
-      isLinkLocal() {
-        return this.isInSubnet(LINK_LOCAL_V4);
-      }
-      /**
-       * Returns true if the address is the unspecified address `0.0.0.0`.
-       * @returns {boolean}
-       */
-      isUnspecified() {
-        return this.isInSubnet(UNSPECIFIED_V4);
-      }
-      /**
-       * Returns true if the address is the limited broadcast address `255.255.255.255` ([RFC 919](https://datatracker.ietf.org/doc/html/rfc919)).
-       * @returns {boolean}
-       */
-      isBroadcast() {
-        return this.isInSubnet(BROADCAST_V4);
-      }
-      /**
-       * Returns true if the address is in the carrier-grade NAT range `100.64.0.0/10` ([RFC 6598](https://datatracker.ietf.org/doc/html/rfc6598)).
-       * @returns {boolean}
-       */
-      isCGNAT() {
-        return this.isInSubnet(CGNAT_V4);
-      }
-      /**
-       * Returns a zero-padded base-2 string representation of the address
-       * @returns {string}
-       */
-      binaryZeroPad() {
-        if (this._binaryZeroPad === void 0) {
-          this._binaryZeroPad = this.bigInt().toString(2).padStart(constants.BITS, "0");
-        }
-        return this._binaryZeroPad;
-      }
-      /**
-       * Groups an IPv4 address for inclusion at the end of an IPv6 address
-       * @returns {String}
-       */
-      groupForV6() {
-        const segments = this.parsedAddress;
-        return this.address.replace(constants.RE_ADDRESS, `<span class="hover-group group-v4 group-6">${segments.slice(0, 2).join(".")}</span>.<span class="hover-group group-v4 group-7">${segments.slice(2, 4).join(".")}</span>`);
-      }
-    };
-    exports.Address4 = Address4;
-    var MULTICAST_V4 = new Address4("224.0.0.0/4");
-    var PRIVATE_V4 = [
-      new Address4("10.0.0.0/8"),
-      new Address4("172.16.0.0/12"),
-      new Address4("192.168.0.0/16")
-    ];
-    var LOOPBACK_V4 = new Address4("127.0.0.0/8");
-    var LINK_LOCAL_V4 = new Address4("169.254.0.0/16");
-    var UNSPECIFIED_V4 = new Address4("0.0.0.0/32");
-    var BROADCAST_V4 = new Address4("255.255.255.255/32");
-    var CGNAT_V4 = new Address4("100.64.0.0/10");
-  }
-});
-
-// artifacts/api-server/node_modules/ip-address/dist/v6/constants.js
-var require_constants2 = __commonJS({
-  "artifacts/api-server/node_modules/ip-address/dist/v6/constants.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.RE_URL_WITH_PORT = exports.RE_URL = exports.RE_ZONE_STRING = exports.RE_SUBNET_STRING = exports.RE_BAD_ADDRESS = exports.RE_BAD_CHARACTERS = exports.TYPES = exports.SCOPES = exports.GROUPS = exports.BITS = void 0;
-    exports.BITS = 128;
-    exports.GROUPS = 8;
-    exports.SCOPES = {
-      0: "Reserved",
-      1: "Interface local",
-      2: "Link local",
-      4: "Admin local",
-      5: "Site local",
-      8: "Organization local",
-      14: "Global",
-      15: "Reserved"
-    };
-    exports.TYPES = {
-      "ff01::1/128": "Multicast (All nodes on this interface)",
-      "ff01::2/128": "Multicast (All routers on this interface)",
-      "ff02::1/128": "Multicast (All nodes on this link)",
-      "ff02::2/128": "Multicast (All routers on this link)",
-      "ff05::2/128": "Multicast (All routers in this site)",
-      "ff02::5/128": "Multicast (OSPFv3 AllSPF routers)",
-      "ff02::6/128": "Multicast (OSPFv3 AllDR routers)",
-      "ff02::9/128": "Multicast (RIP routers)",
-      "ff02::a/128": "Multicast (EIGRP routers)",
-      "ff02::d/128": "Multicast (PIM routers)",
-      "ff02::16/128": "Multicast (MLDv2 reports)",
-      "ff01::fb/128": "Multicast (mDNSv6)",
-      "ff02::fb/128": "Multicast (mDNSv6)",
-      "ff05::fb/128": "Multicast (mDNSv6)",
-      "ff02::1:2/128": "Multicast (All DHCP servers and relay agents on this link)",
-      "ff05::1:2/128": "Multicast (All DHCP servers and relay agents in this site)",
-      "ff02::1:3/128": "Multicast (All DHCP servers on this link)",
-      "ff05::1:3/128": "Multicast (All DHCP servers in this site)",
-      "::/128": "Unspecified",
-      "::1/128": "Loopback",
-      "ff00::/8": "Multicast",
-      "fe80::/10": "Link-local unicast",
-      "fc00::/7": "Unique local",
-      "2002::/16": "6to4",
-      "2001:db8::/32": "Documentation",
-      "64:ff9b::/96": "NAT64 (well-known)",
-      "64:ff9b:1::/48": "NAT64 (local-use)"
-    };
-    exports.RE_BAD_CHARACTERS = /([^0-9a-f:/%])/gi;
-    exports.RE_BAD_ADDRESS = /([0-9a-f]{5,}|:{3,}|[^:]:$|^:[^:]|\/$)/gi;
-    exports.RE_SUBNET_STRING = /\/\d{1,3}(?=%|$)/;
-    exports.RE_ZONE_STRING = /%.*$/;
-    exports.RE_URL = /^\[{0,1}([0-9a-f:]+)\]{0,1}/;
-    exports.RE_URL_WITH_PORT = /\[([0-9a-f:]+)\]:([0-9]{1,5})/;
-  }
-});
-
-// artifacts/api-server/node_modules/ip-address/dist/v6/helpers.js
-var require_helpers = __commonJS({
-  "artifacts/api-server/node_modules/ip-address/dist/v6/helpers.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.escapeHtml = escapeHtml;
-    exports.spanAllZeroes = spanAllZeroes;
-    exports.spanAll = spanAll;
-    exports.spanLeadingZeroes = spanLeadingZeroes;
-    exports.simpleGroup = simpleGroup;
-    function escapeHtml(s) {
-      return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-    }
-    function spanAllZeroes(s) {
-      return escapeHtml(s).replace(/(0+)/g, '<span class="zero">$1</span>');
-    }
-    function spanAll(s, offset = 0) {
-      const letters = s.split("");
-      return letters.map((n, i) => `<span class="digit value-${escapeHtml(n)} position-${i + offset}">${spanAllZeroes(n)}</span>`).join("");
-    }
-    function spanLeadingZeroesSimple(group) {
-      return escapeHtml(group).replace(/^(0+)/, '<span class="zero">$1</span>');
-    }
-    function spanLeadingZeroes(address) {
-      const groups = address.split(":");
-      return groups.map((g) => spanLeadingZeroesSimple(g)).join(":");
-    }
-    function simpleGroup(addressString, offset = 0) {
-      const groups = addressString.split(":");
-      return groups.map((g, i) => {
-        if (/group-v4/.test(g)) {
-          return g;
-        }
-        return `<span class="hover-group group-${i + offset}">${spanLeadingZeroesSimple(g)}</span>`;
-      });
-    }
-  }
-});
-
-// artifacts/api-server/node_modules/ip-address/dist/v6/regular-expressions.js
-var require_regular_expressions = __commonJS({
-  "artifacts/api-server/node_modules/ip-address/dist/v6/regular-expressions.js"(exports) {
-    "use strict";
-    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: function() {
-          return m[k];
-        } };
-      }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? (function(o, v) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
-      o["default"] = v;
-    });
-    var __importStar = exports && exports.__importStar || function(mod) {
-      if (mod && mod.__esModule) return mod;
-      var result = {};
-      if (mod != null) {
-        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-      }
-      __setModuleDefault(result, mod);
-      return result;
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ADDRESS_BOUNDARY = void 0;
-    exports.groupPossibilities = groupPossibilities;
-    exports.padGroup = padGroup;
-    exports.simpleRegularExpression = simpleRegularExpression;
-    exports.possibleElisions = possibleElisions;
-    var v6 = __importStar(require_constants2());
-    function groupPossibilities(possibilities) {
-      return `(${possibilities.join("|")})`;
-    }
-    function padGroup(group) {
-      if (group.length < 4) {
-        return `0{0,${4 - group.length}}${group}`;
-      }
-      return group;
-    }
-    exports.ADDRESS_BOUNDARY = "[^A-Fa-f0-9:]";
-    function simpleRegularExpression(groups) {
-      const zeroIndexes = [];
-      groups.forEach((group, i) => {
-        const groupInteger = parseInt(group, 16);
-        if (groupInteger === 0) {
-          zeroIndexes.push(i);
-        }
-      });
-      const possibilities = zeroIndexes.map((zeroIndex) => groups.map((group, i) => {
-        if (i === zeroIndex) {
-          const elision = i === 0 || i === v6.GROUPS - 1 ? ":" : "";
-          return groupPossibilities([padGroup(group), elision]);
-        }
-        return padGroup(group);
-      }).join(":"));
-      possibilities.push(groups.map(padGroup).join(":"));
-      return groupPossibilities(possibilities);
-    }
-    function possibleElisions(elidedGroups, moreLeft, moreRight) {
-      const left = moreLeft ? "" : ":";
-      const right = moreRight ? "" : ":";
-      const possibilities = [];
-      if (!moreLeft && !moreRight) {
-        possibilities.push("::");
-      }
-      if (moreLeft && moreRight) {
-        possibilities.push("");
-      }
-      if (moreRight && !moreLeft || !moreRight && moreLeft) {
-        possibilities.push(":");
-      }
-      possibilities.push(`${left}(:0{1,4}){1,${elidedGroups - 1}}`);
-      possibilities.push(`(0{1,4}:){1,${elidedGroups - 1}}${right}`);
-      possibilities.push(`(0{1,4}:){${elidedGroups - 1}}0{1,4}`);
-      for (let groups = 1; groups < elidedGroups - 1; groups++) {
-        for (let position = 1; position < elidedGroups - groups; position++) {
-          possibilities.push(`(0{1,4}:){${position}}:(0{1,4}:){${elidedGroups - position - groups - 1}}0{1,4}`);
-        }
-      }
-      return groupPossibilities(possibilities);
-    }
-  }
-});
-
-// artifacts/api-server/node_modules/ip-address/dist/ipv6.js
-var require_ipv6 = __commonJS({
-  "artifacts/api-server/node_modules/ip-address/dist/ipv6.js"(exports) {
-    "use strict";
-    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: function() {
-          return m[k];
-        } };
-      }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? (function(o, v) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
-      o["default"] = v;
-    });
-    var __importStar = exports && exports.__importStar || function(mod) {
-      if (mod && mod.__esModule) return mod;
-      var result = {};
-      if (mod != null) {
-        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-      }
-      __setModuleDefault(result, mod);
-      return result;
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Address6 = void 0;
-    var common = __importStar(require_common2());
-    var constants4 = __importStar(require_constants());
-    var constants6 = __importStar(require_constants2());
-    var helpers = __importStar(require_helpers());
-    var ipv4_1 = require_ipv4();
-    var regular_expressions_1 = require_regular_expressions();
-    var address_error_1 = require_address_error();
-    var common_1 = require_common2();
-    var isCorrect6 = common.isCorrect(constants6.BITS);
-    function assert(condition) {
-      if (!condition) {
-        throw new Error("Assertion failed.");
-      }
-    }
-    function addCommas(number) {
-      const r = /(\d+)(\d{3})/;
-      while (r.test(number)) {
-        number = number.replace(r, "$1,$2");
-      }
-      return number;
-    }
-    function spanLeadingZeroes4(n) {
-      n = n.replace(/^(0{1,})([1-9]+)$/, '<span class="parse-error">$1</span>$2');
-      n = n.replace(/^(0{1,})(0)$/, '<span class="parse-error">$1</span>$2');
-      return n;
-    }
-    function compact(address, slice) {
-      const s1 = [];
-      const s2 = [];
-      let i;
-      for (i = 0; i < address.length; i++) {
-        if (i < slice[0]) {
-          s1.push(address[i]);
-        } else if (i > slice[1]) {
-          s2.push(address[i]);
-        }
-      }
-      return s1.concat(["compact"]).concat(s2);
-    }
-    function paddedHex(octet) {
-      return parseInt(octet, 16).toString(16).padStart(4, "0");
-    }
-    function unsignByte(b) {
-      return b & 255;
-    }
-    var Address62 = class _Address6 {
-      constructor(address, optionalGroups) {
-        this.addressMinusSuffix = "";
-        this.parsedSubnet = "";
-        this.subnet = "/128";
-        this.subnetMask = 128;
-        this.v4 = false;
-        this.zone = "";
-        this.isInSubnet = common.isInSubnet;
-        this.isCorrect = isCorrect6;
-        if (optionalGroups === void 0) {
-          this.groups = constants6.GROUPS;
-        } else {
-          this.groups = optionalGroups;
-        }
-        this.address = address;
-        const subnet = constants6.RE_SUBNET_STRING.exec(address);
-        if (subnet) {
-          this.parsedSubnet = subnet[0].replace("/", "");
-          this.subnetMask = parseInt(this.parsedSubnet, 10);
-          this.subnet = `/${this.subnetMask}`;
-          if (Number.isNaN(this.subnetMask) || this.subnetMask < 0 || this.subnetMask > constants6.BITS) {
-            throw new address_error_1.AddressError("Invalid subnet mask.");
-          }
-          address = address.replace(constants6.RE_SUBNET_STRING, "");
-        } else if (/\//.test(address)) {
-          throw new address_error_1.AddressError("Invalid subnet mask.");
-        }
-        const zone = constants6.RE_ZONE_STRING.exec(address);
-        if (zone) {
-          this.zone = zone[0];
-          address = address.replace(constants6.RE_ZONE_STRING, "");
-        }
-        this.addressMinusSuffix = address;
-        this.parsedAddress = this.parse(this.addressMinusSuffix);
-      }
-      /**
-       * Returns true if the given string is a valid IPv6 address (with optional
-       * CIDR subnet and zone identifier), false otherwise. Host bits in the
-       * subnet portion are allowed (e.g. `2001:db8::1/32` is valid); for strict
-       * network-address validation compare `correctForm()` to
-       * `startAddress().correctForm()`, or use `networkForm()`.
-       */
-      static isValid(address) {
-        try {
-          new _Address6(address);
-          return true;
-        } catch (e) {
-          return false;
-        }
-      }
-      /**
-       * Convert a BigInt to a v6 address object. The value must be in the
-       * range `[0, 2**128 - 1]`; otherwise `AddressError` is thrown.
-       * @param {bigint} bigInt - a BigInt to convert
-       * @returns {Address6}
-       * @example
-       * var bigInt = BigInt('1000000000000');
-       * var address = Address6.fromBigInt(bigInt);
-       * address.correctForm(); // '::e8:d4a5:1000'
-       */
-      static fromBigInt(bigInt) {
-        if (bigInt < 0n || bigInt > (1n << BigInt(constants6.BITS)) - 1n) {
-          throw new address_error_1.AddressError("IPv6 BigInt must be in the range 0 to 2**128 - 1");
-        }
-        const hex = bigInt.toString(16).padStart(32, "0");
-        const groups = [];
-        for (let i = 0; i < constants6.GROUPS; i++) {
-          groups.push(hex.slice(i * 4, (i + 1) * 4));
-        }
-        return new _Address6(groups.join(":"));
-      }
-      /**
-       * Parse a URL (with optional bracketed host and port) into an address and
-       * port. Returns either `{ address, port }` on success or
-       * `{ error, address: null, port: null }` if the URL could not be parsed.
-       * Ports are returned as numbers (or `null` if absent or out of range).
-       * @example
-       * var addressAndPort = Address6.fromURL('http://[ffff::]:8080/foo/');
-       * addressAndPort.address.correctForm(); // 'ffff::'
-       * addressAndPort.port; // 8080
-       */
-      static fromURL(url) {
-        let host;
-        let port2 = null;
-        let result;
-        if (url.indexOf("[") !== -1 && url.indexOf("]:") !== -1) {
-          result = constants6.RE_URL_WITH_PORT.exec(url);
-          if (result === null) {
-            return {
-              error: "failed to parse address with port",
-              address: null,
-              port: null
-            };
-          }
-          host = result[1];
-          port2 = result[2];
-        } else if (url.indexOf("/") !== -1) {
-          url = url.replace(/^[a-z0-9]+:\/\//, "");
-          result = constants6.RE_URL.exec(url);
-          if (result === null) {
-            return {
-              error: "failed to parse address from URL",
-              address: null,
-              port: null
-            };
-          }
-          host = result[1];
-        } else {
-          host = url;
-        }
-        if (port2) {
-          port2 = parseInt(port2, 10);
-          if (port2 < 0 || port2 > 65536) {
-            port2 = null;
-          }
-        } else {
-          port2 = null;
-        }
-        return {
-          address: new _Address6(host),
-          port: port2
-        };
-      }
-      /**
-       * Construct an `Address6` from an address and a hex subnet mask given as
-       * separate strings (e.g. as returned by Node's `os.networkInterfaces()`).
-       * Throws `AddressError` if the mask is non-contiguous (e.g.
-       * `ffff::ffff`).
-       * @example
-       * var address = Address6.fromAddressAndMask('fe80::1', 'ffff:ffff:ffff:ffff::');
-       * address.subnetMask; // 64
-       */
-      static fromAddressAndMask(address, mask) {
-        const bits = common.prefixLengthFromMask(new _Address6(mask).bigInt(), constants6.BITS);
-        return new _Address6(`${address}/${bits}`);
-      }
-      /**
-       * Construct an `Address6` from an address and a Cisco-style wildcard mask
-       * given as separate strings (e.g. `::ffff:ffff:ffff:ffff` for a `/64`).
-       * The wildcard mask is the bitwise inverse of the subnet mask. Throws
-       * `AddressError` if the mask is non-contiguous.
-       * @example
-       * var address = Address6.fromAddressAndWildcardMask('fe80::1', '::ffff:ffff:ffff:ffff');
-       * address.subnetMask; // 64
-       */
-      static fromAddressAndWildcardMask(address, wildcardMask) {
-        const wildcard = new _Address6(wildcardMask).bigInt();
-        const allOnes = (BigInt(1) << BigInt(constants6.BITS)) - BigInt(1);
-        const mask = wildcard ^ allOnes;
-        const bits = common.prefixLengthFromMask(mask, constants6.BITS);
-        return new _Address6(`${address}/${bits}`);
-      }
-      /**
-       * Construct an `Address6` from a wildcard pattern with trailing `*`
-       * groups. The number of trailing wildcards determines the prefix
-       * length: each `*` represents 16 bits. `::` is expanded to zero groups
-       * (not wildcards) before evaluating trailing wildcards.
-       *
-       * Only trailing whole-group wildcards are supported. Partial-group
-       * wildcards (e.g. `2001:db8::0*`) and interior wildcards (e.g.
-       * `*::1`) throw `AddressError`.
-       * @example
-       * Address6.fromWildcard('2001:db8:*:*:*:*:*:*').subnet;  // '/32'
-       * Address6.fromWildcard('2001:db8::*').subnet;           // '/112'
-       * Address6.fromWildcard('*:*:*:*:*:*:*:*').subnet;       // '/0'
-       */
-      static fromWildcard(input) {
-        if (input.includes("%") || input.includes("/")) {
-          throw new address_error_1.AddressError("Wildcard pattern must not include a zone or CIDR suffix");
-        }
-        const halves = input.split("::");
-        if (halves.length > 2) {
-          throw new address_error_1.AddressError("Wildcard pattern cannot contain more than one '::'");
-        }
-        let groups;
-        if (halves.length === 2) {
-          const left = halves[0] === "" ? [] : halves[0].split(":");
-          const right = halves[1] === "" ? [] : halves[1].split(":");
-          const remaining = constants6.GROUPS - left.length - right.length;
-          if (remaining < 1) {
-            throw new address_error_1.AddressError("Wildcard pattern with '::' has too many groups");
-          }
-          groups = [...left, ...new Array(remaining).fill("0"), ...right];
-        } else {
-          groups = input.split(":");
-        }
-        if (groups.length !== constants6.GROUPS) {
-          throw new address_error_1.AddressError("Wildcard pattern must have 8 groups");
-        }
-        let firstWildcard = -1;
-        for (let i = 0; i < groups.length; i++) {
-          if (groups[i] === "*") {
-            if (firstWildcard === -1) {
-              firstWildcard = i;
-            }
-          } else if (firstWildcard !== -1) {
-            throw new address_error_1.AddressError("Wildcard `*` must only appear in trailing groups (e.g. `2001:db8:*:*:*:*:*:*`)");
-          }
-        }
-        const trailing = firstWildcard === -1 ? 0 : groups.length - firstWildcard;
-        const replaced = groups.map((g) => g === "*" ? "0" : g);
-        const subnetBits = constants6.BITS - trailing * 16;
-        return new _Address6(`${replaced.join(":")}/${subnetBits}`);
-      }
-      /**
-       * Create an IPv6-mapped address given an IPv4 address
-       * @param {string} address - An IPv4 address string
-       * @returns {Address6}
-       * @example
-       * var address = Address6.fromAddress4('192.168.0.1');
-       * address.correctForm(); // '::ffff:c0a8:1'
-       * address.to4in6(); // '::ffff:192.168.0.1'
-       */
-      static fromAddress4(address) {
-        const address4 = new ipv4_1.Address4(address);
-        const mask6 = constants6.BITS - (constants4.BITS - address4.subnetMask);
-        return new _Address6(`::ffff:${address4.correctForm()}/${mask6}`);
-      }
-      /**
-       * Return an address from ip6.arpa form
-       * @param {string} arpaFormAddress - an 'ip6.arpa' form address
-       * @returns {Adress6}
-       * @example
-       * var address = Address6.fromArpa(e.f.f.f.3.c.2.6.f.f.f.e.6.6.8.e.1.0.6.7.9.4.e.c.0.0.0.0.1.0.0.2.ip6.arpa.)
-       * address.correctForm(); // '2001:0:ce49:7601:e866:efff:62c3:fffe'
-       */
-      static fromArpa(arpaFormAddress) {
-        let address = arpaFormAddress.replace(/(\.ip6\.arpa)?\.$/, "");
-        const semicolonAmount = 7;
-        if (address.length !== 63) {
-          throw new address_error_1.AddressError("Invalid 'ip6.arpa' form.");
-        }
-        const parts = address.split(".").reverse();
-        for (let i = semicolonAmount; i > 0; i--) {
-          const insertIndex = i * 4;
-          parts.splice(insertIndex, 0, ":");
-        }
-        address = parts.join("");
-        return new _Address6(address);
-      }
-      /**
-       * Return the Microsoft UNC transcription of the address
-       * @returns {String} the Microsoft UNC transcription of the address
-       */
-      microsoftTranscription() {
-        return `${this.correctForm().replace(/:/g, "-")}.ipv6-literal.net`;
-      }
-      /**
-       * Return the first n bits of the address, defaulting to the subnet mask
-       * @param {number} [mask=subnet] - the number of bits to mask
-       * @returns {String} the first n bits of the address as a string
-       */
-      mask(mask = this.subnetMask) {
-        return this.getBitsBase2(0, mask);
-      }
-      /**
-       * Return the number of possible subnets of a given size in the address
-       * @param {number} [subnetSize=128] - the subnet size
-       * @returns {String}
-       */
-      // TODO: probably useful to have a numeric version of this too
-      possibleSubnets(subnetSize = 128) {
-        const availableBits = constants6.BITS - this.subnetMask;
-        const subnetBits = Math.abs(subnetSize - constants6.BITS);
-        const subnetPowers = availableBits - subnetBits;
-        if (subnetPowers < 0) {
-          return "0";
-        }
-        return addCommas((BigInt("2") ** BigInt(subnetPowers)).toString(10));
-      }
-      /**
-       * Helper function getting start address.
-       * @returns {bigint}
-       */
-      _startAddress() {
-        return BigInt(`0b${this.mask() + "0".repeat(constants6.BITS - this.subnetMask)}`);
-      }
-      /**
-       * The first address in the range given by this address' subnet
-       * Often referred to as the Network Address.
-       * @returns {Address6}
-       */
-      startAddress() {
-        return _Address6.fromBigInt(this._startAddress());
-      }
-      /**
-       * The first host address in the range given by this address's subnet ie
-       * the first address after the Network Address
-       * @returns {Address6}
-       */
-      startAddressExclusive() {
-        const adjust = BigInt("1");
-        return _Address6.fromBigInt(this._startAddress() + adjust);
-      }
-      /**
-       * Helper function getting end address.
-       * @returns {bigint}
-       */
-      _endAddress() {
-        return BigInt(`0b${this.mask() + "1".repeat(constants6.BITS - this.subnetMask)}`);
-      }
-      /**
-       * The last address in the range given by this address' subnet
-       * Often referred to as the Broadcast
-       * @returns {Address6}
-       */
-      endAddress() {
-        return _Address6.fromBigInt(this._endAddress());
-      }
-      /**
-       * The last host address in the range given by this address's subnet ie
-       * the last address prior to the Broadcast Address
-       * @returns {Address6}
-       */
-      endAddressExclusive() {
-        const adjust = BigInt("1");
-        return _Address6.fromBigInt(this._endAddress() - adjust);
-      }
-      /**
-       * The hex form of the subnet mask, e.g. `ffff:ffff:ffff:ffff::` for a
-       * `/64`. Returns an `Address6`; call `.correctForm()` for the string.
-       * @returns {Address6}
-       */
-      subnetMaskAddress() {
-        return _Address6.fromBigInt(BigInt(`0b${"1".repeat(this.subnetMask)}${"0".repeat(constants6.BITS - this.subnetMask)}`));
-      }
-      /**
-       * The Cisco-style wildcard mask, e.g. `::ffff:ffff:ffff:ffff` for a
-       * `/64`. This is the bitwise inverse of `subnetMaskAddress()`. Returns
-       * an `Address6`; call `.correctForm()` for the string.
-       * @returns {Address6}
-       */
-      wildcardMask() {
-        return _Address6.fromBigInt(BigInt(`0b${"0".repeat(this.subnetMask)}${"1".repeat(constants6.BITS - this.subnetMask)}`));
-      }
-      /**
-       * The network address in CIDR string form, e.g. `2001:db8::/32` for
-       * `2001:db8::1/32`. For an address with no explicit subnet the prefix
-       * is `/128`, e.g. `networkForm()` on `2001:db8::1` returns
-       * `2001:db8::1/128`.
-       * @returns {string}
-       */
-      networkForm() {
-        return `${this.startAddress().correctForm()}/${this.subnetMask}`;
-      }
-      /**
-       * Return the scope of the address. The 4-bit scope field
-       * ([RFC 4291 §2.7](https://datatracker.ietf.org/doc/html/rfc4291#section-2.7))
-       * is only defined for multicast addresses; for unicast addresses the scope
-       * is derived from the address type per
-       * [RFC 4007 §6](https://datatracker.ietf.org/doc/html/rfc4007#section-6).
-       * @returns {String}
-       */
-      getScope() {
-        const type = this.getType();
-        if (type === "Multicast" || type.startsWith("Multicast ")) {
-          const scope = constants6.SCOPES[parseInt(this.getBits(12, 16).toString(10), 10)];
-          return scope || "Unknown";
-        }
-        if (type === "Link-local unicast" || type === "Loopback") {
-          return "Link local";
-        }
-        if (type === "Unspecified") {
-          return "Unknown";
-        }
-        return "Global";
-      }
-      /**
-       * Return the type of the address
-       * @returns {String}
-       */
-      getType() {
-        for (let i = 0; i < TYPE_SUBNETS.length; i++) {
-          const entry = TYPE_SUBNETS[i];
-          if (this.isInSubnet(entry[0])) {
-            return entry[1];
-          }
-        }
-        return "Global unicast";
-      }
-      /**
-       * Return the bits in the given range as a BigInt
-       * @returns {bigint}
-       */
-      getBits(start, end) {
-        return BigInt(`0b${this.getBitsBase2(start, end)}`);
-      }
-      /**
-       * Return the bits in the given range as a base-2 string
-       * @returns {String}
-       */
-      getBitsBase2(start, end) {
-        return this.binaryZeroPad().slice(start, end);
-      }
-      /**
-       * Return the bits in the given range as a base-16 string
-       * @returns {String}
-       */
-      getBitsBase16(start, end) {
-        const length = end - start;
-        if (length % 4 !== 0) {
-          throw new Error("Length of bits to retrieve must be divisible by four");
-        }
-        return this.getBits(start, end).toString(16).padStart(length / 4, "0");
-      }
-      /**
-       * Return the bits that are set past the subnet mask length
-       * @returns {String}
-       */
-      getBitsPastSubnet() {
-        return this.getBitsBase2(this.subnetMask, constants6.BITS);
-      }
-      /**
-       * Return the reversed ip6.arpa form of the address
-       * @param {Object} options
-       * @param {boolean} options.omitSuffix - omit the "ip6.arpa" suffix
-       * @returns {String}
-       */
-      reverseForm(options) {
-        if (!options) {
-          options = {};
-        }
-        const characters = Math.floor(this.subnetMask / 4);
-        const reversed = this.canonicalForm().replace(/:/g, "").split("").slice(0, characters).reverse().join(".");
-        if (characters > 0) {
-          if (options.omitSuffix) {
-            return reversed;
-          }
-          return `${reversed}.ip6.arpa.`;
-        }
-        if (options.omitSuffix) {
-          return "";
-        }
-        return "ip6.arpa.";
-      }
-      /**
-       * Returns the address in correct form, per
-       * [RFC 5952](https://datatracker.ietf.org/doc/html/rfc5952): leading zeros
-       * stripped, the longest run of zero groups collapsed to `::`, and hex digits
-       * lowercased (e.g. `2001:db8::1`). This is the recommended form for display.
-       */
-      correctForm() {
-        let i;
-        let groups = [];
-        let zeroCounter = 0;
-        const zeroes = [];
-        for (i = 0; i < this.parsedAddress.length; i++) {
-          const value = parseInt(this.parsedAddress[i], 16);
-          if (value === 0) {
-            zeroCounter++;
-          }
-          if (value !== 0 && zeroCounter > 0) {
-            if (zeroCounter > 1) {
-              zeroes.push([i - zeroCounter, i - 1]);
-            }
-            zeroCounter = 0;
-          }
-        }
-        if (zeroCounter > 1) {
-          zeroes.push([this.parsedAddress.length - zeroCounter, this.parsedAddress.length - 1]);
-        }
-        const zeroLengths = zeroes.map((n) => n[1] - n[0] + 1);
-        if (zeroes.length > 0) {
-          const index = zeroLengths.indexOf(Math.max(...zeroLengths));
-          groups = compact(this.parsedAddress, zeroes[index]);
-        } else {
-          groups = this.parsedAddress;
-        }
-        for (i = 0; i < groups.length; i++) {
-          if (groups[i] !== "compact") {
-            groups[i] = parseInt(groups[i], 16).toString(16);
-          }
-        }
-        let correct = groups.join(":");
-        correct = correct.replace(/^compact$/, "::");
-        correct = correct.replace(/(^compact)|(compact$)/, ":");
-        correct = correct.replace(/compact/, "");
-        return correct;
-      }
-      /**
-       * Return a zero-padded base-2 string representation of the address
-       * @returns {String}
-       * @example
-       * var address = new Address6('2001:4860:4001:803::1011');
-       * address.binaryZeroPad();
-       * // '0010000000000001010010000110000001000000000000010000100000000011
-       * //  0000000000000000000000000000000000000000000000000001000000010001'
-       */
-      binaryZeroPad() {
-        if (this._binaryZeroPad === void 0) {
-          this._binaryZeroPad = this.bigInt().toString(2).padStart(constants6.BITS, "0");
-        }
-        return this._binaryZeroPad;
-      }
-      /**
-       * Parses a v4-in-v6 string (e.g. `::ffff:192.168.0.1`) by extracting the
-       * trailing IPv4 address into `this.address4` / `this.parsedAddress4` and
-       * returning the address with the v4 portion converted to two v6 groups.
-       * Used internally by `parse()`.
-       */
-      // TODO: Improve the semantics of this helper function
-      parse4in6(address) {
-        if (address.indexOf(".") === -1) {
-          return address;
-        }
-        const groups = address.split(":");
-        const lastGroup = groups.slice(-1)[0];
-        const address4 = lastGroup.match(constants4.RE_ADDRESS);
-        if (address4) {
-          this.parsedAddress4 = address4[0];
-          this.address4 = new ipv4_1.Address4(this.parsedAddress4);
-          for (let i = 0; i < this.address4.groups; i++) {
-            if (/^0[0-9]+/.test(this.address4.parsedAddress[i])) {
-              const highlighted = this.address4.parsedAddress.map(spanLeadingZeroes4).join(".");
-              const prefix = groups.slice(0, -1).map(helpers.escapeHtml).join(":");
-              const separator = groups.length > 1 ? ":" : "";
-              throw new address_error_1.AddressError("IPv4 addresses can't have leading zeroes.", `${prefix}${separator}${highlighted}`);
-            }
-          }
-          this.v4 = true;
-          groups[groups.length - 1] = this.address4.toGroup6();
-          address = groups.join(":");
-        }
-        return address;
-      }
-      /**
-       * Parses an IPv6 address string into its 8 hexadecimal groups (expanding
-       * any `::` elision and any trailing v4-in-v6 portion) and stores the result
-       * on `this.parsedAddress`. Called automatically by the constructor; you
-       * typically don't need to call it directly. Throws `AddressError` if the
-       * input is malformed.
-       */
-      // TODO: Make private?
-      parse(address) {
-        address = this.parse4in6(address);
-        const badCharacters = address.match(constants6.RE_BAD_CHARACTERS);
-        if (badCharacters) {
-          throw new address_error_1.AddressError(`Bad character${badCharacters.length > 1 ? "s" : ""} detected in address: ${badCharacters.join("")}`, address.replace(constants6.RE_BAD_CHARACTERS, '<span class="parse-error">$1</span>'));
-        }
-        const badAddress = address.match(constants6.RE_BAD_ADDRESS);
-        if (badAddress) {
-          throw new address_error_1.AddressError(`Address failed regex: ${badAddress.join("")}`, address.replace(constants6.RE_BAD_ADDRESS, '<span class="parse-error">$1</span>'));
-        }
-        let groups = [];
-        const halves = address.split("::");
-        if (halves.length === 2) {
-          let first = halves[0].split(":");
-          let last = halves[1].split(":");
-          if (first.length === 1 && first[0] === "") {
-            first = [];
-          }
-          if (last.length === 1 && last[0] === "") {
-            last = [];
-          }
-          const remaining = this.groups - (first.length + last.length);
-          if (!remaining) {
-            throw new address_error_1.AddressError("Error parsing groups");
-          }
-          this.elidedGroups = remaining;
-          this.elisionBegin = first.length;
-          this.elisionEnd = first.length + this.elidedGroups;
-          groups = groups.concat(first);
-          for (let i = 0; i < remaining; i++) {
-            groups.push("0");
-          }
-          groups = groups.concat(last);
-        } else if (halves.length === 1) {
-          groups = address.split(":");
-          this.elidedGroups = 0;
-        } else {
-          throw new address_error_1.AddressError("Too many :: groups found");
-        }
-        groups = groups.map((group) => parseInt(group, 16).toString(16));
-        if (groups.length !== this.groups) {
-          throw new address_error_1.AddressError("Incorrect number of groups found");
-        }
-        return groups;
-      }
-      /**
-       * Returns the canonical (fully expanded) form of the address: all 8 groups,
-       * each padded to 4 hex digits, with no `::` collapsing
-       * (e.g. `2001:0db8:0000:0000:0000:0000:0000:0001`). Useful for sorting and
-       * byte-exact comparison.
-       */
-      canonicalForm() {
-        return this.parsedAddress.map(paddedHex).join(":");
-      }
-      /**
-       * Return the decimal form of the address
-       * @returns {String}
-       */
-      decimal() {
-        return this.parsedAddress.map((n) => parseInt(n, 16).toString(10).padStart(5, "0")).join(":");
-      }
-      /**
-       * Return the address as a BigInt
-       * @returns {bigint}
-       */
-      bigInt() {
-        return BigInt(`0x${this.parsedAddress.map(paddedHex).join("")}`);
-      }
-      /**
-       * Return the last two groups of this address as an IPv4 address string
-       * @returns {Address4}
-       * @example
-       * var address = new Address6('2001:4860:4001::1825:bf11');
-       * address.to4().correctForm(); // '24.37.191.17'
-       */
-      to4() {
-        const binary = this.binaryZeroPad().split("");
-        return ipv4_1.Address4.fromHex(BigInt(`0b${binary.slice(96, 128).join("")}`).toString(16).padStart(8, "0"));
-      }
-      /**
-       * Return the v4-in-v6 form of the address
-       * @returns {String}
-       */
-      to4in6() {
-        const address4 = this.to4();
-        const address6 = new _Address6(this.parsedAddress.slice(0, 6).join(":"), 6);
-        const correct = address6.correctForm();
-        let infix = "";
-        if (!/:$/.test(correct)) {
-          infix = ":";
-        }
-        return correct + infix + address4.address;
-      }
-      /**
-       * Decodes the Teredo tunneling fields embedded in this address. Returns the
-       * Teredo prefix, server IPv4, client IPv4, raw flag bits, cone-NAT flag,
-       * UDP port, and Microsoft-format flag breakdown (reserved, universal/local,
-       * group/individual, nonce). Only meaningful for addresses in `2001::/32`.
-       */
-      inspectTeredo() {
-        const prefix = this.getBitsBase16(0, 32);
-        const bitsForUdpPort = this.getBits(80, 96);
-        const udpPort = (bitsForUdpPort ^ BigInt("0xffff")).toString();
-        const server4 = ipv4_1.Address4.fromHex(this.getBitsBase16(32, 64));
-        const bitsForClient4 = this.getBits(96, 128);
-        const client4 = ipv4_1.Address4.fromHex((bitsForClient4 ^ BigInt("0xffffffff")).toString(16).padStart(8, "0"));
-        const flagsBase2 = this.getBitsBase2(64, 80);
-        const coneNat = (0, common_1.testBit)(flagsBase2, 15);
-        const reserved = (0, common_1.testBit)(flagsBase2, 14);
-        const groupIndividual = (0, common_1.testBit)(flagsBase2, 8);
-        const universalLocal = (0, common_1.testBit)(flagsBase2, 9);
-        const nonce = BigInt(`0b${flagsBase2.slice(2, 6) + flagsBase2.slice(8, 16)}`).toString(10);
-        return {
-          prefix: `${prefix.slice(0, 4)}:${prefix.slice(4, 8)}`,
-          server4: server4.address,
-          client4: client4.address,
-          flags: flagsBase2,
-          coneNat,
-          microsoft: {
-            reserved,
-            universalLocal,
-            groupIndividual,
-            nonce
-          },
-          udpPort
-        };
-      }
-      /**
-       * Decodes the 6to4 tunneling fields embedded in this address. Returns the
-       * 6to4 prefix and the embedded IPv4 gateway address. Only meaningful for
-       * addresses in `2002::/16`.
-       */
-      inspect6to4() {
-        const prefix = this.getBitsBase16(0, 16);
-        const gateway = ipv4_1.Address4.fromHex(this.getBitsBase16(16, 48));
-        return {
-          prefix: prefix.slice(0, 4),
-          gateway: gateway.address
-        };
-      }
-      /**
-       * Return a v6 6to4 address from a v6 v4inv6 address
-       * @returns {Address6}
-       */
-      to6to4() {
-        if (!this.is4()) {
-          return null;
-        }
-        const addr6to4 = [
-          "2002",
-          this.getBitsBase16(96, 112),
-          this.getBitsBase16(112, 128),
-          "",
-          "/16"
-        ].join(":");
-        return new _Address6(addr6to4);
-      }
-      /**
-       * Embed an IPv4 address into a NAT64 IPv6 address using the encoding
-       * defined by [RFC 6052](https://datatracker.ietf.org/doc/html/rfc6052).
-       * The default prefix is the well-known prefix `64:ff9b::/96`. The prefix
-       * length must be one of 32, 40, 48, 56, 64, or 96; for prefixes shorter
-       * than /64 the IPv4 octets are split around the reserved bits 64–71.
-       * @example
-       * Address6.fromAddress4Nat64('192.0.2.33').correctForm(); // '64:ff9b::c000:221'
-       * Address6.fromAddress4Nat64('192.0.2.33', '2001:db8::/32').correctForm(); // '2001:db8:c000:221::'
-       */
-      static fromAddress4Nat64(address, prefix = "64:ff9b::/96") {
-        const v4 = new ipv4_1.Address4(address);
-        const prefix6 = new _Address6(prefix);
-        const pl = prefix6.subnetMask;
-        if (pl !== 32 && pl !== 40 && pl !== 48 && pl !== 56 && pl !== 64 && pl !== 96) {
-          throw new address_error_1.AddressError("NAT64 prefix length must be 32, 40, 48, 56, 64, or 96");
-        }
-        const prefixBits = prefix6.binaryZeroPad();
-        const v4Bits = v4.binaryZeroPad();
-        let bits;
-        if (pl === 96) {
-          bits = prefixBits.slice(0, 96) + v4Bits;
-        } else {
-          const beforeU = 64 - pl;
-          bits = prefixBits.slice(0, pl) + v4Bits.slice(0, beforeU) + "00000000" + v4Bits.slice(beforeU) + "0".repeat(128 - 72 - (32 - beforeU));
-        }
-        const hex = BigInt(`0b${bits}`).toString(16).padStart(32, "0");
-        const groups = [];
-        for (let i = 0; i < 8; i++) {
-          groups.push(hex.slice(i * 4, (i + 1) * 4));
-        }
-        return new _Address6(groups.join(":"));
-      }
-      /**
-       * Extract the embedded IPv4 address from a NAT64 IPv6 address using the
-       * encoding defined by [RFC 6052](https://datatracker.ietf.org/doc/html/rfc6052).
-       * The default prefix is the well-known prefix `64:ff9b::/96`. Returns
-       * `null` if this address is not contained within the given prefix.
-       * @example
-       * new Address6('64:ff9b::c000:221').toAddress4Nat64()!.correctForm(); // '192.0.2.33'
-       */
-      toAddress4Nat64(prefix = "64:ff9b::/96") {
-        const prefix6 = new _Address6(prefix);
-        const pl = prefix6.subnetMask;
-        if (pl !== 32 && pl !== 40 && pl !== 48 && pl !== 56 && pl !== 64 && pl !== 96) {
-          throw new address_error_1.AddressError("NAT64 prefix length must be 32, 40, 48, 56, 64, or 96");
-        }
-        if (!this.isInSubnet(prefix6)) {
-          return null;
-        }
-        const bits = this.binaryZeroPad();
-        let v4Bits;
-        if (pl === 96) {
-          v4Bits = bits.slice(96, 128);
-        } else {
-          const beforeU = 64 - pl;
-          v4Bits = bits.slice(pl, pl + beforeU) + bits.slice(72, 72 + (32 - beforeU));
-        }
-        const octets = [];
-        for (let i = 0; i < 4; i++) {
-          octets.push(parseInt(v4Bits.slice(i * 8, (i + 1) * 8), 2).toString());
-        }
-        return new ipv4_1.Address4(octets.join("."));
-      }
-      /**
-       * Return a byte array.
-       *
-       * To get a Node.js `Buffer`, wrap the result: `Buffer.from(address.toByteArray())`.
-       * @returns {Array}
-       */
-      toByteArray() {
-        const valueWithoutPadding = this.bigInt().toString(16);
-        const leadingPad = "0".repeat(valueWithoutPadding.length % 2);
-        const value = `${leadingPad}${valueWithoutPadding}`;
-        const bytes = [];
-        for (let i = 0, length = value.length; i < length; i += 2) {
-          bytes.push(parseInt(value.substring(i, i + 2), 16));
-        }
-        return bytes;
-      }
-      /**
-       * Return an unsigned byte array.
-       *
-       * To get a Node.js `Buffer`, wrap the result: `Buffer.from(address.toUnsignedByteArray())`.
-       * @returns {Array}
-       */
-      toUnsignedByteArray() {
-        return this.toByteArray().map(unsignByte);
-      }
-      /**
-       * Convert a byte array to an Address6 object.
-       *
-       * To convert from a Node.js `Buffer`, spread it: `Address6.fromByteArray([...buf])`.
-       * @returns {Address6}
-       */
-      static fromByteArray(bytes) {
-        return this.fromUnsignedByteArray(bytes.map(unsignByte));
-      }
-      /**
-       * Convert an unsigned byte array to an Address6 object.
-       *
-       * To convert from a Node.js `Buffer`, spread it: `Address6.fromUnsignedByteArray([...buf])`.
-       * @returns {Address6}
-       */
-      static fromUnsignedByteArray(bytes) {
-        const BYTE_MAX = BigInt("256");
-        let result = BigInt("0");
-        let multiplier = BigInt("1");
-        for (let i = bytes.length - 1; i >= 0; i--) {
-          result += multiplier * BigInt(bytes[i].toString(10));
-          multiplier *= BYTE_MAX;
-        }
-        return _Address6.fromBigInt(result);
-      }
-      /**
-       * Returns true if the address is in the canonical form, false otherwise
-       * @returns {boolean}
-       */
-      isCanonical() {
-        return this.addressMinusSuffix === this.canonicalForm();
-      }
-      /**
-       * Returns true if the address is a link local address, false otherwise
-       * @returns {boolean}
-       */
-      isLinkLocal() {
-        if (this.getBitsBase2(0, 64) === "1111111010000000000000000000000000000000000000000000000000000000") {
-          return true;
-        }
-        return false;
-      }
-      /**
-       * Returns true if the address is a multicast address, false otherwise
-       * @returns {boolean}
-       */
-      isMulticast() {
-        const type = this.getType();
-        return type === "Multicast" || type.startsWith("Multicast ");
-      }
-      /**
-       * Returns true if the address was written in v4-in-v6 dotted-quad notation
-       * (e.g. `::ffff:127.0.0.1`), false otherwise. This is a notation-level flag
-       * and does not reflect whether the address bits lie in the IPv4-mapped
-       * (`::ffff:0:0/96`) subnet — for that, see {@link isMapped4}.
-       * @returns {boolean}
-       */
-      is4() {
-        return this.v4;
-      }
-      /**
-       * Returns true if the address is an IPv4-mapped IPv6 address in
-       * `::ffff:0:0/96` ([RFC 4291 §2.5.5.2](https://datatracker.ietf.org/doc/html/rfc4291#section-2.5.5.2)),
-       * false otherwise. Unlike {@link is4}, this checks the underlying address
-       * bits rather than the textual notation, so `::ffff:127.0.0.1` and
-       * `::ffff:7f00:1` both return true.
-       * @returns {boolean}
-       */
-      isMapped4() {
-        return this.isInSubnet(IPV4_MAPPED_SUBNET);
-      }
-      /**
-       * Returns true if the address is a Teredo address, false otherwise
-       * @returns {boolean}
-       */
-      isTeredo() {
-        return this.isInSubnet(TEREDO_SUBNET);
-      }
-      /**
-       * Returns true if the address is a 6to4 address, false otherwise
-       * @returns {boolean}
-       */
-      is6to4() {
-        return this.isInSubnet(SIX_TO_FOUR_SUBNET);
-      }
-      /**
-       * Returns true if the address is a loopback address, false otherwise
-       * @returns {boolean}
-       */
-      isLoopback() {
-        return this.getType() === "Loopback";
-      }
-      /**
-       * Returns true if the address is a Unique Local Address in `fc00::/7` ([RFC 4193](https://datatracker.ietf.org/doc/html/rfc4193)). ULAs are the IPv6 equivalent of IPv4 [RFC 1918](https://datatracker.ietf.org/doc/html/rfc1918) private addresses.
-       * @returns {boolean}
-       */
-      isULA() {
-        return this.isInSubnet(ULA_SUBNET);
-      }
-      /**
-       * Returns true if the address is the unspecified address `::`.
-       * @returns {boolean}
-       */
-      isUnspecified() {
-        return this.getType() === "Unspecified";
-      }
-      /**
-       * Returns true if the address is in the documentation prefix `2001:db8::/32` ([RFC 3849](https://datatracker.ietf.org/doc/html/rfc3849)).
-       * @returns {boolean}
-       */
-      isDocumentation() {
-        return this.isInSubnet(DOCUMENTATION_SUBNET);
-      }
-      // #endregion
-      // #region HTML
-      /**
-       * Returns the address as an HTTP URL with the host bracketed, e.g.
-       * `http://[2001:db8::1]/`. If `optionalPort` is provided it is appended,
-       * e.g. `http://[2001:db8::1]:8080/`.
-       */
-      href(optionalPort) {
-        if (optionalPort === void 0) {
-          optionalPort = "";
-        } else {
-          optionalPort = `:${optionalPort}`;
-        }
-        return `http://[${this.correctForm()}]${optionalPort}/`;
-      }
-      /**
-       * Returns an HTML `<a>` element whose `href` encodes the address in a URL
-       * hash fragment (default prefix `/#address=`). Useful for linking between
-       * pages of an address-inspector UI.
-       * @param options.className - CSS class for the rendered `<a>` element
-       * @param options.prefix - hash prefix prepended to the address (default `/#address=`)
-       * @param options.v4 - when true, render the address in v4-in-v6 form
-       */
-      link(options) {
-        if (!options) {
-          options = {};
-        }
-        if (options.className === void 0) {
-          options.className = "";
-        }
-        if (options.prefix === void 0) {
-          options.prefix = "/#address=";
-        }
-        if (options.v4 === void 0) {
-          options.v4 = false;
-        }
-        let formFunction = this.correctForm;
-        if (options.v4) {
-          formFunction = this.to4in6;
-        }
-        const form = formFunction.call(this);
-        const safeHref = helpers.escapeHtml(`${options.prefix}${form}`);
-        const safeForm = helpers.escapeHtml(form);
-        if (options.className) {
-          const safeClass = helpers.escapeHtml(options.className);
-          return `<a href="${safeHref}" class="${safeClass}">${safeForm}</a>`;
-        }
-        return `<a href="${safeHref}">${safeForm}</a>`;
-      }
-      /**
-       * Groups an address
-       * @returns {String}
-       */
-      group() {
-        if (this.elidedGroups === 0) {
-          return helpers.simpleGroup(this.addressMinusSuffix).join(":");
-        }
-        assert(typeof this.elidedGroups === "number");
-        assert(typeof this.elisionBegin === "number");
-        const output = [];
-        const [left, right] = this.addressMinusSuffix.split("::");
-        if (left.length) {
-          output.push(...helpers.simpleGroup(left));
-        } else {
-          output.push("");
-        }
-        const classes = ["hover-group"];
-        for (let i = this.elisionBegin; i < this.elisionBegin + this.elidedGroups; i++) {
-          classes.push(`group-${i}`);
-        }
-        output.push(`<span class="${classes.join(" ")}"></span>`);
-        if (right.length) {
-          output.push(...helpers.simpleGroup(right, this.elisionEnd));
-        } else {
-          output.push("");
-        }
-        if (this.is4()) {
-          assert(this.address4 instanceof ipv4_1.Address4);
-          output.pop();
-          output.push(this.address4.groupForV6());
-        }
-        return output.join(":");
-      }
-      // #endregion
-      // #region Regular expressions
-      /**
-       * Generate a regular expression string that can be used to find or validate
-       * all variations of this address
-       * @param {boolean} substringSearch
-       * @returns {string}
-       */
-      regularExpressionString(substringSearch = false) {
-        let output = [];
-        const address6 = new _Address6(this.correctForm());
-        if (address6.elidedGroups === 0) {
-          output.push((0, regular_expressions_1.simpleRegularExpression)(address6.parsedAddress));
-        } else if (address6.elidedGroups === constants6.GROUPS) {
-          output.push((0, regular_expressions_1.possibleElisions)(constants6.GROUPS));
-        } else {
-          const halves = address6.address.split("::");
-          if (halves[0].length) {
-            output.push((0, regular_expressions_1.simpleRegularExpression)(halves[0].split(":")));
-          }
-          assert(typeof address6.elidedGroups === "number");
-          output.push((0, regular_expressions_1.possibleElisions)(address6.elidedGroups, halves[0].length !== 0, halves[1].length !== 0));
-          if (halves[1].length) {
-            output.push((0, regular_expressions_1.simpleRegularExpression)(halves[1].split(":")));
-          }
-          output = [output.join(":")];
-        }
-        if (!substringSearch) {
-          output = [
-            "(?=^|",
-            regular_expressions_1.ADDRESS_BOUNDARY,
-            "|[^\\w\\:])(",
-            ...output,
-            ")(?=[^\\w\\:]|",
-            regular_expressions_1.ADDRESS_BOUNDARY,
-            "|$)"
-          ];
-        }
-        return output.join("");
-      }
-      /**
-       * Generate a regular expression that can be used to find or validate all
-       * variations of this address.
-       * @param {boolean} substringSearch
-       * @returns {RegExp}
-       */
-      regularExpression(substringSearch = false) {
-        return new RegExp(this.regularExpressionString(substringSearch), "i");
-      }
-    };
-    exports.Address6 = Address62;
-    var TYPE_SUBNETS = Object.keys(constants6.TYPES).map((subnet) => [
-      new Address62(subnet),
-      constants6.TYPES[subnet]
-    ]);
-    var TEREDO_SUBNET = new Address62("2001::/32");
-    var SIX_TO_FOUR_SUBNET = new Address62("2002::/16");
-    var ULA_SUBNET = new Address62("fc00::/7");
-    var DOCUMENTATION_SUBNET = new Address62("2001:db8::/32");
-    var IPV4_MAPPED_SUBNET = new Address62("::ffff:0:0/96");
-  }
-});
-
-// artifacts/api-server/node_modules/ip-address/dist/ip-address.js
-var require_ip_address = __commonJS({
-  "artifacts/api-server/node_modules/ip-address/dist/ip-address.js"(exports) {
-    "use strict";
-    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: function() {
-          return m[k];
-        } };
-      }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? (function(o, v) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
-      o["default"] = v;
-    });
-    var __importStar = exports && exports.__importStar || function(mod) {
-      if (mod && mod.__esModule) return mod;
-      var result = {};
-      if (mod != null) {
-        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-      }
-      __setModuleDefault(result, mod);
-      return result;
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.v6 = exports.AddressError = exports.Address6 = exports.Address4 = void 0;
-    var ipv4_1 = require_ipv4();
-    Object.defineProperty(exports, "Address4", { enumerable: true, get: function() {
-      return ipv4_1.Address4;
-    } });
-    var ipv6_1 = require_ipv6();
-    Object.defineProperty(exports, "Address6", { enumerable: true, get: function() {
-      return ipv6_1.Address6;
-    } });
-    var address_error_1 = require_address_error();
-    Object.defineProperty(exports, "AddressError", { enumerable: true, get: function() {
-      return address_error_1.AddressError;
-    } });
-    var helpers = __importStar(require_helpers());
-    exports.v6 = { helpers };
-  }
-});
-
-// node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err-helpers.js
+// ../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err-helpers.js
 var require_err_helpers = __commonJS({
-  "node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err-helpers.js"(exports, module) {
+  "../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err-helpers.js"(exports, module) {
     "use strict";
     var isErrorLike = (err) => {
       return err && typeof err.message === "string";
@@ -25858,9 +24096,9 @@ var require_err_helpers = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err-proto.js
+// ../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err-proto.js
 var require_err_proto = __commonJS({
-  "node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err-proto.js"(exports, module) {
+  "../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err-proto.js"(exports, module) {
     "use strict";
     var seen = /* @__PURE__ */ Symbol("circular-ref-tag");
     var rawSymbol = /* @__PURE__ */ Symbol("pino-raw-err-ref");
@@ -25909,9 +24147,9 @@ var require_err_proto = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err.js
+// ../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err.js
 var require_err = __commonJS({
-  "node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err.js"(exports, module) {
+  "../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err.js"(exports, module) {
     "use strict";
     module.exports = errSerializer;
     var { messageWithCauses, stackWithCauses, isErrorLike } = require_err_helpers();
@@ -25949,9 +24187,9 @@ var require_err = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err-with-cause.js
+// ../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err-with-cause.js
 var require_err_with_cause = __commonJS({
-  "node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err-with-cause.js"(exports, module) {
+  "../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err-with-cause.js"(exports, module) {
     "use strict";
     module.exports = errWithCauseSerializer;
     var { isErrorLike } = require_err_helpers();
@@ -25992,9 +24230,9 @@ var require_err_with_cause = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/req.js
+// ../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/req.js
 var require_req = __commonJS({
-  "node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/req.js"(exports, module) {
+  "../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/req.js"(exports, module) {
     "use strict";
     module.exports = {
       mapHttpRequest,
@@ -26087,9 +24325,9 @@ var require_req = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/res.js
+// ../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/res.js
 var require_res = __commonJS({
-  "node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/res.js"(exports, module) {
+  "../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/res.js"(exports, module) {
     "use strict";
     module.exports = {
       mapHttpResponse,
@@ -26136,9 +24374,9 @@ var require_res = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/index.js
+// ../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/index.js
 var require_pino_std_serializers = __commonJS({
-  "node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/index.js"(exports, module) {
+  "../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/index.js"(exports, module) {
     "use strict";
     var errSerializer = require_err();
     var errWithCauseSerializer = require_err_with_cause();
@@ -26173,9 +24411,9 @@ var require_pino_std_serializers = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/caller.js
+// ../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/caller.js
 var require_caller = __commonJS({
-  "node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/caller.js"(exports, module) {
+  "../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/caller.js"(exports, module) {
     "use strict";
     function noOpPrepareStackTrace(_, stack) {
       return stack;
@@ -26201,9 +24439,9 @@ var require_caller = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@pinojs+redact@0.4.0/node_modules/@pinojs/redact/index.js
+// ../../node_modules/.pnpm/@pinojs+redact@0.4.0/node_modules/@pinojs/redact/index.js
 var require_redact = __commonJS({
-  "node_modules/.pnpm/@pinojs+redact@0.4.0/node_modules/@pinojs/redact/index.js"(exports, module) {
+  "../../node_modules/.pnpm/@pinojs+redact@0.4.0/node_modules/@pinojs/redact/index.js"(exports, module) {
     "use strict";
     function deepClone(obj) {
       if (obj === null || typeof obj !== "object") {
@@ -26634,9 +24872,9 @@ var require_redact = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/symbols.js
+// ../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/symbols.js
 var require_symbols = __commonJS({
-  "node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/symbols.js"(exports, module) {
+  "../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/symbols.js"(exports, module) {
     "use strict";
     var setLevelSym = /* @__PURE__ */ Symbol("pino.setLevel");
     var getLevelSym = /* @__PURE__ */ Symbol("pino.getLevel");
@@ -26705,9 +24943,9 @@ var require_symbols = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/redaction.js
+// ../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/redaction.js
 var require_redaction = __commonJS({
-  "node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/redaction.js"(exports, module) {
+  "../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/redaction.js"(exports, module) {
     "use strict";
     var Redact = require_redact();
     var { redactFmtSym, wildcardFirstSym } = require_symbols();
@@ -26787,9 +25025,9 @@ var require_redaction = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/time.js
+// ../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/time.js
 var require_time = __commonJS({
-  "node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/time.js"(exports, module) {
+  "../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/time.js"(exports, module) {
     "use strict";
     var nullTime = () => "";
     var epochTime = () => `,"time":${Date.now()}`;
@@ -26818,9 +25056,9 @@ var require_time = __commonJS({
   }
 });
 
-// node_modules/.pnpm/quick-format-unescaped@4.0.4/node_modules/quick-format-unescaped/index.js
+// ../../node_modules/.pnpm/quick-format-unescaped@4.0.4/node_modules/quick-format-unescaped/index.js
 var require_quick_format_unescaped = __commonJS({
-  "node_modules/.pnpm/quick-format-unescaped@4.0.4/node_modules/quick-format-unescaped/index.js"(exports, module) {
+  "../../node_modules/.pnpm/quick-format-unescaped@4.0.4/node_modules/quick-format-unescaped/index.js"(exports, module) {
     "use strict";
     function tryStringify(o) {
       try {
@@ -26937,9 +25175,9 @@ var require_quick_format_unescaped = __commonJS({
   }
 });
 
-// node_modules/.pnpm/atomic-sleep@1.0.0/node_modules/atomic-sleep/index.js
+// ../../node_modules/.pnpm/atomic-sleep@1.0.0/node_modules/atomic-sleep/index.js
 var require_atomic_sleep = __commonJS({
-  "node_modules/.pnpm/atomic-sleep@1.0.0/node_modules/atomic-sleep/index.js"(exports, module) {
+  "../../node_modules/.pnpm/atomic-sleep@1.0.0/node_modules/atomic-sleep/index.js"(exports, module) {
     "use strict";
     if (typeof SharedArrayBuffer !== "undefined" && typeof Atomics !== "undefined") {
       let sleep = function(ms) {
@@ -26972,9 +25210,9 @@ var require_atomic_sleep = __commonJS({
   }
 });
 
-// node_modules/.pnpm/sonic-boom@4.2.1/node_modules/sonic-boom/index.js
+// ../../node_modules/.pnpm/sonic-boom@4.2.1/node_modules/sonic-boom/index.js
 var require_sonic_boom = __commonJS({
-  "node_modules/.pnpm/sonic-boom@4.2.1/node_modules/sonic-boom/index.js"(exports, module) {
+  "../../node_modules/.pnpm/sonic-boom@4.2.1/node_modules/sonic-boom/index.js"(exports, module) {
     "use strict";
     var fs2 = __require("fs");
     var EventEmitter = __require("events");
@@ -27559,9 +25797,9 @@ var require_sonic_boom = __commonJS({
   }
 });
 
-// node_modules/.pnpm/on-exit-leak-free@2.1.2/node_modules/on-exit-leak-free/index.js
+// ../../node_modules/.pnpm/on-exit-leak-free@2.1.2/node_modules/on-exit-leak-free/index.js
 var require_on_exit_leak_free = __commonJS({
-  "node_modules/.pnpm/on-exit-leak-free@2.1.2/node_modules/on-exit-leak-free/index.js"(exports, module) {
+  "../../node_modules/.pnpm/on-exit-leak-free@2.1.2/node_modules/on-exit-leak-free/index.js"(exports, module) {
     "use strict";
     var refs = {
       exit: [],
@@ -27653,9 +25891,9 @@ var require_on_exit_leak_free = __commonJS({
   }
 });
 
-// node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/package.json
+// ../../node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/package.json
 var require_package = __commonJS({
-  "node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/package.json"(exports, module) {
+  "../../node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/package.json"(exports, module) {
     module.exports = {
       name: "thread-stream",
       version: "3.1.0",
@@ -27716,9 +25954,9 @@ var require_package = __commonJS({
   }
 });
 
-// node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/lib/wait.js
+// ../../node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/lib/wait.js
 var require_wait = __commonJS({
-  "node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/lib/wait.js"(exports, module) {
+  "../../node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/lib/wait.js"(exports, module) {
     "use strict";
     var MAX_TIMEOUT = 1e3;
     function wait(state, index, expected, timeout, done) {
@@ -27774,9 +26012,9 @@ var require_wait = __commonJS({
   }
 });
 
-// node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/lib/indexes.js
+// ../../node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/lib/indexes.js
 var require_indexes = __commonJS({
-  "node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/lib/indexes.js"(exports, module) {
+  "../../node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/lib/indexes.js"(exports, module) {
     "use strict";
     var WRITE_INDEX = 4;
     var READ_INDEX = 8;
@@ -27787,9 +26025,9 @@ var require_indexes = __commonJS({
   }
 });
 
-// node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/index.js
+// ../../node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/index.js
 var require_thread_stream = __commonJS({
-  "node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/index.js"(exports, module) {
+  "../../node_modules/.pnpm/thread-stream@3.1.0/node_modules/thread-stream/index.js"(exports, module) {
     "use strict";
     var { version } = require_package();
     var { EventEmitter } = __require("events");
@@ -28210,9 +26448,9 @@ var require_thread_stream = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/transport.js
+// ../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/transport.js
 var require_transport = __commonJS({
-  "node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/transport.js"(exports, module) {
+  "../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/transport.js"(exports, module) {
     "use strict";
     var { createRequire } = __require("module");
     var getCallers = require_caller();
@@ -28341,9 +26579,9 @@ var require_transport = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/tools.js
+// ../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/tools.js
 var require_tools = __commonJS({
-  "node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/tools.js"(exports, module) {
+  "../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/tools.js"(exports, module) {
     "use strict";
     var diagChan = __require("node:diagnostics_channel");
     var format = require_quick_format_unescaped();
@@ -28678,9 +26916,9 @@ var require_tools = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/constants.js
-var require_constants3 = __commonJS({
-  "node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/constants.js"(exports, module) {
+// ../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/constants.js
+var require_constants = __commonJS({
+  "../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/constants.js"(exports, module) {
     var DEFAULT_LEVELS = {
       trace: 10,
       debug: 20,
@@ -28700,9 +26938,9 @@ var require_constants3 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/levels.js
+// ../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/levels.js
 var require_levels = __commonJS({
-  "node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/levels.js"(exports, module) {
+  "../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/levels.js"(exports, module) {
     "use strict";
     var {
       lsCacheSym,
@@ -28714,7 +26952,7 @@ var require_levels = __commonJS({
       levelCompSym
     } = require_symbols();
     var { noop, genLog } = require_tools();
-    var { DEFAULT_LEVELS, SORTING_ORDER } = require_constants3();
+    var { DEFAULT_LEVELS, SORTING_ORDER } = require_constants();
     var levelMethods = {
       fatal: (hook) => {
         const logFatal = genLog(DEFAULT_LEVELS.fatal, hook);
@@ -28893,17 +27131,17 @@ var require_levels = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/meta.js
+// ../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/meta.js
 var require_meta = __commonJS({
-  "node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/meta.js"(exports, module) {
+  "../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/meta.js"(exports, module) {
     "use strict";
     module.exports = { version: "9.14.0" };
   }
 });
 
-// node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/proto.js
+// ../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/proto.js
 var require_proto = __commonJS({
-  "node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/proto.js"(exports, module) {
+  "../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/proto.js"(exports, module) {
     "use strict";
     var { EventEmitter } = __require("node:events");
     var {
@@ -29132,9 +27370,9 @@ var require_proto = __commonJS({
   }
 });
 
-// node_modules/.pnpm/safe-stable-stringify@2.5.0/node_modules/safe-stable-stringify/index.js
+// ../../node_modules/.pnpm/safe-stable-stringify@2.5.0/node_modules/safe-stable-stringify/index.js
 var require_safe_stable_stringify = __commonJS({
-  "node_modules/.pnpm/safe-stable-stringify@2.5.0/node_modules/safe-stable-stringify/index.js"(exports, module) {
+  "../../node_modules/.pnpm/safe-stable-stringify@2.5.0/node_modules/safe-stable-stringify/index.js"(exports, module) {
     "use strict";
     var { hasOwnProperty } = Object.prototype;
     var stringify = configure();
@@ -29728,12 +27966,12 @@ ${originalIndentation}`;
   }
 });
 
-// node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/multistream.js
+// ../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/multistream.js
 var require_multistream = __commonJS({
-  "node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/multistream.js"(exports, module) {
+  "../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/lib/multistream.js"(exports, module) {
     "use strict";
     var metadata = /* @__PURE__ */ Symbol.for("pino.metadata");
-    var { DEFAULT_LEVELS } = require_constants3();
+    var { DEFAULT_LEVELS } = require_constants();
     var DEFAULT_INFO_LEVEL = DEFAULT_LEVELS.info;
     function multistream(streamsArray, opts) {
       streamsArray = streamsArray || [];
@@ -29896,13 +28134,13 @@ var require_multistream = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino@9.14.0/node_modules/pino/pino.js
+// ../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/pino.js
 var require_pino = __commonJS({
-  "node_modules/.pnpm/pino@9.14.0/node_modules/pino/pino.js"(exports, module) {
+  "../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/pino.js"(exports, module) {
     function pinoBundlerAbsolutePath(p) {
       try {
         const path2 = __require("path");
-        const outputDir = "/home/runner/workspace/artifacts/api-server/dist";
+        const outputDir = "/home/ubuntu/repos/Admin-Dashboard/artifacts/api-server/dist";
         return path2.resolve(outputDir, p.replace(/^\.\//, ""));
       } catch (e) {
         const f = new Function("p", "return new URL(p, import.meta.url).pathname");
@@ -29919,7 +28157,7 @@ var require_pino = __commonJS({
     var symbols = require_symbols();
     var { configure } = require_safe_stable_stringify();
     var { assertDefaultLevelFound, mappings, genLsCache, genLevelComparison, assertLevelComparison } = require_levels();
-    var { DEFAULT_LEVELS, SORTING_ORDER } = require_constants3();
+    var { DEFAULT_LEVELS, SORTING_ORDER } = require_constants();
     var {
       createArgsNormalizer,
       asChindings,
@@ -30116,9 +28354,9 @@ var require_pino = __commonJS({
   }
 });
 
-// node_modules/.pnpm/get-caller-file@2.0.5/node_modules/get-caller-file/index.js
+// ../../node_modules/.pnpm/get-caller-file@2.0.5/node_modules/get-caller-file/index.js
 var require_get_caller_file = __commonJS({
-  "node_modules/.pnpm/get-caller-file@2.0.5/node_modules/get-caller-file/index.js"(exports, module) {
+  "../../node_modules/.pnpm/get-caller-file@2.0.5/node_modules/get-caller-file/index.js"(exports, module) {
     "use strict";
     module.exports = function getCallerFile(position) {
       if (position === void 0) {
@@ -30140,9 +28378,9 @@ var require_get_caller_file = __commonJS({
   }
 });
 
-// node_modules/.pnpm/pino-http@10.5.0/node_modules/pino-http/logger.js
+// ../../node_modules/.pnpm/pino-http@10.5.0/node_modules/pino-http/logger.js
 var require_logger = __commonJS({
-  "node_modules/.pnpm/pino-http@10.5.0/node_modules/pino-http/logger.js"(exports, module) {
+  "../../node_modules/.pnpm/pino-http@10.5.0/node_modules/pino-http/logger.js"(exports, module) {
     "use strict";
     var { pino: pino2, symbols: { stringifySym, chindingsSym } } = require_pino();
     var serializers = require_pino_std_serializers();
@@ -30364,11 +28602,11 @@ var require_logger = __commonJS({
   }
 });
 
-// artifacts/api-server/src/app.ts
-var import_express27 = __toESM(require_express2(), 1);
+// src/app.ts
+var import_express35 = __toESM(require_express2(), 1);
 var import_cors = __toESM(require_lib3(), 1);
 
-// artifacts/api-server/node_modules/helmet/index.mjs
+// ../../node_modules/.pnpm/helmet@8.2.0/node_modules/helmet/index.mjs
 var dangerouslyDisableDefaultSrc = /* @__PURE__ */ Symbol("dangerouslyDisableDefaultSrc");
 var SHOULD_BE_QUOTED = /* @__PURE__ */ new Set(["none", "self", "strict-dynamic", "report-sample", "inline-speculation-rules", "unsafe-inline", "unsafe-eval", "unsafe-hashes", "wasm-unsafe-eval"]);
 var getDefaultDirectives = () => ({
@@ -30910,27 +29148,386 @@ var helmet = Object.assign(
   }
 );
 
-// artifacts/api-server/node_modules/express-rate-limit/dist/index.mjs
-var import_ip_address = __toESM(require_ip_address(), 1);
-import { isIPv6 } from "node:net";
-import { isIPv6 as isIPv62 } from "node:net";
+// ../../node_modules/.pnpm/express-rate-limit@7.5.1_express@5.2.1/node_modules/express-rate-limit/dist/index.mjs
 import { Buffer as Buffer2 } from "node:buffer";
 import { createHash } from "node:crypto";
 import { isIP } from "node:net";
-function ipKeyGenerator(ip, ipv6Subnet = 56) {
-  if (isIPv6(ip)) {
-    const address = new import_ip_address.Address6(ip);
-    if (address.is4()) return address.to4().correctForm();
-    if (ipv6Subnet) {
-      const subnet = new import_ip_address.Address6(`${ip}/${ipv6Subnet}`);
-      return subnet.networkForm();
+var SUPPORTED_DRAFT_VERSIONS = [
+  "draft-6",
+  "draft-7",
+  "draft-8"
+];
+var getResetSeconds = (resetTime, windowMs) => {
+  let resetSeconds = void 0;
+  if (resetTime) {
+    const deltaSeconds = Math.ceil((resetTime.getTime() - Date.now()) / 1e3);
+    resetSeconds = Math.max(0, deltaSeconds);
+  } else if (windowMs) {
+    resetSeconds = Math.ceil(windowMs / 1e3);
+  }
+  return resetSeconds;
+};
+var getPartitionKey = (key) => {
+  const hash = createHash("sha256");
+  hash.update(key);
+  const partitionKey = hash.digest("hex").slice(0, 12);
+  return Buffer2.from(partitionKey).toString("base64");
+};
+var setLegacyHeaders = (response, info) => {
+  if (response.headersSent) return;
+  response.setHeader("X-RateLimit-Limit", info.limit.toString());
+  response.setHeader("X-RateLimit-Remaining", info.remaining.toString());
+  if (info.resetTime instanceof Date) {
+    response.setHeader("Date", (/* @__PURE__ */ new Date()).toUTCString());
+    response.setHeader(
+      "X-RateLimit-Reset",
+      Math.ceil(info.resetTime.getTime() / 1e3).toString()
+    );
+  }
+};
+var setDraft6Headers = (response, info, windowMs) => {
+  if (response.headersSent) return;
+  const windowSeconds = Math.ceil(windowMs / 1e3);
+  const resetSeconds = getResetSeconds(info.resetTime);
+  response.setHeader("RateLimit-Policy", `${info.limit};w=${windowSeconds}`);
+  response.setHeader("RateLimit-Limit", info.limit.toString());
+  response.setHeader("RateLimit-Remaining", info.remaining.toString());
+  if (resetSeconds)
+    response.setHeader("RateLimit-Reset", resetSeconds.toString());
+};
+var setDraft7Headers = (response, info, windowMs) => {
+  if (response.headersSent) return;
+  const windowSeconds = Math.ceil(windowMs / 1e3);
+  const resetSeconds = getResetSeconds(info.resetTime, windowMs);
+  response.setHeader("RateLimit-Policy", `${info.limit};w=${windowSeconds}`);
+  response.setHeader(
+    "RateLimit",
+    `limit=${info.limit}, remaining=${info.remaining}, reset=${resetSeconds}`
+  );
+};
+var setDraft8Headers = (response, info, windowMs, name, key) => {
+  if (response.headersSent) return;
+  const windowSeconds = Math.ceil(windowMs / 1e3);
+  const resetSeconds = getResetSeconds(info.resetTime, windowMs);
+  const partitionKey = getPartitionKey(key);
+  const policy = `q=${info.limit}; w=${windowSeconds}; pk=:${partitionKey}:`;
+  const header = `r=${info.remaining}; t=${resetSeconds}`;
+  response.append("RateLimit-Policy", `"${name}"; ${policy}`);
+  response.append("RateLimit", `"${name}"; ${header}`);
+};
+var setRetryAfterHeader = (response, info, windowMs) => {
+  if (response.headersSent) return;
+  const resetSeconds = getResetSeconds(info.resetTime, windowMs);
+  response.setHeader("Retry-After", resetSeconds.toString());
+};
+var ValidationError = class extends Error {
+  /**
+   * The code must be a string, in snake case and all capital, that starts with
+   * the substring `ERR_ERL_`.
+   *
+   * The message must be a string, starting with an uppercase character,
+   * describing the issue in detail.
+   */
+  constructor(code, message) {
+    const url = `https://express-rate-limit.github.io/${code}/`;
+    super(`${message} See ${url} for more information.`);
+    this.name = this.constructor.name;
+    this.code = code;
+    this.help = url;
+  }
+};
+var ChangeWarning = class extends ValidationError {
+};
+var usedStores = /* @__PURE__ */ new Set();
+var singleCountKeys = /* @__PURE__ */ new WeakMap();
+var validations = {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  enabled: {
+    default: true
+  },
+  // Should be EnabledValidations type, but that's a circular reference
+  disable() {
+    for (const k of Object.keys(this.enabled)) this.enabled[k] = false;
+  },
+  /**
+   * Checks whether the IP address is valid, and that it does not have a port
+   * number in it.
+   *
+   * See https://github.com/express-rate-limit/express-rate-limit/wiki/Error-Codes#err_erl_invalid_ip_address.
+   *
+   * @param ip {string | undefined} - The IP address provided by Express as request.ip.
+   *
+   * @returns {void}
+   */
+  ip(ip) {
+    if (ip === void 0) {
+      throw new ValidationError(
+        "ERR_ERL_UNDEFINED_IP_ADDRESS",
+        `An undefined 'request.ip' was detected. This might indicate a misconfiguration or the connection being destroyed prematurely.`
+      );
+    }
+    if (!isIP(ip)) {
+      throw new ValidationError(
+        "ERR_ERL_INVALID_IP_ADDRESS",
+        `An invalid 'request.ip' (${ip}) was detected. Consider passing a custom 'keyGenerator' function to the rate limiter.`
+      );
+    }
+  },
+  /**
+   * Makes sure the trust proxy setting is not set to `true`.
+   *
+   * See https://github.com/express-rate-limit/express-rate-limit/wiki/Error-Codes#err_erl_permissive_trust_proxy.
+   *
+   * @param request {Request} - The Express request object.
+   *
+   * @returns {void}
+   */
+  trustProxy(request) {
+    if (request.app.get("trust proxy") === true) {
+      throw new ValidationError(
+        "ERR_ERL_PERMISSIVE_TRUST_PROXY",
+        `The Express 'trust proxy' setting is true, which allows anyone to trivially bypass IP-based rate limiting.`
+      );
+    }
+  },
+  /**
+   * Makes sure the trust proxy setting is set in case the `X-Forwarded-For`
+   * header is present.
+   *
+   * See https://github.com/express-rate-limit/express-rate-limit/wiki/Error-Codes#err_erl_unset_trust_proxy.
+   *
+   * @param request {Request} - The Express request object.
+   *
+   * @returns {void}
+   */
+  xForwardedForHeader(request) {
+    if (request.headers["x-forwarded-for"] && request.app.get("trust proxy") === false) {
+      throw new ValidationError(
+        "ERR_ERL_UNEXPECTED_X_FORWARDED_FOR",
+        `The 'X-Forwarded-For' header is set but the Express 'trust proxy' setting is false (default). This could indicate a misconfiguration which would prevent express-rate-limit from accurately identifying users.`
+      );
+    }
+  },
+  /**
+   * Ensures totalHits value from store is a positive integer.
+   *
+   * @param hits {any} - The `totalHits` returned by the store.
+   */
+  positiveHits(hits) {
+    if (typeof hits !== "number" || hits < 1 || hits !== Math.round(hits)) {
+      throw new ValidationError(
+        "ERR_ERL_INVALID_HITS",
+        `The totalHits value returned from the store must be a positive integer, got ${hits}`
+      );
+    }
+  },
+  /**
+   * Ensures a single store instance is not used with multiple express-rate-limit instances
+   */
+  unsharedStore(store) {
+    if (usedStores.has(store)) {
+      const maybeUniquePrefix = store?.localKeys ? "" : " (with a unique prefix)";
+      throw new ValidationError(
+        "ERR_ERL_STORE_REUSE",
+        `A Store instance must not be shared across multiple rate limiters. Create a new instance of ${store.constructor.name}${maybeUniquePrefix} for each limiter instead.`
+      );
+    }
+    usedStores.add(store);
+  },
+  /**
+   * Ensures a given key is incremented only once per request.
+   *
+   * @param request {Request} - The Express request object.
+   * @param store {Store} - The store class.
+   * @param key {string} - The key used to store the client's hit count.
+   *
+   * @returns {void}
+   */
+  singleCount(request, store, key) {
+    let storeKeys = singleCountKeys.get(request);
+    if (!storeKeys) {
+      storeKeys = /* @__PURE__ */ new Map();
+      singleCountKeys.set(request, storeKeys);
+    }
+    const storeKey = store.localKeys ? store : store.constructor.name;
+    let keys = storeKeys.get(storeKey);
+    if (!keys) {
+      keys = [];
+      storeKeys.set(storeKey, keys);
+    }
+    const prefixedKey = `${store.prefix ?? ""}${key}`;
+    if (keys.includes(prefixedKey)) {
+      throw new ValidationError(
+        "ERR_ERL_DOUBLE_COUNT",
+        `The hit count for ${key} was incremented more than once for a single request.`
+      );
+    }
+    keys.push(prefixedKey);
+  },
+  /**
+   * Warns the user that the behaviour for `max: 0` / `limit: 0` is
+   * changing in the next major release.
+   *
+   * @param limit {number} - The maximum number of hits per client.
+   *
+   * @returns {void}
+   */
+  limit(limit) {
+    if (limit === 0) {
+      throw new ChangeWarning(
+        "WRN_ERL_MAX_ZERO",
+        `Setting limit or max to 0 disables rate limiting in express-rate-limit v6 and older, but will cause all requests to be blocked in v7`
+      );
+    }
+  },
+  /**
+   * Warns the user that the `draft_polli_ratelimit_headers` option is deprecated
+   * and will be removed in the next major release.
+   *
+   * @param draft_polli_ratelimit_headers {any | undefined} - The now-deprecated setting that was used to enable standard headers.
+   *
+   * @returns {void}
+   */
+  draftPolliHeaders(draft_polli_ratelimit_headers) {
+    if (draft_polli_ratelimit_headers) {
+      throw new ChangeWarning(
+        "WRN_ERL_DEPRECATED_DRAFT_POLLI_HEADERS",
+        `The draft_polli_ratelimit_headers configuration option is deprecated and has been removed in express-rate-limit v7, please set standardHeaders: 'draft-6' instead.`
+      );
+    }
+  },
+  /**
+   * Warns the user that the `onLimitReached` option is deprecated and
+   * will be removed in the next major release.
+   *
+   * @param onLimitReached {any | undefined} - The maximum number of hits per client.
+   *
+   * @returns {void}
+   */
+  onLimitReached(onLimitReached) {
+    if (onLimitReached) {
+      throw new ChangeWarning(
+        "WRN_ERL_DEPRECATED_ON_LIMIT_REACHED",
+        `The onLimitReached configuration option is deprecated and has been removed in express-rate-limit v7.`
+      );
+    }
+  },
+  /**
+   * Warns the user when an invalid/unsupported version of the draft spec is passed.
+   *
+   * @param version {any | undefined} - The version passed by the user.
+   *
+   * @returns {void}
+   */
+  headersDraftVersion(version) {
+    if (typeof version !== "string" || // @ts-expect-error This is fine. If version is not in the array, it will just return false.
+    !SUPPORTED_DRAFT_VERSIONS.includes(version)) {
+      const versionString = SUPPORTED_DRAFT_VERSIONS.join(", ");
+      throw new ValidationError(
+        "ERR_ERL_HEADERS_UNSUPPORTED_DRAFT_VERSION",
+        `standardHeaders: only the following versions of the IETF draft specification are supported: ${versionString}.`
+      );
+    }
+  },
+  /**
+   * Warns the user when the selected headers option requires a reset time but
+   * the store does not provide one.
+   *
+   * @param resetTime {Date | undefined} - The timestamp when the client's hit count will be reset.
+   *
+   * @returns {void}
+   */
+  headersResetTime(resetTime) {
+    if (!resetTime) {
+      throw new ValidationError(
+        "ERR_ERL_HEADERS_NO_RESET",
+        `standardHeaders:  'draft-7' requires a 'resetTime', but the store did not provide one. The 'windowMs' value will be used instead, which may cause clients to wait longer than necessary.`
+      );
+    }
+  },
+  /**
+   * Checks the options.validate setting to ensure that only recognized
+   * validations are enabled or disabled.
+   *
+   * If any unrecognized values are found, an error is logged that
+   * includes the list of supported vaidations.
+   */
+  validationsConfig() {
+    const supportedValidations = Object.keys(this).filter(
+      (k) => !["enabled", "disable"].includes(k)
+    );
+    supportedValidations.push("default");
+    for (const key of Object.keys(this.enabled)) {
+      if (!supportedValidations.includes(key)) {
+        throw new ValidationError(
+          "ERR_ERL_UNKNOWN_VALIDATION",
+          `options.validate.${key} is not recognized. Supported validate options are: ${supportedValidations.join(
+            ", "
+          )}.`
+        );
+      }
+    }
+  },
+  /**
+   * Checks to see if the instance was created inside of a request handler,
+   * which would prevent it from working correctly, with the default memory
+   * store (or any other store with localKeys.)
+   */
+  creationStack(store) {
+    const { stack } = new Error(
+      "express-rate-limit validation check (set options.validate.creationStack=false to disable)"
+    );
+    if (stack?.includes("Layer.handle [as handle_request]")) {
+      if (!store.localKeys) {
+        throw new ValidationError(
+          "ERR_ERL_CREATED_IN_REQUEST_HANDLER",
+          "express-rate-limit instance should *usually* be created at app initialization, not when responding to a request."
+        );
+      }
+      throw new ValidationError(
+        "ERR_ERL_CREATED_IN_REQUEST_HANDLER",
+        `express-rate-limit instance should be created at app initialization, not when responding to a request.`
+      );
     }
   }
-  return ip;
-}
+};
+var getValidations = (_enabled) => {
+  let enabled;
+  if (typeof _enabled === "boolean") {
+    enabled = {
+      default: _enabled
+    };
+  } else {
+    enabled = {
+      default: true,
+      ..._enabled
+    };
+  }
+  const wrappedValidations = {
+    enabled
+  };
+  for (const [name, validation] of Object.entries(validations)) {
+    if (typeof validation === "function")
+      wrappedValidations[name] = (...args) => {
+        if (!(enabled[name] ?? enabled.default)) {
+          return;
+        }
+        try {
+          ;
+          validation.apply(
+            wrappedValidations,
+            args
+          );
+        } catch (error) {
+          if (error instanceof ChangeWarning) console.warn(error);
+          else console.error(error);
+        }
+      };
+  }
+  return wrappedValidations;
+};
 var MemoryStore = class {
-  constructor(validations2) {
-    this.validations = validations2;
+  constructor() {
     this.previous = /* @__PURE__ */ new Map();
     this.current = /* @__PURE__ */ new Map();
     this.localKeys = true;
@@ -30942,12 +29539,11 @@ var MemoryStore = class {
    */
   init(options) {
     this.windowMs = options.windowMs;
-    this.validations?.windowMs(this.windowMs);
     if (this.interval) clearInterval(this.interval);
     this.interval = setInterval(() => {
       this.clearExpired();
     }, this.windowMs);
-    this.interval.unref?.();
+    if (this.interval.unref) this.interval.unref();
   }
   /**
    * Method to fetch a client's hit count and reset time.
@@ -31068,508 +29664,6 @@ var MemoryStore = class {
     this.current = /* @__PURE__ */ new Map();
   }
 };
-var ConsoleLogger = {
-  warn(...args) {
-    console.warn(...args.reverse());
-  },
-  error(...args) {
-    console.error(...args.reverse());
-  }
-};
-var SUPPORTED_DRAFT_VERSIONS = [
-  "draft-6",
-  "draft-7",
-  "draft-8"
-];
-var getResetSeconds = (windowMs, resetTime) => {
-  let resetSeconds;
-  if (resetTime) {
-    const deltaSeconds = Math.ceil((resetTime.getTime() - Date.now()) / 1e3);
-    resetSeconds = Math.max(0, deltaSeconds);
-  } else {
-    resetSeconds = Math.ceil(windowMs / 1e3);
-  }
-  return resetSeconds;
-};
-var getPartitionKey = (key) => {
-  const hash = createHash("sha256");
-  hash.update(key);
-  const partitionKey = hash.digest("hex").slice(0, 12);
-  return Buffer2.from(partitionKey).toString("base64");
-};
-var setLegacyHeaders = (response, info) => {
-  if (response.headersSent) return;
-  response.setHeader("X-RateLimit-Limit", info.limit.toString());
-  response.setHeader("X-RateLimit-Remaining", info.remaining.toString());
-  if (info.resetTime instanceof Date) {
-    response.setHeader("Date", (/* @__PURE__ */ new Date()).toUTCString());
-    response.setHeader(
-      "X-RateLimit-Reset",
-      Math.ceil(info.resetTime.getTime() / 1e3).toString()
-    );
-  }
-};
-var setDraft6Headers = (response, info, windowMs) => {
-  if (response.headersSent) return;
-  const windowSeconds = Math.ceil(windowMs / 1e3);
-  const resetSeconds = getResetSeconds(windowMs, info.resetTime);
-  response.setHeader("RateLimit-Policy", `${info.limit};w=${windowSeconds}`);
-  response.setHeader("RateLimit-Limit", info.limit.toString());
-  response.setHeader("RateLimit-Remaining", info.remaining.toString());
-  if (typeof resetSeconds === "number")
-    response.setHeader("RateLimit-Reset", resetSeconds.toString());
-};
-var setDraft7Headers = (response, info, windowMs) => {
-  if (response.headersSent) return;
-  const windowSeconds = Math.ceil(windowMs / 1e3);
-  const resetSeconds = getResetSeconds(windowMs, info.resetTime);
-  response.setHeader("RateLimit-Policy", `${info.limit};w=${windowSeconds}`);
-  response.setHeader(
-    "RateLimit",
-    `limit=${info.limit}, remaining=${info.remaining}, reset=${resetSeconds}`
-  );
-};
-var setDraft8Headers = (response, info, windowMs, name, key) => {
-  if (response.headersSent) return;
-  const windowSeconds = Math.ceil(windowMs / 1e3);
-  const resetSeconds = getResetSeconds(windowMs, info.resetTime);
-  const partitionKey = getPartitionKey(key);
-  const header = `r=${info.remaining}; t=${resetSeconds}`;
-  const policy = `q=${info.limit}; w=${windowSeconds}; pk=:${partitionKey}:`;
-  response.append("RateLimit", `"${name}"; ${header}`);
-  response.append("RateLimit-Policy", `"${name}"; ${policy}`);
-};
-var setRetryAfterHeader = (response, info, windowMs) => {
-  if (response.headersSent) return;
-  const resetSeconds = getResetSeconds(windowMs, info.resetTime);
-  response.setHeader("Retry-After", resetSeconds.toString());
-};
-var omitUndefinedProperties = (passedOptions) => {
-  const omittedOptions = {};
-  for (const k of Object.keys(passedOptions)) {
-    const key = k;
-    if (passedOptions[key] !== void 0) {
-      omittedOptions[key] = passedOptions[key];
-    }
-  }
-  return omittedOptions;
-};
-var ValidationError = class extends Error {
-  /**
-   * The code must be a string, in snake case and all capital, that starts with
-   * the substring `ERR_ERL_`.
-   *
-   * The message must be a string, starting with an uppercase character,
-   * describing the issue in detail.
-   */
-  constructor(code, message) {
-    const url = `https://express-rate-limit.github.io/${code}/`;
-    super(`${message} See ${url} for more information.`);
-    this.name = this.constructor.name;
-    this.code = code;
-    this.help = url;
-  }
-};
-var ChangeWarning = class extends ValidationError {
-};
-var usedStores = /* @__PURE__ */ new Set();
-var singleCountKeys = /* @__PURE__ */ new WeakMap();
-var validations = {
-  enabled: {
-    default: true
-  },
-  // Should be EnabledValidations type, but that's a circular reference
-  disable() {
-    for (const k of Object.keys(this.enabled)) this.enabled[k] = false;
-  },
-  /**
-   * Checks whether the IP address is valid, and that it does not have a port
-   * number in it.
-   *
-   * See https://github.com/express-rate-limit/express-rate-limit/wiki/Error-Codes#err_erl_invalid_ip_address.
-   *
-   * @param ip {string | undefined} - The IP address provided by Express as request.ip.
-   *
-   * @returns {void}
-   */
-  ip(ip) {
-    if (ip === void 0) {
-      throw new ValidationError(
-        "ERR_ERL_UNDEFINED_IP_ADDRESS",
-        `An undefined 'request.ip' was detected. This might indicate a misconfiguration or the connection being destroyed prematurely.`
-      );
-    }
-    if (!isIP(ip)) {
-      throw new ValidationError(
-        "ERR_ERL_INVALID_IP_ADDRESS",
-        `An invalid 'request.ip' (${ip}) was detected. Consider passing a custom 'keyGenerator' function to the rate limiter.`
-      );
-    }
-  },
-  /**
-   * Makes sure the trust proxy setting is not set to `true`.
-   *
-   * See https://github.com/express-rate-limit/express-rate-limit/wiki/Error-Codes#err_erl_permissive_trust_proxy.
-   *
-   * @param request {Request} - The Express request object.
-   *
-   * @returns {void}
-   */
-  trustProxy(request) {
-    if (request.app.get("trust proxy") === true) {
-      throw new ValidationError(
-        "ERR_ERL_PERMISSIVE_TRUST_PROXY",
-        `The Express 'trust proxy' setting is true, which allows anyone to trivially bypass IP-based rate limiting.`
-      );
-    }
-  },
-  /**
-   * Makes sure the trust proxy setting is set in case the `X-Forwarded-For`
-   * header is present.
-   *
-   * See https://github.com/express-rate-limit/express-rate-limit/wiki/Error-Codes#err_erl_unset_trust_proxy.
-   *
-   * @param request {Request} - The Express request object.
-   *
-   * @returns {void}
-   */
-  xForwardedForHeader(request) {
-    if (request.headers["x-forwarded-for"] && request.app.get("trust proxy") === false) {
-      throw new ValidationError(
-        "ERR_ERL_UNEXPECTED_X_FORWARDED_FOR",
-        `The 'X-Forwarded-For' header is set but the Express 'trust proxy' setting is false (default). This could indicate a misconfiguration which would prevent express-rate-limit from accurately identifying users.`
-      );
-    }
-  },
-  /**
-   * Alert the user if the Forwarded header is set (standardized version of X-Forwarded-For - not supported by express as of version 5.1.0)
-   *
-   * @param request {Request} - The Express request object.
-   *
-   * @returns {void}
-   */
-  forwardedHeader(request) {
-    if (request.headers.forwarded && request.ip === request.socket?.remoteAddress) {
-      throw new ValidationError(
-        "ERR_ERL_FORWARDED_HEADER",
-        `The 'Forwarded' header (standardized X-Forwarded-For) is set but currently being ignored. Add a custom keyGenerator to use a value from this header.`
-      );
-    }
-  },
-  /**
-   * Ensures totalHits value from store is a positive integer.
-   *
-   * @param hits {any} - The `totalHits` returned by the store.
-   */
-  positiveHits(hits) {
-    if (typeof hits !== "number" || hits < 1 || hits !== Math.round(hits)) {
-      throw new ValidationError(
-        "ERR_ERL_INVALID_HITS",
-        `The totalHits value returned from the store must be a positive integer, got ${hits}`
-      );
-    }
-  },
-  /**
-   * Ensures a single store instance is not used with multiple express-rate-limit instances
-   */
-  unsharedStore(store) {
-    if (usedStores.has(store)) {
-      const maybeUniquePrefix = store?.localKeys ? "" : " (with a unique prefix)";
-      throw new ValidationError(
-        "ERR_ERL_STORE_REUSE",
-        `A Store instance must not be shared across multiple rate limiters. Create a new instance of ${store.constructor.name}${maybeUniquePrefix} for each limiter instead.`
-      );
-    }
-    usedStores.add(store);
-  },
-  /**
-   * Ensures a given key is incremented only once per request.
-   *
-   * @param request {Request} - The Express request object.
-   * @param store {Store} - The store class.
-   * @param key {string} - The key used to store the client's hit count.
-   *
-   * @returns {void}
-   */
-  singleCount(request, store, key) {
-    let storeKeys = singleCountKeys.get(request);
-    if (!storeKeys) {
-      storeKeys = /* @__PURE__ */ new Map();
-      singleCountKeys.set(request, storeKeys);
-    }
-    const storeKey = store.localKeys ? store : store.constructor.name;
-    let keys = storeKeys.get(storeKey);
-    if (!keys) {
-      keys = [];
-      storeKeys.set(storeKey, keys);
-    }
-    const prefixedKey = `${store.prefix ?? ""}${key}`;
-    if (keys.includes(prefixedKey)) {
-      throw new ValidationError(
-        "ERR_ERL_DOUBLE_COUNT",
-        `The hit count for ${key} was incremented more than once for a single request.`
-      );
-    }
-    keys.push(prefixedKey);
-  },
-  /**
-   * Warns the user that the behaviour for `max: 0` / `limit: 0` is
-   * changing in the next major release.
-   *
-   * @param limit {number} - The maximum number of hits per client.
-   *
-   * @returns {void}
-   */
-  limit(limit) {
-    if (limit === 0) {
-      throw new ChangeWarning(
-        "WRN_ERL_MAX_ZERO",
-        "Setting limit or max to 0 disables rate limiting in express-rate-limit v6 and older, but will cause all requests to be blocked in v7"
-      );
-    }
-  },
-  /**
-   * Warns the user that the `draft_polli_ratelimit_headers` option is deprecated
-   * and will be removed in the next major release.
-   *
-   * @param draft_polli_ratelimit_headers {any | undefined} - The now-deprecated setting that was used to enable standard headers.
-   *
-   * @returns {void}
-   */
-  draftPolliHeaders(draft_polli_ratelimit_headers) {
-    if (draft_polli_ratelimit_headers) {
-      throw new ChangeWarning(
-        "WRN_ERL_DEPRECATED_DRAFT_POLLI_HEADERS",
-        `The draft_polli_ratelimit_headers configuration option is deprecated and has been removed in express-rate-limit v7, please set standardHeaders: 'draft-6' instead.`
-      );
-    }
-  },
-  /**
-   * Warns the user that the `onLimitReached` option is deprecated and
-   * will be removed in the next major release.
-   *
-   * @param onLimitReached {any | undefined} - The maximum number of hits per client.
-   *
-   * @returns {void}
-   */
-  onLimitReached(onLimitReached) {
-    if (onLimitReached) {
-      throw new ChangeWarning(
-        "WRN_ERL_DEPRECATED_ON_LIMIT_REACHED",
-        "The onLimitReached configuration option is deprecated and has been removed in express-rate-limit v7."
-      );
-    }
-  },
-  /**
-   * Warns the user when an invalid/unsupported version of the draft spec is passed.
-   *
-   * @param version {any | undefined} - The version passed by the user.
-   *
-   * @returns {void}
-   */
-  headersDraftVersion(version) {
-    if (typeof version !== "string" || // @ts-expect-error This is fine. If version is not in the array, it will just return false.
-    !SUPPORTED_DRAFT_VERSIONS.includes(version)) {
-      const versionString = SUPPORTED_DRAFT_VERSIONS.join(", ");
-      throw new ValidationError(
-        "ERR_ERL_HEADERS_UNSUPPORTED_DRAFT_VERSION",
-        `standardHeaders: only the following versions of the IETF draft specification are supported: ${versionString}.`
-      );
-    }
-  },
-  /**
-   * Warns the user when the selected headers option requires a reset time but
-   * the store does not provide one.
-   *
-   * @param resetTime {Date | undefined} - The timestamp when the client's hit count will be reset.
-   *
-   * @returns {void}
-   */
-  headersResetTime(resetTime) {
-    if (!resetTime) {
-      throw new ValidationError(
-        "ERR_ERL_HEADERS_NO_RESET",
-        `standardHeaders:  'draft-7' requires a 'resetTime', but the store did not provide one. The 'windowMs' value will be used instead, which may cause clients to wait longer than necessary.`
-      );
-    }
-  },
-  knownOptions(passedOptions) {
-    if (!passedOptions) return;
-    const optionsMap = {
-      windowMs: true,
-      limit: true,
-      message: true,
-      statusCode: true,
-      legacyHeaders: true,
-      standardHeaders: true,
-      identifier: true,
-      requestPropertyName: true,
-      skipFailedRequests: true,
-      skipSuccessfulRequests: true,
-      keyGenerator: true,
-      ipv6Subnet: true,
-      handler: true,
-      skip: true,
-      requestWasSuccessful: true,
-      store: true,
-      validate: true,
-      headers: true,
-      max: true,
-      passOnStoreError: true,
-      logger: true
-    };
-    const validOptions = Object.keys(optionsMap).concat(
-      "draft_polli_ratelimit_headers",
-      // not a valid option anymore, but we have a more specific check for this one, so don't warn for it here
-      // from express-slow-down - https://github.com/express-rate-limit/express-slow-down/blob/main/source/types.ts#L65
-      "delayAfter",
-      "delayMs",
-      "maxDelayMs"
-    );
-    for (const key of Object.keys(passedOptions)) {
-      if (!validOptions.includes(key)) {
-        throw new ValidationError(
-          "ERR_ERL_UNKNOWN_OPTION",
-          `Unexpected configuration option: ${key}`
-          // todo: suggest a valid option with a short levenstein distance?
-        );
-      }
-    }
-  },
-  /**
-   * Checks the options.validate setting to ensure that only recognized
-   * validations are enabled or disabled.
-   *
-   * If any unrecognized values are found, an error is logged that
-   * includes the list of supported validations.
-   */
-  validationsConfig() {
-    const supportedValidations = Object.keys(this).filter(
-      (k) => !["enabled", "disable"].includes(k)
-    );
-    supportedValidations.push("default");
-    for (const key of Object.keys(this.enabled)) {
-      if (!supportedValidations.includes(key)) {
-        throw new ValidationError(
-          "ERR_ERL_UNKNOWN_VALIDATION",
-          `options.validate.${key} is not recognized. Supported validate options are: ${supportedValidations.join(
-            ", "
-          )}.`
-        );
-      }
-    }
-  },
-  /**
-   * Checks to see if the instance was created inside of a request handler,
-   * which would prevent it from working correctly, with the default memory
-   * store (or any other store with localKeys.)
-   */
-  creationStack(store) {
-    const { stack } = new Error(
-      "express-rate-limit validation check (set options.validate.creationStack=false to disable)"
-    );
-    if (stack?.includes("Layer.handle [as handle_request]") || // express v4
-    stack?.includes("Layer.handleRequest")) {
-      if (!store.localKeys) {
-        throw new ValidationError(
-          "ERR_ERL_CREATED_IN_REQUEST_HANDLER",
-          "express-rate-limit instance should *usually* be created at app initialization, not when responding to a request."
-        );
-      }
-      throw new ValidationError(
-        "ERR_ERL_CREATED_IN_REQUEST_HANDLER",
-        "express-rate-limit instance should be created at app initialization, not when responding to a request."
-      );
-    }
-  },
-  ipv6Subnet(ipv6Subnet) {
-    if (ipv6Subnet === false) {
-      return;
-    }
-    if (!Number.isInteger(ipv6Subnet) || ipv6Subnet < 32 || ipv6Subnet > 64) {
-      throw new ValidationError(
-        "ERR_ERL_IPV6_SUBNET",
-        `Unexpected ipv6Subnet value: ${ipv6Subnet}. Expected an integer between 32 and 64 (usually 48-64).`
-      );
-    }
-  },
-  ipv6SubnetOrKeyGenerator(options) {
-    if (options.ipv6Subnet !== void 0 && options.keyGenerator) {
-      throw new ValidationError(
-        "ERR_ERL_IPV6SUBNET_OR_KEYGENERATOR",
-        `Incompatible options: the 'ipv6Subnet' option is ignored when a custom 'keyGenerator' function is also set.`
-      );
-    }
-  },
-  keyGeneratorIpFallback(keyGenerator) {
-    if (!keyGenerator) {
-      return;
-    }
-    const src = keyGenerator.toString();
-    if ((src.includes("req.ip") || src.includes("request.ip")) && !src.includes("ipKeyGenerator")) {
-      throw new ValidationError(
-        "ERR_ERL_KEY_GEN_IPV6",
-        "Custom keyGenerator appears to use request IP without calling the ipKeyGenerator helper function for IPv6 addresses. This could allow IPv6 users to bypass limits."
-      );
-    }
-  },
-  /**
-   * Checks to see if the window duration is greater than 2^32 - 1. This is only
-   * called by the default MemoryStore, since it uses Node's setInterval method.
-   *
-   * See https://nodejs.org/api/timers.html#setintervalcallback-delay-args.
-   */
-  windowMs(windowMs) {
-    const SET_TIMEOUT_MAX = 2 ** 31 - 1;
-    if (typeof windowMs !== "number" || Number.isNaN(windowMs) || windowMs < 1 || windowMs > SET_TIMEOUT_MAX) {
-      throw new ValidationError(
-        "ERR_ERL_WINDOW_MS",
-        `Invalid windowMs value: ${windowMs}${typeof windowMs !== "number" ? ` (${typeof windowMs})` : ""}, must be a number between 1 and ${SET_TIMEOUT_MAX} when using the default MemoryStore`
-      );
-    }
-  }
-};
-function validateLogger(logger2) {
-  if (typeof logger2 !== "object" || typeof logger2.error !== "function" || typeof logger2.warn !== "function") {
-    throw new TypeError(
-      "Provided logger does not implement the Logger interface"
-    );
-  }
-}
-var getValidations = (_enabled, logger2) => {
-  validateLogger(logger2);
-  let enabled;
-  if (typeof _enabled === "boolean") {
-    enabled = {
-      default: _enabled
-    };
-  } else {
-    enabled = {
-      default: true,
-      ..._enabled
-    };
-  }
-  const wrappedValidations = { enabled };
-  for (const [name, validation] of Object.entries(validations)) {
-    if (typeof validation === "function")
-      wrappedValidations[name] = (...args) => {
-        if (!(enabled[name] ?? enabled.default)) {
-          return;
-        }
-        try {
-          ;
-          validation.apply(
-            wrappedValidations,
-            args
-          );
-        } catch (error) {
-          if (error instanceof ChangeWarning) logger2.warn(error);
-          else logger2.error(error);
-        }
-      };
-  }
-  return wrappedValidations;
-};
 var isLegacyStore = (store) => (
   // Check that `incr` exists but `increment` does not - store authors might want
   // to keep both around for backwards compatibility.
@@ -31613,25 +29707,25 @@ var getOptionsFromConfig = (config) => {
     validate: validations2.enabled
   };
 };
+var omitUndefinedOptions = (passedOptions) => {
+  const omittedOptions = {};
+  for (const k of Object.keys(passedOptions)) {
+    const key = k;
+    if (passedOptions[key] !== void 0) {
+      omittedOptions[key] = passedOptions[key];
+    }
+  }
+  return omittedOptions;
+};
 var parseOptions = (passedOptions) => {
-  const notUndefinedOptions = omitUndefinedProperties(passedOptions);
-  const logger2 = passedOptions.logger ?? ConsoleLogger;
-  const validations2 = getValidations(
-    notUndefinedOptions?.validate ?? true,
-    logger2
-  );
+  const notUndefinedOptions = omitUndefinedOptions(passedOptions);
+  const validations2 = getValidations(notUndefinedOptions?.validate ?? true);
   validations2.validationsConfig();
-  validations2.knownOptions(passedOptions);
   validations2.draftPolliHeaders(
     // @ts-expect-error see the note above.
     notUndefinedOptions.draft_polli_ratelimit_headers
   );
   validations2.onLimitReached(notUndefinedOptions.onLimitReached);
-  if (notUndefinedOptions.ipv6Subnet !== void 0 && typeof notUndefinedOptions.ipv6Subnet !== "function") {
-    validations2.ipv6Subnet(notUndefinedOptions.ipv6Subnet);
-  }
-  validations2.keyGeneratorIpFallback(notUndefinedOptions.keyGenerator);
-  validations2.ipv6SubnetOrKeyGenerator(notUndefinedOptions);
   let standardHeaders = notUndefinedOptions.standardHeaders ?? false;
   if (standardHeaders === true) standardHeaders = "draft-6";
   const config = {
@@ -31660,28 +29754,21 @@ var parseOptions = (passedOptions) => {
     skipSuccessfulRequests: false,
     requestWasSuccessful: (_request, response) => response.statusCode < 400,
     skip: (_request, _response) => false,
-    async keyGenerator(request, response) {
+    keyGenerator(request, _response) {
       validations2.ip(request.ip);
       validations2.trustProxy(request);
       validations2.xForwardedForHeader(request);
-      validations2.forwardedHeader(request);
-      const ip = request.ip;
-      let subnet = 56;
-      if (isIPv62(ip)) {
-        subnet = typeof config.ipv6Subnet === "function" ? await config.ipv6Subnet(request, response) : config.ipv6Subnet;
-        if (typeof config.ipv6Subnet === "function")
-          validations2.ipv6Subnet(subnet);
-      }
-      return ipKeyGenerator(ip, subnet);
+      return request.ip;
     },
-    ipv6Subnet: 56,
     async handler(request, response, _next, _optionsUsed) {
       response.status(config.statusCode);
       const message = typeof config.message === "function" ? await config.message(
         request,
         response
       ) : config.message;
-      if (!response.writableEnded) response.send(message);
+      if (!response.writableEnded) {
+        response.send(message);
+      }
     },
     passOnStoreError: false,
     // Allow the default options to be overridden by the passed options.
@@ -31690,12 +29777,9 @@ var parseOptions = (passedOptions) => {
     standardHeaders,
     // Note that this field is declared after the user's options are spread in,
     // so that this field doesn't get overridden with an un-promisified store!
-    store: promisifyStore(
-      notUndefinedOptions.store ?? new MemoryStore(validations2)
-    ),
+    store: promisifyStore(notUndefinedOptions.store ?? new MemoryStore()),
     // Print an error to the console if a few known misconfigurations are detected.
-    validations: validations2,
-    logger: logger2
+    validations: validations2
   };
   if (typeof config.store.increment !== "function" || typeof config.store.decrement !== "function" || typeof config.store.resetKey !== "function" || config.store.resetAll !== void 0 && typeof config.store.resetAll !== "function" || config.store.init !== void 0 && typeof config.store.init !== "function") {
     throw new TypeError(
@@ -31716,29 +29800,9 @@ var rateLimit = (passedOptions) => {
   const options = getOptionsFromConfig(config);
   config.validations.creationStack(config.store);
   config.validations.unsharedStore(config.store);
-  if (typeof config.store.init === "function") {
-    try {
-      const storeInit = config.store.init(options);
-      if (storeInit instanceof Promise) {
-        storeInit.catch(
-          (error) => config.logger.error(
-            error,
-            "express-rate-limit: async error during store initialization."
-          )
-        );
-      }
-    } catch (error) {
-      config.logger.error(
-        error,
-        "express-rate-limit: error during store initialization."
-      );
-    }
-  }
+  if (typeof config.store.init === "function") config.store.init(options);
   const middleware = handleAsyncErrors(
     async (request, response, next) => {
-      const closePromise = config.skipFailedRequests && new Promise((resolve) => response.once("close", resolve));
-      const finishPromise = (config.skipFailedRequests || config.skipSuccessfulRequests) && new Promise((resolve) => response.once("finish", resolve));
-      const errorPromise = config.skipFailedRequests && new Promise((resolve) => response.once("error", resolve));
       const skip = await config.skip(request, response);
       if (skip) {
         next();
@@ -31754,9 +29818,9 @@ var rateLimit = (passedOptions) => {
         resetTime = incrementResult.resetTime;
       } catch (error) {
         if (config.passOnStoreError) {
-          config.logger.error(
-            error,
-            "express-rate-limit: error from store, allowing request without rate-limiting."
+          console.error(
+            "express-rate-limit: error from store, allowing request without rate-limiting.",
+            error
           );
           next();
           return;
@@ -31772,8 +29836,7 @@ var rateLimit = (passedOptions) => {
         limit,
         used: totalHits,
         remaining: Math.max(limit - totalHits, 0),
-        resetTime,
-        key
+        resetTime
       };
       Object.defineProperty(info, "current", {
         configurable: false,
@@ -31817,30 +29880,22 @@ var rateLimit = (passedOptions) => {
           }
         };
         if (config.skipFailedRequests) {
-          if (finishPromise) {
-            void finishPromise.then(async () => {
-              if (!await config.requestWasSuccessful(request, response))
-                await decrementKey();
-            });
-          }
-          if (closePromise) {
-            void closePromise.then(async () => {
-              if (!response.writableEnded) await decrementKey();
-            });
-          }
-          if (errorPromise) {
-            void errorPromise.then(async () => {
+          response.on("finish", async () => {
+            if (!await config.requestWasSuccessful(request, response))
               await decrementKey();
-            });
-          }
+          });
+          response.on("close", async () => {
+            if (!response.writableEnded) await decrementKey();
+          });
+          response.on("error", async () => {
+            await decrementKey();
+          });
         }
         if (config.skipSuccessfulRequests) {
-          if (finishPromise) {
-            void finishPromise.then(async () => {
-              if (await config.requestWasSuccessful(request, response))
-                await decrementKey();
-            });
-          }
+          response.on("finish", async () => {
+            if (await config.requestWasSuccessful(request, response))
+              await decrementKey();
+          });
         }
       }
       config.validations.disable();
@@ -31861,15 +29916,15 @@ var rateLimit = (passedOptions) => {
   middleware.getKey = typeof config.store.get === "function" ? config.store.get.bind(config.store) : getThrowFn;
   return middleware;
 };
-var rate_limit_default = rateLimit;
+var lib_default = rateLimit;
 
-// artifacts/api-server/src/app.ts
+// src/app.ts
 var import_pino_http = __toESM(require_logger(), 1);
 
-// artifacts/api-server/src/routes/index.ts
-var import_express26 = __toESM(require_express2(), 1);
+// src/routes/index.ts
+var import_express34 = __toESM(require_express2(), 1);
 
-// lib/db/src/index.ts
+// ../../lib/db/src/index.ts
 import { createClient } from "@supabase/supabase-js";
 var supabaseUrl = process.env["SUPABASE_URL"];
 var supabaseKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
@@ -31891,7 +29946,7 @@ function deriveStatus(row) {
   return "pending";
 }
 
-// artifacts/api-server/src/middleware/auth.ts
+// src/middleware/auth.ts
 async function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -31904,11 +29959,21 @@ async function requireAuth(req, res, next) {
     res.status(401).json({ error: "Invalid or expired token" });
     return;
   }
-  const role = data.user.app_metadata?.role ?? data.user.user_metadata?.role ?? "member";
+  const userEmail = data.user.email;
+  let userRole = "member";
+  let profileId = "";
+  if (userEmail) {
+    const { data: profile } = await supabase.from("profiles").select("id, role").eq("email", userEmail).single();
+    if (profile) {
+      userRole = profile.role || "member";
+      profileId = profile.id;
+    }
+  }
   req.user = {
     id: data.user.id,
-    email: data.user.email,
-    role
+    email: userEmail,
+    role: userRole,
+    profileId
   };
   next();
 }
@@ -31940,10 +30005,122 @@ function requireRole(...allowedRoles) {
   };
 }
 
-// artifacts/api-server/src/routes/health.ts
+// src/routes/health.ts
 var import_express = __toESM(require_express2(), 1);
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/util.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/external.js
+var external_exports = {};
+__export(external_exports, {
+  BRAND: () => BRAND,
+  DIRTY: () => DIRTY,
+  EMPTY_PATH: () => EMPTY_PATH,
+  INVALID: () => INVALID,
+  NEVER: () => NEVER,
+  OK: () => OK,
+  ParseStatus: () => ParseStatus,
+  Schema: () => ZodType,
+  ZodAny: () => ZodAny,
+  ZodArray: () => ZodArray,
+  ZodBigInt: () => ZodBigInt,
+  ZodBoolean: () => ZodBoolean,
+  ZodBranded: () => ZodBranded,
+  ZodCatch: () => ZodCatch,
+  ZodDate: () => ZodDate,
+  ZodDefault: () => ZodDefault,
+  ZodDiscriminatedUnion: () => ZodDiscriminatedUnion,
+  ZodEffects: () => ZodEffects,
+  ZodEnum: () => ZodEnum,
+  ZodError: () => ZodError,
+  ZodFirstPartyTypeKind: () => ZodFirstPartyTypeKind,
+  ZodFunction: () => ZodFunction,
+  ZodIntersection: () => ZodIntersection,
+  ZodIssueCode: () => ZodIssueCode,
+  ZodLazy: () => ZodLazy,
+  ZodLiteral: () => ZodLiteral,
+  ZodMap: () => ZodMap,
+  ZodNaN: () => ZodNaN,
+  ZodNativeEnum: () => ZodNativeEnum,
+  ZodNever: () => ZodNever,
+  ZodNull: () => ZodNull,
+  ZodNullable: () => ZodNullable,
+  ZodNumber: () => ZodNumber,
+  ZodObject: () => ZodObject,
+  ZodOptional: () => ZodOptional,
+  ZodParsedType: () => ZodParsedType,
+  ZodPipeline: () => ZodPipeline,
+  ZodPromise: () => ZodPromise,
+  ZodReadonly: () => ZodReadonly,
+  ZodRecord: () => ZodRecord,
+  ZodSchema: () => ZodType,
+  ZodSet: () => ZodSet,
+  ZodString: () => ZodString,
+  ZodSymbol: () => ZodSymbol,
+  ZodTransformer: () => ZodEffects,
+  ZodTuple: () => ZodTuple,
+  ZodType: () => ZodType,
+  ZodUndefined: () => ZodUndefined,
+  ZodUnion: () => ZodUnion,
+  ZodUnknown: () => ZodUnknown,
+  ZodVoid: () => ZodVoid,
+  addIssueToContext: () => addIssueToContext,
+  any: () => anyType,
+  array: () => arrayType,
+  bigint: () => bigIntType,
+  boolean: () => booleanType,
+  coerce: () => coerce,
+  custom: () => custom,
+  date: () => dateType,
+  datetimeRegex: () => datetimeRegex,
+  defaultErrorMap: () => en_default,
+  discriminatedUnion: () => discriminatedUnionType,
+  effect: () => effectsType,
+  enum: () => enumType,
+  function: () => functionType,
+  getErrorMap: () => getErrorMap,
+  getParsedType: () => getParsedType,
+  instanceof: () => instanceOfType,
+  intersection: () => intersectionType,
+  isAborted: () => isAborted,
+  isAsync: () => isAsync,
+  isDirty: () => isDirty,
+  isValid: () => isValid,
+  late: () => late,
+  lazy: () => lazyType,
+  literal: () => literalType,
+  makeIssue: () => makeIssue,
+  map: () => mapType,
+  nan: () => nanType,
+  nativeEnum: () => nativeEnumType,
+  never: () => neverType,
+  null: () => nullType,
+  nullable: () => nullableType,
+  number: () => numberType,
+  object: () => objectType,
+  objectUtil: () => objectUtil,
+  oboolean: () => oboolean,
+  onumber: () => onumber,
+  optional: () => optionalType,
+  ostring: () => ostring,
+  pipeline: () => pipelineType,
+  preprocess: () => preprocessType,
+  promise: () => promiseType,
+  quotelessJson: () => quotelessJson,
+  record: () => recordType,
+  set: () => setType,
+  setErrorMap: () => setErrorMap,
+  strictObject: () => strictObjectType,
+  string: () => stringType,
+  symbol: () => symbolType,
+  transformer: () => effectsType,
+  tuple: () => tupleType,
+  undefined: () => undefinedType,
+  union: () => unionType,
+  unknown: () => unknownType,
+  util: () => util,
+  void: () => voidType
+});
+
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/util.js
 var util;
 (function(util2) {
   util2.assertEqual = (_) => {
@@ -32077,7 +30254,7 @@ var getParsedType = (data) => {
   }
 };
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/ZodError.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/ZodError.js
 var ZodIssueCode = util.arrayToEnum([
   "invalid_type",
   "invalid_literal",
@@ -32096,6 +30273,10 @@ var ZodIssueCode = util.arrayToEnum([
   "not_multiple_of",
   "not_finite"
 ]);
+var quotelessJson = (obj) => {
+  const json = JSON.stringify(obj, null, 2);
+  return json.replace(/"([^"]+)":/g, "$1:");
+};
 var ZodError = class _ZodError extends Error {
   get errors() {
     return this.issues;
@@ -32191,7 +30372,7 @@ ZodError.create = (issues) => {
   return error;
 };
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/locales/en.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/locales/en.js
 var errorMap = (issue, _ctx) => {
   let message;
   switch (issue.code) {
@@ -32294,13 +30475,16 @@ var errorMap = (issue, _ctx) => {
 };
 var en_default = errorMap;
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/errors.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/errors.js
 var overrideErrorMap = en_default;
+function setErrorMap(map) {
+  overrideErrorMap = map;
+}
 function getErrorMap() {
   return overrideErrorMap;
 }
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
   const { data, path: path2, errorMaps, issueData } = params;
   const fullPath = [...path2, ...issueData.path || []];
@@ -32326,6 +30510,7 @@ var makeIssue = (params) => {
     message: errorMessage
   };
 };
+var EMPTY_PATH = [];
 function addIssueToContext(ctx, issueData) {
   const overrideMap = getErrorMap();
   const issue = makeIssue({
@@ -32409,14 +30594,14 @@ var isDirty = (x) => x.status === "dirty";
 var isValid = (x) => x.status === "valid";
 var isAsync = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/errorUtil.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil;
 (function(errorUtil2) {
   errorUtil2.errToObj = (message) => typeof message === "string" ? { message } : message || {};
   errorUtil2.toString = (message) => typeof message === "string" ? message : message?.message;
 })(errorUtil || (errorUtil = {}));
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
   constructor(parent, value, path2, key) {
     this._cachedPath = [];
@@ -35651,6 +33836,7 @@ ZodNaN.create = (params) => {
     ...processCreateParams(params)
   });
 };
+var BRAND = /* @__PURE__ */ Symbol("zod_brand");
 var ZodBranded = class extends ZodType {
   _parse(input) {
     const { ctx } = this._processInputParams(input);
@@ -35742,6 +33928,33 @@ ZodReadonly.create = (type, params) => {
     ...processCreateParams(params)
   });
 };
+function cleanParams(params, data) {
+  const p = typeof params === "function" ? params(data) : typeof params === "string" ? { message: params } : params;
+  const p2 = typeof p === "string" ? { message: p } : p;
+  return p2;
+}
+function custom(check, _params = {}, fatal) {
+  if (check)
+    return ZodAny.create().superRefine((data, ctx) => {
+      const r = check(data);
+      if (r instanceof Promise) {
+        return r.then((r2) => {
+          if (!r2) {
+            const params = cleanParams(_params, data);
+            const _fatal = params.fatal ?? fatal ?? true;
+            ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
+          }
+        });
+      }
+      if (!r) {
+        const params = cleanParams(_params, data);
+        const _fatal = params.fatal ?? fatal ?? true;
+        ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
+      }
+      return;
+    });
+  return ZodAny.create();
+}
 var late = {
   object: ZodObject.lazycreate
 };
@@ -35784,6 +33997,9 @@ var ZodFirstPartyTypeKind;
   ZodFirstPartyTypeKind2["ZodPipeline"] = "ZodPipeline";
   ZodFirstPartyTypeKind2["ZodReadonly"] = "ZodReadonly";
 })(ZodFirstPartyTypeKind || (ZodFirstPartyTypeKind = {}));
+var instanceOfType = (cls, params = {
+  message: `Input not instance of ${cls.name}`
+}) => custom((data) => data instanceof cls, params);
 var stringType = ZodString.create;
 var numberType = ZodNumber.create;
 var nanType = ZodNaN.create;
@@ -35818,6 +34034,9 @@ var optionalType = ZodOptional.create;
 var nullableType = ZodNullable.create;
 var preprocessType = ZodEffects.createWithPreprocess;
 var pipelineType = ZodPipeline.create;
+var ostring = () => stringType().optional();
+var onumber = () => numberType().optional();
+var oboolean = () => booleanType().optional();
 var coerce = {
   string: ((arg) => ZodString.create({ ...arg, coerce: true })),
   number: ((arg) => ZodNumber.create({ ...arg, coerce: true })),
@@ -35828,551 +34047,533 @@ var coerce = {
   bigint: ((arg) => ZodBigInt.create({ ...arg, coerce: true })),
   date: ((arg) => ZodDate.create({ ...arg, coerce: true }))
 };
+var NEVER = INVALID;
 
-// lib/api-zod/src/generated/api.ts
+// ../../lib/api-zod/src/generated/api.ts
 var HealthCheckResponse = objectType({
-  status: stringType()
+  "status": stringType()
 });
 var GetDashboardSummaryResponse = objectType({
-  totalMembers: numberType(),
-  activeLoans: numberType(),
-  totalContributions: numberType(),
-  loansDisbursed: numberType(),
-  repaymentRate: numberType(),
-  pendingCompliance: numberType(),
-  openSupportTickets: numberType(),
-  totalInvestments: numberType(),
-  membersGrowth: numberType(),
-  loansGrowth: numberType(),
-  contributionsGrowth: numberType()
+  "totalMembers": numberType(),
+  "activeMembers": numberType(),
+  "activeLoans": numberType(),
+  "totalContributions": numberType(),
+  "totalSavings": numberType(),
+  "loansDisbursed": numberType(),
+  "totalLoansIssued": numberType(),
+  "repaymentRate": numberType(),
+  "pendingCompliance": numberType(),
+  "openSupportTickets": numberType(),
+  "totalInvestments": numberType(),
+  "riskExposure": numberType(),
+  "activeDefaulters": numberType(),
+  "activeOrganizations": numberType(),
+  "monthlyGrowth": numberType(),
+  "membersGrowth": numberType(),
+  "loansGrowth": numberType(),
+  "savingsGrowth": numberType(),
+  "contributionsGrowth": numberType()
 });
 var GetMonthlyContributionsResponseItem = objectType({
-  month: stringType(),
-  value: numberType(),
-  label: stringType().optional()
+  "month": stringType(),
+  "value": numberType(),
+  "label": stringType().optional()
 });
-var GetMonthlyContributionsResponse = arrayType(
-  GetMonthlyContributionsResponseItem
-);
+var GetMonthlyContributionsResponse = arrayType(GetMonthlyContributionsResponseItem);
 var GetLoanStatusBreakdownResponseItem = objectType({
-  status: stringType(),
-  count: numberType(),
-  amount: numberType(),
-  percentage: numberType()
+  "status": stringType(),
+  "count": numberType(),
+  "amount": numberType(),
+  "percentage": numberType()
 });
-var GetLoanStatusBreakdownResponse = arrayType(
-  GetLoanStatusBreakdownResponseItem
-);
+var GetLoanStatusBreakdownResponse = arrayType(GetLoanStatusBreakdownResponseItem);
 var GetRecentActivityResponseItem = objectType({
-  id: numberType(),
-  type: stringType(),
-  description: stringType(),
-  memberName: stringType().optional(),
-  amount: numberType().optional(),
-  createdAt: coerce.date()
+  "id": numberType(),
+  "type": stringType(),
+  "description": stringType(),
+  "memberName": stringType().optional(),
+  "amount": numberType().optional(),
+  "createdAt": coerce.date()
 });
-var GetRecentActivityResponse = arrayType(
-  GetRecentActivityResponseItem
-);
+var GetRecentActivityResponse = arrayType(GetRecentActivityResponseItem);
 var getMembersQueryPageDefault = 1;
 var getMembersQueryLimitDefault = 20;
 var GetMembersQueryParams = objectType({
-  status: enumType(["active", "inactive", "suspended", "pending"]).optional(),
-  search: coerce.string().optional(),
-  page: coerce.number().default(getMembersQueryPageDefault),
-  limit: coerce.number().default(getMembersQueryLimitDefault)
+  "status": enumType(["active", "inactive", "suspended", "pending"]).optional(),
+  "search": coerce.string().optional(),
+  "page": coerce.number().default(getMembersQueryPageDefault),
+  "limit": coerce.number().default(getMembersQueryLimitDefault)
 });
 var GetMembersResponse = objectType({
-  data: arrayType(
-    objectType({
-      id: numberType(),
-      memberId: stringType(),
-      firstName: stringType(),
-      lastName: stringType(),
-      email: stringType(),
-      phone: stringType(),
-      status: enumType(["active", "inactive", "suspended", "pending"]),
-      joinDate: coerce.date(),
-      totalContributions: numberType(),
-      activeLoan: numberType(),
-      riskScore: numberType(),
-      address: stringType().optional(),
-      occupation: stringType().optional(),
-      avatarInitials: stringType().optional(),
-      createdAt: coerce.date()
-    })
-  ),
-  total: numberType(),
-  page: numberType(),
-  limit: numberType()
+  "data": arrayType(objectType({
+    "id": numberType(),
+    "memberId": stringType(),
+    "firstName": stringType(),
+    "lastName": stringType(),
+    "email": stringType(),
+    "phone": stringType(),
+    "status": enumType(["active", "inactive", "suspended", "pending"]),
+    "joinDate": coerce.date(),
+    "totalContributions": numberType(),
+    "activeLoan": numberType(),
+    "riskScore": numberType(),
+    "address": stringType().optional(),
+    "occupation": stringType().optional(),
+    "avatarInitials": stringType().optional(),
+    "createdAt": coerce.date()
+  })),
+  "total": numberType(),
+  "page": numberType(),
+  "limit": numberType()
 });
 var CreateMemberBody = objectType({
-  firstName: stringType(),
-  lastName: stringType(),
-  email: stringType(),
-  phone: stringType(),
-  address: stringType().optional(),
-  occupation: stringType().optional()
+  "firstName": stringType(),
+  "lastName": stringType(),
+  "email": stringType(),
+  "phone": stringType(),
+  "address": stringType().optional(),
+  "occupation": stringType().optional()
 });
 var GetMemberParams = objectType({
-  id: coerce.number()
+  "id": coerce.number()
 });
 var GetMemberResponse = objectType({
-  id: numberType(),
-  memberId: stringType(),
-  firstName: stringType(),
-  lastName: stringType(),
-  email: stringType(),
-  phone: stringType(),
-  status: enumType(["active", "inactive", "suspended", "pending"]),
-  joinDate: coerce.date(),
-  totalContributions: numberType(),
-  activeLoan: numberType(),
-  riskScore: numberType(),
-  address: stringType().optional(),
-  occupation: stringType().optional(),
-  avatarInitials: stringType().optional(),
-  createdAt: coerce.date()
+  "id": numberType(),
+  "memberId": stringType(),
+  "firstName": stringType(),
+  "lastName": stringType(),
+  "email": stringType(),
+  "phone": stringType(),
+  "status": enumType(["active", "inactive", "suspended", "pending"]),
+  "joinDate": coerce.date(),
+  "totalContributions": numberType(),
+  "activeLoan": numberType(),
+  "riskScore": numberType(),
+  "address": stringType().optional(),
+  "occupation": stringType().optional(),
+  "avatarInitials": stringType().optional(),
+  "createdAt": coerce.date()
 });
 var UpdateMemberParams = objectType({
-  id: coerce.number()
+  "id": coerce.number()
 });
 var UpdateMemberBody = objectType({
-  firstName: stringType().optional(),
-  lastName: stringType().optional(),
-  email: stringType().optional(),
-  phone: stringType().optional(),
-  status: enumType(["active", "inactive", "suspended", "pending"]).optional(),
-  address: stringType().optional(),
-  occupation: stringType().optional()
+  "firstName": stringType().optional(),
+  "lastName": stringType().optional(),
+  "email": stringType().optional(),
+  "phone": stringType().optional(),
+  "status": enumType(["active", "inactive", "suspended", "pending"]).optional(),
+  "address": stringType().optional(),
+  "occupation": stringType().optional()
 });
 var UpdateMemberResponse = objectType({
-  id: numberType(),
-  memberId: stringType(),
-  firstName: stringType(),
-  lastName: stringType(),
-  email: stringType(),
-  phone: stringType(),
-  status: enumType(["active", "inactive", "suspended", "pending"]),
-  joinDate: coerce.date(),
-  totalContributions: numberType(),
-  activeLoan: numberType(),
-  riskScore: numberType(),
-  address: stringType().optional(),
-  occupation: stringType().optional(),
-  avatarInitials: stringType().optional(),
-  createdAt: coerce.date()
+  "id": numberType(),
+  "memberId": stringType(),
+  "firstName": stringType(),
+  "lastName": stringType(),
+  "email": stringType(),
+  "phone": stringType(),
+  "status": enumType(["active", "inactive", "suspended", "pending"]),
+  "joinDate": coerce.date(),
+  "totalContributions": numberType(),
+  "activeLoan": numberType(),
+  "riskScore": numberType(),
+  "address": stringType().optional(),
+  "occupation": stringType().optional(),
+  "avatarInitials": stringType().optional(),
+  "createdAt": coerce.date()
 });
 var GetMemberStatsResponse = objectType({
-  total: numberType(),
-  active: numberType(),
-  inactive: numberType(),
-  suspended: numberType(),
-  pending: numberType(),
-  newThisMonth: numberType()
+  "total": numberType(),
+  "active": numberType(),
+  "inactive": numberType(),
+  "suspended": numberType(),
+  "pending": numberType(),
+  "newThisMonth": numberType(),
+  "loanDefaulters": numberType(),
+  "highRisk": numberType()
 });
 var getLoansQueryPageDefault = 1;
 var getLoansQueryLimitDefault = 20;
 var GetLoansQueryParams = objectType({
-  status: enumType(["pending", "active", "defaulted", "repaid", "rejected"]).optional(),
-  memberId: coerce.number().optional(),
-  page: coerce.number().default(getLoansQueryPageDefault),
-  limit: coerce.number().default(getLoansQueryLimitDefault)
+  "status": enumType(["pending", "active", "defaulted", "repaid", "rejected"]).optional(),
+  "memberId": coerce.number().optional(),
+  "search": coerce.string().optional(),
+  "page": coerce.number().default(getLoansQueryPageDefault),
+  "limit": coerce.number().default(getLoansQueryLimitDefault)
 });
 var GetLoansResponse = objectType({
-  data: arrayType(
-    objectType({
-      id: numberType(),
-      loanId: stringType(),
-      memberId: numberType(),
-      memberName: stringType(),
-      amount: numberType(),
-      balance: numberType(),
-      interestRate: numberType(),
-      tenure: numberType(),
-      status: enumType([
-        "pending",
-        "active",
-        "defaulted",
-        "repaid",
-        "rejected"
-      ]),
-      purpose: stringType(),
-      disbursedDate: coerce.date().optional(),
-      dueDate: coerce.date().optional(),
-      monthlyPayment: numberType().optional(),
-      nextPaymentDate: coerce.date().optional(),
-      createdAt: coerce.date(),
-      rejectionReason: stringType().optional()
-    })
-  ),
-  total: numberType(),
-  page: numberType(),
-  limit: numberType()
+  "data": arrayType(objectType({
+    "id": numberType(),
+    "loanId": stringType(),
+    "memberId": numberType(),
+    "memberName": stringType(),
+    "amount": numberType(),
+    "balance": numberType(),
+    "interestRate": numberType(),
+    "tenure": numberType(),
+    "status": enumType(["pending", "active", "defaulted", "repaid", "rejected"]),
+    "purpose": stringType(),
+    "disbursedDate": coerce.date().optional(),
+    "dueDate": coerce.date().optional(),
+    "monthlyPayment": numberType().optional(),
+    "nextPaymentDate": coerce.date().optional(),
+    "createdAt": coerce.date(),
+    "rejectionReason": stringType().optional()
+  })),
+  "total": numberType(),
+  "page": numberType(),
+  "limit": numberType()
 });
 var CreateLoanBody = objectType({
-  memberId: numberType(),
-  amount: numberType(),
-  tenure: numberType(),
-  purpose: stringType(),
-  interestRate: numberType().optional()
+  "memberId": numberType(),
+  "amount": numberType(),
+  "tenure": numberType(),
+  "purpose": stringType(),
+  "interestRate": numberType().optional()
 });
 var GetLoanParams = objectType({
-  id: coerce.number()
+  "id": coerce.number()
 });
 var GetLoanResponse = objectType({
-  id: numberType(),
-  loanId: stringType(),
-  memberId: numberType(),
-  memberName: stringType(),
-  amount: numberType(),
-  balance: numberType(),
-  interestRate: numberType(),
-  tenure: numberType(),
-  status: enumType(["pending", "active", "defaulted", "repaid", "rejected"]),
-  purpose: stringType(),
-  disbursedDate: coerce.date().optional(),
-  dueDate: coerce.date().optional(),
-  monthlyPayment: numberType().optional(),
-  nextPaymentDate: coerce.date().optional(),
-  createdAt: coerce.date(),
-  rejectionReason: stringType().optional()
+  "id": numberType(),
+  "loanId": stringType(),
+  "memberId": numberType(),
+  "memberName": stringType(),
+  "amount": numberType(),
+  "balance": numberType(),
+  "interestRate": numberType(),
+  "tenure": numberType(),
+  "status": enumType(["pending", "active", "defaulted", "repaid", "rejected"]),
+  "purpose": stringType(),
+  "disbursedDate": coerce.date().optional(),
+  "dueDate": coerce.date().optional(),
+  "monthlyPayment": numberType().optional(),
+  "nextPaymentDate": coerce.date().optional(),
+  "createdAt": coerce.date(),
+  "rejectionReason": stringType().optional()
 });
 var ApproveLoanParams = objectType({
-  id: coerce.number()
+  "id": coerce.number()
 });
 var ApproveLoanResponse = objectType({
-  id: numberType(),
-  loanId: stringType(),
-  memberId: numberType(),
-  memberName: stringType(),
-  amount: numberType(),
-  balance: numberType(),
-  interestRate: numberType(),
-  tenure: numberType(),
-  status: enumType(["pending", "active", "defaulted", "repaid", "rejected"]),
-  purpose: stringType(),
-  disbursedDate: coerce.date().optional(),
-  dueDate: coerce.date().optional(),
-  monthlyPayment: numberType().optional(),
-  nextPaymentDate: coerce.date().optional(),
-  createdAt: coerce.date(),
-  rejectionReason: stringType().optional()
+  "id": numberType(),
+  "loanId": stringType(),
+  "memberId": numberType(),
+  "memberName": stringType(),
+  "amount": numberType(),
+  "balance": numberType(),
+  "interestRate": numberType(),
+  "tenure": numberType(),
+  "status": enumType(["pending", "active", "defaulted", "repaid", "rejected"]),
+  "purpose": stringType(),
+  "disbursedDate": coerce.date().optional(),
+  "dueDate": coerce.date().optional(),
+  "monthlyPayment": numberType().optional(),
+  "nextPaymentDate": coerce.date().optional(),
+  "createdAt": coerce.date(),
+  "rejectionReason": stringType().optional()
 });
 var RejectLoanParams = objectType({
-  id: coerce.number()
+  "id": coerce.number()
 });
 var RejectLoanBody = objectType({
-  reason: stringType()
+  "reason": stringType()
 });
 var RejectLoanResponse = objectType({
-  id: numberType(),
-  loanId: stringType(),
-  memberId: numberType(),
-  memberName: stringType(),
-  amount: numberType(),
-  balance: numberType(),
-  interestRate: numberType(),
-  tenure: numberType(),
-  status: enumType(["pending", "active", "defaulted", "repaid", "rejected"]),
-  purpose: stringType(),
-  disbursedDate: coerce.date().optional(),
-  dueDate: coerce.date().optional(),
-  monthlyPayment: numberType().optional(),
-  nextPaymentDate: coerce.date().optional(),
-  createdAt: coerce.date(),
-  rejectionReason: stringType().optional()
+  "id": numberType(),
+  "loanId": stringType(),
+  "memberId": numberType(),
+  "memberName": stringType(),
+  "amount": numberType(),
+  "balance": numberType(),
+  "interestRate": numberType(),
+  "tenure": numberType(),
+  "status": enumType(["pending", "active", "defaulted", "repaid", "rejected"]),
+  "purpose": stringType(),
+  "disbursedDate": coerce.date().optional(),
+  "dueDate": coerce.date().optional(),
+  "monthlyPayment": numberType().optional(),
+  "nextPaymentDate": coerce.date().optional(),
+  "createdAt": coerce.date(),
+  "rejectionReason": stringType().optional()
 });
 var GetLoanPortfolioSummaryResponse = objectType({
-  totalDisbursed: numberType(),
-  outstanding: numberType(),
-  collected: numberType(),
-  defaulted: numberType(),
-  repaymentRate: numberType(),
-  activeCount: numberType(),
-  defaultedCount: numberType(),
-  pendingCount: numberType()
+  "totalDisbursed": numberType(),
+  "outstanding": numberType(),
+  "collected": numberType(),
+  "defaulted": numberType(),
+  "repaymentRate": numberType(),
+  "activeCount": numberType(),
+  "defaultedCount": numberType(),
+  "pendingCount": numberType()
 });
 var getContributionsQueryPageDefault = 1;
 var getContributionsQueryLimitDefault = 20;
 var GetContributionsQueryParams = objectType({
-  memberId: coerce.number().optional(),
-  month: coerce.string().optional(),
-  page: coerce.number().default(getContributionsQueryPageDefault),
-  limit: coerce.number().default(getContributionsQueryLimitDefault)
+  "memberId": coerce.number().optional(),
+  "month": coerce.string().optional(),
+  "page": coerce.number().default(getContributionsQueryPageDefault),
+  "limit": coerce.number().default(getContributionsQueryLimitDefault)
 });
 var GetContributionsResponse = objectType({
-  data: arrayType(
-    objectType({
-      id: numberType(),
-      memberId: numberType(),
-      memberName: stringType(),
-      amount: numberType(),
-      month: stringType(),
-      paymentMethod: stringType(),
-      status: enumType(["paid", "pending", "overdue"]),
-      transactionRef: stringType().optional(),
-      createdAt: coerce.date()
-    })
-  ),
-  total: numberType(),
-  page: numberType(),
-  limit: numberType()
+  "data": arrayType(objectType({
+    "id": numberType(),
+    "memberId": numberType(),
+    "memberName": stringType(),
+    "amount": numberType(),
+    "month": stringType(),
+    "paymentMethod": stringType(),
+    "status": enumType(["paid", "pending", "overdue"]),
+    "transactionRef": stringType().optional(),
+    "createdAt": coerce.date()
+  })),
+  "total": numberType(),
+  "page": numberType(),
+  "limit": numberType()
 });
 var CreateContributionBody = objectType({
-  memberId: numberType(),
-  amount: numberType(),
-  month: stringType(),
-  paymentMethod: stringType()
+  "memberId": numberType(),
+  "amount": numberType(),
+  "month": stringType(),
+  "paymentMethod": stringType()
 });
 var GetContributionSummaryResponse = objectType({
-  totalCollected: numberType(),
-  pendingAmount: numberType(),
-  overdueAmount: numberType(),
-  thisMonth: numberType(),
-  collectionRate: numberType(),
-  totalMembers: numberType(),
-  paidThisMonth: numberType()
+  "totalCollected": numberType(),
+  "pendingAmount": numberType(),
+  "overdueAmount": numberType(),
+  "overdue": numberType(),
+  "pending": numberType(),
+  "thisMonth": numberType(),
+  "collectionRate": numberType(),
+  "totalMembers": numberType(),
+  "paidThisMonth": numberType()
 });
 var getInvestmentsQueryPageDefault = 1;
 var getInvestmentsQueryLimitDefault = 20;
 var GetInvestmentsQueryParams = objectType({
-  status: coerce.string().optional(),
-  page: coerce.number().default(getInvestmentsQueryPageDefault),
-  limit: coerce.number().default(getInvestmentsQueryLimitDefault)
+  "status": coerce.string().optional(),
+  "page": coerce.number().default(getInvestmentsQueryPageDefault),
+  "limit": coerce.number().default(getInvestmentsQueryLimitDefault)
 });
 var GetInvestmentsResponse = objectType({
-  data: arrayType(
-    objectType({
-      id: numberType(),
-      name: stringType(),
-      type: stringType(),
-      amount: numberType(),
-      currentValue: numberType(),
-      returns: numberType(),
-      returnPercentage: numberType(),
-      status: enumType(["active", "matured", "liquidated", "pending"]),
-      startDate: coerce.date(),
-      maturityDate: coerce.date().optional(),
-      description: stringType().optional(),
-      createdAt: coerce.date()
-    })
-  ),
-  total: numberType(),
-  page: numberType(),
-  limit: numberType()
+  "data": arrayType(objectType({
+    "id": numberType(),
+    "name": stringType(),
+    "type": stringType(),
+    "amount": numberType(),
+    "currentValue": numberType(),
+    "returns": numberType(),
+    "returnPercentage": numberType(),
+    "status": enumType(["active", "matured", "liquidated", "pending"]),
+    "startDate": coerce.date(),
+    "maturityDate": coerce.date().optional(),
+    "description": stringType().optional(),
+    "createdAt": coerce.date()
+  })),
+  "total": numberType(),
+  "page": numberType(),
+  "limit": numberType()
 });
 var CreateInvestmentBody = objectType({
-  name: stringType(),
-  type: stringType(),
-  amount: numberType(),
-  startDate: coerce.date(),
-  maturityDate: coerce.date().optional(),
-  description: stringType().optional()
+  "name": stringType(),
+  "type": stringType(),
+  "amount": numberType(),
+  "startDate": coerce.date(),
+  "maturityDate": coerce.date().optional(),
+  "description": stringType().optional()
 });
 var GetInvestmentPortfolioResponse = objectType({
-  totalInvested: numberType(),
-  currentValue: numberType(),
-  totalReturns: numberType(),
-  returnPercentage: numberType(),
-  activeCount: numberType(),
-  maturedCount: numberType(),
-  breakdown: arrayType(
-    objectType({
-      status: stringType(),
-      count: numberType(),
-      amount: numberType(),
-      percentage: numberType()
-    })
-  )
+  "totalInvested": numberType(),
+  "currentValue": numberType(),
+  "totalReturns": numberType(),
+  "returnPercentage": numberType(),
+  "activeCount": numberType(),
+  "maturedCount": numberType(),
+  "breakdown": arrayType(objectType({
+    "status": stringType(),
+    "count": numberType(),
+    "amount": numberType(),
+    "percentage": numberType()
+  }))
 });
 var getComplianceItemsQueryPageDefault = 1;
 var getComplianceItemsQueryLimitDefault = 20;
 var GetComplianceItemsQueryParams = objectType({
-  status: enumType(["pending", "approved", "flagged", "rejected"]).optional(),
-  page: coerce.number().default(getComplianceItemsQueryPageDefault),
-  limit: coerce.number().default(getComplianceItemsQueryLimitDefault)
+  "status": enumType(["pending", "approved", "flagged", "rejected"]).optional(),
+  "page": coerce.number().default(getComplianceItemsQueryPageDefault),
+  "limit": coerce.number().default(getComplianceItemsQueryLimitDefault)
 });
 var GetComplianceItemsResponse = objectType({
-  data: arrayType(
-    objectType({
-      id: numberType(),
-      memberId: numberType(),
-      memberName: stringType(),
-      type: stringType(),
-      status: enumType(["pending", "approved", "flagged", "rejected"]),
-      description: stringType(),
-      submittedAt: coerce.date(),
-      reviewedAt: coerce.date().optional(),
-      reviewedBy: stringType().optional(),
-      notes: stringType().optional(),
-      riskLevel: enumType(["low", "medium", "high"]).optional()
-    })
-  ),
-  total: numberType(),
-  page: numberType(),
-  limit: numberType()
+  "data": arrayType(objectType({
+    "id": numberType(),
+    "memberId": numberType(),
+    "memberName": stringType(),
+    "type": stringType(),
+    "status": enumType(["pending", "approved", "flagged", "rejected"]),
+    "description": stringType(),
+    "submittedAt": coerce.date(),
+    "reviewedAt": coerce.date().optional(),
+    "reviewedBy": stringType().optional(),
+    "notes": stringType().optional(),
+    "riskLevel": enumType(["low", "medium", "high"]).optional()
+  })),
+  "total": numberType(),
+  "page": numberType(),
+  "limit": numberType()
 });
 var GetComplianceSummaryResponse = objectType({
-  pending: numberType(),
-  approved: numberType(),
-  flagged: numberType(),
-  rejected: numberType(),
-  totalThisMonth: numberType(),
-  approvalRate: numberType()
+  "pending": numberType(),
+  "approved": numberType(),
+  "flagged": numberType(),
+  "rejected": numberType(),
+  "totalThisMonth": numberType(),
+  "approvalRate": numberType()
 });
 var getNotificationsQueryPageDefault = 1;
 var getNotificationsQueryLimitDefault = 20;
 var GetNotificationsQueryParams = objectType({
-  unreadOnly: coerce.boolean().optional(),
-  page: coerce.number().default(getNotificationsQueryPageDefault),
-  limit: coerce.number().default(getNotificationsQueryLimitDefault)
+  "unreadOnly": coerce.boolean().optional(),
+  "page": coerce.number().default(getNotificationsQueryPageDefault),
+  "limit": coerce.number().default(getNotificationsQueryLimitDefault)
 });
 var GetNotificationsResponse = objectType({
-  data: arrayType(
-    objectType({
-      id: numberType(),
-      title: stringType(),
-      message: stringType(),
-      type: enumType(["info", "warning", "success", "error", "alert"]),
-      isRead: booleanType(),
-      targetAudience: stringType().optional(),
-      createdAt: coerce.date()
-    })
-  ),
-  total: numberType(),
-  unreadCount: numberType(),
-  page: numberType(),
-  limit: numberType()
+  "data": arrayType(objectType({
+    "id": numberType(),
+    "title": stringType(),
+    "message": stringType(),
+    "type": enumType(["info", "warning", "success", "error", "alert"]),
+    "isRead": booleanType(),
+    "targetAudience": stringType().optional(),
+    "createdAt": coerce.date()
+  })),
+  "total": numberType(),
+  "unreadCount": numberType(),
+  "page": numberType(),
+  "limit": numberType()
 });
 var CreateNotificationBody = objectType({
-  title: stringType(),
-  message: stringType(),
-  type: enumType(["info", "warning", "success", "error", "alert"]),
-  targetAudience: stringType().optional()
+  "title": stringType(),
+  "message": stringType(),
+  "type": enumType(["info", "warning", "success", "error", "alert"]),
+  "targetAudience": stringType().optional()
 });
 var getAuditLogsQueryPageDefault = 1;
 var getAuditLogsQueryLimitDefault = 20;
 var GetAuditLogsQueryParams = objectType({
-  action: coerce.string().optional(),
-  adminId: coerce.number().optional(),
-  page: coerce.number().default(getAuditLogsQueryPageDefault),
-  limit: coerce.number().default(getAuditLogsQueryLimitDefault)
+  "action": coerce.string().optional(),
+  "adminId": coerce.number().optional(),
+  "page": coerce.number().default(getAuditLogsQueryPageDefault),
+  "limit": coerce.number().default(getAuditLogsQueryLimitDefault)
 });
 var GetAuditLogsResponse = objectType({
-  data: arrayType(
-    objectType({
-      id: numberType(),
-      adminId: numberType(),
-      adminName: stringType(),
-      action: stringType(),
-      resource: stringType(),
-      resourceId: stringType().optional(),
-      details: stringType().optional(),
-      ipAddress: stringType().optional(),
-      createdAt: coerce.date()
-    })
-  ),
-  total: numberType(),
-  page: numberType(),
-  limit: numberType()
+  "data": arrayType(objectType({
+    "id": numberType(),
+    "adminId": numberType(),
+    "adminName": stringType(),
+    "action": stringType(),
+    "resource": stringType(),
+    "resourceId": stringType().optional(),
+    "details": stringType().optional(),
+    "ipAddress": stringType().optional(),
+    "createdAt": coerce.date()
+  })),
+  "total": numberType(),
+  "page": numberType(),
+  "limit": numberType()
 });
 var getSupportTicketsQueryPageDefault = 1;
 var getSupportTicketsQueryLimitDefault = 20;
 var GetSupportTicketsQueryParams = objectType({
-  status: enumType(["open", "in_progress", "resolved", "closed"]).optional(),
-  priority: enumType(["low", "medium", "high", "urgent"]).optional(),
-  page: coerce.number().default(getSupportTicketsQueryPageDefault),
-  limit: coerce.number().default(getSupportTicketsQueryLimitDefault)
+  "status": enumType(["open", "in_progress", "resolved", "closed"]).optional(),
+  "priority": enumType(["low", "medium", "high", "urgent"]).optional(),
+  "page": coerce.number().default(getSupportTicketsQueryPageDefault),
+  "limit": coerce.number().default(getSupportTicketsQueryLimitDefault)
 });
 var GetSupportTicketsResponse = objectType({
-  data: arrayType(
-    objectType({
-      id: numberType(),
-      ticketId: stringType(),
-      memberId: numberType(),
-      memberName: stringType(),
-      subject: stringType(),
-      description: stringType().optional(),
-      status: enumType(["open", "in_progress", "resolved", "closed"]),
-      priority: enumType(["low", "medium", "high", "urgent"]),
-      category: stringType().optional(),
-      assignedTo: stringType().optional(),
-      createdAt: coerce.date(),
-      updatedAt: coerce.date().optional(),
-      resolvedAt: coerce.date().optional()
-    })
-  ),
-  total: numberType(),
-  page: numberType(),
-  limit: numberType()
+  "data": arrayType(objectType({
+    "id": numberType(),
+    "ticketId": stringType(),
+    "memberId": numberType(),
+    "memberName": stringType(),
+    "subject": stringType(),
+    "description": stringType().optional(),
+    "status": enumType(["open", "in_progress", "resolved", "closed"]),
+    "priority": enumType(["low", "medium", "high", "urgent"]),
+    "category": stringType().optional(),
+    "assignedTo": stringType().optional(),
+    "createdAt": coerce.date(),
+    "updatedAt": coerce.date().optional(),
+    "resolvedAt": coerce.date().optional()
+  })),
+  "total": numberType(),
+  "page": numberType(),
+  "limit": numberType()
 });
 var GetSupportTicketParams = objectType({
-  id: coerce.number()
+  "id": coerce.number()
 });
 var GetSupportTicketResponse = objectType({
-  id: numberType(),
-  ticketId: stringType(),
-  memberId: numberType(),
-  memberName: stringType(),
-  subject: stringType(),
-  description: stringType().optional(),
-  status: enumType(["open", "in_progress", "resolved", "closed"]),
-  priority: enumType(["low", "medium", "high", "urgent"]),
-  category: stringType().optional(),
-  assignedTo: stringType().optional(),
-  createdAt: coerce.date(),
-  updatedAt: coerce.date().optional(),
-  resolvedAt: coerce.date().optional()
+  "id": numberType(),
+  "ticketId": stringType(),
+  "memberId": numberType(),
+  "memberName": stringType(),
+  "subject": stringType(),
+  "description": stringType().optional(),
+  "status": enumType(["open", "in_progress", "resolved", "closed"]),
+  "priority": enumType(["low", "medium", "high", "urgent"]),
+  "category": stringType().optional(),
+  "assignedTo": stringType().optional(),
+  "createdAt": coerce.date(),
+  "updatedAt": coerce.date().optional(),
+  "resolvedAt": coerce.date().optional()
 });
 var getRiskScoresQueryPageDefault = 1;
 var getRiskScoresQueryLimitDefault = 20;
 var GetRiskScoresQueryParams = objectType({
-  riskLevel: enumType(["low", "medium", "high", "critical"]).optional(),
-  page: coerce.number().default(getRiskScoresQueryPageDefault),
-  limit: coerce.number().default(getRiskScoresQueryLimitDefault)
+  "riskLevel": enumType(["low", "medium", "high", "critical"]).optional(),
+  "page": coerce.number().default(getRiskScoresQueryPageDefault),
+  "limit": coerce.number().default(getRiskScoresQueryLimitDefault)
 });
 var GetRiskScoresResponse = objectType({
-  data: arrayType(
-    objectType({
-      id: numberType(),
-      memberId: numberType(),
-      memberName: stringType(),
-      score: numberType(),
-      riskLevel: enumType(["low", "medium", "high", "critical"]),
-      factors: arrayType(stringType()).optional(),
-      lastUpdated: coerce.date(),
-      loanHistory: numberType().optional(),
-      paymentConsistency: numberType().optional(),
-      creditUtilization: numberType().optional()
-    })
-  ),
-  total: numberType(),
-  page: numberType(),
-  limit: numberType()
+  "data": arrayType(objectType({
+    "id": numberType(),
+    "memberId": numberType(),
+    "memberName": stringType(),
+    "score": numberType(),
+    "riskLevel": enumType(["low", "medium", "high", "critical"]),
+    "factors": arrayType(stringType()).optional(),
+    "lastUpdated": coerce.date(),
+    "loanHistory": numberType().optional(),
+    "paymentConsistency": numberType().optional(),
+    "creditUtilization": numberType().optional()
+  })),
+  "total": numberType(),
+  "page": numberType(),
+  "limit": numberType()
 });
 var GetInterestRatesResponseItem = objectType({
-  id: numberType(),
-  loanType: stringType(),
-  minAmount: numberType(),
-  maxAmount: numberType(),
-  rate: numberType(),
-  tenure: numberType(),
-  description: stringType().optional(),
-  isActive: booleanType(),
-  createdAt: coerce.date()
+  "id": numberType(),
+  "loanType": stringType(),
+  "minAmount": numberType(),
+  "maxAmount": numberType(),
+  "rate": numberType(),
+  "tenure": numberType(),
+  "description": stringType().optional(),
+  "isActive": booleanType(),
+  "createdAt": coerce.date()
 });
 var GetInterestRatesResponse = arrayType(GetInterestRatesResponseItem);
 var CreateInterestRateBody = objectType({
-  loanType: stringType(),
-  minAmount: numberType(),
-  maxAmount: numberType(),
-  rate: numberType(),
-  tenure: numberType(),
-  description: stringType().optional()
+  "loanType": stringType(),
+  "minAmount": numberType(),
+  "maxAmount": numberType(),
+  "rate": numberType(),
+  "tenure": numberType(),
+  "description": stringType().optional()
 });
 
-// artifacts/api-server/src/routes/health.ts
+// src/routes/health.ts
 var router = (0, import_express.Router)();
 router.get("/healthz", (_req, res) => {
   const data = HealthCheckResponse.parse({ status: "ok" });
@@ -36380,11 +34581,82 @@ router.get("/healthz", (_req, res) => {
 });
 var health_default = router;
 
-// artifacts/api-server/src/routes/dashboard.ts
+// src/routes/setup.ts
 var import_express2 = __toESM(require_express2(), 1);
+import { createClient as createClient2 } from "@supabase/supabase-js";
 var router2 = (0, import_express2.Router)();
-router2.get("/dashboard/summary", async (req, res) => {
+router2.post("/setup/super-admin", async (req, res) => {
+  const { email, supabase_service_key } = req.body;
+  const expectedKey = process.env.SETUP_SECRET_KEY || "super-admin-setup-key";
+  if (req.headers["x-setup-key"] !== expectedKey) {
+    res.status(401).json({ error: "Unauthorized - invalid setup key" });
+    return;
+  }
+  if (!email) {
+    res.status(400).json({ error: "Email is required" });
+    return;
+  }
+  if (!supabase_service_key) {
+    res.status(400).json({ error: "Supabase service key is required" });
+    return;
+  }
+  try {
+    const supabase2 = createClient2(
+      process.env.SUPABASE_URL || "",
+      supabase_service_key,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+    const { data: profiles, error: searchError } = await supabase2.from("profiles").select("*").eq("email", email);
+    if (searchError) {
+      console.error("Error searching profiles:", searchError);
+      res.status(500).json({ error: "Database error: " + searchError.message });
+      return;
+    }
+    if (!profiles || profiles.length === 0) {
+      res.status(404).json({ error: `No profile found with email: ${email}` });
+      return;
+    }
+    const profile = profiles[0];
+    const { data: updated, error: updateError } = await supabase2.from("profiles").update({
+      role: "super_admin",
+      is_active: true,
+      kyc_verified: true,
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    }).eq("id", profile.id).select().single();
+    if (updateError) {
+      console.error("Error updating profile:", updateError);
+      res.status(500).json({ error: "Failed to update profile: " + updateError.message });
+      return;
+    }
+    console.log(`\u2705 Super admin set successfully: ${email}`);
+    res.json({
+      success: true,
+      message: `Super admin privileges granted to ${email}`,
+      profile: {
+        id: updated.id,
+        email: updated.email,
+        role: updated.role,
+        is_active: updated.is_active,
+        kyc_verified: updated.kyc_verified
+      }
+    });
+  } catch (err) {
+    console.error("Setup error:", err);
+    res.status(500).json({ error: err.message || "Setup failed" });
+  }
+});
+var setup_default = router2;
+
+// src/routes/dashboard.ts
+var import_express3 = __toESM(require_express2(), 1);
+var router3 = (0, import_express3.Router)();
+function calcGrowth(current, previous) {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return Math.round((current - previous) / previous * 1e3) / 10;
+}
+router3.get("/dashboard/summary", async (req, res) => {
   const { count: memberCount } = await supabase.from("profiles").select("*", { count: "exact", head: true });
+  const { count: activeMembersCount } = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_active", true).eq("kyc_verified", true).eq("is_flagged", false);
   const { data: loanRows } = await supabase.from("loans").select("amount, remaining_balance, status");
   const loans = loanRows ?? [];
   const activeLoans = loans.filter((l) => l.status === "active").length;
@@ -36401,11 +34673,39 @@ router2.get("/dashboard/summary", async (req, res) => {
   const totalInvestments = (poolRows ?? []).reduce((s, r) => s + Number(r.raised_amount || 0), 0);
   const { count: pendingKyc } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "pending");
   const { count: openTickets } = await supabase.from("tickets").select("*", { count: "exact", head: true }).in("status", ["open", "in_progress"]);
-  const orgResult = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("status", "active").catch(() => ({ count: 0 }));
-  const activeOrganizations = orgResult.count ?? 0;
+  let activeOrganizations = 0;
+  try {
+    const { count } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("status", "active");
+    activeOrganizations = count ?? 0;
+  } catch {
+    activeOrganizations = 0;
+  }
+  const now = /* @__PURE__ */ new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+  const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString();
+  const { count: newThisMonth } = await supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", monthStart);
+  const { count: newLastMonth } = await supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
+  const membersGrowth = calcGrowth(newThisMonth ?? 0, newLastMonth ?? 0);
+  const { data: savingsThisMonth } = await supabase.from("savings").select("total_saved").gte("updated_at", monthStart);
+  const { data: savingsLastMonth } = await supabase.from("savings").select("total_saved").gte("updated_at", prevMonthStart).lt("updated_at", prevMonthEnd);
+  const savingsThisMonthTotal = (savingsThisMonth ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
+  const savingsLastMonthTotal = (savingsLastMonth ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
+  const savingsGrowth = calcGrowth(savingsThisMonthTotal, savingsLastMonthTotal);
+  const { count: loansThisMonth } = await supabase.from("loans").select("*", { count: "exact", head: true }).in("status", ["active", "completed"]).gte("approved_at", monthStart);
+  const { count: loansLastMonth } = await supabase.from("loans").select("*", { count: "exact", head: true }).in("status", ["active", "completed"]).gte("approved_at", prevMonthStart).lt("approved_at", prevMonthEnd);
+  const loansGrowth = calcGrowth(loansThisMonth ?? 0, loansLastMonth ?? 0);
+  const { data: txnsThisMonth } = await supabase.from("transactions").select("amount").in("type", ["savings_deposit", "deposit"]).eq("status", "completed").gte("created_at", monthStart);
+  const { data: txnsLastMonth } = await supabase.from("transactions").select("amount").in("type", ["savings_deposit", "deposit"]).eq("status", "completed").gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
+  const contributionsThisMonth = (txnsThisMonth ?? []).reduce((s, t) => s + Number(t.amount || 0), 0);
+  const contributionsLastMonth = (txnsLastMonth ?? []).reduce((s, t) => s + Number(t.amount || 0), 0);
+  const contributionsGrowth = calcGrowth(contributionsThisMonth, contributionsLastMonth);
+  const { count: txnsCountThisMonth } = await supabase.from("transactions").select("*", { count: "exact", head: true }).gte("created_at", monthStart);
+  const { count: txnsCountLastMonth } = await supabase.from("transactions").select("*", { count: "exact", head: true }).gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
+  const monthlyGrowth = calcGrowth(txnsCountThisMonth ?? 0, txnsCountLastMonth ?? 0);
   res.json({
     totalMembers: memberCount ?? 0,
-    activeMembers: memberCount ?? 0,
+    activeMembers: activeMembersCount ?? 0,
     activeLoans,
     totalContributions,
     totalSavings: totalContributions,
@@ -36418,14 +34718,14 @@ router2.get("/dashboard/summary", async (req, res) => {
     riskExposure,
     activeDefaulters,
     activeOrganizations,
-    monthlyGrowth: 4.2,
-    membersGrowth: 8.5,
-    loansGrowth: 12.3,
-    savingsGrowth: 6.7,
-    contributionsGrowth: 6.7
+    monthlyGrowth,
+    membersGrowth,
+    loansGrowth,
+    savingsGrowth,
+    contributionsGrowth
   });
 });
-router2.get("/dashboard/monthly-contributions", async (req, res) => {
+router3.get("/dashboard/monthly-contributions", async (req, res) => {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const now = /* @__PURE__ */ new Date();
   const year = now.getFullYear();
@@ -36443,9 +34743,9 @@ router2.get("/dashboard/monthly-contributions", async (req, res) => {
     amount: monthMap.get(month) ?? 0,
     value: monthMap.get(month) ?? 0
   }));
-  res.json({ data });
+  res.json(data);
 });
-router2.get("/dashboard/loan-status-breakdown", async (req, res) => {
+router3.get("/dashboard/loan-status-breakdown", async (req, res) => {
   const { data: loans } = await supabase.from("loans").select("amount, status");
   const rows = loans ?? [];
   const grouped = /* @__PURE__ */ new Map();
@@ -36455,17 +34755,15 @@ router2.get("/dashboard/loan-status-breakdown", async (req, res) => {
     grouped.set(s, { count: existing.count + 1, amount: existing.amount + Number(l.amount || 0) });
   }
   const total = rows.length;
-  res.json({
-    breakdown: Array.from(grouped.entries()).map(([status, v]) => ({
-      status,
-      count: v.count,
-      amount: v.amount,
-      percentage: total > 0 ? Math.round(v.count / total * 1e3) / 10 : 0
-    })),
-    total
-  });
+  const breakdown = Array.from(grouped.entries()).map(([status, v]) => ({
+    status,
+    count: v.count,
+    amount: v.amount,
+    percentage: total > 0 ? Math.round(v.count / total * 1e3) / 10 : 0
+  }));
+  res.json(breakdown);
 });
-router2.get("/dashboard/recent-activity", async (req, res) => {
+router3.get("/dashboard/recent-activity", async (req, res) => {
   const { data: recentTxns } = await supabase.from("transactions").select("id, profile_id, amount, type, created_at, profiles!transactions_profile_id_fkey(name)").in("type", ["savings_deposit", "deposit"]).order("created_at", { ascending: false }).limit(5);
   const { data: recentLoans } = await supabase.from("loans").select("id, profile_id, amount, status, created_at, profiles!loans_profile_id_fkey(name)").order("created_at", { ascending: false }).limit(5);
   const activities = [
@@ -36490,15 +34788,41 @@ router2.get("/dashboard/recent-activity", async (req, res) => {
     }))
   ];
   activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  res.json({ activities: activities.slice(0, 10) });
+  res.json(activities.slice(0, 10));
 });
-var dashboard_default = router2;
+var dashboard_default = router3;
 
-// artifacts/api-server/src/routes/members.ts
-var import_express3 = __toESM(require_express2(), 1);
-var router3 = (0, import_express3.Router)();
-router3.use(requireAuth);
-router3.get("/members/stats", async (req, res) => {
+// src/routes/members.ts
+var import_express4 = __toESM(require_express2(), 1);
+var router4 = (0, import_express4.Router)();
+router4.use(requireAuth);
+async function syncAuthUsersToProfiles() {
+  try {
+    const { data, error } = await supabase.auth.admin.listUsers({ perPage: 1e3 });
+    if (error || !data?.users?.length) return;
+    const { data: existing } = await supabase.from("profiles").select("email");
+    const knownEmails = new Set(
+      (existing ?? []).map((p) => (p.email ?? "").toLowerCase())
+    );
+    const toInsert = data.users.filter((u) => u.email && !knownEmails.has(u.email.toLowerCase())).map((u) => ({
+      id: crypto.randomUUID(),
+      user_id: "CVA-" + u.id.replace(/-/g, "").slice(0, 8).toUpperCase(),
+      name: u.user_metadata?.full_name ?? u.user_metadata?.name ?? u.email.split("@")[0],
+      email: u.email,
+      phone: (u.phone ?? u.user_metadata?.phone) || null,
+      role: "member",
+      is_active: true,
+      kyc_verified: false,
+      created_at: u.created_at ?? (/* @__PURE__ */ new Date()).toISOString()
+    }));
+    if (toInsert.length > 0) {
+      await supabase.from("profiles").insert(toInsert);
+    }
+  } catch {
+  }
+}
+router4.get("/members/stats", async (req, res) => {
+  await syncAuthUsersToProfiles();
   const { count: total } = await supabase.from("profiles").select("*", { count: "exact", head: true });
   const { count: active } = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_active", true).eq("kyc_verified", true).eq("is_flagged", false);
   const { count: inactive } = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_active", false);
@@ -36507,9 +34831,21 @@ router3.get("/members/stats", async (req, res) => {
   const now = /* @__PURE__ */ new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const { count: newThisMonth } = await supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", monthStart);
-  res.json({ total: total ?? 0, active: active ?? 0, inactive: inactive ?? 0, suspended: suspended ?? 0, pending: pending ?? 0, newThisMonth: newThisMonth ?? 0 });
+  const { count: loanDefaulters } = await supabase.from("loans").select("*", { count: "exact", head: true }).eq("status", "active").lt("remaining_balance", 0);
+  const { count: highRisk } = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_flagged", true);
+  res.json({
+    total: total ?? 0,
+    active: active ?? 0,
+    inactive: inactive ?? 0,
+    suspended: suspended ?? 0,
+    pending: pending ?? 0,
+    newThisMonth: newThisMonth ?? 0,
+    loanDefaulters: loanDefaulters ?? 0,
+    highRisk: highRisk ?? 0
+  });
 });
-router3.get("/members", async (req, res) => {
+router4.get("/members", async (req, res) => {
+  await syncAuthUsersToProfiles();
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -36535,14 +34871,35 @@ router3.get("/members", async (req, res) => {
   res.json({
     data: (profiles ?? []).map((p) => {
       const { firstName, lastName } = splitName(p.name);
-      return { id: p.id, memberId: p.user_id, firstName, lastName, email: p.email, phone: p.phone ?? "", status: deriveStatus(p), joinDate: p.created_at ? p.created_at.slice(0, 10) : null, address: null, occupation: null, createdAt: p.created_at, totalContributions: savingsMap.get(p.id) ?? 0, activeLoan: loanMap.get(p.id) ?? 0, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" };
+      return {
+        id: p.id,
+        memberId: p.user_id,
+        firstName,
+        lastName,
+        email: p.email,
+        phone: p.phone ?? "",
+        status: deriveStatus(p),
+        role: p.role || "member",
+        kycVerified: p.kyc_verified || false,
+        profilePicture: p.avatar_url || null,
+        occupation: p.occupation || null,
+        organization: p.organization || null,
+        employer: p.employer || null,
+        address: p.address || null,
+        joinDate: p.created_at ? p.created_at.slice(0, 10) : null,
+        createdAt: p.created_at,
+        totalContributions: savingsMap.get(p.id) ?? 0,
+        activeLoan: loanMap.get(p.id) ?? 0,
+        riskScore: 0,
+        avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??"
+      };
     }),
     total: count ?? 0,
     page,
     limit
   });
 });
-router3.post("/members", async (req, res) => {
+router4.post("/members", async (req, res) => {
   const parsed = CreateMemberBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
@@ -36558,7 +34915,7 @@ router3.post("/members", async (req, res) => {
   }
   res.status(201).json({ id: profile.id, memberId: profile.user_id, firstName, lastName, email: profile.email, phone: profile.phone, status: "pending", joinDate: profile.created_at?.slice(0, 10) ?? null, address: address ?? null, occupation: occupation ?? null, createdAt: profile.created_at, totalContributions: 0, activeLoan: 0, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() });
 });
-router3.get("/members/:id", async (req, res) => {
+router4.get("/members/:id", async (req, res) => {
   const id = req.params.id;
   const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", id).single();
   if (error || !profile) {
@@ -36570,47 +34927,266 @@ router3.get("/members/:id", async (req, res) => {
   const totalContributions = Number(savings?.total_saved ?? 0);
   const activeLoan = (activeLoans ?? []).reduce((sum, l) => sum + Number(l.remaining_balance || 0), 0);
   const { firstName, lastName } = splitName(profile.name);
-  res.json({ id: profile.id, memberId: profile.user_id, firstName, lastName, email: profile.email, phone: profile.phone ?? "", status: deriveStatus(profile), joinDate: profile.created_at?.slice(0, 10) ?? null, address: null, occupation: null, createdAt: profile.created_at, totalContributions, activeLoan, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" });
+  res.json({
+    id: profile.id,
+    memberId: profile.user_id,
+    firstName,
+    lastName,
+    email: profile.email,
+    phone: profile.phone ?? "",
+    status: deriveStatus(profile),
+    role: profile.role || "member",
+    kycVerified: profile.kyc_verified || false,
+    profilePicture: profile.avatar_url || null,
+    occupation: profile.occupation || null,
+    organization: profile.organization || null,
+    employer: profile.employer || null,
+    address: profile.address || null,
+    joinDate: profile.created_at?.slice(0, 10) ?? null,
+    createdAt: profile.created_at,
+    totalContributions,
+    activeLoan,
+    riskScore: 0,
+    avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??"
+  });
 });
-router3.put("/members/:id", requireRole("operator"), async (req, res) => {
-  const id = req.params.id;
-  const { firstName, lastName, email, phone, status } = req.body;
-  const updates = {};
-  if (firstName || lastName) {
-    const { data: existing } = await supabase.from("profiles").select("name").eq("id", id).single();
-    const current = splitName(existing?.name ?? "");
-    updates.name = `${firstName ?? current.firstName} ${lastName ?? current.lastName}`;
-  }
-  if (email) updates.email = email;
-  if (phone) updates.phone = phone;
-  if (status === "active") {
-    updates.is_active = true;
-    updates.kyc_verified = true;
-    updates.is_flagged = false;
-  } else if (status === "inactive") {
-    updates.is_active = false;
-  } else if (status === "suspended") {
-    updates.is_flagged = true;
-  } else if (status === "pending") {
-    updates.is_active = true;
-    updates.kyc_verified = false;
-    updates.is_flagged = false;
-  }
-  const { data: profile, error } = await supabase.from("profiles").update(updates).eq("id", id).select().single();
+router4.get("/members/user/:userId", async (req, res) => {
+  const userId = req.params.userId;
+  const { data: profile, error } = await supabase.from("profiles").select("*").eq("user_id", userId).single();
   if (error || !profile) {
     res.status(404).json({ error: "Member not found" });
     return;
   }
-  const { firstName: fn, lastName: ln } = splitName(profile.name);
-  res.json({ id: profile.id, memberId: profile.user_id, firstName: fn, lastName: ln, email: profile.email, phone: profile.phone ?? "", status: deriveStatus(profile), joinDate: profile.created_at?.slice(0, 10) ?? null, address: null, occupation: null, createdAt: profile.created_at, totalContributions: 0, activeLoan: 0, riskScore: 0 });
+  const { data: savings } = await supabase.from("savings").select("total_saved").eq("profile_id", profile.id).single();
+  const { data: activeLoans } = await supabase.from("loans").select("remaining_balance").eq("profile_id", profile.id).eq("status", "active");
+  const totalContributions = Number(savings?.total_saved ?? 0);
+  const activeLoan = (activeLoans ?? []).reduce((sum, l) => sum + Number(l.remaining_balance || 0), 0);
+  const { firstName, lastName } = splitName(profile.name);
+  res.json({
+    id: profile.id,
+    memberId: profile.user_id,
+    firstName,
+    lastName,
+    email: profile.email,
+    phone: profile.phone ?? "",
+    status: deriveStatus(profile),
+    role: profile.role || "member",
+    kycVerified: profile.kyc_verified || false,
+    profilePicture: profile.avatar_url || null,
+    occupation: profile.occupation || null,
+    organization: profile.organization || null,
+    employer: profile.employer || null,
+    address: profile.address || null,
+    joinDate: profile.created_at?.slice(0, 10) ?? null,
+    createdAt: profile.created_at,
+    totalContributions,
+    activeLoan,
+    riskScore: 0,
+    avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??"
+  });
 });
-var members_default = router3;
+router4.patch("/members/:id", async (req, res) => {
+  const id = req.params.id;
+  const { status, kyc_verified, is_flagged, is_active } = req.body;
+  const updates = {};
+  if (status !== void 0) {
+    switch (status) {
+      case "active":
+        updates.is_active = true;
+        updates.kyc_verified = true;
+        updates.is_flagged = false;
+        break;
+      case "suspended":
+        updates.is_active = false;
+        updates.is_flagged = true;
+        break;
+      case "inactive":
+        updates.is_active = false;
+        updates.is_flagged = false;
+        break;
+      case "pending":
+        updates.is_active = true;
+        updates.kyc_verified = false;
+        updates.is_flagged = false;
+        break;
+      case "frozen":
+        updates.is_active = false;
+        updates.is_flagged = true;
+        break;
+    }
+  }
+  if (kyc_verified !== void 0) updates.kyc_verified = kyc_verified;
+  if (is_flagged !== void 0) updates.is_flagged = is_flagged;
+  if (is_active !== void 0) updates.is_active = is_active;
+  if (Object.keys(updates).length === 0) {
+    res.status(400).json({ error: "No valid fields to update" });
+    return;
+  }
+  updates.updated_at = (/* @__PURE__ */ new Date()).toISOString();
+  const { data: profile, error } = await supabase.from("profiles").update(updates).eq("id", id).select().single();
+  if (error) {
+    console.error("Error updating member:", error);
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  if (!profile) {
+    res.status(404).json({ error: "Member not found" });
+    return;
+  }
+  const { firstName, lastName } = splitName(profile.name);
+  res.json({ id: profile.id, memberId: profile.user_id, firstName, lastName, email: profile.email, phone: profile.phone ?? "", status: deriveStatus(profile), joinDate: profile.created_at?.slice(0, 10) ?? null, address: null, occupation: null, createdAt: profile.created_at, totalContributions: 0, activeLoan: 0, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" });
+});
+router4.put("/members/:id", async (req, res) => {
+  const id = req.params.id;
+  const { status, kyc_verified, is_flagged, is_active, role } = req.body;
+  const updates = {};
+  if (status !== void 0) {
+    switch (status) {
+      case "active":
+        updates.is_active = true;
+        updates.kyc_verified = true;
+        updates.is_flagged = false;
+        break;
+      case "suspended":
+        updates.is_active = false;
+        updates.is_flagged = true;
+        break;
+      case "inactive":
+        updates.is_active = false;
+        updates.is_flagged = false;
+        break;
+      case "pending":
+        updates.is_active = true;
+        updates.kyc_verified = false;
+        updates.is_flagged = false;
+        break;
+      case "frozen":
+        updates.is_active = false;
+        updates.is_flagged = true;
+        break;
+    }
+  }
+  if (kyc_verified !== void 0) updates.kyc_verified = kyc_verified;
+  if (is_flagged !== void 0) updates.is_flagged = is_flagged;
+  if (is_active !== void 0) updates.is_active = is_active;
+  if (role !== void 0) updates.role = role;
+  if (Object.keys(updates).length === 0) {
+    res.status(400).json({ error: "No valid fields to update" });
+    return;
+  }
+  updates.updated_at = (/* @__PURE__ */ new Date()).toISOString();
+  const { data: profile, error } = await supabase.from("profiles").update(updates).eq("id", id).select().single();
+  if (error) {
+    console.error("Error updating member:", error);
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  if (!profile) {
+    res.status(404).json({ error: "Member not found" });
+    return;
+  }
+  const { firstName, lastName } = splitName(profile.name);
+  res.json({
+    id: profile.id,
+    memberId: profile.user_id,
+    firstName,
+    lastName,
+    email: profile.email,
+    phone: profile.phone ?? "",
+    status: deriveStatus(profile),
+    role: profile.role || "member",
+    kycVerified: profile.kyc_verified || false,
+    profilePicture: profile.avatar_url || null,
+    occupation: profile.occupation || null,
+    organization: profile.organization || null,
+    employer: profile.employer || null,
+    joinDate: profile.created_at?.slice(0, 10) ?? null,
+    address: profile.address || null,
+    occupation: profile.occupation || null,
+    createdAt: profile.created_at,
+    totalContributions: 0,
+    activeLoan: 0,
+    riskScore: 0,
+    avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??"
+  });
+});
+router4.post("/members/:id/role", requireAuth, requireRole("super_admin"), async (req, res) => {
+  const id = req.params.id;
+  const { role } = req.body;
+  if (!role || !["member", "viewer", "operator", "admin", "super_admin"].includes(role)) {
+    res.status(400).json({ error: "Invalid role. Must be: member, viewer, operator, admin, or super_admin" });
+    return;
+  }
+  const { data: profile, error } = await supabase.from("profiles").update({ role, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", id).select().single();
+  if (error) {
+    console.error("Error updating role:", error);
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  if (!profile) {
+    res.status(404).json({ error: "Member not found" });
+    return;
+  }
+  const { firstName, lastName } = splitName(profile.name);
+  res.json({
+    id: profile.id,
+    memberId: profile.user_id,
+    firstName,
+    lastName,
+    email: profile.email,
+    phone: profile.phone ?? "",
+    status: deriveStatus(profile),
+    role: profile.role,
+    kycVerified: profile.kyc_verified || false,
+    profilePicture: profile.avatar_url || null,
+    occupation: profile.occupation || null,
+    organization: profile.organization || null,
+    employer: profile.employer || null,
+    joinDate: profile.created_at?.slice(0, 10) ?? null,
+    address: profile.address || null,
+    createdAt: profile.created_at,
+    totalContributions: 0,
+    activeLoan: 0,
+    riskScore: 0,
+    avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??"
+  });
+});
+router4.delete("/members/:id", requireAuth, requireRole("super_admin"), async (req, res) => {
+  const id = req.params.id;
+  const { data: profile, error: fetchError } = await supabase.from("profiles").select("id, email, name, role").eq("id", id).single();
+  if (fetchError || !profile) {
+    res.status(404).json({ error: "Member not found" });
+    return;
+  }
+  const currentUserEmail = req.user?.email;
+  if (profile.id === req.user?.profileId) {
+    res.status(400).json({ error: "Cannot delete your own account" });
+    return;
+  }
+  if (profile.role === "super_admin") {
+    if (currentUserEmail !== "ayanlowo89@gmail.com") {
+      res.status(403).json({ error: "Only the primary admin can delete other super admins" });
+      return;
+    }
+  }
+  const { error: deleteError } = await supabase.from("profiles").delete().eq("id", id);
+  if (deleteError) {
+    console.error("Error deleting member:", deleteError);
+    res.status(500).json({ error: deleteError.message });
+    return;
+  }
+  res.json({
+    success: true,
+    message: `Member ${profile.name} (${profile.email}) has been deleted`
+  });
+});
+var members_default = router4;
 
-// artifacts/api-server/src/routes/loans.ts
-var import_express4 = __toESM(require_express2(), 1);
-var router4 = (0, import_express4.Router)();
-router4.use(requireAuth);
-router4.get("/loans/portfolio-summary", async (req, res) => {
+// src/routes/loans.ts
+var import_express5 = __toESM(require_express2(), 1);
+var router5 = (0, import_express5.Router)();
+router5.use(requireAuth);
+router5.get("/loans/portfolio-summary", async (req, res) => {
   const { data: loans } = await supabase.from("loans").select("amount, remaining_balance, status");
   const rows = loans ?? [];
   const activeOrCompleted = rows.filter((l) => l.status === "active" || l.status === "completed");
@@ -36635,7 +35211,7 @@ router4.get("/loans/portfolio-summary", async (req, res) => {
     pendingCount
   });
 });
-router4.get("/loans", async (req, res) => {
+router5.get("/loans", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -36676,14 +35252,78 @@ router4.get("/loans", async (req, res) => {
     limit
   });
 });
-router4.post("/loans", async (req, res) => {
+router5.post("/loans/apply", async (req, res) => {
+  try {
+    const { memberId, amount, tenure, purpose, guarantorIds } = req.body;
+    if (!memberId || !amount || !tenure) {
+      res.status(400).json({ error: "Missing required fields: memberId, amount, tenure" });
+      return;
+    }
+    const loanId = "LN-" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
+    const interestRate = 10;
+    const monthlyPayment = amount * (interestRate / 100 / 12) / (1 - Math.pow(1 + interestRate / 100 / 12, -tenure));
+    const { data: loan, error } = await supabase.from("loans").insert({
+      loan_id: loanId,
+      profile_id: memberId,
+      loan_type: "Quick Loan",
+      amount,
+      tenure_months: tenure,
+      purpose: purpose || "Personal",
+      base_interest_rate: interestRate,
+      referral_bonus_percent: 0,
+      effective_interest_rate: interestRate,
+      monthly_repayment: Number(monthlyPayment.toFixed(2)),
+      total_repayment: Number((monthlyPayment * tenure).toFixed(2)),
+      remaining_balance: amount,
+      remaining_months: tenure,
+      status: "pending"
+    }).select().single();
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+    if (guarantorIds && Array.isArray(guarantorIds)) {
+      const guarantorRecords = guarantorIds.map((gid) => ({
+        loan_id: loan.id,
+        profile_id: gid,
+        status: "pending",
+        confirmed_at: null
+      }));
+      await supabase.from("loan_guarantors").insert(guarantorRecords);
+    }
+    const { data: profile } = await supabase.from("profiles").select("name").eq("id", memberId).single();
+    res.status(201).json({
+      success: true,
+      loanId: loan.loan_id,
+      message: "Loan application submitted successfully",
+      loan: {
+        id: loan.id,
+        loanId: loan.loan_id,
+        memberId: loan.profile_id,
+        memberName: profile?.name ?? "",
+        amount: Number(loan.amount),
+        balance: Number(loan.remaining_balance),
+        interestRate: Number(loan.effective_interest_rate),
+        tenure: loan.tenure_months,
+        status: loan.status,
+        purpose: loan.purpose,
+        monthlyPayment: Number(loan.monthly_repayment),
+        createdAt: loan.created_at
+      }
+    });
+  } catch (err) {
+    console.error("Loan apply error:", err);
+    res.status(500).json({ error: "Failed to process loan application" });
+  }
+});
+router5.post("/loans", async (req, res) => {
   const parsed = CreateLoanBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
   const { memberId, amount, tenure, purpose, interestRate = 5 } = parsed.data;
-  const loanId = "LN-" + String(Date.now()).slice(-7);
+  const loanId = "LN-" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
   const monthlyPayment = amount * (interestRate / 100 / 12) / (1 - Math.pow(1 + interestRate / 100 / 12, -tenure));
   const { data: loan, error } = await supabase.from("loans").insert({
     loan_id: loanId,
@@ -36721,7 +35361,7 @@ router4.post("/loans", async (req, res) => {
     createdAt: loan.created_at
   });
 });
-router4.get("/loans/:id", async (req, res) => {
+router5.get("/loans/:id", async (req, res) => {
   const id = req.params.id;
   const { data: loan, error } = await supabase.from("loans").select("*, profiles!loans_profile_id_fkey(name)").eq("id", id).single();
   if (error || !loan) {
@@ -36748,7 +35388,7 @@ router4.get("/loans/:id", async (req, res) => {
     createdAt: loan.created_at
   });
 });
-router4.post("/loans/:id/approve", requireRole("operator"), async (req, res) => {
+router5.post("/loans/:id/approve", requireRole("operator"), async (req, res) => {
   const id = req.params.id;
   const now = /* @__PURE__ */ new Date();
   const dueDate = new Date(now);
@@ -36775,7 +35415,7 @@ router4.post("/loans/:id/approve", requireRole("operator"), async (req, res) => 
     createdAt: loan.created_at
   });
 });
-router4.post("/loans/:id/reject", requireRole("operator"), async (req, res) => {
+router5.post("/loans/:id/reject", requireRole("operator"), async (req, res) => {
   const id = req.params.id;
   const { reason } = req.body;
   if (!reason || typeof reason !== "string" || reason.trim().length === 0) {
@@ -36804,13 +35444,13 @@ router4.post("/loans/:id/reject", requireRole("operator"), async (req, res) => {
     createdAt: loan.created_at
   });
 });
-var loans_default = router4;
+var loans_default = router5;
 
-// artifacts/api-server/src/routes/contributions.ts
-var import_express5 = __toESM(require_express2(), 1);
-var router5 = (0, import_express5.Router)();
-router5.use(requireAuth);
-router5.get("/contributions/summary", async (req, res) => {
+// src/routes/contributions.ts
+var import_express6 = __toESM(require_express2(), 1);
+var router6 = (0, import_express6.Router)();
+router6.use(requireAuth);
+router6.get("/contributions/summary", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
   const { data: savingsRows } = await supabase.from("savings").select("total_saved, monthly_savings, profile_id");
   const rows = savingsRows ?? [];
   const totalCollected = rows.reduce((s, r) => s + Number(r.total_saved || 0), 0);
@@ -36828,7 +35468,7 @@ router5.get("/contributions/summary", async (req, res) => {
     paidThisMonth: membersWithSavings
   });
 });
-router5.get("/contributions", async (req, res) => {
+router6.get("/contributions", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -36866,14 +35506,14 @@ router5.get("/contributions", async (req, res) => {
     limit
   });
 });
-router5.post("/contributions", async (req, res) => {
+router6.post("/contributions", requireRole("operator", "admin", "super_admin"), async (req, res) => {
   const parsed = CreateContributionBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
   const { memberId, amount, month, paymentMethod } = parsed.data;
-  const ref = "TXN-" + String(Date.now()).slice(-8);
+  const ref = "TXN-" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
   const txnId = "TX-" + crypto.randomUUID().slice(0, 8);
   const { data: txn, error } = await supabase.from("transactions").insert({
     transaction_id: txnId,
@@ -36903,14 +35543,35 @@ router5.post("/contributions", async (req, res) => {
     createdAt: txn.created_at
   });
 });
-var contributions_default = router5;
+var contributions_default = router6;
 
-// artifacts/api-server/src/routes/investments.ts
-var import_express6 = __toESM(require_express2(), 1);
-var router6 = (0, import_express6.Router)();
-router6.get("/investments/portfolio", async (req, res) => {
-  const { data: pools } = await supabase.from("investment_pools").select("*");
-  const rows = pools ?? [];
+// src/routes/investments.ts
+var import_express7 = __toESM(require_express2(), 1);
+var router7 = (0, import_express7.Router)();
+router7.use(requireAuth);
+var CreateInvestmentBody2 = external_exports.object({
+  name: external_exports.string().min(1, "name is required"),
+  type: external_exports.string().min(1, "type is required"),
+  amount: external_exports.number().positive("amount must be a positive number"),
+  startDate: external_exports.string().min(1, "startDate is required"),
+  maturityDate: external_exports.string().optional(),
+  description: external_exports.string().optional()
+});
+router7.get("/investments/portfolio", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
+  const { data: pools, error } = await supabase.from("investment_pools").select("*");
+  if (error) {
+    res.status(500).json({
+      totalInvested: 0,
+      currentValue: 0,
+      totalReturns: 0,
+      returnPercentage: 0,
+      activeCount: 0,
+      maturedCount: 0,
+      breakdown: []
+    });
+    return;
+  }
+  const rows = Array.isArray(pools) ? pools : [];
   const totalInvested = rows.reduce((s, p) => s + Number(p.target_amount || 0), 0);
   const currentValue = rows.reduce((s, p) => s + Number(p.raised_amount || 0), 0);
   const totalReturns = currentValue - totalInvested;
@@ -36939,11 +35600,42 @@ router6.get("/investments/portfolio", async (req, res) => {
     }))
   });
 });
-router6.get("/investments", async (req, res) => {
+router7.get("/investments", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
   const status = req.query.status;
+  const profileId = req.query.profile_id;
+  if (profileId) {
+    let query2 = supabase.from("user_investments").select("*", { count: "exact" }).eq("profile_id", profileId);
+    if (status) query2 = query2.eq("status", status);
+    const { data: userInv, count: count2, error: error2 } = await query2.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+    if (error2) {
+      res.status(500).json({ error: error2.message });
+      return;
+    }
+    const investments = Array.isArray(userInv) ? userInv : [];
+    res.json({
+      data: investments.map((inv) => ({
+        id: inv.id,
+        name: inv.investment_name || "Investment",
+        type: inv.investment_type || "pool",
+        amount: Number(inv.amount_invested || 0),
+        currentValue: Number(inv.current_value || inv.amount_invested || 0),
+        returns: Number(inv.current_value || inv.amount_invested || 0) - Number(inv.amount_invested || 0),
+        returnPercentage: Number(inv.return_rate || 0),
+        status: inv.status || "active",
+        startDate: inv.start_date?.slice(0, 10) ?? null,
+        maturityDate: inv.maturity_date?.slice(0, 10) ?? null,
+        description: inv.notes || null,
+        createdAt: inv.created_at
+      })),
+      total: count2 ?? 0,
+      page,
+      limit
+    });
+    return;
+  }
   let query = supabase.from("investment_pools").select("*", { count: "exact" });
   if (status) query = query.eq("status", status);
   const { data: pools, count, error } = await query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
@@ -36951,8 +35643,9 @@ router6.get("/investments", async (req, res) => {
     res.status(500).json({ error: error.message });
     return;
   }
+  const poolData = Array.isArray(pools) ? pools : [];
   res.json({
-    data: (pools ?? []).map((p) => ({
+    data: poolData.map((p) => ({
       id: p.id,
       name: p.name,
       type: p.category ?? "pool",
@@ -36971,13 +35664,14 @@ router6.get("/investments", async (req, res) => {
     limit
   });
 });
-router6.post("/investments", async (req, res) => {
-  const { name, type, amount, startDate, maturityDate, description } = req.body;
-  if (!name || !type || !amount || !startDate) {
-    res.status(400).json({ error: "name, type, amount, startDate are required" });
+router7.post("/investments", async (req, res) => {
+  const parsed = CreateInvestmentBody2.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
-  const poolId = "POOL-" + String(Date.now()).slice(-7);
+  const { name, type, amount, startDate, maturityDate, description } = parsed.data;
+  const poolId = "POOL-" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
   const { data: pool, error } = await supabase.from("investment_pools").insert({
     pool_id: poolId,
     name,
@@ -37011,12 +35705,13 @@ router6.post("/investments", async (req, res) => {
     createdAt: pool.created_at
   });
 });
-var investments_default = router6;
+var investments_default = router7;
 
-// artifacts/api-server/src/routes/compliance.ts
-var import_express7 = __toESM(require_express2(), 1);
-var router7 = (0, import_express7.Router)();
-router7.get("/compliance/summary", async (req, res) => {
+// src/routes/compliance.ts
+var import_express8 = __toESM(require_express2(), 1);
+var router8 = (0, import_express8.Router)();
+router8.use(requireAuth);
+router8.get("/compliance/summary", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
   const { count: pending } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "pending");
   const { count: approved } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "verified");
   const { count: flagged } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "in_review");
@@ -37035,7 +35730,7 @@ router7.get("/compliance/summary", async (req, res) => {
     approvalRate: Math.round(approvalRate * 10) / 10
   });
 });
-router7.get("/compliance", async (req, res) => {
+router8.get("/compliance", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -37071,7 +35766,7 @@ router7.get("/compliance", async (req, res) => {
     limit
   });
 });
-router7.post("/compliance/:id/approve", async (req, res) => {
+router8.post("/compliance/:id/approve", requireRole("operator", "admin", "super_admin"), async (req, res) => {
   const id = req.params.id;
   const { data: updated, error } = await supabase.from("kyc").update({
     status: "verified",
@@ -37087,7 +35782,7 @@ router7.post("/compliance/:id/approve", async (req, res) => {
   }
   res.json({ id: updated.id, status: "approved", reviewedAt: updated.verified_at });
 });
-router7.post("/compliance/:id/reject", async (req, res) => {
+router8.post("/compliance/:id/reject", requireRole("operator", "admin", "super_admin"), async (req, res) => {
   const id = req.params.id;
   const { reason } = req.body;
   const { data: updated, error } = await supabase.from("kyc").update({
@@ -37101,12 +35796,12 @@ router7.post("/compliance/:id/reject", async (req, res) => {
   }
   res.json({ id: updated.id, status: "rejected", reviewedAt: (/* @__PURE__ */ new Date()).toISOString() });
 });
-var compliance_default = router7;
+var compliance_default = router8;
 
-// artifacts/api-server/src/routes/notifications.ts
-var import_express8 = __toESM(require_express2(), 1);
-var router8 = (0, import_express8.Router)();
-router8.get("/notifications", async (req, res) => {
+// src/routes/notifications.ts
+var import_express9 = __toESM(require_express2(), 1);
+var router9 = (0, import_express9.Router)();
+router9.get("/notifications", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -37135,7 +35830,7 @@ router8.get("/notifications", async (req, res) => {
     limit
   });
 });
-router8.post("/notifications", async (req, res) => {
+router9.post("/notifications", async (req, res) => {
   const { title, message, type, targetAudience, channels, audience } = req.body;
   if (!title || !message || !type) {
     res.status(400).json({ error: "title, message, type are required" });
@@ -37167,11 +35862,11 @@ router8.post("/notifications", async (req, res) => {
     status: "sent"
   });
 });
-router8.post("/notifications/read-all", async (_req, res) => {
+router9.post("/notifications/read-all", async (_req, res) => {
   await supabase.from("notifications").update({ is_read: true, read_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("is_read", false);
   res.json({ success: true });
 });
-router8.post("/notifications/:id/read", async (req, res) => {
+router9.post("/notifications/:id/read", async (req, res) => {
   const id = req.params.id;
   const { data: updated, error } = await supabase.from("notifications").update({ is_read: true, read_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", id).select().single();
   if (error || !updated) {
@@ -37187,12 +35882,12 @@ router8.post("/notifications/:id/read", async (req, res) => {
     createdAt: updated.created_at
   });
 });
-var notifications_default = router8;
+var notifications_default = router9;
 
-// artifacts/api-server/src/routes/audit_logs.ts
-var import_express9 = __toESM(require_express2(), 1);
-var router9 = (0, import_express9.Router)();
-router9.get("/audit-logs", async (req, res) => {
+// src/routes/audit_logs.ts
+var import_express10 = __toESM(require_express2(), 1);
+var router10 = (0, import_express10.Router)();
+router10.get("/audit-logs", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -37222,13 +35917,13 @@ router9.get("/audit-logs", async (req, res) => {
     limit
   });
 });
-var audit_logs_default = router9;
+var audit_logs_default = router10;
 
-// artifacts/api-server/src/routes/support.ts
-var import_express10 = __toESM(require_express2(), 1);
-var router10 = (0, import_express10.Router)();
-router10.use(requireAuth);
-router10.get("/support-tickets/summary", async (req, res) => {
+// src/routes/support.ts
+var import_express11 = __toESM(require_express2(), 1);
+var router11 = (0, import_express11.Router)();
+router11.use(requireAuth);
+router11.get("/support-tickets/summary", async (req, res) => {
   const { count: total } = await supabase.from("tickets").select("*", { count: "exact", head: true });
   const { count: open } = await supabase.from("tickets").select("*", { count: "exact", head: true }).eq("status", "open");
   const { count: inProgress } = await supabase.from("tickets").select("*", { count: "exact", head: true }).eq("status", "in_progress");
@@ -37242,7 +35937,7 @@ router10.get("/support-tickets/summary", async (req, res) => {
     closed: closed ?? 0
   });
 });
-router10.get("/support-tickets", async (req, res) => {
+router11.get("/support-tickets", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -37278,7 +35973,7 @@ router10.get("/support-tickets", async (req, res) => {
     limit
   });
 });
-router10.get("/support-tickets/:id", async (req, res) => {
+router11.get("/support-tickets/:id", async (req, res) => {
   const id = req.params.id;
   const { data: ticket, error } = await supabase.from("tickets").select("*, profiles!tickets_profile_id_fkey(name)").eq("id", id).single();
   if (error || !ticket) {
@@ -37308,7 +36003,7 @@ router10.get("/support-tickets/:id", async (req, res) => {
     }))
   });
 });
-router10.post("/support-tickets/:id/reply", async (req, res) => {
+router11.post("/support-tickets/:id/reply", async (req, res) => {
   const id = req.params.id;
   const { message } = req.body;
   if (!message) {
@@ -37333,7 +36028,7 @@ router10.post("/support-tickets/:id/reply", async (req, res) => {
     createdAt: msg.created_at
   });
 });
-router10.post("/support-tickets/:id/close", requireRole("operator"), async (req, res) => {
+router11.post("/support-tickets/:id/close", requireRole("operator"), async (req, res) => {
   const id = req.params.id;
   const { data: ticket, error } = await supabase.from("tickets").update({
     status: "closed",
@@ -37346,12 +36041,12 @@ router10.post("/support-tickets/:id/close", requireRole("operator"), async (req,
   }
   res.json({ id: ticket.id, status: ticket.status });
 });
-var support_default = router10;
+var support_default = router11;
 
-// artifacts/api-server/src/routes/risk_scoring.ts
-var import_express11 = __toESM(require_express2(), 1);
-var router11 = (0, import_express11.Router)();
-router11.get("/risk-scoring", async (req, res) => {
+// src/routes/risk_scoring.ts
+var import_express12 = __toESM(require_express2(), 1);
+var router12 = (0, import_express12.Router)();
+router12.get("/risk-scoring", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -37395,12 +36090,29 @@ router11.get("/risk-scoring", async (req, res) => {
     limit
   });
 });
-var risk_scoring_default = router11;
+var risk_scoring_default = router12;
 
-// artifacts/api-server/src/routes/interest_rates.ts
-var import_express12 = __toESM(require_express2(), 1);
-var router12 = (0, import_express12.Router)();
-router12.get("/interest-rates", async (req, res) => {
+// src/routes/interest_rates.ts
+var import_express13 = __toESM(require_express2(), 1);
+var router13 = (0, import_express13.Router)();
+var CreateInterestRateBody2 = external_exports.object({
+  name: external_exports.string().min(1, "name is required"),
+  baseRate: external_exports.number().min(0, "baseRate must be non-negative"),
+  minTenure: external_exports.number().int().positive("minTenure must be a positive integer"),
+  maxTenure: external_exports.number().int().positive("maxTenure must be a positive integer"),
+  minAmount: external_exports.number().min(0).optional().default(0),
+  maxAmount: external_exports.number().min(0).optional().default(0)
+});
+var UpdateInterestRateBody = external_exports.object({
+  name: external_exports.string().min(1).optional(),
+  baseRate: external_exports.number().min(0).optional(),
+  minTenure: external_exports.number().int().positive().optional(),
+  maxTenure: external_exports.number().int().positive().optional(),
+  minAmount: external_exports.number().min(0).optional(),
+  maxAmount: external_exports.number().min(0).optional(),
+  isActive: external_exports.boolean().optional()
+});
+router13.get("/interest-rates", async (req, res) => {
   const { data: settings } = await supabase.from("system_settings").select("*").eq("key", "interest_rates").single();
   if (settings?.value) {
     try {
@@ -37420,12 +36132,13 @@ router12.get("/interest-rates", async (req, res) => {
     ]
   });
 });
-router12.post("/interest-rates", async (req, res) => {
-  const { name, baseRate, minTenure, maxTenure, minAmount, maxAmount } = req.body;
-  if (!name || baseRate === void 0 || !minTenure || !maxTenure) {
-    res.status(400).json({ error: "name, baseRate, minTenure, maxTenure are required" });
+router13.post("/interest-rates", async (req, res) => {
+  const parsed = CreateInterestRateBody2.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
+  const { name, baseRate, minTenure, maxTenure, minAmount, maxAmount } = parsed.data;
   const { data: settings } = await supabase.from("system_settings").select("value").eq("key", "interest_rates").single();
   let rates = [];
   if (settings?.value) {
@@ -37435,13 +36148,13 @@ router12.post("/interest-rates", async (req, res) => {
     }
   }
   const newRate = {
-    id: String(Date.now()),
+    id: crypto.randomUUID(),
     name,
     baseRate,
     minTenure,
     maxTenure,
-    minAmount: minAmount ?? 0,
-    maxAmount: maxAmount ?? 0,
+    minAmount,
+    maxAmount,
     isActive: true
   };
   rates.push(newRate);
@@ -37452,9 +36165,14 @@ router12.post("/interest-rates", async (req, res) => {
   });
   res.status(201).json(newRate);
 });
-router12.put("/interest-rates/:id", async (req, res) => {
+router13.put("/interest-rates/:id", async (req, res) => {
+  const parsed = UpdateInterestRateBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
+    return;
+  }
   const id = req.params.id;
-  const updates = req.body;
+  const updates = parsed.data;
   const { data: settings } = await supabase.from("system_settings").select("value").eq("key", "interest_rates").single();
   let rates = [];
   if (settings?.value) {
@@ -37476,17 +36194,41 @@ router12.put("/interest-rates/:id", async (req, res) => {
   });
   res.json(rates[idx]);
 });
-var interest_rates_default = router12;
+var interest_rates_default = router13;
 
-// artifacts/api-server/src/routes/rollovers.ts
-var import_express13 = __toESM(require_express2(), 1);
-var router13 = (0, import_express13.Router)();
-router13.post("/rollovers/request", async (req, res) => {
-  const { loan_id, member_id, reason, new_tenure } = req.body;
-  if (!loan_id || !member_id || !reason || !new_tenure) {
-    res.status(400).json({ success: false, message: "loan_id, member_id, reason, new_tenure are required" });
+// src/routes/rollovers.ts
+var import_express14 = __toESM(require_express2(), 1);
+var router14 = (0, import_express14.Router)();
+var RequestRolloverBody = external_exports.object({
+  loan_id: external_exports.string().min(1, "loan_id is required"),
+  member_id: external_exports.string().min(1, "member_id is required"),
+  reason: external_exports.string().min(1, "reason is required"),
+  new_tenure: external_exports.number().int().positive("new_tenure must be a positive integer")
+});
+var AddGuarantorBody = external_exports.object({
+  guarantor_id: external_exports.string().min(1, "guarantor_id is required"),
+  guarantor_name: external_exports.string().min(1, "guarantor_name is required"),
+  guarantor_phone: external_exports.string().min(1, "guarantor_phone is required")
+});
+var GuarantorRespondBody = external_exports.object({
+  accepted: external_exports.boolean({ required_error: "accepted (boolean) is required" }),
+  reason: external_exports.string().optional()
+});
+var ApproveRolloverBody = external_exports.object({
+  admin_id: external_exports.string().optional(),
+  notes: external_exports.string().optional()
+});
+var RejectRolloverBody = external_exports.object({
+  reason: external_exports.string().min(1, "reason is required"),
+  admin_id: external_exports.string().optional()
+});
+router14.post("/rollovers/request", async (req, res) => {
+  const parsed = RequestRolloverBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
+  const { loan_id, member_id, reason, new_tenure } = parsed.data;
   const { data: loan } = await supabase.from("loans").select("*").eq("id", loan_id).single();
   if (!loan) {
     res.status(404).json({ success: false, message: "Loan not found" });
@@ -37495,7 +36237,7 @@ router13.post("/rollovers/request", async (req, res) => {
   const outstandingBalance = Number(loan.remaining_balance ?? loan.amount);
   const rolloverFee = outstandingBalance * 0.02;
   const newMonthly = (outstandingBalance + rolloverFee) / new_tenure;
-  const rolloverId = "ROL-" + String(Date.now()).slice(-7);
+  const rolloverId = "ROL-" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
   const { data: rollover, error } = await supabase.from("rollovers").insert({
     rollover_id: rolloverId,
     loan_id: loan.id,
@@ -37530,7 +36272,7 @@ router13.post("/rollovers/request", async (req, res) => {
     }
   });
 });
-router13.get("/rollovers/:rolloverId", async (req, res) => {
+router14.get("/rollovers/:rolloverId", async (req, res) => {
   const rolloverId = req.params.rolloverId;
   const { data: rollover } = await supabase.from("rollovers").select("*, profiles!rollovers_profile_id_fkey(name)").eq("rollover_id", rolloverId).single();
   if (!rollover) {
@@ -37557,13 +36299,14 @@ router13.get("/rollovers/:rolloverId", async (req, res) => {
     }
   });
 });
-router13.post("/rollovers/:rolloverId/guarantors", async (req, res) => {
-  const rolloverId = req.params.rolloverId;
-  const { guarantor_id, guarantor_name, guarantor_phone } = req.body;
-  if (!guarantor_id || !guarantor_name || !guarantor_phone) {
-    res.status(400).json({ success: false, message: "guarantor_id, guarantor_name, and guarantor_phone are required" });
+router14.post("/rollovers/:rolloverId/guarantors", async (req, res) => {
+  const parsed = AddGuarantorBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
+  const rolloverId = req.params.rolloverId;
+  const { guarantor_id, guarantor_name, guarantor_phone } = parsed.data;
   const { data: rollover } = await supabase.from("rollovers").select("id").eq("rollover_id", rolloverId).single();
   if (!rollover) {
     res.status(404).json({ success: false, message: "Rollover not found" });
@@ -37582,7 +36325,7 @@ router13.post("/rollovers/:rolloverId/guarantors", async (req, res) => {
   }
   res.status(201).json({ success: true, message: "Guarantor added successfully", guarantor });
 });
-router13.get("/rollovers/:rolloverId/guarantors", async (req, res) => {
+router14.get("/rollovers/:rolloverId/guarantors", async (req, res) => {
   const rolloverId = req.params.rolloverId;
   const { data: rollover } = await supabase.from("rollovers").select("id").eq("rollover_id", rolloverId).single();
   if (!rollover) {
@@ -37592,14 +36335,15 @@ router13.get("/rollovers/:rolloverId/guarantors", async (req, res) => {
   const { data: guarantors } = await supabase.from("loan_guarantors").select("*").eq("loan_id", rollover.id);
   res.json({ success: true, message: "Guarantors retrieved", guarantors: guarantors ?? [] });
 });
-router13.post("/rollovers/:rolloverId/guarantors/:guarantorId/respond", async (req, res) => {
-  const rolloverId = req.params.rolloverId;
-  const guarantorId = req.params.guarantorId;
-  const { accepted, reason } = req.body;
-  if (typeof accepted !== "boolean") {
-    res.status(400).json({ success: false, message: "accepted (boolean) is required" });
+router14.post("/rollovers/:rolloverId/guarantors/:guarantorId/respond", async (req, res) => {
+  const parsed = GuarantorRespondBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
+  const rolloverId = req.params.rolloverId;
+  const guarantorId = req.params.guarantorId;
+  const { accepted, reason } = parsed.data;
   const { data: rollover } = await supabase.from("rollovers").select("id").eq("rollover_id", rolloverId).single();
   if (!rollover) {
     res.status(404).json({ success: false, message: "Rollover not found" });
@@ -37630,7 +36374,7 @@ router13.post("/rollovers/:rolloverId/guarantors/:guarantorId/respond", async (r
     all_consented: allConsented
   });
 });
-router13.post("/rollovers/:rolloverId/cancel", async (req, res) => {
+router14.post("/rollovers/:rolloverId/cancel", async (req, res) => {
   const rolloverId = req.params.rolloverId;
   const { reason } = req.body;
   const { data: rollover, error } = await supabase.from("rollovers").update({ status: "cancelled", rejection_reason: reason || "Cancelled by member" }).eq("rollover_id", rolloverId).select().single();
@@ -37648,14 +36392,15 @@ router13.post("/rollovers/:rolloverId/cancel", async (req, res) => {
     }
   });
 });
-router13.put("/rollovers/:rolloverId/guarantors/:guarantorId", async (req, res) => {
-  const rolloverId = req.params.rolloverId;
-  const oldGuarantorId = req.params.guarantorId;
-  const { guarantor_id, guarantor_name, guarantor_phone } = req.body;
-  if (!guarantor_id || !guarantor_name || !guarantor_phone) {
-    res.status(400).json({ success: false, message: "guarantor_id, guarantor_name, and guarantor_phone are required" });
+router14.put("/rollovers/:rolloverId/guarantors/:guarantorId", async (req, res) => {
+  const parsed = AddGuarantorBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
+  const rolloverId = req.params.rolloverId;
+  const oldGuarantorId = req.params.guarantorId;
+  const { guarantor_id, guarantor_name, guarantor_phone } = parsed.data;
   const { data: rollover } = await supabase.from("rollovers").select("id").eq("rollover_id", rolloverId).single();
   if (!rollover) {
     res.status(404).json({ success: false, message: "Rollover not found" });
@@ -37677,9 +36422,14 @@ router13.put("/rollovers/:rolloverId/guarantors/:guarantorId", async (req, res) 
     guarantors: guarantors ?? []
   });
 });
-router13.post("/rollovers/:rolloverId/approve", async (req, res) => {
+router14.post("/rollovers/:rolloverId/approve", async (req, res) => {
+  const parsed = ApproveRolloverBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
+    return;
+  }
   const rolloverId = req.params.rolloverId;
-  const { admin_id, notes } = req.body;
+  const { admin_id, notes } = parsed.data;
   const { data: rollover, error } = await supabase.from("rollovers").update({
     status: "approved",
     approved_at: (/* @__PURE__ */ new Date()).toISOString(),
@@ -37709,13 +36459,14 @@ router13.post("/rollovers/:rolloverId/approve", async (req, res) => {
     }
   });
 });
-router13.post("/rollovers/:rolloverId/reject", async (req, res) => {
-  const rolloverId = req.params.rolloverId;
-  const { reason, admin_id } = req.body;
-  if (!reason) {
-    res.status(400).json({ success: false, message: "reason is required" });
+router14.post("/rollovers/:rolloverId/reject", async (req, res) => {
+  const parsed = RejectRolloverBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
     return;
   }
+  const rolloverId = req.params.rolloverId;
+  const { reason, admin_id } = parsed.data;
   const { data: rollover, error } = await supabase.from("rollovers").update({
     status: "rejected",
     rejection_reason: reason,
@@ -37735,7 +36486,7 @@ router13.post("/rollovers/:rolloverId/reject", async (req, res) => {
     }
   });
 });
-router13.get("/rollovers", async (req, res) => {
+router14.get("/rollovers", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -37767,12 +36518,12 @@ router13.get("/rollovers", async (req, res) => {
     limit
   });
 });
-var rollovers_default = router13;
+var rollovers_default = router14;
 
-// artifacts/api-server/src/routes/payroll.ts
-var import_express14 = __toESM(require_express2(), 1);
-var router14 = (0, import_express14.Router)();
-router14.get("/payroll/batches", async (req, res) => {
+// src/routes/payroll.ts
+var import_express15 = __toESM(require_express2(), 1);
+var router15 = (0, import_express15.Router)();
+router15.get("/payroll/batches", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -37786,7 +36537,7 @@ router14.get("/payroll/batches", async (req, res) => {
   }
   res.json({ data: data ?? [], total: count ?? 0, page, limit });
 });
-router14.get("/payroll/batches/:id", async (req, res) => {
+router15.get("/payroll/batches/:id", async (req, res) => {
   const { id } = req.params;
   const { data, error } = await supabase.from("payroll_batches").select("*").eq("id", id).single();
   if (error) {
@@ -37795,7 +36546,7 @@ router14.get("/payroll/batches/:id", async (req, res) => {
   }
   res.json(data);
 });
-router14.post("/payroll/batches", async (req, res) => {
+router15.post("/payroll/batches", async (req, res) => {
   const { organization, month, record_count, total_amount, uploaded_by } = req.body;
   if (!organization || !month || record_count == null || total_amount == null) {
     res.status(400).json({ error: "organization, month, record_count, and total_amount are required" });
@@ -37817,7 +36568,7 @@ router14.post("/payroll/batches", async (req, res) => {
   }
   res.status(201).json(data);
 });
-router14.patch("/payroll/batches/:id/status", async (req, res) => {
+router15.patch("/payroll/batches/:id/status", async (req, res) => {
   const { id } = req.params;
   const { status, matched_count, unmatched_count } = req.body;
   const allowed = ["pending", "processing", "completed", "failed"];
@@ -37832,12 +36583,12 @@ router14.patch("/payroll/batches/:id/status", async (req, res) => {
   }
   res.json(data);
 });
-var payroll_default = router14;
+var payroll_default = router15;
 
-// artifacts/api-server/src/routes/mobile_features.ts
-var import_express15 = __toESM(require_express2(), 1);
+// src/routes/mobile_features.ts
+var import_express16 = __toESM(require_express2(), 1);
 
-// artifacts/api-server/src/lib/store.ts
+// src/lib/store.ts
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -37870,8 +36621,8 @@ async function writeData(filename, data) {
   await fs.writeFile(filepath, JSON.stringify(data, null, 2), "utf-8");
 }
 
-// artifacts/api-server/src/routes/mobile_features.ts
-var router15 = (0, import_express15.Router)();
+// src/routes/mobile_features.ts
+var router16 = (0, import_express16.Router)();
 var defaultFeatures = [
   { id: "loan_requests", name: "Loan Requests", description: "Allow users to submit new loan applications", enabled: true, updatedAt: (/* @__PURE__ */ new Date()).toISOString(), updatedBy: "Super Admin" },
   { id: "registration", name: "Registration", description: "Allow new users to register on the platform", enabled: true, updatedAt: (/* @__PURE__ */ new Date()).toISOString(), updatedBy: "Super Admin" },
@@ -37894,11 +36645,11 @@ var defaultContentSections = [
   { key: "privacy_policy", label: "Privacy Policy", value: "Coopvest Africa is committed to protecting your personal data. We collect only what is necessary to provide our services." },
   { key: "about", label: "About Us", value: "Coopvest Africa is a cooperative investment and savings platform dedicated to empowering individuals and organizations through collective financial growth." }
 ];
-router15.get("/mobile-features", async (_req, res) => {
+router16.get("/mobile-features", async (_req, res) => {
   const features = await readData("mobile_features.json", defaultFeatures);
   res.json({ features });
 });
-router15.put("/mobile-features/:id", async (req, res) => {
+router16.put("/mobile-features/:id", async (req, res) => {
   const features = await readData("mobile_features.json", defaultFeatures);
   const idx = features.findIndex((f) => f.id === req.params.id);
   if (idx === -1) {
@@ -37909,18 +36660,18 @@ router15.put("/mobile-features/:id", async (req, res) => {
   await writeData("mobile_features.json", features);
   res.json({ feature: features[idx], message: "Feature updated successfully" });
 });
-router15.get("/mobile-content/onboarding", async (_req, res) => {
+router16.get("/mobile-content/onboarding", async (_req, res) => {
   const slides = await readData("mobile_slides.json", defaultSlides);
   res.json({ slides });
 });
-router15.post("/mobile-content/onboarding", async (req, res) => {
+router16.post("/mobile-content/onboarding", async (req, res) => {
   const slides = await readData("mobile_slides.json", defaultSlides);
   const newSlide = { id: String(Date.now()), ...req.body, order: slides.length + 1 };
   slides.push(newSlide);
   await writeData("mobile_slides.json", slides);
   res.status(201).json({ slide: newSlide });
 });
-router15.put("/mobile-content/onboarding/:id", async (req, res) => {
+router16.put("/mobile-content/onboarding/:id", async (req, res) => {
   const slides = await readData("mobile_slides.json", defaultSlides);
   const i = slides.findIndex((s) => s.id === req.params.id);
   if (i === -1) {
@@ -37931,17 +36682,17 @@ router15.put("/mobile-content/onboarding/:id", async (req, res) => {
   await writeData("mobile_slides.json", slides);
   res.json({ slide: slides[i] });
 });
-router15.delete("/mobile-content/onboarding/:id", async (req, res) => {
+router16.delete("/mobile-content/onboarding/:id", async (req, res) => {
   let slides = await readData("mobile_slides.json", defaultSlides);
   slides = slides.filter((s) => s.id !== req.params.id);
   await writeData("mobile_slides.json", slides);
   res.json({ success: true });
 });
-router15.get("/mobile-content/text", async (_req, res) => {
+router16.get("/mobile-content/text", async (_req, res) => {
   const contentSections = await readData("mobile_text.json", defaultContentSections);
   res.json({ sections: contentSections });
 });
-router15.put("/mobile-content/text/:key", async (req, res) => {
+router16.put("/mobile-content/text/:key", async (req, res) => {
   const contentSections = await readData("mobile_text.json", defaultContentSections);
   const i = contentSections.findIndex((s) => s.key === req.params.key);
   if (i === -1) {
@@ -37952,11 +36703,11 @@ router15.put("/mobile-content/text/:key", async (req, res) => {
   await writeData("mobile_text.json", contentSections);
   res.json({ section: contentSections[i], message: "Content updated successfully" });
 });
-var mobile_features_default = router15;
+var mobile_features_default = router16;
 
-// artifacts/api-server/src/routes/roles.ts
-var import_express16 = __toESM(require_express2(), 1);
-var router16 = (0, import_express16.Router)();
+// src/routes/roles.ts
+var import_express17 = __toESM(require_express2(), 1);
+var router17 = (0, import_express17.Router)();
 var defaultAdminUsers = [
   { id: "1", name: "Olatunji Ayanlowo", email: "founder@coopvestafrica.com", role: "super_admin", status: "active", lastActive: (/* @__PURE__ */ new Date()).toISOString(), createdAt: "2024-01-01T00:00:00Z" },
   { id: "2", name: "Adaeze Okonkwo", email: "adaeze@coopvestafrica.com", role: "admin", status: "active", lastActive: new Date(Date.now() - 864e5).toISOString(), createdAt: "2024-02-01T00:00:00Z" },
@@ -37965,12 +36716,12 @@ var defaultAdminUsers = [
   { id: "5", name: "Samuel Adeyemi", email: "samuel@coopvestafrica.com", role: "viewer", status: "inactive", lastActive: new Date(Date.now() - 6048e5).toISOString(), createdAt: "2024-04-01T00:00:00Z" }
 ];
 var ROLE_HIERARCHY2 = { super_admin: 4, admin: 3, operator: 2, viewer: 1 };
-router16.use(requireAuth);
-router16.get("/roles", requireRole("admin"), async (_req, res) => {
+router17.use(requireAuth);
+router17.get("/roles", requireRole("admin"), async (_req, res) => {
   const adminUsers = await readData("admin_users.json", defaultAdminUsers);
   res.json({ admins: adminUsers, roleHierarchy: ROLE_HIERARCHY2 });
 });
-router16.post("/roles", requireRole("admin"), async (req, res) => {
+router17.post("/roles", requireRole("admin"), async (req, res) => {
   const adminUsers = await readData("admin_users.json", defaultAdminUsers);
   const { name, email, role } = req.body;
   const newUser = { id: String(Date.now()), name, email, role, status: "active", lastActive: (/* @__PURE__ */ new Date()).toISOString(), createdAt: (/* @__PURE__ */ new Date()).toISOString() };
@@ -37978,7 +36729,7 @@ router16.post("/roles", requireRole("admin"), async (req, res) => {
   await writeData("admin_users.json", adminUsers);
   res.status(201).json({ admin: newUser, message: "Admin user created successfully" });
 });
-router16.put("/roles/:id", requireRole("admin"), async (req, res) => {
+router17.put("/roles/:id", requireRole("admin"), async (req, res) => {
   const adminUsers = await readData("admin_users.json", defaultAdminUsers);
   const { id } = req.params;
   const { role, status } = req.body;
@@ -37991,27 +36742,20 @@ router16.put("/roles/:id", requireRole("admin"), async (req, res) => {
   await writeData("admin_users.json", adminUsers);
   res.json({ admin: adminUsers[idx], message: "Role updated successfully" });
 });
-router16.delete("/roles/:id", requireRole("super_admin"), async (req, res) => {
+router17.delete("/roles/:id", requireRole("super_admin"), async (req, res) => {
   let adminUsers = await readData("admin_users.json", defaultAdminUsers);
   const { id } = req.params;
   adminUsers = adminUsers.filter((u) => u.id !== id);
   await writeData("admin_users.json", adminUsers);
   res.json({ message: "Admin access revoked" });
 });
-var roles_default = router16;
+var roles_default = router17;
 
-// artifacts/api-server/src/routes/fraud_detection.ts
-var import_express17 = __toESM(require_express2(), 1);
-var router17 = (0, import_express17.Router)();
-var defaultFraudFlags = [
-  { id: "1", userId: "USR001", userName: "Bola Tinubu", action: "Multiple rapid withdrawals", riskLevel: "critical", amount: 85e4, timestamp: new Date(Date.now() - 36e5).toISOString(), status: "open", ipAddress: "197.210.55.12", location: "Lagos, Nigeria" },
-  { id: "2", userId: "USR002", userName: "Amaka Osei", action: "Unusual login location", riskLevel: "high", amount: null, timestamp: new Date(Date.now() - 72e5).toISOString(), status: "under_review", ipAddress: "41.76.100.45", location: "Accra, Ghana" },
-  { id: "3", userId: "USR003", userName: "Emeka Diala", action: "Failed KYC multiple times", riskLevel: "medium", amount: null, timestamp: new Date(Date.now() - 144e5).toISOString(), status: "open", ipAddress: "102.89.34.67", location: "Abuja, Nigeria" },
-  { id: "4", userId: "USR004", userName: "Ngozi Adaeze", action: "Large unverified deposit", riskLevel: "high", amount: 5e6, timestamp: new Date(Date.now() - 216e5).toISOString(), status: "open", ipAddress: "197.210.12.34", location: "Port Harcourt, Nigeria" },
-  { id: "5", userId: "USR005", userName: "Chidi Okeke", action: "Referral abuse detected", riskLevel: "medium", amount: 15e4, timestamp: new Date(Date.now() - 432e5).toISOString(), status: "resolved", ipAddress: "102.91.78.23", location: "Enugu, Nigeria" },
-  { id: "6", userId: "USR006", userName: "Hauwa Sule", action: "Suspicious loan application pattern", riskLevel: "critical", amount: 2e6, timestamp: new Date(Date.now() - 864e5).toISOString(), status: "escalated", ipAddress: "41.190.45.89", location: "Kano, Nigeria" }
-];
-router17.get("/fraud-detection", async (req, res) => {
+// src/routes/fraud_detection.ts
+var import_express18 = __toESM(require_express2(), 1);
+var router18 = (0, import_express18.Router)();
+var defaultFraudFlags = [];
+router18.get("/fraud-detection", async (req, res) => {
   const fraudFlags = await readData("fraud_flags.json", defaultFraudFlags);
   const { riskLevel, status, page = 1, limit = 20 } = req.query;
   let filtered = [...fraudFlags];
@@ -38019,7 +36763,7 @@ router17.get("/fraud-detection", async (req, res) => {
   if (status) filtered = filtered.filter((f) => f.status === status);
   res.json({ flags: filtered, total: filtered.length, page: Number(page), limit: Number(limit) });
 });
-router17.get("/fraud-detection/stats", async (_req, res) => {
+router18.get("/fraud-detection/stats", async (_req, res) => {
   const fraudFlags = await readData("fraud_flags.json", defaultFraudFlags);
   res.json({
     totalFlagsToday: fraudFlags.filter((f) => new Date(f.timestamp) > new Date(Date.now() - 864e5)).length,
@@ -38029,7 +36773,7 @@ router17.get("/fraud-detection/stats", async (_req, res) => {
     openCases: fraudFlags.filter((f) => f.status === "open").length
   });
 });
-router17.put("/fraud-detection/:id/action", async (req, res) => {
+router18.put("/fraud-detection/:id/action", async (req, res) => {
   const fraudFlags = await readData("fraud_flags.json", defaultFraudFlags);
   const { id } = req.params;
   const { action } = req.body;
@@ -38043,11 +36787,11 @@ router17.put("/fraud-detection/:id/action", async (req, res) => {
   await writeData("fraud_flags.json", fraudFlags);
   res.json({ flag, message: `Action '${action}' applied successfully` });
 });
-var fraud_detection_default = router17;
+var fraud_detection_default = router18;
 
-// artifacts/api-server/src/routes/organizations.ts
-var import_express18 = __toESM(require_express2(), 1);
-var router18 = (0, import_express18.Router)();
+// src/routes/organizations.ts
+var import_express19 = __toESM(require_express2(), 1);
+var router19 = (0, import_express19.Router)();
 var organizations = [
   { id: "1", name: "Federal Ministry of Finance", type: "government", memberCount: 450, status: "active", dateAdded: "2024-01-15T00:00:00Z", contactEmail: "hr@finance.gov.ng", address: "Abuja, Nigeria" },
   { id: "2", name: "First Bank of Nigeria", type: "private", memberCount: 320, status: "active", dateAdded: "2024-02-01T00:00:00Z", contactEmail: "staff@firstbank.com", address: "Lagos, Nigeria" },
@@ -38059,15 +36803,15 @@ var staff = {
   "1": [{ id: "s1", name: "Abubakar Musa", email: "a.musa@finance.gov.ng", designation: "Senior Officer", memberId: "MBR-001" }, { id: "s2", name: "Grace Okafor", email: "g.okafor@finance.gov.ng", designation: "Analyst", memberId: "MBR-002" }],
   "2": [{ id: "s3", name: "Tunde Bakare", email: "t.bakare@firstbank.com", designation: "Branch Manager", memberId: "MBR-003" }]
 };
-router18.get("/organizations", async (_req, res) => {
+router19.get("/organizations", async (_req, res) => {
   res.json({ organizations, total: organizations.length });
 });
-router18.post("/organizations", async (req, res) => {
+router19.post("/organizations", async (req, res) => {
   const org = { id: String(Date.now()), ...req.body, memberCount: 0, dateAdded: (/* @__PURE__ */ new Date()).toISOString() };
   organizations.push(org);
   res.status(201).json({ organization: org });
 });
-router18.put("/organizations/:id", async (req, res) => {
+router19.put("/organizations/:id", async (req, res) => {
   const idx = organizations.findIndex((o) => o.id === req.params.id);
   if (idx === -1) {
     res.status(404).json({ error: "Organization not found" });
@@ -38076,41 +36820,112 @@ router18.put("/organizations/:id", async (req, res) => {
   organizations[idx] = { ...organizations[idx], ...req.body };
   res.json({ organization: organizations[idx] });
 });
-router18.get("/organizations/:id/staff", async (req, res) => {
+router19.get("/organizations/:id/staff", async (req, res) => {
   res.json({ staff: staff[req.params.id] ?? [], organizationId: req.params.id });
 });
-var organizations_default = router18;
+var organizations_default = router19;
 
-// artifacts/api-server/src/routes/analytics.ts
-var import_express19 = __toESM(require_express2(), 1);
-var router19 = (0, import_express19.Router)();
-var defaultAnalytics = {
-  kpis: {
-    totalUsers: 12847,
-    activeUsers30d: 8934,
-    revenueMTD: 4582e4,
-    loanPortfolio: 2875e5,
-    savingsPool: 156e6,
-    growthRate: 18.4,
-    newUsersThisMonth: 523,
-    totalOrganizations: 47
-  },
-  monthlyTrends: [
-    { month: "Jan", users: 11200, revenue: 38e6, savings: 135e6, loans: 24e7 },
-    { month: "Feb", users: 11800, revenue: 41e6, savings: 142e6, loans: 26e7 },
-    { month: "Mar", users: 12400, revenue: 44e6, savings: 149e6, loans: 275e6 },
-    { month: "Apr", users: 12847, revenue: 4582e4, savings: 156e6, loans: 2875e5 }
-  ]
-};
-router19.get("/analytics", async (_req, res) => {
-  const analyticsData = await readData("analytics.json", defaultAnalytics);
-  res.json(analyticsData);
-});
-var analytics_default = router19;
-
-// artifacts/api-server/src/routes/security.ts
+// src/routes/analytics.ts
 var import_express20 = __toESM(require_express2(), 1);
 var router20 = (0, import_express20.Router)();
+router20.use(requireAuth);
+function calcTrend(current, previous) {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return Math.round((current - previous) / previous * 1e3) / 10;
+}
+router20.get("/analytics/repayment-trend", requireRole("operator", "admin", "super_admin"), async (req, res) => {
+  const now = /* @__PURE__ */ new Date();
+  const trends = [];
+  for (let i = 5; i >= 0; i--) {
+    const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+    const { data: loans } = await supabase.from("loans").select("status, approved_at").gte("approved_at", monthStart.toISOString()).lt("approved_at", monthEnd.toISOString());
+    const total = (loans ?? []).length;
+    const completed = (loans ?? []).filter((l) => l.status === "completed").length;
+    const rate = total > 0 ? Math.round(completed / total * 1e3) / 10 : 0;
+    trends.push({
+      month: monthStart.toLocaleString("default", { month: "short", year: "2-digit" }),
+      rate,
+      totalLoans: total,
+      completedLoans: completed
+    });
+  }
+  res.json({ trends });
+});
+router20.get("/analytics/risk-exposure", requireRole("operator", "admin", "super_admin"), async (req, res) => {
+  const now = /* @__PURE__ */ new Date();
+  const exposures = [];
+  for (let i = 5; i >= 0; i--) {
+    const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+    const { data: defaulted } = await supabase.from("loans").select("remaining_balance, amount, status").eq("status", "defaulted").gte("created_at", monthStart.toISOString()).lt("created_at", monthEnd.toISOString());
+    const totalExposure = (defaulted ?? []).reduce(
+      (sum, l) => sum + Number(l.remaining_balance || l.amount || 0),
+      0
+    );
+    exposures.push({
+      month: monthStart.toLocaleString("default", { month: "short", year: "2-digit" }),
+      exposure: totalExposure,
+      count: (defaulted ?? []).length
+    });
+  }
+  res.json({ exposures });
+});
+router20.get("/analytics/defaulter-trend", requireRole("operator", "admin", "super_admin"), async (req, res) => {
+  const now = /* @__PURE__ */ new Date();
+  const trends = [];
+  for (let i = 5; i >= 0; i--) {
+    const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+    const { count: defaultedCount } = await supabase.from("loans").select("*", { count: "exact", head: true }).eq("status", "defaulted").gte("created_at", monthStart.toISOString()).lt("created_at", monthEnd.toISOString());
+    const { count: totalLoans } = await supabase.from("loans").select("*", { count: "exact", head: true }).gte("created_at", monthStart.toISOString()).lt("created_at", monthEnd.toISOString());
+    const rate = (totalLoans ?? 0) > 0 ? Math.round((defaultedCount ?? 0) / (totalLoans ?? 1) * 1e3) / 10 : 0;
+    trends.push({
+      month: monthStart.toLocaleString("default", { month: "short", year: "2-digit" }),
+      count: defaultedCount ?? 0,
+      rate
+    });
+  }
+  res.json({ trends });
+});
+router20.get("/analytics/kpis", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
+  const now = /* @__PURE__ */ new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+  const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString();
+  const { count: totalUsers } = await supabase.from("profiles").select("*", { count: "exact", head: true });
+  const thirtyDaysAgo = /* @__PURE__ */ new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const { count: activeUsers30d } = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_active", true).gte("updated_at", thirtyDaysAgo.toISOString());
+  const { data: txnsThisMonth } = await supabase.from("transactions").select("amount").eq("status", "completed").gte("created_at", monthStart);
+  const revenueMTD = (txnsThisMonth ?? []).reduce((s, t) => s + Number(t.amount || 0), 0);
+  const { data: txnsLastMonth } = await supabase.from("transactions").select("amount").eq("status", "completed").gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
+  const revenueLastMonth = (txnsLastMonth ?? []).reduce((s, t) => s + Number(t.amount || 0), 0);
+  const { data: activeLoans } = await supabase.from("loans").select("remaining_balance").eq("status", "active");
+  const loanPortfolio = (activeLoans ?? []).reduce((s, l) => s + Number(l.remaining_balance || 0), 0);
+  const { data: savings } = await supabase.from("savings").select("total_saved");
+  const savingsPool = (savings ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
+  const { count: newUsersThisMonth } = await supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", monthStart);
+  const { count: totalOrganizations } = await supabase.from("organizations").select("*", { count: "exact", head: true });
+  const growthRate = calcTrend(revenueMTD, revenueLastMonth);
+  res.json({
+    kpis: {
+      totalUsers: totalUsers ?? 0,
+      activeUsers30d: activeUsers30d ?? 0,
+      revenueMTD,
+      loanPortfolio,
+      savingsPool,
+      growthRate,
+      newUsersThisMonth: newUsersThisMonth ?? 0,
+      totalOrganizations: totalOrganizations ?? 0
+    }
+  });
+});
+var analytics_default = router20;
+
+// src/routes/security.ts
+var import_express21 = __toESM(require_express2(), 1);
+var router21 = (0, import_express21.Router)();
 var defaultActiveSessions = [
   { id: "1", userId: "ADM001", userName: "Olatunji Ayanlowo", role: "super_admin", ipAddress: "102.89.45.12", device: "Chrome / MacOS", location: "Lagos, Nigeria", loginTime: new Date(Date.now() - 36e5).toISOString(), isCurrentSession: true },
   { id: "2", userId: "ADM002", userName: "Adaeze Okonkwo", role: "admin", ipAddress: "41.190.78.90", device: "Firefox / Windows", location: "Abuja, Nigeria", loginTime: new Date(Date.now() - 72e5).toISOString(), isCurrentSession: false },
@@ -38122,21 +36937,21 @@ var defaultSecurityEvents = [
   { id: "3", event: "IP blocked", user: "System", ipAddress: "185.220.101.45", severity: "critical", timestamp: new Date(Date.now() - 9e5).toISOString(), details: "Automatic block after 10 failed attempts" }
 ];
 var defaultSecuritySettings = { twoFactorRequired: true, sessionTimeoutMinutes: 60, maxLoginAttempts: 5, ipAllowlistEnabled: false, allowedIPs: [], blockedIPs: ["185.220.101.45"], passwordExpiryDays: 90 };
-router20.get("/security/sessions", async (_req, res) => {
+router21.get("/security/sessions", async (_req, res) => {
   const activeSessions = await readData("security_sessions.json", defaultActiveSessions);
   res.json({ sessions: activeSessions, total: activeSessions.length });
 });
-router20.delete("/security/sessions/:id", async (req, res) => {
+router21.delete("/security/sessions/:id", async (req, res) => {
   let activeSessions = await readData("security_sessions.json", defaultActiveSessions);
   activeSessions = activeSessions.filter((s) => s.id !== req.params.id);
   await writeData("security_sessions.json", activeSessions);
   res.json({ message: "Session terminated" });
 });
-router20.get("/security/events", async (_req, res) => {
+router21.get("/security/events", async (_req, res) => {
   const securityEvents = await readData("security_events.json", defaultSecurityEvents);
   res.json({ events: securityEvents, total: securityEvents.length });
 });
-router20.post("/security/ip-block", async (req, res) => {
+router21.post("/security/ip-block", async (req, res) => {
   const securitySettings = await readData("security_settings.json", defaultSecuritySettings);
   const { ip, action } = req.body;
   if (action === "block") {
@@ -38147,44 +36962,35 @@ router20.post("/security/ip-block", async (req, res) => {
   await writeData("security_settings.json", securitySettings);
   res.json({ message: `IP ${ip} ${action === "block" ? "blocked" : "unblocked"}`, blockedIPs: securitySettings.blockedIPs });
 });
-router20.get("/security/settings", async (_req, res) => {
+router21.get("/security/settings", async (_req, res) => {
   const securitySettings = await readData("security_settings.json", defaultSecuritySettings);
   res.json({ settings: securitySettings });
 });
-router20.put("/security/settings", async (req, res) => {
+router21.put("/security/settings", async (req, res) => {
   const securitySettings = await readData("security_settings.json", defaultSecuritySettings);
   const updatedSettings = { ...securitySettings, ...req.body };
   await writeData("security_settings.json", updatedSettings);
   res.json({ settings: updatedSettings, message: "Security settings updated" });
 });
-var security_default = router20;
+var security_default = router21;
 
-// artifacts/api-server/src/routes/wallets.ts
-var import_express21 = __toESM(require_express2(), 1);
-var router21 = (0, import_express21.Router)();
-var defaultWallets = Array.from({ length: 20 }, (_, i) => ({
-  id: String(i + 1),
-  userId: `USR${String(i + 1).padStart(3, "0")}`,
-  userName: ["Bola Adeyemi", "Chioma Obi", "Emeka Nze", "Fatima Yusuf", "Gbenga Ola", "Hannah Musa", "Ibrahim Sule", "Joy Okafor", "Kalu Eze", "Lola Bakare", "Musa Ahmed", "Ngozi Eze", "Ola Adebayo", "Patience Okonkwo", "Qudus Akin", "Rita Chukwu", "Samuel Tunde", "Tunde Alabi", "Uche Nwosu", "Victoria Oke"][i],
-  balance: Math.floor(Math.random() * 5e6) + 1e4,
-  status: i === 3 || i === 11 ? "frozen" : i === 7 ? "suspended" : "active",
-  lastTransaction: new Date(Date.now() - Math.random() * 7 * 864e5).toISOString(),
-  totalDeposits: Math.floor(Math.random() * 1e7),
-  totalWithdrawals: Math.floor(Math.random() * 5e6)
-}));
-router21.get("/wallets", async (req, res) => {
+// src/routes/wallets.ts
+var import_express22 = __toESM(require_express2(), 1);
+var router22 = (0, import_express22.Router)();
+var defaultWallets = [];
+router22.get("/wallets", async (req, res) => {
   const wallets = await readData("wallets.json", defaultWallets);
   const { page = 1, limit = 20, status } = req.query;
   let filtered = [...wallets];
   if (status) filtered = filtered.filter((w) => w.status === status);
   res.json({ wallets: filtered, total: filtered.length, page: Number(page), limit: Number(limit) });
 });
-router21.get("/wallets/stats", async (_req, res) => {
+router22.get("/wallets/stats", async (_req, res) => {
   const wallets = await readData("wallets.json", defaultWallets);
   const total = wallets.reduce((s, w) => s + w.balance, 0);
   res.json({ totalBalance: total, activeWallets: wallets.filter((w) => w.status === "active").length, frozenWallets: wallets.filter((w) => w.status === "frozen").length, suspendedWallets: wallets.filter((w) => w.status === "suspended").length, totalWallets: wallets.length });
 });
-router21.put("/wallets/:id/freeze", async (req, res) => {
+router22.put("/wallets/:id/freeze", async (req, res) => {
   const wallets = await readData("wallets.json", defaultWallets);
   const wallet = wallets.find((w) => w.id === req.params.id);
   if (!wallet) {
@@ -38195,7 +37001,7 @@ router21.put("/wallets/:id/freeze", async (req, res) => {
   await writeData("wallets.json", wallets);
   res.json({ wallet, message: "Wallet frozen successfully" });
 });
-router21.put("/wallets/:id/unfreeze", async (req, res) => {
+router22.put("/wallets/:id/unfreeze", async (req, res) => {
   const wallets = await readData("wallets.json", defaultWallets);
   const wallet = wallets.find((w) => w.id === req.params.id);
   if (!wallet) {
@@ -38206,26 +37012,20 @@ router21.put("/wallets/:id/unfreeze", async (req, res) => {
   await writeData("wallets.json", wallets);
   res.json({ wallet, message: "Wallet unfrozen successfully" });
 });
-var wallets_default = router21;
+var wallets_default = router22;
 
-// artifacts/api-server/src/routes/withdrawals.ts
-var import_express22 = __toESM(require_express2(), 1);
-var router22 = (0, import_express22.Router)();
-var defaultWithdrawalRequests = [
-  { id: "1", userId: "USR001", userName: "Bola Adeyemi", amount: 25e4, bankName: "GTBank", accountNumber: "0123456789", accountName: "Bola Adeyemi", requestedAt: new Date(Date.now() - 36e5).toISOString(), status: "pending", riskFlag: false, riskReason: null },
-  { id: "2", userId: "USR002", userName: "Chioma Obi", amount: 15e5, bankName: "Access Bank", accountNumber: "9876543210", accountName: "Chioma Obi", requestedAt: new Date(Date.now() - 72e5).toISOString(), status: "pending", riskFlag: true, riskReason: "Exceeds daily limit" },
-  { id: "3", userId: "USR003", userName: "Emeka Nze", amount: 75e3, bankName: "UBA", accountNumber: "1122334455", accountName: "Emeka Nze", requestedAt: new Date(Date.now() - 108e5).toISOString(), status: "approved", riskFlag: false, riskReason: null },
-  { id: "4", userId: "USR004", userName: "Fatima Yusuf", amount: 5e5, bankName: "Zenith Bank", accountNumber: "5566778899", accountName: "Fatima Yusuf", requestedAt: new Date(Date.now() - 144e5).toISOString(), status: "on_hold", riskFlag: true, riskReason: "Unverified account" },
-  { id: "5", userId: "USR005", userName: "Gbenga Ola", amount: 18e4, bankName: "First Bank", accountNumber: "3344556677", accountName: "Gbenga Ola", requestedAt: new Date(Date.now() - 216e5).toISOString(), status: "rejected", riskFlag: false, riskReason: null }
-];
+// src/routes/withdrawals.ts
+var import_express23 = __toESM(require_express2(), 1);
+var router23 = (0, import_express23.Router)();
+var defaultWithdrawalRequests = [];
 var defaultWithdrawalSettings = { dailyLimit: 1e6, requireApprovalAbove: 5e5, autoApproveBelow: 5e3, maxPendingPerUser: 3 };
-router22.get("/withdrawals", async (req, res) => {
+router23.get("/withdrawals", async (req, res) => {
   const withdrawalRequests = await readData("withdrawal_requests.json", defaultWithdrawalRequests);
   const { status } = req.query;
   const filtered = status ? withdrawalRequests.filter((w) => w.status === status) : withdrawalRequests;
   res.json({ withdrawals: filtered, total: filtered.length, pendingCount: withdrawalRequests.filter((w) => w.status === "pending").length });
 });
-router22.put("/withdrawals/:id/approve", async (req, res) => {
+router23.put("/withdrawals/:id/approve", async (req, res) => {
   const withdrawalRequests = await readData("withdrawal_requests.json", defaultWithdrawalRequests);
   const w = withdrawalRequests.find((r) => r.id === req.params.id);
   if (!w) {
@@ -38236,7 +37036,7 @@ router22.put("/withdrawals/:id/approve", async (req, res) => {
   await writeData("withdrawal_requests.json", withdrawalRequests);
   res.json({ withdrawal: w, message: "Withdrawal approved" });
 });
-router22.put("/withdrawals/:id/reject", async (req, res) => {
+router23.put("/withdrawals/:id/reject", async (req, res) => {
   const withdrawalRequests = await readData("withdrawal_requests.json", defaultWithdrawalRequests);
   const w = withdrawalRequests.find((r) => r.id === req.params.id);
   if (!w) {
@@ -38247,7 +37047,7 @@ router22.put("/withdrawals/:id/reject", async (req, res) => {
   await writeData("withdrawal_requests.json", withdrawalRequests);
   res.json({ withdrawal: w, message: "Withdrawal rejected" });
 });
-router22.put("/withdrawals/:id/hold", async (req, res) => {
+router23.put("/withdrawals/:id/hold", async (req, res) => {
   const withdrawalRequests = await readData("withdrawal_requests.json", defaultWithdrawalRequests);
   const w = withdrawalRequests.find((r) => r.id === req.params.id);
   if (!w) {
@@ -38258,21 +37058,21 @@ router22.put("/withdrawals/:id/hold", async (req, res) => {
   await writeData("withdrawal_requests.json", withdrawalRequests);
   res.json({ withdrawal: w, message: "Withdrawal placed on hold" });
 });
-router22.get("/withdrawals/settings", async (_req, res) => {
+router23.get("/withdrawals/settings", async (_req, res) => {
   const settings = await readData("withdrawal_settings.json", defaultWithdrawalSettings);
   res.json({ settings });
 });
-router22.put("/withdrawals/settings", async (req, res) => {
+router23.put("/withdrawals/settings", async (req, res) => {
   const settings = await readData("withdrawal_settings.json", defaultWithdrawalSettings);
   const updatedSettings = { ...settings, ...req.body };
   await writeData("withdrawal_settings.json", updatedSettings);
   res.json({ settings: updatedSettings, message: "Withdrawal settings updated" });
 });
-var withdrawals_default = router22;
+var withdrawals_default = router23;
 
-// artifacts/api-server/src/routes/verification.ts
-var import_express23 = __toESM(require_express2(), 1);
-var router23 = (0, import_express23.Router)();
+// src/routes/verification.ts
+var import_express24 = __toESM(require_express2(), 1);
+var router24 = (0, import_express24.Router)();
 var defaultKycSubmissions = [
   { id: "1", userId: "USR001", userName: "Bola Adeyemi", email: "bola@email.com", documentType: "NIN", documentNumber: "1234****890", submittedAt: new Date(Date.now() - 864e5).toISOString(), status: "pending", rejectionReason: null },
   { id: "2", userId: "USR002", userName: "Chioma Obi", email: "chioma@email.com", documentType: "BVN", documentNumber: "2234****891", submittedAt: new Date(Date.now() - 1728e5).toISOString(), status: "verified", rejectionReason: null },
@@ -38280,7 +37080,7 @@ var defaultKycSubmissions = [
   { id: "4", userId: "USR004", userName: "Fatima Yusuf", email: "fatima@email.com", documentType: "NIN", documentNumber: "3344****892", submittedAt: new Date(Date.now() - 432e5).toISOString(), status: "pending", rejectionReason: null },
   { id: "5", userId: "USR005", userName: "Gbenga Ola", email: "gbenga@email.com", documentType: "BVN", documentNumber: "4454****893", submittedAt: new Date(Date.now() - 36e5).toISOString(), status: "pending", rejectionReason: null }
 ];
-router23.get("/verification", async (req, res) => {
+router24.get("/verification", async (req, res) => {
   const kycSubmissions = await readData("kyc_submissions.json", defaultKycSubmissions);
   const { status, documentType } = req.query;
   let filtered = [...kycSubmissions];
@@ -38288,7 +37088,7 @@ router23.get("/verification", async (req, res) => {
   if (documentType) filtered = filtered.filter((v) => v.documentType === documentType);
   res.json({ submissions: filtered, pendingCount: kycSubmissions.filter((v) => v.status === "pending").length, total: kycSubmissions.length });
 });
-router23.put("/verification/:id/verify", async (req, res) => {
+router24.put("/verification/:id/verify", async (req, res) => {
   const kycSubmissions = await readData("kyc_submissions.json", defaultKycSubmissions);
   const { id } = req.params;
   const sub = kycSubmissions.find((v) => v.id === id);
@@ -38300,7 +37100,7 @@ router23.put("/verification/:id/verify", async (req, res) => {
   await writeData("kyc_submissions.json", kycSubmissions);
   res.json({ submission: sub, message: "KYC submission verified" });
 });
-router23.put("/verification/:id/reject", async (req, res) => {
+router24.put("/verification/:id/reject", async (req, res) => {
   const kycSubmissions = await readData("kyc_submissions.json", defaultKycSubmissions);
   const { id } = req.params;
   const { reason } = req.body;
@@ -38314,11 +37114,11 @@ router23.put("/verification/:id/reject", async (req, res) => {
   await writeData("kyc_submissions.json", kycSubmissions);
   res.json({ submission: sub, message: "KYC submission rejected" });
 });
-var verification_default = router23;
+var verification_default = router24;
 
-// artifacts/api-server/src/routes/referrals.ts
-var import_express24 = __toESM(require_express2(), 1);
-var router24 = (0, import_express24.Router)();
+// src/routes/referrals.ts
+var import_express25 = __toESM(require_express2(), 1);
+var router25 = (0, import_express25.Router)();
 var defaultReferrers = [
   { rank: 1, userId: "USR010", userName: "Tunde Alabi", referralsMade: 47, bonusEarned: 94e3, status: "active", joinDate: "2024-01-15" },
   { rank: 2, userId: "USR022", userName: "Amaka Osei", referralsMade: 35, bonusEarned: 7e4, status: "active", joinDate: "2024-02-01" },
@@ -38329,27 +37129,27 @@ var defaultReferrers = [
   { rank: 7, userId: "USR078", userName: "Chidi Okeke", referralsMade: 11, bonusEarned: 22e3, status: "active", joinDate: "2024-04-10" }
 ];
 var defaultReferralSettings = { programEnabled: true, bonusPerReferral: 2e3, maxReferralsPerUser: 50, minimumDepositForBonus: 5e3, bonusPayoutDelayDays: 7 };
-router24.get("/referrals", async (_req, res) => {
+router25.get("/referrals", async (_req, res) => {
   const referrers = await readData("referrers.json", defaultReferrers);
   const totalReferrals = referrers.reduce((s, r) => s + r.referralsMade, 0);
   const totalBonuses = referrers.reduce((s, r) => s + r.bonusEarned, 0);
   res.json({ leaderboard: referrers, stats: { totalReferralsThisMonth: 156, totalBonusesPaid: totalBonuses, conversionRate: 68.4, topReferrers: totalReferrals } });
 });
-router24.get("/referrals/settings", async (_req, res) => {
+router25.get("/referrals/settings", async (_req, res) => {
   const settings = await readData("referral_settings.json", defaultReferralSettings);
   res.json({ settings });
 });
-router24.put("/referrals/settings", async (req, res) => {
+router25.put("/referrals/settings", async (req, res) => {
   const settings = await readData("referral_settings.json", defaultReferralSettings);
   const updatedSettings = { ...settings, ...req.body };
   await writeData("referral_settings.json", updatedSettings);
   res.json({ settings: updatedSettings, message: "Referral settings updated" });
 });
-var referrals_default = router24;
+var referrals_default = router25;
 
-// artifacts/api-server/src/routes/guarantors.ts
-var import_express25 = __toESM(require_express2(), 1);
-var router25 = (0, import_express25.Router)();
+// src/routes/guarantors.ts
+var import_express26 = __toESM(require_express2(), 1);
+var router26 = (0, import_express26.Router)();
 var defaultGuarantorRelationships = [
   { id: "1", borrowerId: "USR001", borrowerName: "Bola Adeyemi", guarantorId: "USR010", guarantorName: "Tunde Alabi", loanAmount: 5e5, loanId: "LN-001", status: "active", createdAt: "2024-03-01T00:00:00Z" },
   { id: "2", borrowerId: "USR002", borrowerName: "Chioma Obi", guarantorId: "USR022", guarantorName: "Amaka Osei", loanAmount: 25e4, loanId: "LN-002", status: "active", createdAt: "2024-03-15T00:00:00Z" },
@@ -38358,23 +37158,23 @@ var defaultGuarantorRelationships = [
   { id: "5", borrowerId: "USR005", borrowerName: "Gbenga Ola", guarantorId: "USR056", guarantorName: "Biodun Akin", loanAmount: 15e4, loanId: "LN-005", status: "declined", createdAt: "2024-04-15T00:00:00Z" }
 ];
 var defaultGuarantorSettings = { systemEnabled: true, minimumBalanceForGuarantor: 1e5, minimumMembershipMonths: 6, maxLoansAsGuarantor: 3, guarantorMustBeVerified: true };
-router25.get("/guarantors", async (req, res) => {
+router26.get("/guarantors", async (req, res) => {
   const relationships = await readData("guarantor_relationships.json", defaultGuarantorRelationships);
   const { status } = req.query;
   const filtered = status ? relationships.filter((g) => g.status === status) : relationships;
   res.json({ relationships: filtered, pendingCount: relationships.filter((g) => g.status === "pending").length, total: relationships.length });
 });
-router25.get("/guarantors/settings", async (_req, res) => {
+router26.get("/guarantors/settings", async (_req, res) => {
   const settings = await readData("guarantor_settings.json", defaultGuarantorSettings);
   res.json({ settings });
 });
-router25.put("/guarantors/settings", async (req, res) => {
+router26.put("/guarantors/settings", async (req, res) => {
   const settings = await readData("guarantor_settings.json", defaultGuarantorSettings);
   const updatedSettings = { ...settings, ...req.body };
   await writeData("guarantor_settings.json", updatedSettings);
   res.json({ settings: updatedSettings, message: "Guarantor settings updated" });
 });
-router25.put("/guarantors/:id/approve", async (req, res) => {
+router26.put("/guarantors/:id/approve", async (req, res) => {
   const relationships = await readData("guarantor_relationships.json", defaultGuarantorRelationships);
   const rel = relationships.find((g) => g.id === req.params.id);
   if (!rel) {
@@ -38385,7 +37185,7 @@ router25.put("/guarantors/:id/approve", async (req, res) => {
   await writeData("guarantor_relationships.json", relationships);
   res.json({ relationship: rel, message: "Guarantor relationship approved" });
 });
-router25.put("/guarantors/:id/decline", async (req, res) => {
+router26.put("/guarantors/:id/decline", async (req, res) => {
   const relationships = await readData("guarantor_relationships.json", defaultGuarantorRelationships);
   const rel = relationships.find((g) => g.id === req.params.id);
   if (!rel) {
@@ -38396,39 +37196,1189 @@ router25.put("/guarantors/:id/decline", async (req, res) => {
   await writeData("guarantor_relationships.json", relationships);
   res.json({ relationship: rel, message: "Guarantor relationship declined" });
 });
-var guarantors_default = router25;
+var guarantors_default = router26;
 
-// artifacts/api-server/src/routes/index.ts
-var router26 = (0, import_express26.Router)();
-router26.use(health_default);
-router26.use(requireAuth);
-router26.use(dashboard_default);
-router26.use(members_default);
-router26.use(loans_default);
-router26.use(contributions_default);
-router26.use(investments_default);
-router26.use(compliance_default);
-router26.use(notifications_default);
-router26.use(audit_logs_default);
-router26.use(support_default);
-router26.use(risk_scoring_default);
-router26.use(interest_rates_default);
-router26.use(rollovers_default);
-router26.use(payroll_default);
-router26.use(mobile_features_default);
-router26.use(roles_default);
-router26.use(fraud_detection_default);
-router26.use(organizations_default);
-router26.use(analytics_default);
-router26.use(security_default);
-router26.use(wallets_default);
-router26.use(withdrawals_default);
-router26.use(verification_default);
-router26.use(referrals_default);
-router26.use(guarantors_default);
-var routes_default = router26;
+// src/routes/system.ts
+var import_express27 = __toESM(require_express2(), 1);
+var router27 = (0, import_express27.Router)();
+router27.use(requireAuth);
+router27.get("/system/health", requireRole("admin", "super_admin"), async (req, res) => {
+  try {
+    const startDb = Date.now();
+    const { error: dbError } = await supabase.from("profiles").select("count").limit(1);
+    const dbLatency = Date.now() - startDb;
+    const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1e3).toISOString();
+    const { count: recentLogins } = await supabase.from("audit_logs").select("*", { count: "exact", head: true }).eq("action", "login").gte("created_at", fiveMinsAgo);
+    const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1e3).toISOString();
+    const { count: activeUsers } = await supabase.from("audit_logs").select("*", { count: "exact", head: true }).gte("created_at", thirtyMinsAgo);
+    const uptimeHours = process.uptime ? Math.floor(process.uptime() / 3600) : 24;
+    res.json({
+      status: dbError ? "degraded" : "healthy",
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      database: {
+        status: dbError ? "error" : "connected",
+        latency: dbLatency,
+        error: dbError?.message || null
+      },
+      api: {
+        uptime: uptimeHours,
+        version: process.env.npm_package_version || "1.0.0",
+        region: process.env.VERCEL_REGION || "unknown"
+      },
+      metrics: {
+        recentLogins: recentLogins ?? 0,
+        activeUsers: activeUsers ?? 0
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch system health" });
+  }
+});
+router27.get("/system/rate-limits", requireRole("admin", "super_admin"), async (req, res) => {
+  const { data: settings } = await supabase.from("admin_settings").select("*").eq("category", "rate_limits").single();
+  const defaults = {
+    global: { requests: 100, window: "minute" },
+    endpoints: {
+      "/api/auth": { requests: 10, window: "minute" },
+      "/api/members": { requests: 50, window: "minute" },
+      "/api/transactions": { requests: 30, window: "minute" }
+    }
+  };
+  res.json(settings?.settings || defaults);
+});
+var RateLimitSchema = external_exports.object({
+  global: external_exports.object({
+    requests: external_exports.number().min(1).max(1e3),
+    window: external_exports.enum(["second", "minute", "hour"])
+  }),
+  endpoints: external_exports.record(external_exports.object({
+    requests: external_exports.number().min(1).max(1e3),
+    window: external_exports.enum(["second", "minute", "hour"])
+  }))
+});
+router27.put("/system/rate-limits", requireRole("super_admin"), async (req, res) => {
+  const parsed = RateLimitSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid rate limit configuration", details: parsed.error.flatten() });
+    return;
+  }
+  const { data: existing } = await supabase.from("admin_settings").select("id").eq("category", "rate_limits").single();
+  if (existing) {
+    await supabase.from("admin_settings").update({ settings: parsed.data, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", existing.id);
+  } else {
+    await supabase.from("admin_settings").insert({ category: "rate_limits", settings: parsed.data });
+  }
+  res.json({ success: true, settings: parsed.data });
+});
+router27.get("/system/ip-allowlist", requireRole("super_admin"), async (req, res) => {
+  const { data: settings } = await supabase.from("admin_settings").select("*").eq("category", "ip_allowlist").single();
+  res.json({
+    enabled: settings?.settings?.enabled ?? false,
+    ips: settings?.settings?.ips ?? [],
+    updated_at: settings?.updated_at
+  });
+});
+var IPAllowlistSchema = external_exports.object({
+  enabled: external_exports.boolean(),
+  ips: external_exports.array(external_exports.string().ip())
+});
+router27.put("/system/ip-allowlist", requireRole("super_admin"), async (req, res) => {
+  const parsed = IPAllowlistSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid IP allowlist configuration" });
+    return;
+  }
+  const { data: existing } = await supabase.from("admin_settings").select("id").eq("category", "ip_allowlist").single();
+  if (existing) {
+    await supabase.from("admin_settings").update({ settings: parsed.data, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", existing.id);
+  } else {
+    await supabase.from("admin_settings").insert({ category: "ip_allowlist", settings: parsed.data });
+  }
+  res.json({ success: true });
+});
+router27.get("/system/penalties", requireRole("admin", "super_admin"), async (req, res) => {
+  const { data: settings } = await supabase.from("admin_settings").select("*").eq("category", "penalties").single();
+  const defaults = {
+    latePaymentFee: 500,
+    // Flat fee in kobo
+    latePaymentPercentage: 2.5,
+    // Percentage of outstanding
+    loanProcessingFee: 1,
+    // Percentage of loan amount
+    accountMaintenanceFee: 0,
+    // Monthly
+    minimumBalance: 1e3,
+    // Minimum account balance
+    maxPenaltyCycle: 3
+    // Max months before escalation
+  };
+  res.json(settings?.settings || defaults);
+});
+var PenaltySchema = external_exports.object({
+  latePaymentFee: external_exports.number().min(0),
+  latePaymentPercentage: external_exports.number().min(0).max(100),
+  loanProcessingFee: external_exports.number().min(0).max(10),
+  accountMaintenanceFee: external_exports.number().min(0),
+  minimumBalance: external_exports.number().min(0),
+  maxPenaltyCycle: external_exports.number().min(1).max(12)
+});
+router27.put("/system/penalties", requireRole("super_admin"), async (req, res) => {
+  const parsed = PenaltySchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid penalty configuration" });
+    return;
+  }
+  const { data: existing } = await supabase.from("admin_settings").select("id").eq("category", "penalties").single();
+  if (existing) {
+    await supabase.from("admin_settings").update({ settings: parsed.data, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", existing.id);
+  } else {
+    await supabase.from("admin_settings").insert({ category: "penalties", settings: parsed.data });
+  }
+  res.json({ success: true, settings: parsed.data });
+});
+router27.get("/system/settings", requireRole("admin", "super_admin"), async (req, res) => {
+  const { data: settings } = await supabase.from("admin_settings").select("category, updated_at");
+  const categories = settings?.map((s) => s.category) || [];
+  res.json({
+    configured: categories,
+    lastUpdated: settings?.reduce((latest, s) => !latest || s.updated_at > latest ? s.updated_at : latest, null)
+  });
+});
+var system_default = router27;
 
-// artifacts/api-server/src/lib/logger.ts
+// src/routes/reports.ts
+var import_express28 = __toESM(require_express2(), 1);
+var router28 = (0, import_express28.Router)();
+router28.use(requireAuth);
+router28.get("/reports/scheduled", requireRole("admin", "super_admin"), async (req, res) => {
+  const { data: reports, error } = await supabase.from("scheduled_reports").select("*").order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ data: reports || [] });
+});
+var CreateReportSchema = external_exports.object({
+  name: external_exports.string().min(1),
+  type: external_exports.enum(["daily", "weekly", "monthly"]),
+  reportType: external_exports.enum(["members", "contributions", "loans", "financial", "compliance", "custom"]),
+  recipients: external_exports.array(external_exports.string().email()),
+  format: external_exports.enum(["csv", "pdf", "excel"]),
+  filters: external_exports.object({
+    dateRange: external_exports.enum(["today", "week", "month", "quarter", "custom"]).optional(),
+    startDate: external_exports.string().optional(),
+    endDate: external_exports.string().optional(),
+    organization: external_exports.string().optional(),
+    status: external_exports.string().optional()
+  }).optional(),
+  enabled: external_exports.boolean().default(true),
+  sendTime: external_exports.string(),
+  // HH:MM format
+  dayOfWeek: external_exports.number().min(0).max(6).optional(),
+  // For weekly reports
+  dayOfMonth: external_exports.number().min(1).max(28).optional()
+  // For monthly reports
+});
+router28.post("/reports/scheduled", requireRole("super_admin"), async (req, res) => {
+  const parsed = CreateReportSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Validation failed", details: parsed.error.flatten() });
+    return;
+  }
+  const { data: report, error } = await supabase.from("scheduled_reports").insert({
+    name: parsed.data.name,
+    type: parsed.data.type,
+    report_type: parsed.data.reportType,
+    recipients: parsed.data.recipients,
+    format: parsed.data.format,
+    filters: parsed.data.filters,
+    enabled: parsed.data.enabled,
+    send_time: parsed.data.sendTime,
+    day_of_week: parsed.data.dayOfWeek,
+    day_of_month: parsed.data.dayOfMonth,
+    last_sent: null,
+    next_send: calculateNextSend(parsed.data)
+  }).select().single();
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.status(201).json(report);
+});
+router28.patch("/reports/scheduled/:id", requireRole("super_admin"), async (req, res) => {
+  const { id } = req.params;
+  const updates = { ...req.body };
+  if (updates.reportType) {
+    updates.report_type = updates.reportType;
+    delete updates.reportType;
+  }
+  if (updates.sendTime) {
+    updates.send_time = updates.sendTime;
+    delete updates.sendTime;
+  }
+  if (updates.dayOfWeek !== void 0) {
+    updates.day_of_week = updates.dayOfWeek;
+    delete updates.dayOfWeek;
+  }
+  if (updates.dayOfMonth !== void 0) {
+    updates.day_of_month = updates.dayOfMonth;
+    delete updates.dayOfMonth;
+  }
+  if (updates.type && updates.sendTime) {
+    updates.next_send = calculateNextSend({
+      type: updates.type,
+      sendTime: updates.sendTime,
+      dayOfWeek: updates.dayOfWeek,
+      dayOfMonth: updates.dayOfMonth
+    });
+  }
+  updates.updated_at = (/* @__PURE__ */ new Date()).toISOString();
+  const { data: report, error } = await supabase.from("scheduled_reports").update(updates).eq("id", id).select().single();
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json(report);
+});
+router28.delete("/reports/scheduled/:id", requireRole("super_admin"), async (req, res) => {
+  const { id } = req.params;
+  const { error } = await supabase.from("scheduled_reports").delete().eq("id", id);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ success: true });
+});
+router28.post("/reports/scheduled/:id/toggle", requireRole("super_admin"), async (req, res) => {
+  const { id } = req.params;
+  const { enabled } = req.body;
+  const { data: report, error } = await supabase.from("scheduled_reports").update({ enabled, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", id).select().single();
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json(report);
+});
+router28.post("/reports/scheduled/:id/run", requireRole("admin", "super_admin"), async (req, res) => {
+  const { id } = req.params;
+  const { data: report } = await supabase.from("scheduled_reports").select("*").eq("id", id).single();
+  if (!report) {
+    res.status(404).json({ error: "Report not found" });
+    return;
+  }
+  const reportData = await generateReportData(report.report_type, report.filters);
+  await supabase.from("scheduled_reports").update({
+    last_sent: (/* @__PURE__ */ new Date()).toISOString(),
+    next_send: calculateNextSend(report)
+  }).eq("id", id);
+  res.json({
+    success: true,
+    reportId: id,
+    generatedAt: (/* @__PURE__ */ new Date()).toISOString(),
+    rowCount: Array.isArray(reportData) ? reportData.length : 0,
+    data: reportData
+  });
+});
+router28.get("/reports/history", requireRole("admin", "super_admin"), async (req, res) => {
+  const { data: history } = await supabase.from("report_history").select("*").order("generated_at", { ascending: false }).limit(50);
+  res.json({ data: history || [] });
+});
+function calculateNextSend(config) {
+  const now = /* @__PURE__ */ new Date();
+  const [hours, minutes] = (config.sendTime || "09:00").split(":").map(Number);
+  let next = new Date(now);
+  next.setHours(hours, minutes, 0, 0);
+  if (config.type === "daily") {
+    if (next <= now) next.setDate(next.getDate() + 1);
+  } else if (config.type === "weekly") {
+    const targetDay = config.dayOfWeek ?? 1;
+    while (next.getDay() !== targetDay || next <= now) {
+      next.setDate(next.getDate() + 1);
+    }
+  } else if (config.type === "monthly") {
+    const targetDay = config.dayOfMonth ?? 1;
+    next.setDate(targetDay);
+    if (next <= now) next.setMonth(next.getMonth() + 1);
+  }
+  return next.toISOString();
+}
+async function generateReportData(reportType, filters) {
+  const { startDate, endDate, organization, status } = filters || {};
+  let query;
+  switch (reportType) {
+    case "members":
+      query = supabase.from("profiles").select("*");
+      if (status) query = query.eq("status", status);
+      break;
+    case "contributions":
+      query = supabase.from("contributions").select("*");
+      if (startDate) query = query.gte("created_at", startDate);
+      if (endDate) query = query.lte("created_at", endDate);
+      break;
+    case "loans":
+      query = supabase.from("loans").select("*");
+      if (status) query = query.eq("status", status);
+      break;
+    case "financial":
+      const [savings, loans, contributions] = await Promise.all([
+        supabase.from("savings").select("*"),
+        supabase.from("loans").select("*"),
+        supabase.from("contributions").select("*")
+      ]);
+      return { savings: savings.data, loans: loans.data, contributions: contributions.data };
+    default:
+      return [];
+  }
+  const { data } = await query;
+  return data || [];
+}
+var reports_default = router28;
+
+// src/routes/sessions.ts
+var import_express29 = __toESM(require_express2(), 1);
+var router29 = (0, import_express29.Router)();
+router29.use(requireAuth);
+router29.get("/sessions", requireRole("admin", "super_admin"), async (req, res) => {
+  const { data: sessions, error } = await supabase.from("admin_sessions").select("*").eq("is_active", true).order("last_activity", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ data: sessions || [] });
+});
+router29.get("/sessions/me", async (req, res) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const { data: sessions, error } = await supabase.from("admin_sessions").select("*").eq("user_id", userId).eq("is_active", true).order("last_activity", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ data: sessions || [] });
+});
+router29.delete("/sessions/:sessionId", requireRole("admin", "super_admin"), async (req, res) => {
+  const { sessionId } = req.params;
+  const { error } = await supabase.from("admin_sessions").update({ is_active: false, terminated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", sessionId);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ success: true });
+});
+router29.delete("/sessions/user/:userId", requireRole("super_admin"), async (req, res) => {
+  const { userId } = req.params;
+  const currentUserId = req.user?.id;
+  if (userId === currentUserId) {
+    res.status(400).json({ error: "Cannot force logout your own session" });
+    return;
+  }
+  const { error } = await supabase.from("admin_sessions").update({ is_active: false, terminated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("user_id", userId).eq("is_active", true);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ success: true, message: "All sessions terminated" });
+});
+router29.delete("/sessions/terminate-others", async (req, res) => {
+  const userId = req.user?.id;
+  const currentSessionId = req.headers["x-session-id"];
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const { error } = await supabase.from("admin_sessions").update({ is_active: false, terminated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("user_id", userId).eq("is_active", true).neq("id", currentSessionId || "");
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ success: true });
+});
+router29.get("/sessions/stats", requireRole("admin", "super_admin"), async (req, res) => {
+  const { count: activeSessions } = await supabase.from("admin_sessions").select("*", { count: "exact", head: true }).eq("is_active", true);
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1e3).toISOString();
+  const { count: recentSessions } = await supabase.from("admin_sessions").select("*", { count: "exact", head: true }).eq("is_active", true).gte("last_activity", oneHourAgo);
+  const { data: sessionsByRole } = await supabase.from("admin_sessions").select("role").eq("is_active", true);
+  const roleCounts = {};
+  sessionsByRole?.forEach((s) => {
+    roleCounts[s.role || "unknown"] = (roleCounts[s.role || "unknown"] || 0) + 1;
+  });
+  res.json({
+    totalActive: activeSessions ?? 0,
+    activeLastHour: recentSessions ?? 0,
+    byRole: roleCounts
+  });
+});
+router29.post("/sessions/:sessionId/heartbeat", async (req, res) => {
+  const { sessionId } = req.params;
+  await supabase.from("admin_sessions").update({ last_activity: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", sessionId);
+  res.json({ success: true });
+});
+var sessions_default = router29;
+
+// src/routes/bulk.ts
+var import_express30 = __toESM(require_express2(), 1);
+var router30 = (0, import_express30.Router)();
+router30.use(requireAuth);
+router30.post("/bulk/import-members", requireRole("admin", "super_admin"), async (req, res) => {
+  const { members } = req.body;
+  if (!Array.isArray(members)) {
+    res.status(400).json({ error: "Members must be an array" });
+    return;
+  }
+  const results = {
+    success: 0,
+    failed: 0,
+    errors: []
+  };
+  const insertData = members.map((m, index) => {
+    try {
+      if (!m.email) throw new Error(`Row ${index + 1}: Email is required`);
+      if (!m.name && !m.firstName) throw new Error(`Row ${index + 1}: Name is required`);
+      return {
+        id: crypto.randomUUID(),
+        user_id: "CVA-" + String(Date.now() + index).slice(-6),
+        name: m.name || `${m.firstName} ${m.lastName || ""}`.trim(),
+        email: m.email,
+        phone: m.phone || null,
+        role: "member",
+        is_active: m.is_active ?? true,
+        kyc_verified: false,
+        is_flagged: false,
+        occupation: m.occupation || null,
+        organization_id: m.organizationId || null,
+        created_at: (/* @__PURE__ */ new Date()).toISOString()
+      };
+    } catch (err) {
+      results.failed++;
+      results.errors.push(err.message);
+      return null;
+    }
+  }).filter(Boolean);
+  if (insertData.length > 0) {
+    const { data, error } = await supabase.from("profiles").insert(insertData).select("id, email");
+    if (error) {
+      res.status(500).json({ error: error.message, results });
+      return;
+    }
+    results.success = insertData.length;
+  }
+  res.json({
+    message: `Import complete: ${results.success} succeeded, ${results.failed} failed`,
+    results
+  });
+});
+router30.post("/bulk/update-status", requireRole("admin", "super_admin"), async (req, res) => {
+  const { memberIds, status } = req.body;
+  if (!Array.isArray(memberIds) || memberIds.length === 0) {
+    res.status(400).json({ error: "memberIds must be a non-empty array" });
+    return;
+  }
+  if (!["active", "inactive", "suspended"].includes(status)) {
+    res.status(400).json({ error: "Invalid status value" });
+    return;
+  }
+  const updates = {
+    updated_at: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  switch (status) {
+    case "active":
+      updates.is_active = true;
+      updates.kyc_verified = true;
+      updates.is_flagged = false;
+      break;
+    case "inactive":
+      updates.is_active = false;
+      updates.is_flagged = false;
+      break;
+    case "suspended":
+      updates.is_active = false;
+      updates.is_flagged = true;
+      break;
+  }
+  const { data, error } = await supabase.from("profiles").update(updates).in("id", memberIds).select("id, email, status");
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({
+    success: true,
+    updated: data?.length || 0,
+    members: data
+  });
+});
+router30.get("/bulk/export-members", requireRole("admin", "super_admin"), async (req, res) => {
+  const { status, organization, format = "csv" } = req.query;
+  let query = supabase.from("profiles").select("*");
+  if (status === "active") query = query.eq("is_active", true).eq("kyc_verified", true);
+  else if (status === "inactive") query = query.eq("is_active", false);
+  else if (status === "suspended") query = query.eq("is_flagged", true);
+  else if (status === "pending") query = query.eq("is_active", true).eq("kyc_verified", false);
+  const { data: profiles, error } = await query;
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  if (format === "csv") {
+    const headers = ["ID", "User ID", "Name", "Email", "Phone", "Status", "Created"];
+    const rows = (profiles || []).map((p) => [
+      p.id,
+      p.user_id,
+      p.name,
+      p.email,
+      p.phone || "",
+      deriveStatus2(p),
+      p.created_at?.slice(0, 10) || ""
+    ]);
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename="members-export-${Date.now()}.csv"`);
+    res.send(csv);
+  } else {
+    res.json({ data: profiles || [] });
+  }
+});
+router30.post("/bulk/import-contributions", requireRole("admin", "super_admin"), async (req, res) => {
+  const { contributions } = req.body;
+  if (!Array.isArray(contributions)) {
+    res.status(400).json({ error: "Contributions must be an array" });
+    return;
+  }
+  const results = { success: 0, failed: 0, errors: [] };
+  const insertData = [];
+  for (let i = 0; i < contributions.length; i++) {
+    const c = contributions[i];
+    try {
+      if (!c.profileId) throw new Error(`Row ${i + 1}: Profile ID is required`);
+      if (!c.amount || c.amount <= 0) throw new Error(`Row ${i + 1}: Valid amount is required`);
+      insertData.push({
+        id: crypto.randomUUID(),
+        profile_id: c.profileId,
+        amount: c.amount,
+        payment_method: c.paymentMethod || "bank_transfer",
+        reference: c.reference || `BULK-${Date.now()}-${i}`,
+        status: "completed",
+        month: c.month || (/* @__PURE__ */ new Date()).toISOString().slice(0, 7),
+        created_at: c.date || (/* @__PURE__ */ new Date()).toISOString()
+      });
+    } catch (err) {
+      results.failed++;
+      results.errors.push(err.message);
+    }
+  }
+  if (insertData.length > 0) {
+    const { error } = await supabase.from("contributions").insert(insertData);
+    if (error) {
+      res.status(500).json({ error: error.message, results });
+      return;
+    }
+    results.success = insertData.length;
+  }
+  res.json({
+    message: `Import complete: ${results.success} succeeded, ${results.failed} failed`,
+    results
+  });
+});
+router30.get("/bulk/template/:type", requireRole("admin", "super_admin"), async (req, res) => {
+  const { type } = req.params;
+  let headers, sampleRows;
+  switch (type) {
+    case "members":
+      headers = ["email", "firstName", "lastName", "phone", "occupation", "organizationId"];
+      sampleRows = [
+        ["john.doe@example.com", "John", "Doe", "08012345678", "Engineer", "ORG001"],
+        ["jane.smith@example.com", "Jane", "Smith", "08098765432", "Teacher", "ORG001"]
+      ];
+      break;
+    case "contributions":
+      headers = ["profileId", "amount", "paymentMethod", "reference", "month", "date"];
+      sampleRows = [
+        ["PROFILE-ID-HERE", "5000", "payroll_deduction", "REF001", "2025-06", "2025-06-15"],
+        ["PROFILE-ID-HERE", "5000", "bank_transfer", "REF002", "2025-06", "2025-06-20"]
+      ];
+      break;
+    default:
+      res.status(400).json({ error: "Invalid template type" });
+      return;
+  }
+  const csv = [headers.join(","), ...sampleRows.map((r) => r.join(","))].join("\n");
+  res.setHeader("Content-Type", "text/csv");
+  res.setHeader("Content-Disposition", `attachment; filename="${type}-import-template.csv"`);
+  res.send(csv);
+});
+router30.get("/bulk/history", requireRole("admin", "super_admin"), async (req, res) => {
+  const { data: history, error } = await supabase.from("bulk_operations").select("*").order("created_at", { ascending: false }).limit(50);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ data: history || [] });
+});
+router30.post("/bulk/log", requireRole("admin", "super_admin"), async (req, res) => {
+  const { type, success, failed, details } = req.body;
+  const userId = req.user?.id;
+  const { data, error } = await supabase.from("bulk_operations").insert({
+    type,
+    success_count: success,
+    failed_count: failed,
+    details,
+    performed_by: userId,
+    created_at: (/* @__PURE__ */ new Date()).toISOString()
+  }).select().single();
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json(data);
+});
+function deriveStatus2(row) {
+  if (row.is_flagged) return "suspended";
+  if (!row.is_active) return "inactive";
+  if (row.is_active && !row.kyc_verified) return "pending";
+  return "active";
+}
+var bulk_default = router30;
+
+// src/routes/reconciliation.ts
+var import_express31 = __toESM(require_express2(), 1);
+var router31 = (0, import_express31.Router)();
+router31.use(requireAuth);
+router31.get("/reconciliation/overview", requireRole("admin", "super_admin"), async (req, res) => {
+  const { month } = req.query;
+  const targetMonth = month || (/* @__PURE__ */ new Date()).toISOString().slice(0, 7);
+  const { data: contributions } = await supabase.from("contributions").select("profile_id, amount, status, payment_method").like("month", `${targetMonth}%`);
+  const totalExpected = (contributions || []).reduce((sum, c) => sum + Number(c.amount || 0), 0);
+  const totalReceived = (contributions || []).filter((c) => c.status === "completed").reduce((sum, c) => sum + Number(c.amount || 0), 0);
+  const totalPending = (contributions || []).filter((c) => c.status === "pending").reduce((sum, c) => sum + Number(c.amount || 0), 0);
+  const totalFailed = (contributions || []).filter((c) => c.status === "failed").reduce((sum, c) => sum + Number(c.amount || 0), 0);
+  const byMethod = {};
+  (contributions || []).filter((c) => c.status === "completed").forEach((c) => {
+    byMethod[c.payment_method || "unknown"] = (byMethod[c.payment_method || "unknown"] || 0) + Number(c.amount || 0);
+  });
+  res.json({
+    month: targetMonth,
+    summary: {
+      expected: totalExpected,
+      received: totalReceived,
+      pending: totalPending,
+      failed: totalFailed,
+      variance: totalExpected - totalReceived,
+      collectionRate: totalExpected > 0 ? (totalReceived / totalExpected * 100).toFixed(1) : "0"
+    },
+    byPaymentMethod: byMethod,
+    transactionCount: contributions?.length || 0
+  });
+});
+router31.get("/reconciliation/unreconciled", requireRole("admin", "super_admin"), async (req, res) => {
+  const { type = "contributions" } = req.query;
+  let query;
+  if (type === "contributions") {
+    query = supabase.from("contributions").select("*, profiles!inner(name, email, user_id)").eq("status", "pending").order("created_at", { ascending: false });
+  } else if (type === "withdrawals") {
+    query = supabase.from("withdrawals").select("*, profiles!inner(name, email, user_id)").eq("status", "pending").order("created_at", { ascending: false });
+  }
+  const { data, error } = await query;
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ data: data || [] });
+});
+router31.post("/reconciliation/reconcile", requireRole("admin", "super_admin"), async (req, res) => {
+  const { transactionId, transactionType, action, note } = req.body;
+  const userId = req.user?.id;
+  if (!["approve", "reject"].includes(action)) {
+    res.status(400).json({ error: "Invalid action. Use 'approve' or 'reject'" });
+    return;
+  }
+  const table = transactionType === "contribution" ? "contributions" : "withdrawals";
+  const newStatus = action === "approve" ? "completed" : "failed";
+  const { data, error } = await supabase.from(table).update({
+    status: newStatus,
+    reconciled_by: userId,
+    reconciled_at: (/* @__PURE__ */ new Date()).toISOString(),
+    reconciliation_note: note
+  }).eq("id", transactionId).select().single();
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  await supabase.from("audit_logs").insert({
+    action: `reconcile_${action}`,
+    target_type: transactionType,
+    target_id: transactionId,
+    actor_id: userId,
+    details: { note },
+    created_at: (/* @__PURE__ */ new Date()).toISOString()
+  });
+  res.json({ success: true, transaction: data });
+});
+router31.post("/reconciliation/bulk-reconcile", requireRole("super_admin"), async (req, res) => {
+  const { transactionIds, transactionType, action, note } = req.body;
+  const userId = req.user?.id;
+  if (!Array.isArray(transactionIds) || transactionIds.length === 0) {
+    res.status(400).json({ error: "transactionIds must be a non-empty array" });
+    return;
+  }
+  const table = transactionType === "contribution" ? "contributions" : "withdrawals";
+  const newStatus = action === "approve" ? "completed" : "failed";
+  const { data, error } = await supabase.from(table).update({
+    status: newStatus,
+    reconciled_by: userId,
+    reconciled_at: (/* @__PURE__ */ new Date()).toISOString(),
+    reconciliation_note: note
+  }).in("id", transactionIds);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({
+    success: true,
+    reconciled: transactionIds.length,
+    status: newStatus
+  });
+});
+router31.get("/reconciliation/history", requireRole("admin", "super_admin"), async (req, res) => {
+  const { page = 1, limit = 50 } = req.query;
+  const offset = (Number(page) - 1) * Number(limit);
+  const { data: history, count, error } = await supabase.from("reconciliation_logs").select("*", { count: "exact" }).order("created_at", { ascending: false }).range(offset, offset + Number(limit) - 1);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ data: history || [], total: count || 0, page: Number(page), limit: Number(limit) });
+});
+router31.get("/reconciliation/monthly-report", requireRole("admin", "super_admin"), async (req, res) => {
+  const { months = 6 } = req.query;
+  const reports = [];
+  const now = /* @__PURE__ */ new Date();
+  for (let i = 0; i < Number(months); i++) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthStr = date.toISOString().slice(0, 7);
+    const { data: contributions } = await supabase.from("contributions").select("amount, status").like("month", `${monthStr}%`);
+    const total = (contributions || []).reduce((sum, c) => sum + Number(c.amount || 0), 0);
+    const completed = (contributions || []).filter((c) => c.status === "completed").reduce((sum, c) => sum + Number(c.amount || 0), 0);
+    reports.push({
+      month: monthStr,
+      totalExpected: total,
+      totalReceived: completed,
+      collectionRate: total > 0 ? (completed / total * 100).toFixed(1) : "0",
+      transactionCount: contributions?.length || 0
+    });
+  }
+  res.json({ data: reports.reverse() });
+});
+router31.get("/reconciliation/discrepancies", requireRole("admin", "super_admin"), async (req, res) => {
+  const { startDate, endDate } = req.query;
+  let query = supabase.from("contributions").select("*, profiles!inner(name, email, user_id)").eq("status", "failed").order("created_at", { ascending: false }).limit(100);
+  if (startDate) query = query.gte("created_at", startDate);
+  if (endDate) query = query.lte("created_at", endDate);
+  const { data: failed, error } = await query;
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  const byReason = {};
+  failed?.forEach((f) => {
+    const reason = f.failure_reason || "Unknown";
+    byReason[reason] = (byReason[reason] || 0) + 1;
+  });
+  res.json({
+    data: failed || [],
+    summary: {
+      totalDiscrepancies: failed?.length || 0,
+      totalAmount: failed?.reduce((sum, f) => sum + Number(f.amount || 0), 0) || 0,
+      byReason
+    }
+  });
+});
+var reconciliation_default = router31;
+
+// src/routes/login_history.ts
+var import_express32 = __toESM(require_express2(), 1);
+var router32 = (0, import_express32.Router)();
+router32.use(requireAuth);
+router32.get("/members/:memberId/login-history", requireRole("admin", "super_admin"), async (req, res) => {
+  const { memberId } = req.params;
+  const { page = 1, limit = 20 } = req.query;
+  const offset = (Number(page) - 1) * Number(limit);
+  const { data: profile } = await supabase.from("profiles").select("id").or(`id.eq.${memberId},user_id.eq.${memberId}`).single();
+  if (!profile) {
+    res.status(404).json({ error: "Member not found" });
+    return;
+  }
+  const { data: history, count, error } = await supabase.from("login_history").select("*", { count: "exact" }).eq("profile_id", profile.id).order("created_at", { ascending: false }).range(offset, offset + Number(limit) - 1);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ data: history || [], total: count || 0, page: Number(page), limit: Number(limit) });
+});
+router32.get("/login-history", requireRole("admin", "super_admin"), async (req, res) => {
+  const { page = 1, limit = 50, search, startDate, endDate, status } = req.query;
+  const offset = (Number(page) - 1) * Number(limit);
+  let query = supabase.from("login_history").select("*, profiles!inner(name, email, user_id)", { count: "exact" }).order("created_at", { ascending: false }).range(offset, offset + Number(limit) - 1);
+  if (startDate) query = query.gte("created_at", startDate);
+  if (endDate) query = query.lte("created_at", endDate);
+  if (status === "success") query = query.eq("success", true);
+  else if (status === "failed") query = query.eq("success", false);
+  const { data: history, count, error } = await query;
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  let filtered = history || [];
+  if (search) {
+    const searchLower = search.toLowerCase();
+    filtered = filtered.filter(
+      (h) => h.profiles?.name?.toLowerCase().includes(searchLower) || h.profiles?.email?.toLowerCase().includes(searchLower)
+    );
+  }
+  res.json({ data: filtered, total: count || 0, page: Number(page), limit: Number(limit) });
+});
+router32.get("/login-history/suspicious", requireRole("admin", "super_admin"), async (req, res) => {
+  const { hours = 24 } = req.query;
+  const since = new Date(Date.now() - Number(hours) * 60 * 60 * 1e3).toISOString();
+  const { data: failedLogins, error } = await supabase.from("login_history").select("*, profiles!inner(name, email, user_id)").eq("success", false).gte("created_at", since).order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  const suspiciousByIP = {};
+  const suspiciousByProfile = {};
+  failedLogins?.forEach((login) => {
+    if (login.ip_address) {
+      if (!suspiciousByIP[login.ip_address]) {
+        suspiciousByIP[login.ip_address] = { ip: login.ip_address, count: 0, attempts: [] };
+      }
+      suspiciousByIP[login.ip_address].count++;
+      suspiciousByIP[login.ip_address].attempts.push(login);
+    }
+    if (login.profile_id) {
+      const key = login.profile_id;
+      if (!suspiciousByProfile[key]) {
+        suspiciousByProfile[key] = {
+          profileId: login.profile_id,
+          name: login.profiles?.name || "Unknown",
+          count: 0,
+          attempts: []
+        };
+      }
+      suspiciousByProfile[key].count++;
+      suspiciousByProfile[key].attempts.push(login);
+    }
+  });
+  const flaggedIPs = Object.values(suspiciousByIP).filter((s) => s.count >= 5).sort((a, b) => b.count - a.count);
+  const flaggedProfiles = Object.values(suspiciousByProfile).filter((s) => s.count >= 5).sort((a, b) => b.count - a.count);
+  res.json({
+    summary: {
+      totalFailedAttempts: failedLogins?.length || 0,
+      uniqueIPs: Object.keys(suspiciousByIP).length,
+      uniqueProfiles: Object.keys(suspiciousByProfile).length
+    },
+    flaggedIPs,
+    flaggedProfiles,
+    allAttempts: failedLogins || []
+  });
+});
+router32.get("/members/:memberId/devices", requireRole("admin", "super_admin"), async (req, res) => {
+  const { memberId } = req.params;
+  const { data: profile } = await supabase.from("profiles").select("id").or(`id.eq.${memberId},user_id.eq.${memberId}`).single();
+  if (!profile) {
+    res.status(404).json({ error: "Member not found" });
+    return;
+  }
+  const { data: history, error } = await supabase.from("login_history").select("device_type, browser, os, ip_address, location").eq("profile_id", profile.id).eq("success", true).order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  const devices = {};
+  history?.forEach((login) => {
+    const key = `${login.device_type || "unknown"}-${login.browser || "unknown"}`;
+    if (!devices[key]) {
+      devices[key] = {
+        deviceType: login.device_type || "Unknown",
+        browser: login.browser || "Unknown",
+        os: login.os || "Unknown",
+        lastUsed: login.created_at,
+        lastIP: login.ip_address,
+        loginCount: 0
+      };
+    }
+    devices[key].loginCount++;
+  });
+  res.json({ devices: Object.values(devices) });
+});
+router32.post("/security/block", requireRole("admin", "super_admin"), async (req, res) => {
+  const { type, value, reason, expiresAt } = req.body;
+  const userId = req.user?.id;
+  if (!["ip", "device"].includes(type)) {
+    res.status(400).json({ error: "Invalid block type" });
+    return;
+  }
+  const block = {
+    id: crypto.randomUUID(),
+    type,
+    value,
+    reason,
+    blocked_by: userId,
+    expires_at: expiresAt || null,
+    created_at: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  const { error } = await supabase.from("blocked_entities").insert(block);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ success: true, block });
+});
+router32.get("/security/blocked", requireRole("admin", "super_admin"), async (req, res) => {
+  const { data: blocked, error } = await supabase.from("blocked_entities").select("*").order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ data: blocked || [] });
+});
+router32.delete("/security/block/:id", requireRole("super_admin"), async (req, res) => {
+  const { id } = req.params;
+  const { error } = await supabase.from("blocked_entities").delete().eq("id", id);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ success: true });
+});
+router32.get("/login-history/stats", requireRole("admin", "super_admin"), async (req, res) => {
+  const now = /* @__PURE__ */ new Date();
+  const today = now.toISOString().slice(0, 10);
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1e3).toISOString();
+  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1e3).toISOString();
+  const [
+    todayLogins,
+    weekLogins,
+    monthLogins,
+    todayFailed,
+    weekFailed,
+    uniqueUsersToday
+  ] = await Promise.all([
+    supabase.from("login_history").select("*", { count: "exact", head: true }).gte("created_at", today),
+    supabase.from("login_history").select("*", { count: "exact", head: true }).gte("created_at", weekAgo),
+    supabase.from("login_history").select("*", { count: "exact", head: true }).gte("created_at", monthAgo),
+    supabase.from("login_history").select("*", { count: "exact", head: true }).eq("success", false).gte("created_at", today),
+    supabase.from("login_history").select("*", { count: "exact", head: true }).eq("success", false).gte("created_at", weekAgo),
+    supabase.from("login_history").select("profile_id", { count: "exact", head: true }).gte("created_at", today).eq("success", true)
+  ]);
+  res.json({
+    today: { logins: todayLogins.count ?? 0, failed: todayFailed.count ?? 0, uniqueUsers: uniqueUsersToday.count ?? 0 },
+    week: { logins: weekLogins.count ?? 0, failed: weekFailed.count ?? 0 },
+    month: { logins: monthLogins.count ?? 0 }
+  });
+});
+var login_history_default = router32;
+
+// src/routes/excel-uploads.ts
+var import_express33 = __toESM(require_express2(), 1);
+var router33 = (0, import_express33.Router)();
+var UploadRecordSchema = external_exports.object({
+  filename: external_exports.string().min(1),
+  type: external_exports.enum(["bulk_contributions", "user_import", "payroll", "reconciliation"]),
+  uploaded_by: external_exports.string().optional(),
+  record_count: external_exports.number().int().nonnegative().default(0),
+  total_amount: external_exports.number().optional(),
+  status: external_exports.enum(["processed", "pending", "failed", "reviewing"]).default("pending"),
+  error_count: external_exports.number().int().nonnegative().default(0),
+  notes: external_exports.string().optional()
+});
+router33.get("/excel-uploads", requireAuth, async (req, res) => {
+  try {
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Number(req.query.limit) || 20);
+    const offset = (page - 1) * limit;
+    const status = req.query.status;
+    const uploadType = req.query.type;
+    let query = supabase.from("excel_uploads").select("*", { count: "exact" }).order("created_at", { ascending: false });
+    if (status) query = query.eq("status", status);
+    if (uploadType) query = query.eq("type", uploadType);
+    const { data: records, count, error } = await query.range(offset, offset + limit - 1);
+    if (error) {
+      console.error("Error fetching upload records:", error);
+      res.status(500).json({ data: [], total: 0, page, limit });
+      return;
+    }
+    const uploads = Array.isArray(records) ? records : [];
+    res.json({
+      data: uploads.map((r) => ({
+        id: r.id,
+        filename: r.filename,
+        type: r.type,
+        uploadedBy: r.uploaded_by || "Admin",
+        rows: r.record_count || 0,
+        errors: r.error_count || 0,
+        status: r.status,
+        totalAmount: r.total_amount || 0,
+        uploadedAt: r.created_at,
+        notes: r.notes || null
+      })),
+      total: count ?? 0,
+      page,
+      limit
+    });
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    res.status(500).json({ data: [], total: 0, page: 1, limit: 20 });
+  }
+});
+router33.get("/excel-uploads/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { data: record, error } = await supabase.from("excel_uploads").select("*").eq("id", id).single();
+  if (error || !record) {
+    res.status(404).json({ error: "Upload record not found" });
+    return;
+  }
+  res.json({
+    id: record.id,
+    filename: record.filename,
+    type: record.type,
+    uploadedBy: record.uploaded_by || "Admin",
+    rows: record.record_count || 0,
+    errors: record.error_count || 0,
+    status: record.status,
+    totalAmount: record.total_amount || 0,
+    uploadedAt: record.created_at,
+    notes: record.notes || null
+  });
+});
+router33.post("/excel-uploads", requireAuth, async (req, res) => {
+  const parsed = UploadRecordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
+    return;
+  }
+  const { filename, type, uploaded_by, record_count, total_amount, status, error_count, notes } = parsed.data;
+  let uploaderName = uploaded_by;
+  if (!uploaderName) {
+    const userId = req.user?.id;
+    if (userId) {
+      const { data: profile } = await supabase.from("profiles").select("first_name, last_name").eq("id", userId).single();
+      if (profile) {
+        uploaderName = `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || "Admin";
+      }
+    }
+  }
+  const { data: record, error } = await supabase.from("excel_uploads").insert({
+    filename,
+    type,
+    uploaded_by: uploaderName || "Admin",
+    record_count,
+    total_amount: total_amount || 0,
+    status,
+    error_count,
+    notes
+  }).select().single();
+  if (error) {
+    console.error("Error creating upload record:", error);
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.status(201).json({
+    id: record.id,
+    filename: record.filename,
+    type: record.type,
+    uploadedBy: record.uploaded_by,
+    rows: record.record_count,
+    errors: record.error_count,
+    status: record.status,
+    totalAmount: record.total_amount,
+    uploadedAt: record.created_at,
+    notes: record.notes
+  });
+});
+router33.patch("/excel-uploads/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { status, error_count, notes, record_count } = req.body;
+  const updates = { updated_at: (/* @__PURE__ */ new Date()).toISOString() };
+  if (status) updates.status = status;
+  if (error_count !== void 0) updates.error_count = error_count;
+  if (notes !== void 0) updates.notes = notes;
+  if (record_count !== void 0) updates.record_count = record_count;
+  const { data: record, error } = await supabase.from("excel_uploads").update(updates).eq("id", id).select().single();
+  if (error) {
+    console.error("Error updating upload record:", error);
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  if (!record) {
+    res.status(404).json({ error: "Upload record not found" });
+    return;
+  }
+  res.json({
+    id: record.id,
+    filename: record.filename,
+    type: record.type,
+    uploadedBy: record.uploaded_by,
+    rows: record.record_count,
+    errors: record.error_count,
+    status: record.status,
+    totalAmount: record.total_amount,
+    uploadedAt: record.created_at,
+    notes: record.notes
+  });
+});
+router33.delete("/excel-uploads/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { error } = await supabase.from("excel_uploads").delete().eq("id", id);
+  if (error) {
+    console.error("Error deleting upload record:", error);
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ success: true, message: "Upload record deleted" });
+});
+var excel_uploads_default = router33;
+
+// src/routes/index.ts
+var router34 = (0, import_express34.Router)();
+router34.use(health_default);
+router34.use(setup_default);
+router34.use(requireAuth);
+router34.use(dashboard_default);
+router34.use(members_default);
+router34.use(loans_default);
+router34.use(contributions_default);
+router34.use(investments_default);
+router34.use(compliance_default);
+router34.use(notifications_default);
+router34.use(audit_logs_default);
+router34.use(support_default);
+router34.use(risk_scoring_default);
+router34.use(interest_rates_default);
+router34.use(rollovers_default);
+router34.use(payroll_default);
+router34.use(mobile_features_default);
+router34.use(roles_default);
+router34.use(fraud_detection_default);
+router34.use(organizations_default);
+router34.use(analytics_default);
+router34.use(security_default);
+router34.use(wallets_default);
+router34.use(withdrawals_default);
+router34.use(verification_default);
+router34.use(referrals_default);
+router34.use(guarantors_default);
+router34.use(system_default);
+router34.use(reports_default);
+router34.use(sessions_default);
+router34.use(bulk_default);
+router34.use(reconciliation_default);
+router34.use(login_history_default);
+router34.use(excel_uploads_default);
+var routes_default = router34;
+
+// src/lib/logger.ts
 var import_pino = __toESM(require_pino(), 1);
 var isProduction = process.env.NODE_ENV === "production";
 var logger = (0, import_pino.default)({
@@ -38446,14 +38396,14 @@ var logger = (0, import_pino.default)({
   }
 });
 
-// artifacts/api-server/src/app.ts
+// src/app.ts
 if (process.env.NODE_ENV === "production" && !process.env.ALLOWED_ORIGIN) {
   logger.fatal(
     "ALLOWED_ORIGIN environment variable is not set. Refusing to start in production with a wildcard CORS origin. Set ALLOWED_ORIGIN to your frontend URL (e.g. https://app.coopvest.africa)."
   );
   process.exit(1);
 }
-var app = (0, import_express27.default)();
+var app = (0, import_express35.default)();
 app.use(helmet());
 app.use(
   (0, import_cors.default)({
@@ -38462,7 +38412,7 @@ app.use(
   })
 );
 app.use(
-  rate_limit_default({
+  lib_default({
     windowMs: 15 * 60 * 1e3,
     max: 200,
     standardHeaders: true,
@@ -38483,16 +38433,20 @@ app.use(
     }
   })
 );
-app.use(import_express27.default.json());
-app.use(import_express27.default.urlencoded({ extended: true }));
+app.use(import_express35.default.json({ limit: "100kb" }));
+app.use(import_express35.default.urlencoded({ limit: "100kb", extended: true }));
 app.use("/api", routes_default);
 app.use((err, req, res, next) => {
   logger.error({ err }, "Unhandled error");
   res.status(500).json({ error: "Internal server error" });
 });
+app.use((req, res) => {
+  logger.info({ path: req.path }, "Unhandled route");
+  res.status(404).json({ success: false, error: "Endpoint not found", path: req.path });
+});
 var app_default = app;
 
-// artifacts/api-server/src/index.ts
+// src/index.ts
 process.on("unhandledRejection", (err) => {
   logger.fatal(err, "Unhandled rejection");
   process.exit(1);
@@ -38588,6 +38542,7 @@ on-finished/index.js:
    * MIT Licensed
    *)
 
+content-type/dist/index.js:
 content-type/index.js:
   (*!
    * content-type

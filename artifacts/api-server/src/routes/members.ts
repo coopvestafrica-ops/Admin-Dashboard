@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { supabase, splitName, deriveStatus } from "@workspace/db";
 import { CreateMemberBody } from "@workspace/api-zod";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth, requireRole } from "../middleware/auth";
 
 const router: IRouter = Router();
 router.use(requireAuth);
