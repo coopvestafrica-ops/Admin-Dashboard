@@ -27,6 +27,13 @@ export const PAGE_TITLES: Record<string, { title: string; breadcrumb: string[] }
   "/referral-program": { title: "Referral Program", breadcrumb: ["Dashboard", "Referrals"] },
   "/guarantor-system": { title: "Guarantor System", breadcrumb: ["Dashboard", "Guarantors"] },
   "/excel-manager": { title: "Excel Manager", breadcrumb: ["Dashboard", "Excel Manager"] },
+  "/system-settings": { title: "System Settings", breadcrumb: ["Dashboard", "System Settings"] },
+  "/reports": { title: "Reports", breadcrumb: ["Dashboard", "Reports"] },
+  "/bulk-operations": { title: "Bulk Operations", breadcrumb: ["Dashboard", "Bulk Operations"] },
+  "/reconciliation": { title: "Reconciliation", breadcrumb: ["Dashboard", "Reconciliation"] },
+  "/sessions": { title: "Session Management", breadcrumb: ["Dashboard", "Sessions"] },
+  "/login-history": { title: "Login History", breadcrumb: ["Dashboard", "Login History"] },
+  "/settings/profile": { title: "Profile", breadcrumb: ["Dashboard", "Settings", "Profile"] },
 };
 
 export function getPageInfo(path: string): { title: string; breadcrumb: string[] } {

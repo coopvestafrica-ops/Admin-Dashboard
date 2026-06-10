@@ -22,6 +22,9 @@
     "pino-http": "^10",
     "zod": "catalog:"
   },
+  "optionalDependencies": {
+    "firebase-admin": "^13.0.0"
+  },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
