@@ -77,12 +77,16 @@ export default function Login() {
       
       if (resetError) {
         // Handle specific Supabase error messages
-        if (resetError.message.includes("not found") || resetError.message.includes("not found")) {
+        const errorMsg = resetError.message.toLowerCase();
+        if (errorMsg.includes("not found") || errorMsg.includes("not found")) {
           setError("No account found with this email address.");
-        } else if (resetError.message.includes("rate limit")) {
+        } else if (errorMsg.includes("rate limit")) {
           setError("Too many requests. Please try again later.");
+        } else if (errorMsg.includes("email disabled") || errorMsg.includes("disabled")) {
+          setError("Password reset is currently disabled. Contact support.");
         } else {
-          setError("Unable to send recovery email. Please try again.");
+          // Generic error - likely SMTP configuration issue in Supabase
+          setError("Unable to send recovery email. Please contact admin@coopvest.africa");
         }
       } else {
         // Success
