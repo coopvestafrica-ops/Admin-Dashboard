@@ -19,103 +19,115 @@ function getPreviousPeriod(periodStart: Date, months: number): { start: Date; en
 }
 
 router.get("/dashboard/summary", async (req, res): Promise<void> => {
-  // Get current counts
-  const { count: memberCount } = await supabase.from("profiles").select("*", { count: "exact", head: true });
-  const { count: activeMembersCount } = await supabase.from("profiles").select("*", { count: "exact", head: true })
-    .eq("is_active", true).eq("kyc_verified", true).eq("is_flagged", false);
-  const { data: loanRows } = await supabase.from("loans").select("amount, remaining_balance, status");
-  const loans = loanRows ?? [];
-
-  const activeLoans = loans.filter((l) => l.status === "active").length;
-  const completedCount = loans.filter((l) => l.status === "completed").length;
-  const defaultedLoans = loans.filter((l) => l.status === "defaulted" || l.status === "overdue");
-  const riskExposure = defaultedLoans.reduce((s, l) => s + Number(l.remaining_balance || l.amount || 0), 0);
-  const activeDefaulters = defaultedLoans.length;
-  const totalLoans = activeLoans + completedCount;
-  const repaymentRate = totalLoans > 0 ? (completedCount / totalLoans) * 100 : 0;
-  const loansDisbursed = loans.filter((l) => l.status === "active" || l.status === "completed")
-    .reduce((s, l) => s + Number(l.amount || 0), 0);
-
-  const { data: savingsRows } = await supabase.from("savings").select("total_saved");
-  const totalContributions = (savingsRows ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
-
-  const { data: poolRows } = await supabase.from("investment_pools").select("raised_amount");
-  const totalInvestments = (poolRows ?? []).reduce((s, r) => s + Number(r.raised_amount || 0), 0);
-
-  const { count: pendingKyc } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "pending");
-  const { count: openTickets } = await supabase.from("tickets").select("*", { count: "exact", head: true }).in("status", ["open", "in_progress"]);
-
-  let activeOrganizations = 0;
   try {
-    const { count } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("status", "active");
-    activeOrganizations = count ?? 0;
-  } catch {
-    activeOrganizations = 0;
+    // Get current counts
+    const { count: memberCount } = await supabase.from("profiles").select("*", { count: "exact", head: true });
+    const { count: activeMembersCount } = await supabase.from("profiles").select("*", { count: "exact", head: true })
+      .eq("is_active", true).eq("kyc_verified", true).eq("is_flagged", false);
+    
+    let loans: Array<{amount: number | null; remaining_balance: number | null; status: string}> = [];
+    try {
+      const { data: loanRows, error: loanError } = await supabase.from("loans").select("amount, remaining_balance, status");
+      if (!loanError) loans = loanRows ?? [];
+    } catch { loans = []; }
+
+    const activeLoans = loans.filter((l) => l.status === "active").length;
+    const completedCount = loans.filter((l) => l.status === "completed").length;
+    const defaultedLoans = loans.filter((l) => l.status === "defaulted" || l.status === "overdue");
+    const riskExposure = defaultedLoans.reduce((s, l) => s + Number(l.remaining_balance || l.amount || 0), 0);
+    const activeDefaulters = defaultedLoans.length;
+    const totalLoans = activeLoans + completedCount;
+    const repaymentRate = totalLoans > 0 ? (completedCount / totalLoans) * 100 : 0;
+    const loansDisbursed = loans.filter((l) => l.status === "active" || l.status === "completed")
+      .reduce((s, l) => s + Number(l.amount || 0), 0);
+
+    let totalContributions = 0;
+    try {
+      const { data: savingsRows } = await supabase.from("savings").select("total_saved");
+      totalContributions = (savingsRows ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
+    } catch { totalContributions = 0; }
+
+    let totalInvestments = 0;
+    try {
+      const { data: poolRows } = await supabase.from("investment_pools").select("raised_amount");
+      totalInvestments = (poolRows ?? []).reduce((s, r) => s + Number(r.raised_amount || 0), 0);
+    } catch { totalInvestments = 0; }
+
+    const { count: pendingKyc } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "pending");
+    const { count: openTickets } = await supabase.from("tickets").select("*", { count: "exact", head: true }).in("status", ["open", "in_progress"]);
+
+    let activeOrganizations = 0;
+    try {
+      const { count } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("status", "active");
+      activeOrganizations = count ?? 0;
+    } catch { activeOrganizations = 0; }
+
+    // Calculate growth metrics - use safe defaults if queries fail
+    let membersGrowth = 0, savingsGrowth = 0, loansGrowth = 0, contributionsGrowth = 0, monthlyGrowth = 0;
+    
+    try {
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+      const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString();
+
+      const { count: newThisMonth } = await supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", monthStart);
+      const { count: newLastMonth } = await supabase.from("profiles").select("*", { count: "exact", head: true })
+        .gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
+      membersGrowth = calcGrowth(newThisMonth ?? 0, newLastMonth ?? 0);
+
+      const { data: savingsThisMonth } = await supabase.from("savings").select("total_saved").gte("updated_at", monthStart);
+      const { data: savingsLastMonth } = await supabase.from("savings").select("total_saved")
+        .gte("updated_at", prevMonthStart).lt("updated_at", prevMonthEnd);
+      const savingsThisMonthTotal = (savingsThisMonth ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
+      const savingsLastMonthTotal = (savingsLastMonth ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
+      savingsGrowth = calcGrowth(savingsThisMonthTotal, savingsLastMonthTotal);
+
+      const { count: loansThisMonth } = await supabase.from("loans").select("*", { count: "exact", head: true })
+        .in("status", ["active", "completed"]).gte("created_at", monthStart);
+      const { count: loansLastMonth } = await supabase.from("loans").select("*", { count: "exact", head: true })
+        .in("status", ["active", "completed"]).gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
+      loansGrowth = calcGrowth(loansThisMonth ?? 0, loansLastMonth ?? 0);
+
+      const { data: txnsThisMonth } = await supabase.from("transactions").select("amount")
+        .in("type", ["savings_deposit", "deposit"]).eq("status", "completed").gte("created_at", monthStart);
+      const { data: txnsLastMonth } = await supabase.from("transactions").select("amount")
+        .in("type", ["savings_deposit", "deposit"]).eq("status", "completed").gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
+      const contributionsThisMonth = (txnsThisMonth ?? []).reduce((s, t) => s + Number(t.amount || 0), 0);
+      const contributionsLastMonth = (txnsLastMonth ?? []).reduce((s, t) => s + Number(t.amount || 0), 0);
+      contributionsGrowth = calcGrowth(contributionsThisMonth, contributionsLastMonth);
+
+      const { count: txnsCountThisMonth } = await supabase.from("transactions").select("*", { count: "exact", head: true }).gte("created_at", monthStart);
+      const { count: txnsCountLastMonth } = await supabase.from("transactions").select("*", { count: "exact", head: true })
+        .gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
+      monthlyGrowth = calcGrowth(txnsCountThisMonth ?? 0, txnsCountLastMonth ?? 0);
+    } catch { /* Use default 0 values */ }
+
+    res.json({
+      totalMembers: memberCount ?? 0,
+      activeMembers: activeMembersCount ?? 0,
+      activeLoans,
+      totalContributions,
+      totalSavings: totalContributions,
+      loansDisbursed,
+      totalLoansIssued: loansDisbursed,
+      repaymentRate: Math.round(repaymentRate * 10) / 10,
+      pendingCompliance: pendingKyc ?? 0,
+      openSupportTickets: openTickets ?? 0,
+      totalInvestments,
+      riskExposure,
+      activeDefaulters,
+      activeOrganizations,
+      monthlyGrowth,
+      membersGrowth,
+      loansGrowth,
+      savingsGrowth,
+      contributionsGrowth,
+    });
+  } catch (error) {
+    console.error("Dashboard summary error:", error);
+    res.status(500).json({ error: "Failed to load dashboard summary" });
   }
-
-  // Calculate growth metrics from historical data
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
-  const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString();
-
-  // Members growth (comparing this month vs last month new members)
-  const { count: newThisMonth } = await supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", monthStart);
-  const { count: newLastMonth } = await supabase.from("profiles").select("*", { count: "exact", head: true })
-    .gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
-  const membersGrowth = calcGrowth(newThisMonth ?? 0, newLastMonth ?? 0);
-
-  // Savings growth (comparing totals this month vs last month)
-  const { data: savingsThisMonth } = await supabase.from("savings").select("total_saved").gte("updated_at", monthStart);
-  const { data: savingsLastMonth } = await supabase.from("savings").select("total_saved")
-    .gte("updated_at", prevMonthStart).lt("updated_at", prevMonthEnd);
-  const savingsThisMonthTotal = (savingsThisMonth ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
-  const savingsLastMonthTotal = (savingsLastMonth ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
-  const savingsGrowth = calcGrowth(savingsThisMonthTotal, savingsLastMonthTotal);
-
-  // Loans growth (comparing approvals this month vs last month)
-  const { count: loansThisMonth } = await supabase.from("loans").select("*", { count: "exact", head: true })
-    .in("status", ["active", "completed"]).gte("approved_at", monthStart);
-  const { count: loansLastMonth } = await supabase.from("loans").select("*", { count: "exact", head: true })
-    .in("status", ["active", "completed"]).gte("approved_at", prevMonthStart).lt("approved_at", prevMonthEnd);
-  const loansGrowth = calcGrowth(loansThisMonth ?? 0, loansLastMonth ?? 0);
-
-  // Contributions growth (monthly savings volume)
-  const { data: txnsThisMonth } = await supabase.from("transactions").select("amount")
-    .in("type", ["savings_deposit", "deposit"]).eq("status", "completed").gte("created_at", monthStart);
-  const { data: txnsLastMonth } = await supabase.from("transactions").select("amount")
-    .in("type", ["savings_deposit", "deposit"]).eq("status", "completed").gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
-  const contributionsThisMonth = (txnsThisMonth ?? []).reduce((s, t) => s + Number(t.amount || 0), 0);
-  const contributionsLastMonth = (txnsLastMonth ?? []).reduce((s, t) => s + Number(t.amount || 0), 0);
-  const contributionsGrowth = calcGrowth(contributionsThisMonth, contributionsLastMonth);
-
-  // Monthly growth (overall platform activity based on transactions)
-  const { count: txnsCountThisMonth } = await supabase.from("transactions").select("*", { count: "exact", head: true }).gte("created_at", monthStart);
-  const { count: txnsCountLastMonth } = await supabase.from("transactions").select("*", { count: "exact", head: true })
-    .gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
-  const monthlyGrowth = calcGrowth(txnsCountThisMonth ?? 0, txnsCountLastMonth ?? 0);
-
-  res.json({
-    totalMembers: memberCount ?? 0,
-    activeMembers: activeMembersCount ?? 0,
-    activeLoans,
-    totalContributions,
-    totalSavings: totalContributions,
-    loansDisbursed,
-    totalLoansIssued: loansDisbursed,
-    repaymentRate: Math.round(repaymentRate * 10) / 10,
-    pendingCompliance: pendingKyc ?? 0,
-    openSupportTickets: openTickets ?? 0,
-    totalInvestments,
-    riskExposure,
-    activeDefaulters,
-    activeOrganizations,
-    monthlyGrowth,
-    membersGrowth,
-    loansGrowth,
-    savingsGrowth,
-    contributionsGrowth,
-  });
 });
 
 router.get("/dashboard/monthly-contributions", async (req, res): Promise<void> => {
