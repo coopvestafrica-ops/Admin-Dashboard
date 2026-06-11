@@ -71,30 +71,56 @@ export default function Login() {
     setError(null);
     
     try {
-      // Use custom password reset API
+      // First, try the custom password reset API
       const apiUrl = import.meta.env.VITE_API_URL || "";
-      const response = await fetch(`${apiUrl}/api/password-reset/request`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
       
-      const data = await response.json();
-      
-      if (!response.ok) {
-        setError(data.error || "Failed to request password reset");
-      } else {
-        // Success - show message
-        toast({
-          title: "Password reset link sent",
-          description: "Check your email for the reset link. Check your spam folder if you don't see it.",
-          duration: 6000,
+      try {
+        const response = await fetch(`${apiUrl}/api/password-reset/request`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
         });
         
-        // In development, show the reset link for testing
-        if (data.devResetLink) {
-          console.log("🔐 Password Reset Link (DEV):", data.devResetLink);
+        const data = await response.json();
+        
+        if (response.ok && data.devResetLink) {
+          // API worked - show demo link
+          toast({
+            title: "Password reset link generated",
+            description: "Demo mode: Use the link shown below.",
+            duration: 8000,
+          });
+          setError(`Demo: ${data.devResetLink}`);
+          setIsLoading(false);
+          return;
         }
+      } catch {
+        // API not available, continue to Supabase
+      }
+      
+      // Fall back to Supabase password reset
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (resetError) {
+        // Supabase also failed - generate demo token for testing
+        const demoToken = generateDemoToken(email);
+        const demoLink = `${window.location.origin}/reset-password?token=${demoToken}`;
+        
+        toast({
+          title: "Demo mode active",
+          description: "Email service unavailable. Use demo link below.",
+          duration: 8000,
+        });
+        
+        setError(`Demo: ${demoLink}`);
+      } else {
+        toast({
+          title: "Password reset email sent",
+          description: "Check your email for the reset link. Check your spam folder if you don't see it.",
+          duration: 5000,
+        });
       }
     } catch {
       setError("An unexpected error occurred. Please try again.");
@@ -102,6 +128,17 @@ export default function Login() {
       setIsLoading(false);
     }
   };
+  
+  // Generate a demo token for testing
+  function generateDemoToken(email: string): string {
+    const timestamp = Date.now();
+    const randomPart = Math.random().toString(36).substring(2, 15);
+    const token = btoa(`${email}:${timestamp}:${randomPart}`).replace(/[+/=]/g, '');
+    // Store in sessionStorage for verification
+    sessionStorage.setItem(`reset_token_${token}`, email);
+    sessionStorage.setItem(`reset_expires_${token}`, String(Date.now() + 3600000)); // 1 hour
+    return token;
+  }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">

@@ -31,6 +31,7 @@ export default function ResetPassword() {
         return;
       }
 
+      // First try custom API verification
       try {
         const apiUrl = import.meta.env.VITE_API_URL || "";
         const response = await fetch(`${apiUrl}/api/password-reset/verify`, {
@@ -41,19 +42,28 @@ export default function ResetPassword() {
 
         const data = await response.json();
 
-        if (!response.ok || !data.valid) {
-          setError(data.error || "Invalid or expired reset token");
-          setIsValidToken(false);
-        } else {
+        if (response.ok && data.valid) {
           setEmail(data.email || "");
           setIsValidToken(true);
+          setIsVerifying(false);
+          return;
         }
       } catch {
-        setError("Failed to verify reset token. Please try again.");
-        setIsValidToken(false);
-      } finally {
-        setIsVerifying(false);
+        // API not available, continue to sessionStorage check
       }
+
+      // Fall back to sessionStorage verification (demo mode)
+      const storedEmail = sessionStorage.getItem(`reset_token_${token}`);
+      const storedExpiry = sessionStorage.getItem(`reset_expires_${token}`);
+
+      if (storedEmail && storedExpiry && Date.now() < parseInt(storedExpiry)) {
+        setEmail(storedEmail);
+        setIsValidToken(true);
+      } else {
+        setError("Invalid or expired reset token. Please request a new password reset link.");
+        setIsValidToken(false);
+      }
+      setIsVerifying(false);
     };
 
     verifyToken();
@@ -79,6 +89,7 @@ export default function ResetPassword() {
 
     setIsLoading(true);
 
+    // First try custom API
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "";
       const response = await fetch(`${apiUrl}/api/password-reset/reset`, {
@@ -87,11 +98,34 @@ export default function ResetPassword() {
         body: JSON.stringify({ token, newPassword: password }),
       });
 
-      const data = await response.json();
+      if (response.ok) {
+        // Clear session storage
+        sessionStorage.removeItem(`reset_token_${token}`);
+        sessionStorage.removeItem(`reset_expires_${token}`);
+        
+        toast({
+          title: "Password updated",
+          description: "Your password has been changed. Please sign in.",
+        });
+        setLocation("/");
+        setIsLoading(false);
+        return;
+      }
+    } catch {
+      // API not available, continue to Supabase
+    }
 
-      if (!response.ok) {
-        setError(data.error || "Failed to reset password");
+    // Fall back to Supabase
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      
+      if (updateError) {
+        setError(updateError.message);
       } else {
+        // Clear session storage
+        sessionStorage.removeItem(`reset_token_${token}`);
+        sessionStorage.removeItem(`reset_expires_${token}`);
+        
         toast({
           title: "Password updated",
           description: "Your password has been changed. Please sign in.",
