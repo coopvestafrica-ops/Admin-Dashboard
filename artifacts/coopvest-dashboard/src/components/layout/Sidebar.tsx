@@ -36,6 +36,7 @@ import {
   History,
   ChevronDown,
   DollarSign,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -137,9 +138,11 @@ function loadCollapsedGroups(): Record<string, boolean> {
 interface SidebarProps {
   collapsed: boolean;
   setCollapsed: (collapsed: boolean) => void;
+  mobileOpen?: boolean;
+  setMobileOpen?: (open: boolean) => void;
 }
 
-export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
+export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: SidebarProps) {
   const [location] = useLocation();
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(loadCollapsedGroups);
 
@@ -161,65 +164,83 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
     }
   }, [location]);
 
-  return (
-    <aside
-      className={cn(
-        "flex flex-col border-r bg-sidebar text-sidebar-foreground transition-all duration-300 z-20 shrink-0",
-        collapsed ? "w-[70px]" : "w-64"
-      )}
-    >
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    if (setMobileOpen) {
+      setMobileOpen(false);
+    }
+  }, [location, setMobileOpen]);
+
+  const sidebarContent = (
+    <>
       {/* Logo / Brand */}
-      <div className="flex h-16 items-center px-4 shrink-0 border-b">
-        <Link href="/dashboard" className="flex items-center gap-2 font-bold text-primary flex-1">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground shrink-0">
-            <span className="text-sm">CA</span>
+      <div className="flex h-16 items-center px-4 shrink-0 border-b border-sidebar-border/50">
+        <Link href="/dashboard" className="flex items-center gap-3 font-bold flex-1 group">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/25 transition-transform group-hover:scale-105">
+            <span className="text-base font-bold">CA</span>
           </div>
-          {!collapsed && <span className="truncate">Coopvest Africa</span>}
+          {!collapsed && (
+            <div className="flex flex-col">
+              <span className="text-sm font-bold tracking-tight">Coopvest</span>
+              <span className="text-[10px] text-muted-foreground font-medium">Admin Dashboard</span>
+            </div>
+          )}
         </Link>
-        <Button variant="ghost" size="icon" className="shrink-0" onClick={() => setCollapsed(!collapsed)}>
-          <Menu className="h-5 w-5" />
-        </Button>
+        {setMobileOpen && (
+          <Button variant="ghost" size="icon" className="lg:hidden shrink-0" onClick={() => setMobileOpen(false)}>
+            <X className="h-5 w-5" />
+          </Button>
+        )}
+        {!setMobileOpen && (
+          <Button variant="ghost" size="icon" className="hidden lg:flex shrink-0" onClick={() => setCollapsed(!collapsed)}>
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
       </div>
 
       {/* Navigation */}
-      <ScrollArea className="flex-1 py-4">
-        <div className="flex flex-col gap-1 px-2">
-          {sidebarGroups.map((group) => {
+      <ScrollArea className="flex-1 py-4 px-2">
+        <div className="flex flex-col gap-1">
+          {sidebarGroups.map((group, groupIndex) => {
             const isGroupCollapsed = collapsedGroups[group.key] && !collapsed;
             const hasActive = group.items.some(
               (item) => location === item.href || location.startsWith(item.href + "/"),
             );
 
             return (
-              <div key={group.key} className="flex flex-col">
-                {/* Group header — clickable to collapse/expand */}
+              <div 
+                key={group.key} 
+                className="flex flex-col stagger-item"
+                style={{ animationDelay: `${groupIndex * 50}ms` }}
+              >
+                {/* Group header */}
                 {!collapsed ? (
                   <button
                     onClick={() => toggleGroup(group.key)}
                     className={cn(
-                      "flex items-center justify-between px-2 py-1.5 text-xs font-semibold uppercase tracking-wider rounded-md transition-colors",
+                      "flex items-center justify-between px-3 py-2 text-[11px] font-semibold uppercase tracking-wider rounded-lg transition-all duration-200",
                       hasActive
-                        ? "text-primary/80"
-                        : "text-muted-foreground/70 hover:text-muted-foreground",
+                        ? "text-primary bg-primary/10"
+                        : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-sidebar-accent/50",
                     )}
                   >
                     <span>{group.title}</span>
                     <ChevronDown
                       className={cn(
-                        "h-3.5 w-3.5 transition-transform duration-200",
+                        "h-3.5 w-3.5 transition-transform duration-300",
                         isGroupCollapsed && "-rotate-90",
                       )}
                     />
                   </button>
                 ) : (
-                  <div className="mx-auto my-2 h-px w-8 bg-border" />
+                  <div className="mx-auto my-2 h-px w-10 bg-border/50" />
                 )}
 
                 {/* Group items */}
                 <div
                   className={cn(
-                    "flex flex-col gap-0.5 overflow-hidden transition-all duration-200",
-                    isGroupCollapsed && !collapsed ? "max-h-0 opacity-0" : "max-h-[500px] opacity-100",
+                    "flex flex-col gap-0.5 overflow-hidden transition-all duration-300 ease-out",
+                    isGroupCollapsed && !collapsed ? "max-h-0 opacity-0" : "max-h-[800px] opacity-100",
                   )}
                 >
                   {group.items.map((item) => {
@@ -228,15 +249,21 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
                       <Link key={item.href} href={item.href}>
                         <div
                           className={cn(
-                            "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors cursor-pointer",
+                            "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer",
                             isActive
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/80",
+                              ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                              : "hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground text-sidebar-foreground/70",
                           )}
                           title={collapsed ? item.title : undefined}
                         >
-                          <item.icon className="h-5 w-5 shrink-0" />
-                          {!collapsed && <span>{item.title}</span>}
+                          <item.icon className={cn(
+                            "h-[18px] w-[18px] shrink-0 transition-transform duration-200",
+                            !isActive && "group-hover:scale-110"
+                          )} />
+                          {!collapsed && <span className="truncate">{item.title}</span>}
+                          {isActive && (
+                            <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary-foreground/50" />
+                          )}
                         </div>
                       </Link>
                     );
@@ -245,7 +272,7 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
                       return (
                         <Tooltip key={item.href} delayDuration={0}>
                           <TooltipTrigger asChild>{navLink}</TooltipTrigger>
-                          <TooltipContent side="right" className="font-medium">
+                          <TooltipContent side="right" sideOffset={10} className="font-medium">
                             {item.title}
                           </TooltipContent>
                         </Tooltip>
@@ -262,27 +289,65 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-4 border-t shrink-0">
+      <div className="p-4 border-t border-sidebar-border/50 shrink-0">
         {collapsed ? (
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <Link href="/">
-                <div className="flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-destructive hover:text-destructive-foreground text-sidebar-foreground/80 cursor-pointer">
-                  <LogOut className="h-5 w-5 shrink-0" />
+                <div className="flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-destructive hover:text-destructive-foreground text-sidebar-foreground/60 cursor-pointer">
+                  <LogOut className="h-[18px] w-[18px] shrink-0" />
                 </div>
               </Link>
             </TooltipTrigger>
-            <TooltipContent side="right" className="font-medium">Logout</TooltipContent>
+            <TooltipContent side="right" sideOffset={10} className="font-medium">Logout</TooltipContent>
           </Tooltip>
         ) : (
           <Link href="/">
-            <div className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-destructive hover:text-destructive-foreground text-sidebar-foreground/80 cursor-pointer">
-              <LogOut className="h-5 w-5 shrink-0" />
+            <div className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-destructive hover:text-destructive-foreground text-sidebar-foreground/60 cursor-pointer">
+              <LogOut className="h-[18px] w-[18px] shrink-0 transition-transform group-hover:-translate-x-0.5" />
               <span>Logout</span>
             </div>
           </Link>
         )}
       </div>
-    </aside>
+    </>
+  );
+
+  // Desktop sidebar
+  if (!setMobileOpen) {
+    return (
+      <aside
+        className={cn(
+          "hidden lg:flex flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 z-20 shrink-0 border-r border-sidebar-border/50",
+          collapsed ? "w-[72px]" : "w-64"
+        )}
+      >
+        {sidebarContent}
+      </aside>
+    );
+  }
+
+  // Mobile overlay
+  return (
+    <>
+      {/* Mobile backdrop */}
+      <div 
+        className={cn(
+          "fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300",
+          mobileOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setMobileOpen(false)}
+      />
+      
+      {/* Mobile sidebar */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 lg:hidden flex flex-col bg-sidebar text-sidebar-foreground transition-transform duration-300 border-r border-sidebar-border/50",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {sidebarContent}
+      </aside>
+    </>
   );
 }

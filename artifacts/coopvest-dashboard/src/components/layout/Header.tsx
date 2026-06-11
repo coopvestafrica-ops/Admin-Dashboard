@@ -1,4 +1,4 @@
-import { Bell, Moon, Sun, ChevronRight, Search, Command, CheckCheck, BellOff, Info, AlertTriangle, CheckCircle, AlertCircle } from "lucide-react";
+import { Bell, Moon, Sun, ChevronRight, Search, Command, CheckCheck, BellOff, Info, AlertTriangle, CheckCircle, AlertCircle, Menu } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -35,9 +35,10 @@ const defaultType = { icon: Info, color: "text-muted-foreground", bg: "bg-muted"
 
 interface HeaderProps {
   onOpenSearch?: () => void;
+  onOpenMobileMenu?: () => void;
 }
 
-export function Header({ onOpenSearch }: HeaderProps) {
+export function Header({ onOpenSearch, onOpenMobileMenu }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const { data: notifications } = useGetNotifications(
     { page: 1, limit: 10 },
@@ -91,10 +92,21 @@ export function Header({ onOpenSearch }: HeaderProps) {
   }, [queryClient]);
 
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-card px-6 shrink-0">
-      <div className="flex items-center gap-4 flex-1">
-        {/* Breadcrumbs */}
-        <nav className="flex items-center gap-1 text-sm" aria-label="Breadcrumb">
+    <header className="flex h-14 md:h-16 items-center justify-between border-b bg-card px-4 md:px-6 shrink-0">
+      <div className="flex items-center gap-3 md:gap-4 flex-1">
+        {/* Mobile Menu Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden shrink-0"
+          onClick={onOpenMobileMenu}
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+
+        {/* Breadcrumbs - hide on small mobile */}
+        <nav className="hidden sm:flex items-center gap-1 text-sm" aria-label="Breadcrumb">
           <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
             Dashboard
           </Link>
@@ -113,17 +125,18 @@ export function Header({ onOpenSearch }: HeaderProps) {
           variant="outline"
           size="sm"
           onClick={onOpenSearch}
-          className="ml-4 h-8 w-48 justify-start text-muted-foreground gap-2"
+          className="ml-auto md:ml-4 h-8 w-32 sm:w-48 justify-start text-muted-foreground gap-2"
         >
-          <Search className="h-4 w-4" />
-          <span className="flex-1 text-left">Search...</span>
-          <kbd className="hidden sm:flex items-center gap-1 rounded border bg-muted px-1.5 py-0.5 text-[10px] font-medium">
+          <Search className="h-4 w-4 shrink-0" />
+          <span className="hidden sm:flex-1 text-left truncate">Search...</span>
+          <span className="sm:hidden text-xs">Search</span>
+          <kbd className="hidden sm:flex items-center gap-1 rounded border bg-muted px-1.5 py-0.5 text-[10px] font-medium ml-auto">
             <Command className="h-3 w-3" />K
           </kbd>
         </Button>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 md:gap-2">
         <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-muted-foreground" aria-label="Toggle theme">
           {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
         </Button>
@@ -140,7 +153,7 @@ export function Header({ onOpenSearch }: HeaderProps) {
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-96 p-0" align="end" sideOffset={8}>
+          <PopoverContent className="w-80 sm:w-96 p-0" align="end" sideOffset={8}>
             <div className="flex items-center justify-between px-4 py-3 border-b">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-semibold">Notifications</h3>
@@ -150,12 +163,13 @@ export function Header({ onOpenSearch }: HeaderProps) {
               </div>
               {unreadCount > 0 && (
                 <Button variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground" onClick={markAllRead}>
-                  <CheckCheck className="h-3.5 w-3.5" />Mark all read
+                  <CheckCheck className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Mark all read</span>
                 </Button>
               )}
             </div>
 
-            <ScrollArea className="max-h-80">
+            <ScrollArea className="max-h-72 sm:max-h-80">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
                   <BellOff className="h-8 w-8 mb-2 opacity-40" />
@@ -219,7 +233,7 @@ export function Header({ onOpenSearch }: HeaderProps) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full" aria-label="User menu">
               <Avatar className="h-9 w-9 border">
-                <AvatarFallback className="bg-primary/10 text-primary">
+                <AvatarFallback className="bg-primary/10 text-primary text-sm">
                   {getInitials(user?.email)}
                 </AvatarFallback>
               </Avatar>
