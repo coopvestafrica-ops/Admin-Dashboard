@@ -42,6 +42,7 @@ import BulkOperations from "@/pages/bulk-operations/index";
 import Reconciliation from "@/pages/reconciliation/index";
 import Sessions from "@/pages/sessions/index";
 import LoginHistory from "@/pages/login-history/index";
+import FinancialDashboard from "@/pages/financial-dashboard/index";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -92,6 +93,7 @@ function Router() {
       <Route path="/reconciliation">{() => <ProtectedRoute component={Reconciliation} />}</Route>
       <Route path="/sessions">{() => <ProtectedRoute component={Sessions} />}</Route>
       <Route path="/login-history">{() => <ProtectedRoute component={LoginHistory} />}</Route>
+      <Route path="/financial-dashboard">{() => <ProtectedRoute component={FinancialDashboard} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

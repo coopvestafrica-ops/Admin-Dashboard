@@ -187,13 +187,29 @@ router.post("/loans/:id/approve", requireRole("operator"), async (req, res): Pro
   const now = new Date();
   const dueDate = new Date(now);
   dueDate.setMonth(dueDate.getMonth() + 12);
+  
+  // Get admin info from session
+  const adminId = (req as any).session?.profileId || req.headers["x-admin-id"] as string || "";
+  const adminName = (req as any).session?.profileName || req.headers["x-admin-name"] as string || "Admin";
 
   const { data: loan, error } = await supabase.from("loans").update({
     status: "active", approved_at: now.toISOString(),
     next_due_date: dueDate.toISOString().slice(0, 10),
+    approved_by: adminId || null,
   }).eq("id", id).select().single();
 
   if (error || !loan) { res.status(404).json({ error: "Loan not found" }); return; }
+
+  // Create audit log entry
+  await supabase.from("loan_audit_log").insert({
+    loan_id: loan.loan_id,
+    action: "APPROVED",
+    old_status: "pending",
+    new_status: "active",
+    admin_id: adminId || null,
+    admin_name: adminName,
+    notes: `Loan approved by ${adminName}`,
+  });
 
   const { data: profile } = await supabase.from("profiles").select("name").eq("id", loan.profile_id).single();
   res.json({
@@ -201,7 +217,8 @@ router.post("/loans/:id/approve", requireRole("operator"), async (req, res): Pro
     memberName: profile?.name ?? "", amount: Number(loan.amount),
     balance: Number(loan.remaining_balance ?? loan.amount),
     interestRate: Number(loan.effective_interest_rate),
-    status: loan.status, createdAt: loan.created_at,
+    status: loan.status, approvedBy: adminName, approvedAt: now.toISOString(),
+    createdAt: loan.created_at,
   });
 });
 
@@ -213,12 +230,28 @@ router.post("/loans/:id/reject", requireRole("operator"), async (req, res): Prom
     res.status(400).json({ error: "reason is required" });
     return;
   }
+  
+  // Get admin info from session
+  const adminId = (req as any).session?.profileId || req.headers["x-admin-id"] as string || "";
+  const adminName = (req as any).session?.profileName || req.headers["x-admin-name"] as string || "Admin";
 
   const { data: loan, error } = await supabase.from("loans").update({
     status: "rejected", rejected_reason: reason.trim(),
+    rejected_by: adminId || null,
   }).eq("id", id).select().single();
 
   if (error || !loan) { res.status(404).json({ error: "Loan not found" }); return; }
+
+  // Create audit log entry
+  await supabase.from("loan_audit_log").insert({
+    loan_id: loan.loan_id,
+    action: "REJECTED",
+    old_status: "pending",
+    new_status: "rejected",
+    admin_id: adminId || null,
+    admin_name: adminName,
+    notes: reason.trim(),
+  });
 
   const { data: profile } = await supabase.from("profiles").select("name").eq("id", loan.profile_id).single();
   res.json({
@@ -226,8 +259,25 @@ router.post("/loans/:id/reject", requireRole("operator"), async (req, res): Prom
     memberName: profile?.name ?? "", amount: Number(loan.amount),
     balance: Number(loan.remaining_balance ?? loan.amount),
     interestRate: Number(loan.effective_interest_rate),
-    status: loan.status, rejectionReason: loan.rejected_reason, createdAt: loan.created_at,
+    status: loan.status, rejectionReason: loan.rejected_reason,
+    rejectedBy: adminName, createdAt: loan.created_at,
   });
+});
+
+// Get loan audit log
+router.get("/loans/:id/audit", async (req, res): Promise<void> => {
+  const id = req.params.id;
+  const { data: loan } = await supabase.from("loans").select("loan_id").eq("id", id).single();
+  if (!loan) { res.status(404).json({ error: "Loan not found" }); return; }
+
+  const { data: logs, error } = await supabase
+    .from("loan_audit_log")
+    .select("*")
+    .eq("loan_id", loan.loan_id)
+    .order("created_at", { ascending: true });
+
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  res.json({ logs: logs ?? [] });
 });
 
 export default router;

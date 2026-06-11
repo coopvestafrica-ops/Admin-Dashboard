@@ -35,6 +35,7 @@ import {
   Monitor,
   History,
   ChevronDown,
+  DollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,7 @@ const sidebarGroups = [
     title: "Financial Control",
     key: "finance",
     items: [
+      { title: "Financial Dashboard", icon: DollarSign, href: "/financial-dashboard" },
       { title: "Wallet Management", icon: WalletCards, href: "/wallet-management" },
       { title: "Withdrawal Approvals", icon: ArrowDownToLine, href: "/withdrawal-management" },
       { title: "Guarantor System", icon: HandshakeIcon, href: "/guarantor-system" },
