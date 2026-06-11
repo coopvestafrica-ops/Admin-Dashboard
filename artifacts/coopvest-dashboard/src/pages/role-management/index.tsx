@@ -116,7 +116,7 @@ export default function RoleManagement() {
   // Fetch data
   const fetchAdmins = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/roles", {
+      const res = await fetch(`${API_BASE}/api/roles`, {
         headers: { "Content-Type": "application/json" },
       });
       const data = await res.json();
@@ -130,7 +130,7 @@ export default function RoleManagement() {
 
   const fetchRoles = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/roles/all", {
+      const res = await fetch(`${API_BASE}/api/roles/all`, {
         headers: { "Content-Type": "application/json" },
       });
       const data = await res.json();
@@ -144,7 +144,7 @@ export default function RoleManagement() {
 
   const fetchPermissions = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/roles/permissions", {
+      const res = await fetch(`${API_BASE}/api/roles/permissions`, {
         headers: { "Content-Type": "application/json" },
       });
       const data = await res.json();
@@ -277,7 +277,7 @@ export default function RoleManagement() {
     }
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/api/roles", {
+      const res = await fetch(`${API_BASE}/api/roles`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formEmail, role: formRole }),
