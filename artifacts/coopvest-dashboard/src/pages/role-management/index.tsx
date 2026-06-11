@@ -88,6 +88,9 @@ const ICON_MAP: Record<string, React.ElementType> = {
   "eye": Eye,
 };
 
+// ── API Base URL ────────────────────────────────────────────────────────────────
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function RoleManagement() {
   const [activeTab, setActiveTab] = useState("staff");
@@ -113,7 +116,7 @@ export default function RoleManagement() {
   // Fetch data
   const fetchAdmins = useCallback(async () => {
     try {
-      const res = await fetch("/api/roles", {
+      const res = await fetch(`${API_BASE}/api/roles", {
         headers: { "Content-Type": "application/json" },
       });
       const data = await res.json();
@@ -127,7 +130,7 @@ export default function RoleManagement() {
 
   const fetchRoles = useCallback(async () => {
     try {
-      const res = await fetch("/api/roles/all", {
+      const res = await fetch(`${API_BASE}/api/roles/all", {
         headers: { "Content-Type": "application/json" },
       });
       const data = await res.json();
@@ -141,7 +144,7 @@ export default function RoleManagement() {
 
   const fetchPermissions = useCallback(async () => {
     try {
-      const res = await fetch("/api/roles/permissions", {
+      const res = await fetch(`${API_BASE}/api/roles/permissions", {
         headers: { "Content-Type": "application/json" },
       });
       const data = await res.json();
@@ -214,7 +217,7 @@ export default function RoleManagement() {
     if (!editAdmin) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/roles/${editAdmin.id}`, {
+      const res = await fetch(`${API_BASE}/api/roles/${editAdmin.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -244,7 +247,7 @@ export default function RoleManagement() {
     if (!permEditAdmin) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/roles/${permEditAdmin.id}/permissions`, {
+      const res = await fetch(`${API_BASE}/api/roles/${permEditAdmin.id}/permissions`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ permissions: selectedPermissions }),
@@ -274,7 +277,7 @@ export default function RoleManagement() {
     }
     setSaving(true);
     try {
-      const res = await fetch("/api/roles", {
+      const res = await fetch(`${API_BASE}/api/roles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formEmail, role: formRole }),
@@ -303,7 +306,7 @@ export default function RoleManagement() {
     if (!confirm("Are you sure you want to revoke this admin's access?")) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/roles/${adminId}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/api/roles/${adminId}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error);
