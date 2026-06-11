@@ -1,526 +1,754 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Layout } from "@/components/layout/Layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   UserCog, Plus, Edit2, Trash2, Shield, ShieldCheck, Lock, Eye,
   CheckCircle, XCircle, Users, Key, Settings, CreditCard, LifeBuoy,
-  AlertTriangle, BarChart3, Briefcase, Building2, FileText, Ban
+  AlertTriangle, BarChart3, Briefcase, Building2, FileText, Ban,
+  ChevronDown, ChevronRight, Save, X, Search, Loader2, UserX,
+  ClipboardCheck, Download, ToggleLeft, Database, Mail, Bell, FileSpreadsheet
 } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type RoleKey = "super_admin" | "finance_admin" | "loan_officer" | "customer_support";
+interface Role {
+  id: string;
+  role_key: string;
+  label: string;
+  description: string | null;
+  color: string;
+  hierarchy: number;
+}
 
 interface Permission {
   id: string;
+  perm_key: string;
   label: string;
+  description: string | null;
   category: string;
-  icon: React.ElementType;
+  icon?: string;
 }
 
-interface StaffAccount {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  role: RoleKey;
-  status: "active" | "inactive" | "suspended";
-  createdAt: string;
-  lastLogin: string;
-  mfaEnabled: boolean;
-  createdBy: string;
-  permissions: string[];
-}
-
-// ── Permission Registry ───────────────────────────────────────────────────────
-const ALL_PERMISSIONS: Permission[] = [
-  // User Management
-  { id: "users.view",     label: "View Members",          category: "User Management", icon: Users },
-  { id: "users.edit",     label: "Edit Member Details",   category: "User Management", icon: Users },
-  { id: "users.suspend",  label: "Suspend/Freeze Users",  category: "User Management", icon: Ban },
-  { id: "users.verify",   label: "Verify KYC",            category: "User Management", icon: CheckCircle },
-  { id: "users.create",   label: "Create Members",        category: "User Management", icon: Plus },
-  // Finance
-  { id: "finance.view",   label: "View Financial Data",   category: "Finance", icon: BarChart3 },
-  { id: "finance.approve",label: "Approve Payments",      category: "Finance", icon: CheckCircle },
-  { id: "finance.reverse",label: "Reverse Transactions",  category: "Finance", icon: AlertTriangle },
-  { id: "finance.adjust", label: "Adjust Balances",       category: "Finance", icon: Settings },
-  // Loans
-  { id: "loans.view",     label: "View Loans",            category: "Loans", icon: CreditCard },
-  { id: "loans.approve",  label: "Approve/Reject Loans",  category: "Loans", icon: CheckCircle },
-  { id: "loans.manage",   label: "Freeze / Penalties",    category: "Loans", icon: Lock },
-  { id: "loans.restructure",label: "Restructure Loans",   category: "Loans", icon: Briefcase },
-  // Organizations
-  { id: "orgs.view",      label: "View Organizations",    category: "Organizations", icon: Building2 },
-  { id: "orgs.manage",    label: "Manage Organizations",  category: "Organizations", icon: Building2 },
-  // Reports
-  { id: "reports.view",   label: "View Reports",          category: "Reports", icon: FileText },
-  { id: "reports.export", label: "Export Reports",        category: "Reports", icon: FileText },
-  // System
-  { id: "system.settings",label: "System Settings",       category: "System", icon: Settings },
-  { id: "system.audit",   label: "View Audit Logs",       category: "System", icon: Shield },
-  { id: "system.roles",   label: "Manage Roles & Staff",  category: "System", icon: UserCog },
-  { id: "system.security",label: "Security Controls",     category: "System", icon: ShieldCheck },
-  { id: "system.features",label: "Toggle Features",       category: "System", icon: Key },
-  // Support
-  { id: "support.view",   label: "View Support Tickets",  category: "Support", icon: LifeBuoy },
-  { id: "support.manage", label: "Manage Support Tickets",category: "Support", icon: LifeBuoy },
-];
-
-// ── Default Permissions Per Role ──────────────────────────────────────────────
-const ROLE_PERMISSIONS: Record<RoleKey, string[]> = {
-  super_admin: ALL_PERMISSIONS.map(p => p.id),
-  finance_admin: [
-    "users.view", "finance.view", "finance.approve", "finance.reverse", "finance.adjust",
-    "orgs.view", "reports.view", "reports.export",
-  ],
-  loan_officer: [
-    "users.view", "users.verify", "loans.view", "loans.approve", "loans.manage", "loans.restructure",
-    "orgs.view", "reports.view",
-  ],
-  customer_support: [
-    "users.view", "support.view", "support.manage", "reports.view",
-  ],
-};
-
-// ── Role Definitions ──────────────────────────────────────────────────────────
-const ROLES: Record<RoleKey, { label: string; description: string; color: string; icon: React.ElementType }> = {
-  super_admin: {
-    label: "Super Admin",
-    description: "Full system access. Can create staff, assign roles, manage all settings.",
-    color: "bg-purple-100 text-purple-800 border-purple-300",
-    icon: ShieldCheck,
-  },
-  finance_admin: {
-    label: "Finance Admin",
-    description: "Manages payments, contributions, financial reports. No system settings access.",
-    color: "bg-blue-100 text-blue-800 border-blue-300",
-    icon: BarChart3,
-  },
-  loan_officer: {
-    label: "Loan Officer",
-    description: "Manages loans, guarantors, repayment tracking. No core system access.",
-    color: "bg-emerald-100 text-emerald-800 border-emerald-300",
-    icon: CreditCard,
-  },
-  customer_support: {
-    label: "Customer Support",
-    description: "Views user complaints and assists users. No financial or system access.",
-    color: "bg-amber-100 text-amber-800 border-amber-300",
-    icon: LifeBuoy,
-  },
-};
-
-// ── API Staff Type ────────────────────────────────────────────────────────────
-interface ApiStaffAccount {
+interface AdminAccount {
   id: string;
   name: string;
   email: string;
   role: string;
-  status: string;
-  lastActive: string;
-  createdAt: string;
+  status: "active" | "inactive";
+  lastActive: string | null;
+  createdAt: string | null;
+  customPermissions: string[];
 }
 
-// ── Form State ────────────────────────────────────────────────────────────────
-const defaultForm = {
-  name: "", email: "", phone: "", role: "customer_support" as RoleKey,
-  password: "", confirmPassword: "",
+// ── Icon Mapping ──────────────────────────────────────────────────────────────
+const ICON_MAP: Record<string, React.ElementType> = {
+  "shield-check": ShieldCheck,
+  "shield": Shield,
+  "settings": Settings,
+  "users": Users,
+  "user-cog": UserCog,
+  "user-plus": Plus,
+  "user-x": UserX,
+  "ban": Ban,
+  "check-circle": CheckCircle,
+  "bar-chart-3": BarChart3,
+  "sliders": Settings,
+  "dollar-sign": BarChart3,
+  "trending-up": BarChart3,
+  "credit-card": CreditCard,
+  "lock": Lock,
+  "refresh-cw": Briefcase,
+  "building-2": Building2,
+  "building": Building2,
+  "file-spreadsheet": FileSpreadsheet,
+  "file-text": FileText,
+  "download": Download,
+  "database": Database,
+  "toggle-left": ToggleLeft,
+  "life-buoy": LifeBuoy,
+  "message-circle": LifeBuoy,
+  "clipboard-check": ClipboardCheck,
+  "alert-triangle": AlertTriangle,
+  "bell": Bell,
+  "send": AlertTriangle,
+  "mail": Mail,
+  "key": Key,
+  "eye": Eye,
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function RoleManagement() {
   const [activeTab, setActiveTab] = useState("staff");
-  const [apiStaff, setApiStaff] = useState<ApiStaffAccount[]>([]);
+  const [admins, setAdmins] = useState<AdminAccount[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loadingStaff, setLoadingStaff] = useState(true);
+  const [loadingRoles, setLoadingRoles] = useState(true);
+  const [loadingPerms, setLoadingPerms] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [editStaff, setEditStaff] = useState<ApiStaffAccount | null>(null);
-  const [permEditStaff, setPermEditStaff] = useState<ApiStaffAccount | null>(null);
-  const [form, setForm] = useState(defaultForm);
-  const [creating, setCreating] = useState(false);
+  const [editAdmin, setEditAdmin] = useState<AdminAccount | null>(null);
+  const [permEditAdmin, setPermEditAdmin] = useState<AdminAccount | null>(null);
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [search, setSearch] = useState("");
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    setLoadingStaff(true);
-    fetch("/api/roles", { headers: { "Content-Type": "application/json" } })
-      .then(r => r.json())
-      .then(d => { setApiStaff((d as { admins?: ApiStaffAccount[] }).admins ?? []); })
-      .catch(() => setApiStaff([]))
-      .finally(() => setLoadingStaff(false));
-  }, []);
+  // Form state
+  const [formEmail, setFormEmail] = useState("");
+  const [formRole, setFormRole] = useState("admin");
+  const [formStatus, setFormStatus] = useState(true);
 
-  const staff = apiStaff;
+  // Fetch data
+  const fetchAdmins = useCallback(async () => {
+    try {
+      const res = await fetch("/api/roles", {
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      setAdmins(data.admins ?? []);
+    } catch {
+      toast({ title: "Error", description: "Failed to fetch admins", variant: "destructive" });
+    } finally {
+      setLoadingStaff(false);
+    }
+  }, [toast]);
+
+  const fetchRoles = useCallback(async () => {
+    try {
+      const res = await fetch("/api/roles/all", {
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      setRoles(data.roles ?? []);
+    } catch {
+      toast({ title: "Error", description: "Failed to fetch roles", variant: "destructive" });
+    } finally {
+      setLoadingRoles(false);
+    }
+  }, [toast]);
+
+  const fetchPermissions = useCallback(async () => {
+    try {
+      const res = await fetch("/api/roles/permissions", {
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      setPermissions(data.permissions ?? []);
+    } catch {
+      toast({ title: "Error", description: "Failed to fetch permissions", variant: "destructive" });
+    } finally {
+      setLoadingPerms(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    fetchAdmins();
+    fetchRoles();
+    fetchPermissions();
+  }, [fetchAdmins, fetchRoles, fetchPermissions]);
 
   // Group permissions by category
-  const categories = [...new Set(ALL_PERMISSIONS.map(p => p.category))];
+  const groupedPermissions = permissions.reduce((acc: Record<string, Permission[]>, p) => {
+    if (!acc[p.category]) acc[p.category] = [];
+    acc[p.category].push(p);
+    return acc;
+  }, {});
 
-  const filtered = staff.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    s.email.toLowerCase().includes(search.toLowerCase()) ||
-    (ROLES[s.role as RoleKey]?.label ?? "").toLowerCase().includes(search.toLowerCase())
+  // Group roles by hierarchy
+  const sortedRoles = [...roles].sort((a, b) => b.hierarchy - a.hierarchy);
+
+  const filtered = admins.filter((a) =>
+    a.name.toLowerCase().includes(search.toLowerCase()) ||
+    a.email.toLowerCase().includes(search.toLowerCase()) ||
+    a.role.toLowerCase().includes(search.toLowerCase())
   );
 
-  async function createStaff() {
-    if (form.password !== form.confirmPassword) {
-      toast({ title: "Password Mismatch", description: "Passwords do not match.", variant: "destructive" });
+  // Get role label
+  const getRoleLabel = (roleKey: string) => {
+    const role = roles.find(r => r.role_key === roleKey);
+    return role?.label ?? roleKey;
+  };
+
+  // Get role color
+  const getRoleColor = (roleKey: string) => {
+    const role = roles.find(r => r.role_key === roleKey);
+    return role?.color ?? "#6b7280";
+  };
+
+  // Open edit dialog
+  function openEditDialog(admin: AdminAccount) {
+    setEditAdmin(admin);
+    setFormRole(admin.role);
+    setFormStatus(admin.status === "active");
+  }
+
+  // Open permissions dialog
+  function openPermissionsDialog(admin: AdminAccount) {
+    setPermEditAdmin(admin);
+    setSelectedPermissions(admin.customPermissions || []);
+  }
+
+  // Toggle permission
+  function togglePermission(permKey: string) {
+    setSelectedPermissions(prev => 
+      prev.includes(permKey)
+        ? prev.filter(p => p !== permKey)
+        : [...prev, permKey]
+    );
+  }
+
+  // Save role changes
+  async function saveRoleChanges() {
+    if (!editAdmin) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/roles/${editAdmin.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: formRole,
+          status: formStatus ? "active" : "inactive",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      toast({ title: "Success", description: "Role updated successfully" });
+      setEditAdmin(null);
+      fetchAdmins();
+    } catch (err) {
+      toast({ 
+        title: "Error", 
+        description: err instanceof Error ? err.message : "Failed to update role", 
+        variant: "destructive" 
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // Save custom permissions
+  async function savePermissions() {
+    if (!permEditAdmin) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/roles/${permEditAdmin.id}/permissions`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ permissions: selectedPermissions }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      toast({ title: "Success", description: "Permissions updated successfully" });
+      setPermEditAdmin(null);
+      fetchAdmins();
+    } catch (err) {
+      toast({ 
+        title: "Error", 
+        description: err instanceof Error ? err.message : "Failed to update permissions", 
+        variant: "destructive" 
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // Assign new role to user by email
+  async function assignRole() {
+    if (!formEmail) {
+      toast({ title: "Error", description: "Email is required", variant: "destructive" });
       return;
     }
-    setCreating(true);
-    await new Promise(r => setTimeout(r, 800));
-    const newStaff: ApiStaffAccount = {
-      id: String(apiStaff.length + 1),
-      name: form.name, email: form.email,
-      role: form.role, status: "active",
-      createdAt: new Date().toISOString().split("T")[0],
-      lastActive: "—",
-    };
-    setApiStaff(prev => [...prev, newStaff]);
-    toast({ title: "Staff Account Created", description: `${form.name} has been added as ${ROLES[form.role].label}.` });
-    setForm(defaultForm);
-    setShowCreateDialog(false);
-    setCreating(false);
+    setSaving(true);
+    try {
+      const res = await fetch("/api/roles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formEmail, role: formRole }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      toast({ title: "Success", description: "Role assigned successfully" });
+      setShowCreateDialog(false);
+      setFormEmail("");
+      setFormRole("admin");
+      fetchAdmins();
+    } catch (err) {
+      toast({ 
+        title: "Error", 
+        description: err instanceof Error ? err.message : "Failed to assign role", 
+        variant: "destructive" 
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function toggleStatus(id: string) {
-    setApiStaff(prev => prev.map(s =>
-      s.id === id ? { ...s, status: s.status === "active" ? "suspended" : "active" } : s
-    ));
-    const s = staff.find(s => s.id === id);
-    toast({ title: s?.status === "active" ? "Account Suspended" : "Account Activated", description: `${s?.name}'s account updated.` });
+  // Revoke admin access
+  async function revokeAccess(adminId: string) {
+    if (!confirm("Are you sure you want to revoke this admin's access?")) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/roles/${adminId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error);
+      }
+      toast({ title: "Success", description: "Admin access revoked" });
+      fetchAdmins();
+    } catch (err) {
+      toast({ 
+        title: "Error", 
+        description: err instanceof Error ? err.message : "Failed to revoke access", 
+        variant: "destructive" 
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function savePermissions(updatedStaff: ApiStaffAccount) {
-    setApiStaff(prev => prev.map(s => s.id === updatedStaff.id ? updatedStaff : s));
-    setPermEditStaff(null);
-    toast({ title: "Permissions Updated", description: `Custom permissions saved for ${updatedStaff.name}.` });
-  }
-
-  function deleteStaff(id: string) {
-    const s = staff.find(s => s.id === id);
-    setApiStaff(prev => prev.filter(s => s.id !== id));
-    toast({ title: "Account Removed", description: `${s?.name}'s account has been deleted.` });
-  }
+  const isLoading = loadingStaff || loadingRoles || loadingPerms;
 
   return (
-    <Layout>
+    <Layout title="Role Management" subtitle="Assign roles and manage admin permissions">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <UserCog className="h-6 w-6 text-primary" /> Role & Staff Management
-            </h1>
-            <p className="text-muted-foreground">Create staff accounts, assign roles, and manage permissions</p>
+            <h2 className="text-lg font-semibold">Staff Administration</h2>
+            <p className="text-sm text-muted-foreground">
+              Super Admins can assign roles and customize permissions for each admin
+            </p>
           </div>
-          <Button onClick={() => setShowCreateDialog(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Create Staff Account
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search admins..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 w-64"
+              />
+            </div>
+            <Button onClick={() => setShowCreateDialog(true)}>
+              <Plus className="h-4 w-4 mr-2" /> Assign Role
+            </Button>
+          </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {(Object.keys(ROLES) as RoleKey[]).map(role => {
-            const count = staff.filter(s => s.role === (role as string)).length;
-            const RoleIcon = ROLES[role].icon;
-            return (
-              <Card key={role}>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-muted">
-                    <RoleIcon className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-xl font-bold">{count}</div>
-                    <div className="text-xs text-muted-foreground">{ROLES[role].label}</div>
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList>
+              <TabsTrigger value="staff">Staff Accounts</TabsTrigger>
+              <TabsTrigger value="roles">Role Definitions</TabsTrigger>
+              <TabsTrigger value="permissions">Permission Matrix</TabsTrigger>
+            </TabsList>
+
+            {/* Staff Accounts Tab */}
+            <TabsContent value="staff" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" /> Staff Accounts
+                  </CardTitle>
+                  <CardDescription>
+                    Manage admin accounts and their role assignments
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="rounded-md border">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b bg-muted/50">
+                          <th className="py-3 px-4 text-left text-sm font-medium">Admin</th>
+                          <th className="py-3 px-4 text-left text-sm font-medium">Role</th>
+                          <th className="py-3 px-4 text-left text-sm font-medium">Status</th>
+                          <th className="py-3 px-4 text-left text-sm font-medium">Custom Perms</th>
+                          <th className="py-3 px-4 text-left text-sm font-medium">Last Active</th>
+                          <th className="py-3 px-4 text-right text-sm font-medium">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                              No admin accounts found
+                            </td>
+                          </tr>
+                        ) : (
+                          filtered.map((admin) => (
+                            <tr key={admin.id} className="border-b hover:bg-muted/30">
+                              <td className="py-3 px-4">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarFallback style={{ backgroundColor: getRoleColor(admin.role) }}>
+                                      {admin.name.substring(0, 2).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-medium">{admin.name}</p>
+                                    <p className="text-xs text-muted-foreground">{admin.email}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="py-3 px-4">
+                                <Badge 
+                                  style={{ 
+                                    backgroundColor: getRoleColor(admin.role) + "20", 
+                                    color: getRoleColor(admin.role),
+                                    borderColor: getRoleColor(admin.role) + "40"
+                                  }}
+                                  variant="outline"
+                                >
+                                  {getRoleLabel(admin.role)}
+                                </Badge>
+                              </td>
+                              <td className="py-3 px-4">
+                                <Badge variant={admin.status === "active" ? "default" : "secondary"}>
+                                  {admin.status === "active" ? "Active" : "Inactive"}
+                                </Badge>
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className="text-sm text-muted-foreground">
+                                  {admin.customPermissions?.length ?? 0} custom
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-sm text-muted-foreground">
+                                {admin.lastActive 
+                                  ? new Date(admin.lastActive).toLocaleDateString() 
+                                  : "Never"}
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="flex items-center justify-end gap-1">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => openPermissionsDialog(admin)}
+                                  >
+                                    <Key className="h-4 w-4 mr-1" /> Permissions
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => openEditDialog(admin)}
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => revokeAccess(admin.id)}
+                                    className="text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </CardContent>
               </Card>
-            );
-          })}
-        </div>
+            </TabsContent>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="staff">Staff Accounts</TabsTrigger>
-            <TabsTrigger value="roles">Role Definitions</TabsTrigger>
-          </TabsList>
-
-          {/* ── Staff Accounts ── */}
-          <TabsContent value="staff" className="mt-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="relative flex-1">
-                    <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search staff…" className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-muted/40 text-xs font-semibold uppercase text-muted-foreground">
-                        <th className="px-4 py-3 text-left">Staff Member</th>
-                        <th className="px-4 py-3 text-left">Role</th>
-                        <th className="px-4 py-3 text-center">MFA</th>
-                        <th className="px-4 py-3 text-center">Status</th>
-                        <th className="px-4 py-3 text-center">Last Login</th>
-                        <th className="px-4 py-3 text-center">Created By</th>
-                        <th className="px-4 py-3 text-center">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {loadingStaff ? (
-          <div className="py-8 text-center text-muted-foreground">Loading staff…</div>
-        ) : filtered.length === 0 ? (
-          <div className="py-8 text-center text-muted-foreground">No staff accounts found.</div>
-        ) : filtered.map((s) => {
-                      const rk = s.role as RoleKey;
-                      const rd = ROLES[rk];
-                      return (
-                        <tr key={s.id} className="hover:bg-muted/30 transition-colors">
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8">
-                                <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
-                                  {(() => {
-                                    const name = String(s.name ?? '');
-                                    return name.split(' ').filter(Boolean).map(n => n[0] || '').join('').slice(0, 2) || '??';
-                                  })()}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <div className="font-medium">{s.name}</div>
-                                <div className="text-xs text-muted-foreground">{s.email}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            {rd && (
-                              <Badge className={rd.color} variant="outline">
-                                {rd.label}
-                              </Badge>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            {false
-                              ? <CheckCircle className="h-4 w-4 text-emerald-600 mx-auto" />
-                              : <XCircle className="h-4 w-4 text-red-500 mx-auto" />}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <Badge className={s.status === "active" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"} variant="outline">
-                              {s.status}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-center text-xs text-muted-foreground">{s.lastActive}</td>
-                          <td className="px-4 py-3 text-center text-xs text-muted-foreground">{"—"}</td>
-                          <td className="px-4 py-3 text-center">
-                            <div className="flex justify-center gap-1">
-                              <Button variant="outline" size="sm" onClick={() => { setPermEditStaff({ ...s }); }}>
-                                <Key className="mr-1 h-3 w-3" /> Permissions
-                              </Button>
-                              <Button variant="outline" size="sm" className={s.status === "active" ? "text-orange-600" : "text-emerald-600"} onClick={() => toggleStatus(s.id)}>
-                                {s.status === "active" ? <Ban className="mr-1 h-3 w-3" /> : <CheckCircle className="mr-1 h-3 w-3" />}
-                                {s.status === "active" ? "Suspend" : "Activate"}
-                              </Button>
-                              {s.role !== "super_admin" && (
-                                <Button variant="ghost" size="sm" className="text-red-500" onClick={() => deleteStaff(s.id)}>
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* ── Role Definitions ── */}
-          <TabsContent value="roles" className="mt-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              {(Object.keys(ROLES) as RoleKey[]).map(role => {
-                const RoleIcon = ROLES[role].icon;
-                const perms = ROLE_PERMISSIONS[role];
-                return (
-                  <Card key={role} className="flex flex-col">
-                    <CardHeader className="pb-3">
+            {/* Role Definitions Tab */}
+            <TabsContent value="roles" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {sortedRoles.map((role) => (
+                  <Card key={role.id}>
+                    <CardHeader className="pb-2">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-muted">
-                          <RoleIcon className="h-5 w-5 text-primary" />
+                        <div 
+                          className="h-10 w-10 rounded-lg flex items-center justify-center"
+                          style={{ backgroundColor: role.color + "20" }}
+                        >
+                          <Shield className="h-5 w-5" style={{ color: role.color }} />
                         </div>
                         <div>
-                          <CardTitle className="text-base">{ROLES[role].label}</CardTitle>
-                          <p className="text-xs text-muted-foreground mt-0.5">{ROLES[role].description}</p>
+                          <CardTitle className="text-base">{role.label}</CardTitle>
+                          <p className="text-xs text-muted-foreground">Level {role.hierarchy}</p>
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="flex-1">
-                      <div className="space-y-3">
-                        {categories.map(cat => {
-                          const catPerms = ALL_PERMISSIONS.filter(p => p.category === cat);
-                          const hasSome = catPerms.some(p => perms.includes(p.id));
-                          if (!hasSome && role !== "super_admin") return null;
-                          return (
-                            <div key={cat}>
-                              <p className="text-xs font-semibold text-muted-foreground uppercase mb-1.5">{cat}</p>
-                              <div className="flex flex-wrap gap-1.5">
-                                {catPerms.map(p => {
-                                  const has = perms.includes(p.id);
-                                  return (
-                                    <span key={p.id} className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border ${
-                                      has ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-50 text-gray-400 border-gray-200 line-through"
-                                    }`}>
-                                      {has ? <CheckCircle className="h-2.5 w-2.5" /> : <XCircle className="h-2.5 w-2.5" />}
-                                      {p.label}
-                                    </span>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          );
-                        })}
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">{role.description}</p>
+                      <Separator className="my-3" />
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Role Key:</span>
+                        <code className="text-xs bg-muted px-2 py-1 rounded">{role.role_key}</code>
                       </div>
                     </CardContent>
                   </Card>
-                );
-              })}
-            </div>
-          </TabsContent>
-        </Tabs>
+                ))}
+              </div>
+            </TabsContent>
+
+            {/* Permission Matrix Tab */}
+            <TabsContent value="permissions" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Permission Matrix</CardTitle>
+                  <CardDescription>
+                    Overview of all available permissions organized by category
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {Object.entries(groupedPermissions).map(([category, perms]) => {
+                      const Icon = ICON_MAP[perms[0]?.icon ?? "key"] ?? Key;
+                      return (
+                        <div key={category}>
+                          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                            <Icon className="h-4 w-4" /> {category}
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                            {perms.map((perm) => {
+                              const PermIcon = ICON_MAP[perm.icon ?? "key"] ?? Key;
+                              return (
+                                <div 
+                                  key={perm.id}
+                                  className="flex items-start gap-2 p-2 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                                >
+                                  <PermIcon className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                  <div>
+                                    <p className="text-sm font-medium">{perm.label}</p>
+                                    <p className="text-xs text-muted-foreground">{perm.description}</p>
+                                    <code className="text-xs text-muted-foreground mt-1 block">{perm.perm_key}</code>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
 
-      {/* ── Create Staff Dialog ── */}
-      <Dialog open={showCreateDialog} onOpenChange={o => { if (!o) { setShowCreateDialog(false); setForm(defaultForm); } }}>
-        <DialogContent className="max-w-lg">
+      {/* ── Assign Role Dialog ── */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5" /> Create Staff Account
+              <UserCog className="h-5 w-5" /> Assign Role to Admin
             </DialogTitle>
+            <DialogDescription>
+              Promote an existing user to an admin role
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
-              <strong>Restricted:</strong> Only Super Admins can create staff accounts. No self-registration is allowed.
+            <div className="space-y-2">
+              <Label htmlFor="email">User Email</Label>
+              <Input 
+                id="email"
+                type="email" 
+                placeholder="admin@coopvestafrica.ng"
+                value={formEmail}
+                onChange={(e) => setFormEmail(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                The user must already be registered in the system
+              </p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Full Name</Label>
-                <Input placeholder="e.g. Amara Johnson" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Phone</Label>
-                <Input placeholder="0801 234 5678" value={""} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Email Address</Label>
-              <Input type="email" placeholder="staff@coopvestafrica.ng" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Role</Label>
-              <Select value={form.role} onValueChange={v => setForm(f => ({ ...f, role: v as RoleKey }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Select value={formRole} onValueChange={setFormRole}>
+                <SelectTrigger id="role">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {(Object.keys(ROLES) as RoleKey[]).map(role => (
-                    <SelectItem key={role} value={role}>{ROLES[role].label}</SelectItem>
+                  {sortedRoles.filter(r => r.role_key !== "super_admin").map((role) => (
+                    <SelectItem key={role.id} value={role.role_key}>
+                      {role.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">{ROLES[form.role].description}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Temporary Password</Label>
-                <Input type="password" placeholder="Min. 8 characters" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Confirm Password</Label>
-                <Input type="password" placeholder="Re-enter password" value={form.confirmPassword} onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))} />
-              </div>
-            </div>
-
-            {/* Preview permissions */}
-            <div className="rounded-lg bg-muted/50 p-3">
-              <p className="text-xs font-semibold mb-2">Permissions for {ROLES[form.role].label}:</p>
-              <div className="flex flex-wrap gap-1">
-                {ROLE_PERMISSIONS[form.role].map(p => {
-                  const perm = ALL_PERMISSIONS.find(a => a.id === p);
-                  return perm ? (
-                    <span key={p} className="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-2 py-0.5">
-                      {perm.label}
-                    </span>
-                  ) : null;
-                })}
-              </div>
+              <p className="text-xs text-muted-foreground">
+                {roles.find(r => r.role_key === formRole)?.description}
+              </p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowCreateDialog(false); setForm(defaultForm); }}>Cancel</Button>
-            <Button onClick={createStaff} disabled={creating || !form.name || !form.email || !form.password}>
-              {creating ? "Creating…" : "Create Staff Account"}
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={assignRole} disabled={saving || !formEmail}>
+              {saving ? "Assigning..." : "Assign Role"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ── Permission Editor Dialog ── */}
-      {permEditStaff && (
-        <Dialog open={!!permEditStaff} onOpenChange={o => { if (!o) setPermEditStaff(null); }}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Edit Permissions — {permEditStaff.name}</DialogTitle>
-            </DialogHeader>
-            <div className="py-2 space-y-4">
-              <div className="flex items-center gap-3">
-                <Badge className={ROLES[permEditStaff.role as RoleKey]?.color ?? ""} variant="outline">{ROLES[permEditStaff.role as RoleKey]?.label ?? permEditStaff.role}</Badge>
-                <span className="text-sm text-muted-foreground">Customize permissions for this staff member</span>
+      {/* ── Edit Role Dialog ── */}
+      <Dialog open={!!editAdmin} onOpenChange={() => setEditAdmin(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit2 className="h-5 w-5" /> Edit Admin Role
+            </DialogTitle>
+            <DialogDescription>
+              Change role and status for {editAdmin?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
+              <Avatar>
+                <AvatarFallback>{editAdmin?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium">{editAdmin?.name}</p>
+                <p className="text-sm text-muted-foreground">{editAdmin?.email}</p>
               </div>
-              {categories.map(cat => (
-                <div key={cat}>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase mb-2 border-b pb-1">{cat}</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {ALL_PERMISSIONS.filter(p => p.category === cat).map(perm => {
-                      const rolePerms = ROLE_PERMISSIONS[permEditStaff.role as RoleKey] ?? [];
-                      const has = rolePerms.includes(perm.id);
-                      return (
-                        <div key={perm.id} className="flex items-center gap-2">
-                          <Checkbox
-                            id={perm.id}
-                            checked={has}
-                            disabled
-                          />
-                          <Label htmlFor={perm.id} className="text-sm cursor-pointer">{perm.label}</Label>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => {
-                setPermEditStaff(null);
-              }}>Cancel</Button>
-              <Button onClick={() => savePermissions(permEditStaff)}>Save Permissions</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+            <div className="space-y-2">
+              <Label htmlFor="editRole">Role</Label>
+              <Select value={formRole} onValueChange={setFormRole}>
+                <SelectTrigger id="editRole">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortedRoles.filter(r => r.role_key !== "super_admin").map((role) => (
+                    <SelectItem key={role.id} value={role.role_key}>
+                      {role.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Account Status</Label>
+                <p className="text-sm text-muted-foreground">Enable or disable admin access</p>
+              </div>
+              <Switch 
+                checked={formStatus}
+                onCheckedChange={setFormStatus}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditAdmin(null)}>
+              Cancel
+            </Button>
+            <Button onClick={saveRoleChanges} disabled={saving}>
+              {saving ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Permissions Editor Dialog ── */}
+      <Dialog open={!!permEditAdmin} onOpenChange={() => setPermEditAdmin(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5" /> Custom Permissions
+            </DialogTitle>
+            <DialogDescription>
+              Customize additional permissions for {permEditAdmin?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-muted">
+            <Badge 
+              style={{ 
+                backgroundColor: getRoleColor(permEditAdmin?.role ?? "") + "20", 
+                color: getRoleColor(permEditAdmin?.role ?? ""),
+              }}
+              variant="outline"
+            >
+              {getRoleLabel(permEditAdmin?.role ?? "")}
+            </Badge>
+            <span className="text-sm text-muted-foreground">
+              Base role permissions will be applied automatically
+            </span>
+          </div>
+          <ScrollArea className="h-[400px] pr-4">
+            <div className="space-y-4">
+              {Object.entries(groupedPermissions).map(([category, perms]) => {
+                const CatIcon = ICON_MAP[perms[0]?.icon ?? "key"] ?? Key;
+                return (
+                  <div key={category}>
+                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2 text-muted-foreground">
+                      <CatIcon className="h-4 w-4" /> {category}
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {perms.map((perm) => {
+                        const PermIcon = ICON_MAP[perm.icon ?? "key"] ?? Key;
+                        const isSelected = selectedPermissions.includes(perm.perm_key);
+                        return (
+                          <label
+                            key={perm.id}
+                            className={`flex items-start gap-3 p-2 rounded-lg border cursor-pointer transition-colors ${
+                              isSelected 
+                                ? "bg-primary/10 border-primary/30" 
+                                : "hover:bg-muted/50"
+                            }`}
+                          >
+                            <Checkbox 
+                              checked={isSelected}
+                              onCheckedChange={() => togglePermission(perm.perm_key)}
+                              className="mt-0.5"
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <PermIcon className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm font-medium">{perm.label}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-0.5">{perm.description}</p>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
+          <DialogFooter>
+            <div className="flex items-center justify-between w-full">
+              <p className="text-sm text-muted-foreground">
+                {selectedPermissions.length} custom permission(s) selected
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setPermEditAdmin(null)}>
+                  Cancel
+                </Button>
+                <Button onClick={savePermissions} disabled={saving}>
+                  {saving ? "Saving..." : "Save Permissions"}
+                </Button>
+              </div>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
