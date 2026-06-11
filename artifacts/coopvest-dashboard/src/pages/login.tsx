@@ -56,21 +56,46 @@ export default function Login() {
     
     const email = (document.getElementById("email") as HTMLInputElement)?.value;
     if (!email) {
-      setError("Enter your email address first, then click Forgot password.");
+      setError("Please enter your email address first, then click Forgot password.");
       return;
     }
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (resetError) {
-      setError(resetError.message);
-    } else {
-      setError(null);
-      // Fix #5: replace native alert() with toast notification
-      toast({
-        title: "Password reset email sent",
-        description: `Check your inbox at ${email} for a reset link.`,
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
+      
+      if (resetError) {
+        // Handle specific Supabase error messages
+        if (resetError.message.includes("not found") || resetError.message.includes("not found")) {
+          setError("No account found with this email address.");
+        } else if (resetError.message.includes("rate limit")) {
+          setError("Too many requests. Please try again later.");
+        } else {
+          setError("Unable to send recovery email. Please try again.");
+        }
+      } else {
+        // Success
+        toast({
+          title: "Password reset email sent",
+          description: `Check your inbox at ${email} for a reset link. Check your spam folder if you don't see it.`,
+          duration: 5000,
+        });
+      }
+    } catch {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 

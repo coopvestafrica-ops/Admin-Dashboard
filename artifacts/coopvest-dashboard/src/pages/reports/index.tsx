@@ -54,11 +54,25 @@ export default function Reports() {
     setLoading(true);
     try {
       const res = await fetch("/api/reports/scheduled");
+      // Check if response is HTML (error page) instead of JSON
+      const contentType = res.headers.get("content-type");
+      if (!res.ok || !contentType?.includes("application/json")) {
+        // API not available - show empty state instead of error
+        setReports([]);
+        setLoading(false);
+        return;
+      }
       const json = await res.json();
-      const reportsData = json && typeof json === 'object' && Array.isArray(json.data) ? json.data : [];
-      setReports(reportsData);
+      // Safely extract array data
+      if (json && typeof json === 'object') {
+        const reportsData = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
+        setReports(reportsData);
+      } else {
+        setReports([]);
+      }
     } catch {
-      toast({ title: "Error", description: "Failed to fetch reports", variant: "destructive" });
+      // Network error - show empty state instead of error toast
+      setReports([]);
     } finally {
       setLoading(false);
     }
