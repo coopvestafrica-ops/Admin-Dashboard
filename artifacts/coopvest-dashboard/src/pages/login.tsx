@@ -71,50 +71,24 @@ export default function Login() {
     setError(null);
     
     try {
-      // First, try the custom password reset API
-      const apiUrl = import.meta.env.VITE_API_URL || "";
-      
-      try {
-        const response = await fetch(`${apiUrl}/api/password-reset/request`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.devResetLink) {
-          // API worked - show demo link
-          toast({
-            title: "Password reset link generated",
-            description: "Demo mode: Use the link shown below.",
-            duration: 8000,
-          });
-          setError(`Demo: ${data.devResetLink}`);
-          setIsLoading(false);
-          return;
-        }
-      } catch {
-        // API not available, continue to Supabase
-      }
-      
-      // Fall back to Supabase password reset
+      // Try Supabase password reset first
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       
       if (resetError) {
-        // Supabase also failed - generate demo token for testing
+        // Supabase failed - use demo mode with client-side token
         const demoToken = generateDemoToken(email);
         const demoLink = `${window.location.origin}/reset-password?token=${demoToken}`;
         
         toast({
           title: "Demo mode active",
-          description: "Email service unavailable. Use demo link below.",
-          duration: 8000,
+          description: "Email service unavailable. Use the link below to reset.",
+          duration: 10000,
         });
         
-        setError(`Demo: ${demoLink}`);
+        // Show demo link prominently
+        setError(`Demo Mode:\n\nClick here to reset: ${demoLink}`);
       } else {
         toast({
           title: "Password reset email sent",
@@ -129,7 +103,7 @@ export default function Login() {
     }
   };
   
-  // Generate a demo token for testing
+  // Generate a demo token for testing when email service is unavailable
   function generateDemoToken(email: string): string {
     const timestamp = Date.now();
     const randomPart = Math.random().toString(36).substring(2, 15);
