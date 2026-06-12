@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "installCommand": "corepack enable && pnpm@9 install --ignore-scripts",
-  "buildCommand": "pnpm@9 --filter @workspace/api-server run build && pnpm@9 --filter @workspace/coopvest-dashboard run build",
+  "installCommand": "corepack enable && corepack prepare pnpm@9 --activate && pnpm install --ignore-scripts",
+  "buildCommand": "pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/coopvest-dashboard run build",
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
   "routes": [
     { "src": "/api/(.*)", "dest": "/api-server/dist/index.mjs", "headers": { "Content-Type": "application/json" } },
