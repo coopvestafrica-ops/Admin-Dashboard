@@ -95,7 +95,11 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.o
 export default function RoleManagement() {
   const [activeTab, setActiveTab] = useState("staff");
   const [admins, setAdmins] = useState<AdminAccount[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
+  const [roles, setRoles] = useState<Role[]>([
+    { id: "1", role_key: "admin", label: "Admin", description: "Full access to all features except super admin settings", color: "#7c3aed", hierarchy: 3, is_active: true },
+    { id: "2", role_key: "operator", label: "Operator", description: "Can manage loans, contributions, and member communications", color: "#2563eb", hierarchy: 2, is_active: true },
+    { id: "3", role_key: "viewer", label: "Viewer", description: "Read-only access to dashboard and reports", color: "#059669", hierarchy: 1, is_active: true },
+  ]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loadingStaff, setLoadingStaff] = useState(true);
   const [loadingRoles, setLoadingRoles] = useState(true);
