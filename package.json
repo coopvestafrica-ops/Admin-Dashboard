@@ -2,6 +2,9 @@
   "name": "admin-dashboard-root",
   "version": "1.0.0",
   "private": true,
+  "scripts": {
+    "build": "pnpm@9 --filter @workspace/api-server run build && pnpm@9 --filter @workspace/coopvest-dashboard run build"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",
     "vercel": "^54.9.0"

@@ -3,6 +3,11 @@ packages:
   - "lib/*"
   - "scripts"
 
+allowBuilds:
+  '@firebase/util': set this to true or false
+  esbuild: set this to true or false
+  protobufjs: set this to true or false
+
 catalog:
   zod: "^3.25.76"
   "@types/node": "^22.15.0"
