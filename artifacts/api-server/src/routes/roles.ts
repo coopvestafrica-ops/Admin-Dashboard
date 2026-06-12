@@ -117,7 +117,7 @@ router.get("/roles/:id/permissions", requireRole("admin"), async (req, res): Pro
 });
 
 // POST /roles — promote an existing member (by email) to an admin role
-router.post("/roles", requireRole("super_admin"), async (req, res): Promise<void> => {
+router.post("/roles", requireRole("admin"), async (req, res): Promise<void> => {
   const { email, role, customPermissions } = req.body ?? {};
   if (!email || !role) {
     res.status(400).json({ error: "email and role are required" });
@@ -129,14 +129,13 @@ router.post("/roles", requireRole("super_admin"), async (req, res): Promise<void
     return;
   }
   
-  // Validate role
-  const { data: validRole } = await supabase
-    .from("admin_roles")
-    .select("role_key")
-    .eq("role_key", role)
-    .single();
+  // Validate role - accept hardcoded roles or check database
+  const VALID_ROLES = ["admin", "operator", "viewer", "super_admin"];
+  const isValidRole = VALID_ROLES.includes(role) || (
+    await supabase.from("admin_roles").select("role_key").eq("role_key", role).single()
+  ).data;
   
-  if (!validRole) {
+  if (!isValidRole) {
     res.status(400).json({ error: "Invalid role specified" });
     return;
   }
@@ -166,19 +165,18 @@ router.post("/roles", requireRole("super_admin"), async (req, res): Promise<void
 });
 
 // PUT /roles/:id — change role/status/permissions
-router.put("/roles/:id", requireRole("super_admin"), async (req, res): Promise<void> => {
+router.put("/roles/:id", requireRole("admin"), async (req, res): Promise<void> => {
   const { role, status, customPermissions } = req.body ?? {};
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
   
   if (role) {
-    // Validate role
-    const { data: validRole } = await supabase
-      .from("admin_roles")
-      .select("role_key")
-      .eq("role_key", role)
-      .single();
+    // Validate role - accept hardcoded roles or check database
+    const VALID_ROLES = ["admin", "operator", "viewer", "super_admin"];
+    const isValidRole = VALID_ROLES.includes(role) || (
+      await supabase.from("admin_roles").select("role_key").eq("role_key", role).single()
+    ).data;
     
-    if (!validRole) {
+    if (!isValidRole) {
       res.status(400).json({ error: "Invalid role specified" });
       return;
     }
