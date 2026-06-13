@@ -23,8 +23,12 @@ import {
 } from "lucide-react";
 
 // ── API Base URL ────────────────────────────────────────────────────────────────
-// Use Render API for role management (has proper auth and permissions)
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+// Use relative URL - Vercel will proxy /api/* to Render API
+// For local dev, use localhost; for production, use relative path
+const isDev = import.meta.env.DEV;
+const API_BASE = isDev 
+  ? (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001')
+  : '';  // Relative URL for Vercel proxy
 
 // ── Get auth headers ───────────────────────────────────────────────────────────
 function getAuthHeaders(): HeadersInit {
