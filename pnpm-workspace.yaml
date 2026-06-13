@@ -7,6 +7,7 @@ onlyBuiltDependencies:
   - '@firebase/util'
   - 'esbuild'
   - 'protobufjs'
+  - 'tsx'
 
 catalog:
   zod: "^3.25.76"
@@ -27,3 +28,8 @@ catalog:
   tailwindcss: "^4.1.14"
   tsx: "^4.19.2"
   vite: "^7.3.5"
+
+allowBuilds:
+  '@firebase/util': set this to true or false
+  esbuild: set this to true or false
+  protobufjs: set this to true or false
