@@ -1,14 +1,15 @@
 {
   "version": 2,
   "installCommand": "corepack enable && corepack prepare pnpm@9 --activate && pnpm install --ignore-scripts",
-  "buildCommand": "pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/coopvest-dashboard run build",
+  "buildCommand": "pnpm --filter @workspace/coopvest-dashboard run build",
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
   "routes": [
-    { "src": "/api/(.*)", "dest": "/api-server/dist/index.mjs", "headers": { "Content-Type": "application/json" } },
+    { "src": "/api/roles", "dest": "/api/roles" },
+    { "src": "/api/roles/all", "dest": "/api/roles/all" },
+    { "src": "/api/roles/permissions", "dest": "/api/roles/permissions" },
+    { "src": "/api/roles/(?<id>[^/]+)/permissions", "dest": "/api/roles/$1/permissions" },
+    { "src": "/api/(?<path>.*)", "dest": "/api/$path" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/" }
-  ],
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/:path*" }
   ]
 }
