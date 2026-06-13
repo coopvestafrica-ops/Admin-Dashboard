@@ -89,7 +89,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 // ── API Base URL ────────────────────────────────────────────────────────────────
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function RoleManagement() {
