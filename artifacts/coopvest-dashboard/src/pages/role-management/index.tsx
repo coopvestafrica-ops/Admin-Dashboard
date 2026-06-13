@@ -14,7 +14,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import {
   UserCog, Plus, Edit2, Trash2, Shield, ShieldCheck, Lock, Eye,
   CheckCircle, XCircle, Users, Key, Settings, CreditCard, LifeBuoy,
@@ -23,10 +22,9 @@ import {
   ClipboardCheck, Download, ToggleLeft, Database, Mail, Bell, FileSpreadsheet
 } from "lucide-react";
 
-// ── Supabase Client ──────────────────────────────────────────────────────────
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://nyoauzqezpxeonmrxxgi.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55b2F1enFlenB4ZW9ubXJ4eGdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyODI3MzUsImV4cCI6MjA4OTg1ODczNX0.5WfECoO2Xu5VfBzFbQd2CA8rIeBVnOkiKmnnbYRA8VU';
-const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+// ── API Base URL ────────────────────────────────────────────────────────────────
+// Use Render API for role management (has proper auth and permissions)
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Role {
@@ -123,33 +121,23 @@ export default function RoleManagement() {
   const [formRole, setFormRole] = useState("admin");
   const [formStatus, setFormStatus] = useState(true);
 
-  // Fetch admins from Supabase - users with elevated roles
+  // Fetch admins from API
   const fetchAdmins = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name, email, role, is_active, updated_at, created_at, custom_permissions')
-        .in('role', ['super_admin', 'admin', 'operator', 'viewer'])
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      const adminsData: AdminAccount[] = (data || []).map((p: any) => ({
-        id: p.id,
-        name: p.name || p.email || 'Unknown',
-        email: p.email || '',
-        role: p.role || 'viewer',
-        status: p.is_active ? 'active' : 'inactive',
-        lastActive: p.updated_at,
-        createdAt: p.created_at,
-        customPermissions: p.custom_permissions || [],
-      }));
-
+      const res = await fetch(`${API_BASE}/api/roles`, {
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to fetch admins");
+      }
+      const data = await res.json();
+      const adminsData: AdminAccount[] = Array.isArray(data.admins) ? data.admins : [];
       setAdmins(adminsData);
     } catch (err: any) {
       console.error('Failed to fetch admins:', err);
       setAdmins([]);
-      toast({ title: "Error", description: "Failed to fetch admins: " + err.message, variant: "destructive" });
+      toast({ title: "Error", description: err.message || "Failed to fetch admins", variant: "destructive" });
     } finally {
       setLoadingStaff(false);
     }
@@ -157,14 +145,16 @@ export default function RoleManagement() {
 
   const fetchPermissions = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('admin_permissions')
-        .select('*')
-        .eq('is_active', true)
-        .order('category', { ascending: true });
-
-      if (error) throw error;
-      setPermissions(data || []);
+      const res = await fetch(`${API_BASE}/api/roles/permissions`, {
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to fetch permissions");
+      }
+      const data = await res.json();
+      const permsData: Permission[] = Array.isArray(data.permissions) ? data.permissions : [];
+      setPermissions(permsData);
     } catch (err: any) {
       console.error('Failed to fetch permissions:', err);
       setPermissions([]);
@@ -233,17 +223,19 @@ export default function RoleManagement() {
     if (!editAdmin) return;
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
+      const res = await fetch(`${API_BASE}/api/roles/${editAdmin.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           role: formRole,
-          is_active: formStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', editAdmin.id);
-
-      if (error) throw error;
-
+          status: formStatus ? "active" : "inactive",
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update role");
+      }
+      
       toast({ title: "Success", description: "Role updated successfully" });
       setEditAdmin(null);
       fetchAdmins();
@@ -263,16 +255,16 @@ export default function RoleManagement() {
     if (!permEditAdmin) return;
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          custom_permissions: selectedPermissions,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', permEditAdmin.id);
-
-      if (error) throw error;
-
+      const res = await fetch(`${API_BASE}/api/roles/${permEditAdmin.id}/permissions`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ permissions: selectedPermissions }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update permissions");
+      }
+      
       toast({ title: "Success", description: "Permissions updated successfully" });
       setPermEditAdmin(null);
       fetchAdmins();
@@ -295,36 +287,15 @@ export default function RoleManagement() {
     }
     setSaving(true);
     try {
-      // First, find the user by email
-      const { data: profile, error: findError } = await supabase
-        .from('profiles')
-        .select('id, email, name')
-        .eq('email', formEmail)
-        .maybeSingle();
-
-      if (findError) throw findError;
-      if (!profile) {
-        toast({ 
-          title: "Error", 
-          description: "No registered user with that email. Ask them to sign up first.", 
-          variant: "destructive" 
-        });
-        return;
-      }
-
-      // Update the user's role
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          role: formRole,
-          is_active: true,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', profile.id);
-
-      if (updateError) throw updateError;
-
-      toast({ title: "Success", description: `Role '${formRole}' assigned to ${profile.name || profile.email}` });
+      const res = await fetch(`${API_BASE}/api/roles`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formEmail, role: formRole }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      toast({ title: "Success", description: data.message || `Role '${formRole}' assigned successfully` });
       setShowCreateDialog(false);
       setFormEmail("");
       setFormRole("admin");
@@ -345,18 +316,11 @@ export default function RoleManagement() {
     if (!confirm("Are you sure you want to revoke this admin's access?")) return;
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          role: 'member',
-          is_active: true,
-          custom_permissions: [],
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', adminId);
-
-      if (error) throw error;
-
+      const res = await fetch(`${API_BASE}/api/roles/${adminId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to revoke access");
+      }
       toast({ title: "Success", description: "Admin access revoked" });
       fetchAdmins();
     } catch (err: any) {
@@ -370,7 +334,7 @@ export default function RoleManagement() {
     }
   }
 
-  const isLoading = loadingStaff || loadingRoles || loadingPerms;
+  const isLoading = loadingStaff || loadingPerms;
 
   return (
     <Layout title="Role Management" subtitle="Assign roles and manage admin permissions">
