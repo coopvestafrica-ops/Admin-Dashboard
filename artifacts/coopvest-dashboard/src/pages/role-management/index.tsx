@@ -26,6 +26,26 @@ import {
 // Use Render API for role management (has proper auth and permissions)
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
 
+// ── Get auth headers ───────────────────────────────────────────────────────────
+function getAuthHeaders(): HeadersInit {
+  // Try to get the Supabase auth token from localStorage
+  const sbToken = localStorage.getItem('sb-nyoauzqezpxeonmrxxgi-auth-token');
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  
+  if (sbToken) {
+    try {
+      const tokenData = JSON.parse(sbToken);
+      if (tokenData.access_token) {
+        headers["Authorization"] = `Bearer ${tokenData.access_token}`;
+      }
+    } catch (e) {
+      console.warn('Failed to parse auth token:', e);
+    }
+  }
+  
+  return headers;
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Role {
   id: string;
@@ -125,7 +145,7 @@ export default function RoleManagement() {
   const fetchAdmins = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/api/roles`, {
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -146,7 +166,7 @@ export default function RoleManagement() {
   const fetchPermissions = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/api/roles/permissions`, {
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -225,7 +245,7 @@ export default function RoleManagement() {
     try {
       const res = await fetch(`${API_BASE}/api/roles/${editAdmin.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           role: formRole,
           status: formStatus ? "active" : "inactive",
@@ -257,7 +277,7 @@ export default function RoleManagement() {
     try {
       const res = await fetch(`${API_BASE}/api/roles/${permEditAdmin.id}/permissions`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ permissions: selectedPermissions }),
       });
       if (!res.ok) {
@@ -289,7 +309,7 @@ export default function RoleManagement() {
     try {
       const res = await fetch(`${API_BASE}/api/roles`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ email: formEmail, role: formRole }),
       });
       const data = await res.json();
@@ -316,7 +336,10 @@ export default function RoleManagement() {
     if (!confirm("Are you sure you want to revoke this admin's access?")) return;
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/api/roles/${adminId}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/api/roles/${adminId}`, { 
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Failed to revoke access");
