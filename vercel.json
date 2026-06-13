@@ -3,7 +3,8 @@
   "installCommand": "corepack enable && corepack prepare pnpm@9 --activate && pnpm install --ignore-scripts",
   "buildCommand": "pnpm --filter @workspace/coopvest-dashboard run build",
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
+  "framework": "vite",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://coopvest-api-v3.onrender.com/api/:path*" }
+    { "source": "/api/(.*)", "destination": "https://coopvest-api-v3.onrender.com/api/$1" }
   ]
 }
