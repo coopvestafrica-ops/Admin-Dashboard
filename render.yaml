@@ -20,6 +20,8 @@ services:
         sync: false
       - key: ALLOWED_ORIGIN
         sync: false
+      - key: DASHBOARD_URL
+        sync: false
 
   # ──────────────────────────────────────────────────────────────────────────────
   # Frontend: React Dashboard on Render (alternative to Vercel)

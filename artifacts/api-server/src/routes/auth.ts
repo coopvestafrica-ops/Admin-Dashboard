@@ -7,7 +7,7 @@ const router = Router();
 // Request password reset — called by mobile app
 router.post("/api/auth/request-password-reset", async (req: Request, res: Response) => {
   try {
-    const { email } = req.body;
+    const { email, type } = req.body;
 
     if (!email) {
       res.status(400).json({ error: "Email is required" });
@@ -21,9 +21,16 @@ router.post("/api/auth/request-password-reset", async (req: Request, res: Respon
       return;
     }
 
+    // Determine redirect URL based on client type
+    // Mobile app: coopvest://reset-password
+    // Web dashboard: https://admin-dashboard-api-server.vercel.app/reset-password
+    const redirectTo = type === 'mobile' 
+      ? "coopvest://reset-password"
+      : `${process.env.DASHBOARD_URL || 'https://admin-dashboard-api-server.vercel.app'}/reset-password`;
+
     // Call Supabase to send the password reset email
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: "coopvest://reset-password",
+      redirectTo,
     });
 
     if (error) {
