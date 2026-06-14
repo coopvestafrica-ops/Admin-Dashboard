@@ -1,11 +1,3 @@
-import { createRequire as __bannerCrReq } from 'node:module';
-import __bannerPath from 'node:path';
-import __bannerUrl from 'node:url';
-
-globalThis.require = __bannerCrReq(import.meta.url);
-globalThis.__filename = __bannerUrl.fileURLToPath(import.meta.url);
-globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
-    
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -18712,7 +18704,7 @@ var require_finalhandler = __commonJS({
     module.exports = finalhandler;
     function finalhandler(req, res, options) {
       var opts = options || {};
-      var env = opts.env || process.env.NODE_ENV || "development";
+      var env = opts.env || "production";
       var onerror = opts.onerror;
       return function(err) {
         var headers;
@@ -20650,27 +20642,27 @@ var require_router = __commonJS({
     var slice = Array.prototype.slice;
     var flatten = Array.prototype.flat;
     var methods = METHODS.map((method) => method.toLowerCase());
-    module.exports = Router35;
+    module.exports = Router37;
     module.exports.Route = Route;
-    function Router35(options) {
-      if (!(this instanceof Router35)) {
-        return new Router35(options);
+    function Router37(options) {
+      if (!(this instanceof Router37)) {
+        return new Router37(options);
       }
       const opts = options || {};
-      function router35(req, res, next) {
-        router35.handle(req, res, next);
+      function router37(req, res, next) {
+        router37.handle(req, res, next);
       }
-      Object.setPrototypeOf(router35, this);
-      router35.caseSensitive = opts.caseSensitive;
-      router35.mergeParams = opts.mergeParams;
-      router35.params = {};
-      router35.strict = opts.strict;
-      router35.stack = [];
-      return router35;
+      Object.setPrototypeOf(router37, this);
+      router37.caseSensitive = opts.caseSensitive;
+      router37.mergeParams = opts.mergeParams;
+      router37.params = {};
+      router37.strict = opts.strict;
+      router37.stack = [];
+      return router37;
     }
-    Router35.prototype = function() {
+    Router37.prototype = function() {
     };
-    Router35.prototype.param = function param(name, fn) {
+    Router37.prototype.param = function param(name, fn) {
       if (!name) {
         throw new TypeError("argument name is required");
       }
@@ -20690,7 +20682,7 @@ var require_router = __commonJS({
       params.push(fn);
       return this;
     };
-    Router35.prototype.handle = function handle(req, res, callback) {
+    Router37.prototype.handle = function handle(req, res, callback) {
       if (!callback) {
         throw new TypeError("argument callback is required");
       }
@@ -20817,7 +20809,7 @@ var require_router = __commonJS({
         }
       }
     };
-    Router35.prototype.use = function use(handler) {
+    Router37.prototype.use = function use(handler) {
       let offset = 0;
       let path2 = "/";
       if (typeof handler !== "function") {
@@ -20850,7 +20842,7 @@ var require_router = __commonJS({
       }
       return this;
     };
-    Router35.prototype.route = function route(path2) {
+    Router37.prototype.route = function route(path2) {
       const route2 = new Route(path2);
       const layer = new Layer(path2, {
         sensitive: this.caseSensitive,
@@ -20865,7 +20857,7 @@ var require_router = __commonJS({
       return route2;
     };
     methods.concat("all").forEach(function(method) {
-      Router35.prototype[method] = function(path2) {
+      Router37.prototype[method] = function(path2) {
         const route = this.route(path2);
         route[method].apply(route, slice.call(arguments, 1));
         return this;
@@ -21048,13 +21040,13 @@ var require_application = __commonJS({
     var compileTrust = require_utils3().compileTrust;
     var resolve = __require("node:path").resolve;
     var once = require_once();
-    var Router35 = require_router();
+    var Router37 = require_router();
     var slice = Array.prototype.slice;
     var flatten = Array.prototype.flat;
     var app2 = exports = module.exports = {};
     var trustProxyDefaultSymbol = "@@symbol:trust_proxy_default";
     app2.init = function init() {
-      var router35 = null;
+      var router37 = null;
       this.cache = /* @__PURE__ */ Object.create(null);
       this.engines = /* @__PURE__ */ Object.create(null);
       this.settings = /* @__PURE__ */ Object.create(null);
@@ -21063,18 +21055,18 @@ var require_application = __commonJS({
         configurable: true,
         enumerable: true,
         get: function getrouter() {
-          if (router35 === null) {
-            router35 = new Router35({
+          if (router37 === null) {
+            router37 = new Router37({
               caseSensitive: this.enabled("case sensitive routing"),
               strict: this.enabled("strict routing")
             });
           }
-          return router35;
+          return router37;
         }
       });
     };
     app2.defaultConfiguration = function defaultConfiguration() {
-      var env = process.env.NODE_ENV || "development";
+      var env = "production";
       this.enable("x-powered-by");
       this.set("etag", "weak");
       this.set("env", env);
@@ -21140,15 +21132,15 @@ var require_application = __commonJS({
       if (fns.length === 0) {
         throw new TypeError("app.use() requires a middleware function");
       }
-      var router35 = this.router;
+      var router37 = this.router;
       fns.forEach(function(fn2) {
         if (!fn2 || !fn2.handle || !fn2.set) {
-          return router35.use(path2, fn2);
+          return router37.use(path2, fn2);
         }
         debug(".use app under %s", path2);
         fn2.mountpath = path2;
         fn2.parent = this;
-        router35.use(path2, function mounted_app(req, res, next) {
+        router37.use(path2, function mounted_app(req, res, next) {
           var orig = req.app;
           fn2.handle(req, res, function(err) {
             Object.setPrototypeOf(req, orig.request);
@@ -23721,7 +23713,7 @@ var require_express = __commonJS({
     var EventEmitter = __require("node:events").EventEmitter;
     var mixin = require_merge_descriptors();
     var proto = require_application();
-    var Router35 = require_router();
+    var Router37 = require_router();
     var req = require_request();
     var res = require_response();
     exports = module.exports = createApplication;
@@ -23743,8 +23735,8 @@ var require_express = __commonJS({
     exports.application = proto;
     exports.request = req;
     exports.response = res;
-    exports.Route = Router35.Route;
-    exports.Router = Router35;
+    exports.Route = Router37.Route;
+    exports.Router = Router37;
     exports.json = bodyParser.json;
     exports.raw = bodyParser.raw;
     exports.static = require_serve_static();
@@ -28137,17 +28129,7 @@ var require_multistream = __commonJS({
 // ../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/pino.js
 var require_pino = __commonJS({
   "../../node_modules/.pnpm/pino@9.14.0/node_modules/pino/pino.js"(exports, module) {
-    function pinoBundlerAbsolutePath(p) {
-      try {
-        const path2 = __require("path");
-        const outputDir = "/home/ubuntu/repos/Admin-Dashboard/artifacts/api-server/dist";
-        return path2.resolve(outputDir, p.replace(/^\.\//, ""));
-      } catch (e) {
-        const f = new Function("p", "return new URL(p, import.meta.url).pathname");
-        return f(p);
-      }
-    }
-    globalThis.__bundlerPathsOverrides = { ...globalThis.__bundlerPathsOverrides || {}, "thread-stream-worker": pinoBundlerAbsolutePath("./thread-stream-worker.mjs"), "pino-worker": pinoBundlerAbsolutePath("./pino-worker.mjs"), "pino/file": pinoBundlerAbsolutePath("./pino-file.mjs"), "pino-pretty": pinoBundlerAbsolutePath("./pino-pretty.mjs") };
+    "use strict";
     var os = __require("node:os");
     var stdSerializers = require_pino_std_serializers();
     var caller = require_caller();
@@ -28603,7 +28585,7 @@ var require_logger = __commonJS({
 });
 
 // src/app.ts
-var import_express35 = __toESM(require_express2(), 1);
+var import_express37 = __toESM(require_express2(), 1);
 var import_cors = __toESM(require_lib3(), 1);
 
 // ../../node_modules/.pnpm/helmet@8.2.0/node_modules/helmet/index.mjs
@@ -29922,7 +29904,7 @@ var lib_default = rateLimit;
 var import_pino_http = __toESM(require_logger(), 1);
 
 // src/routes/index.ts
-var import_express34 = __toESM(require_express2(), 1);
+var import_express36 = __toESM(require_express2(), 1);
 
 // ../../lib/db/src/index.ts
 import { createClient } from "@supabase/supabase-js";
@@ -29962,26 +29944,41 @@ async function requireAuth(req, res, next) {
   const userEmail = data.user.email;
   let userRole = "member";
   let profileId = "";
+  let permissions = [];
   if (userEmail) {
-    const { data: profile } = await supabase.from("profiles").select("id, role").eq("email", userEmail).single();
+    const { data: profile } = await supabase.from("profiles").select("id, role, custom_permissions").eq("email", userEmail).single();
     if (profile) {
       userRole = profile.role || "member";
       profileId = profile.id;
+      if (userRole === "super_admin") {
+        const { data: allPerms } = await supabase.from("admin_permissions").select("perm_key");
+        permissions = (allPerms ?? []).map((p) => p.perm_key);
+      } else {
+        const { data: rolePerms } = await supabase.from("role_permissions").select(`
+            permission:admin_permissions!permission_id(perm_key)
+          `).eq("role:admin_roles!role_id(role_key)", userRole);
+        const rolePermsList = (rolePerms ?? []).map(
+          (rp) => rp.permission?.perm_key
+        ).filter(Boolean);
+        const customPerms = profile.custom_permissions || [];
+        permissions = [.../* @__PURE__ */ new Set([...rolePermsList, ...customPerms])];
+      }
     }
   }
   req.user = {
     id: data.user.id,
     email: userEmail,
     role: userRole,
-    profileId
+    profileId,
+    permissions
   };
   next();
 }
 var ROLE_HIERARCHY = {
-  super_admin: 4,
-  admin: 3,
-  operator: 2,
-  viewer: 1,
+  super_admin: 100,
+  admin: 80,
+  operator: 60,
+  viewer: 40,
   member: 0
 };
 function requireRole(...allowedRoles) {
@@ -29989,6 +29986,10 @@ function requireRole(...allowedRoles) {
     const user = req.user;
     if (!user) {
       res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+    if (user.role === "super_admin") {
+      next();
       return;
     }
     const userLevel = ROLE_HIERARCHY[user.role ?? "member"] ?? 0;
@@ -34647,85 +34648,305 @@ router2.post("/setup/super-admin", async (req, res) => {
 });
 var setup_default = router2;
 
-// src/routes/dashboard.ts
+// src/routes/auth.ts
 var import_express3 = __toESM(require_express2(), 1);
+
+// src/lib/logger.ts
+var import_pino = __toESM(require_pino(), 1);
+var isProduction = true;
+var logger = (0, import_pino.default)({
+  level: process.env.LOG_LEVEL ?? "info",
+  redact: [
+    "req.headers.authorization",
+    "req.headers.cookie",
+    "res.headers['set-cookie']"
+  ],
+  ...isProduction ? {} : {
+    transport: {
+      target: "pino-pretty",
+      options: { colorize: true }
+    }
+  }
+});
+
+// src/routes/auth.ts
 var router3 = (0, import_express3.Router)();
+router3.post("/api/auth/request-password-reset", async (req, res) => {
+  try {
+    const { email, type } = req.body;
+    if (!email) {
+      res.status(400).json({ error: "Email is required" });
+      return;
+    }
+    const emailRegex2 = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex2.test(email)) {
+      res.status(400).json({ error: "Invalid email format" });
+      return;
+    }
+    const redirectTo = type === "mobile" ? "coopvest://reset-password" : `${process.env.DASHBOARD_URL || "https://admin-dashboard-api-server.vercel.app"}/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo
+    });
+    if (error) {
+      logger.error({ error: error.message, email }, "Password reset request failed");
+    }
+    res.json({
+      success: true,
+      message: "If an account exists with this email, a password reset link has been sent."
+    });
+  } catch (error) {
+    logger.error({ error }, "Password reset request error");
+    res.json({
+      success: true,
+      message: "If an account exists with this email, a password reset link has been sent."
+    });
+  }
+});
+router3.post("/api/auth/verify-otp", async (req, res) => {
+  try {
+    const { token, email, newPassword } = req.body;
+    if (!token) {
+      res.status(400).json({ error: "Token is required" });
+      return;
+    }
+    if (!email) {
+      res.status(400).json({ error: "Email is required" });
+      return;
+    }
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token,
+      type: "recovery"
+    });
+    if (error) {
+      logger.error({ error: error.message }, "OTP verification failed");
+      res.status(400).json({ error: "Invalid or expired code" });
+      return;
+    }
+    if (newPassword && data.user) {
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      if (updateError) {
+        logger.error({ error: updateError.message }, "Password update failed");
+        res.status(400).json({ error: "Failed to update password" });
+        return;
+      }
+    }
+    res.json({
+      success: true,
+      message: "Password reset successful"
+    });
+  } catch (error) {
+    logger.error({ error }, "OTP verification error");
+    res.status(500).json({ error: "Verification failed" });
+  }
+});
+var auth_default = router3;
+
+// src/routes/password_reset.ts
+var import_express4 = __toESM(require_express2(), 1);
+var router4 = (0, import_express4.Router)();
+var resetTokens = /* @__PURE__ */ new Map();
+function generateToken() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let token = "";
+  for (let i = 0; i < 32; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return token;
+}
+router4.post("/api/password-reset/request", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400).json({ error: "Email is required" });
+      return;
+    }
+    const emailRegex2 = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex2.test(email)) {
+      res.status(400).json({ error: "Invalid email format" });
+      return;
+    }
+    const token = generateToken();
+    const expires = Date.now() + 60 * 60 * 1e3;
+    resetTokens.set(token, { email, expires });
+    logger.info({ email, resetLink: `https://admin-dashboard-api-server.vercel.app/reset-password?token=${token}` }, "Password reset requested");
+    res.json({
+      success: true,
+      message: "If an account exists with this email, a password reset link has been sent.",
+      // In development, include the token for testing
+      ...false
+    });
+  } catch (error) {
+    logger.error({ error }, "Password reset request failed");
+    res.status(500).json({ error: "Failed to process password reset request" });
+  }
+});
+router4.post("/api/password-reset/verify", async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      res.status(400).json({ error: "Token is required" });
+      return;
+    }
+    const tokenData = resetTokens.get(token);
+    if (!tokenData) {
+      res.status(400).json({ error: "Invalid or expired token" });
+      return;
+    }
+    if (Date.now() > tokenData.expires) {
+      resetTokens.delete(token);
+      res.status(400).json({ error: "Token has expired" });
+      return;
+    }
+    res.json({
+      success: true,
+      valid: true,
+      email: tokenData.email
+    });
+  } catch (error) {
+    logger.error({ error }, "Token verification failed");
+    res.status(500).json({ error: "Failed to verify token" });
+  }
+});
+router4.post("/api/password-reset/reset", async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) {
+      res.status(400).json({ error: "Token and new password are required" });
+      return;
+    }
+    if (newPassword.length < 8) {
+      res.status(400).json({ error: "Password must be at least 8 characters" });
+      return;
+    }
+    const tokenData = resetTokens.get(token);
+    if (!tokenData) {
+      res.status(400).json({ error: "Invalid or expired token" });
+      return;
+    }
+    if (Date.now() > tokenData.expires) {
+      resetTokens.delete(token);
+      res.status(400).json({ error: "Token has expired" });
+      return;
+    }
+    resetTokens.delete(token);
+    logger.info({ email: tokenData.email }, "Password reset completed");
+    res.json({
+      success: true,
+      message: "Password has been reset successfully"
+    });
+  } catch (error) {
+    logger.error({ error }, "Password reset failed");
+    res.status(500).json({ error: "Failed to reset password" });
+  }
+});
+var password_reset_default = router4;
+
+// src/routes/dashboard.ts
+var import_express5 = __toESM(require_express2(), 1);
+var router5 = (0, import_express5.Router)();
 function calcGrowth(current, previous) {
   if (previous === 0) return current > 0 ? 100 : 0;
   return Math.round((current - previous) / previous * 1e3) / 10;
 }
-router3.get("/dashboard/summary", async (req, res) => {
-  const { count: memberCount } = await supabase.from("profiles").select("*", { count: "exact", head: true });
-  const { count: activeMembersCount } = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_active", true).eq("kyc_verified", true).eq("is_flagged", false);
-  const { data: loanRows } = await supabase.from("loans").select("amount, remaining_balance, status");
-  const loans = loanRows ?? [];
-  const activeLoans = loans.filter((l) => l.status === "active").length;
-  const completedCount = loans.filter((l) => l.status === "completed").length;
-  const defaultedLoans = loans.filter((l) => l.status === "defaulted" || l.status === "overdue");
-  const riskExposure = defaultedLoans.reduce((s, l) => s + Number(l.remaining_balance || l.amount || 0), 0);
-  const activeDefaulters = defaultedLoans.length;
-  const totalLoans = activeLoans + completedCount;
-  const repaymentRate = totalLoans > 0 ? completedCount / totalLoans * 100 : 0;
-  const loansDisbursed = loans.filter((l) => l.status === "active" || l.status === "completed").reduce((s, l) => s + Number(l.amount || 0), 0);
-  const { data: savingsRows } = await supabase.from("savings").select("total_saved");
-  const totalContributions = (savingsRows ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
-  const { data: poolRows } = await supabase.from("investment_pools").select("raised_amount");
-  const totalInvestments = (poolRows ?? []).reduce((s, r) => s + Number(r.raised_amount || 0), 0);
-  const { count: pendingKyc } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "pending");
-  const { count: openTickets } = await supabase.from("tickets").select("*", { count: "exact", head: true }).in("status", ["open", "in_progress"]);
-  let activeOrganizations = 0;
+router5.get("/dashboard/summary", async (req, res) => {
   try {
-    const { count } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("status", "active");
-    activeOrganizations = count ?? 0;
-  } catch {
-    activeOrganizations = 0;
+    const { count: memberCount } = await supabase.from("profiles").select("*", { count: "exact", head: true });
+    const { count: activeMembersCount } = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_active", true).eq("kyc_verified", true).eq("is_flagged", false);
+    let loans = [];
+    try {
+      const { data: loanRows, error: loanError } = await supabase.from("loans").select("amount, remaining_balance, status");
+      if (!loanError) loans = loanRows ?? [];
+    } catch {
+      loans = [];
+    }
+    const activeLoans = loans.filter((l) => l.status === "active").length;
+    const completedCount = loans.filter((l) => l.status === "completed").length;
+    const defaultedLoans = loans.filter((l) => l.status === "defaulted" || l.status === "overdue");
+    const riskExposure = defaultedLoans.reduce((s, l) => s + Number(l.remaining_balance || l.amount || 0), 0);
+    const activeDefaulters = defaultedLoans.length;
+    const totalLoans = activeLoans + completedCount;
+    const repaymentRate = totalLoans > 0 ? completedCount / totalLoans * 100 : 0;
+    const loansDisbursed = loans.filter((l) => l.status === "active" || l.status === "completed").reduce((s, l) => s + Number(l.amount || 0), 0);
+    let totalContributions = 0;
+    try {
+      const { data: savingsRows } = await supabase.from("savings").select("total_saved");
+      totalContributions = (savingsRows ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
+    } catch {
+      totalContributions = 0;
+    }
+    let totalInvestments = 0;
+    try {
+      const { data: poolRows } = await supabase.from("investment_pools").select("raised_amount");
+      totalInvestments = (poolRows ?? []).reduce((s, r) => s + Number(r.raised_amount || 0), 0);
+    } catch {
+      totalInvestments = 0;
+    }
+    const { count: pendingKyc } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "pending");
+    const { count: openTickets } = await supabase.from("tickets").select("*", { count: "exact", head: true }).in("status", ["open", "in_progress"]);
+    let activeOrganizations = 0;
+    try {
+      const { count } = await supabase.from("organizations").select("*", { count: "exact", head: true }).eq("status", "active");
+      activeOrganizations = count ?? 0;
+    } catch {
+      activeOrganizations = 0;
+    }
+    let membersGrowth = 0, savingsGrowth = 0, loansGrowth = 0, contributionsGrowth = 0, monthlyGrowth = 0;
+    try {
+      const now = /* @__PURE__ */ new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+      const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString();
+      const { count: newThisMonth } = await supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", monthStart);
+      const { count: newLastMonth } = await supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
+      membersGrowth = calcGrowth(newThisMonth ?? 0, newLastMonth ?? 0);
+      const { data: savingsThisMonth } = await supabase.from("savings").select("total_saved").gte("updated_at", monthStart);
+      const { data: savingsLastMonth } = await supabase.from("savings").select("total_saved").gte("updated_at", prevMonthStart).lt("updated_at", prevMonthEnd);
+      const savingsThisMonthTotal = (savingsThisMonth ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
+      const savingsLastMonthTotal = (savingsLastMonth ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
+      savingsGrowth = calcGrowth(savingsThisMonthTotal, savingsLastMonthTotal);
+      const { count: loansThisMonth } = await supabase.from("loans").select("*", { count: "exact", head: true }).in("status", ["active", "completed"]).gte("created_at", monthStart);
+      const { count: loansLastMonth } = await supabase.from("loans").select("*", { count: "exact", head: true }).in("status", ["active", "completed"]).gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
+      loansGrowth = calcGrowth(loansThisMonth ?? 0, loansLastMonth ?? 0);
+      const { data: txnsThisMonth } = await supabase.from("transactions").select("amount").in("type", ["savings_deposit", "deposit"]).eq("status", "completed").gte("created_at", monthStart);
+      const { data: txnsLastMonth } = await supabase.from("transactions").select("amount").in("type", ["savings_deposit", "deposit"]).eq("status", "completed").gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
+      const contributionsThisMonth = (txnsThisMonth ?? []).reduce((s, t) => s + Number(t.amount || 0), 0);
+      const contributionsLastMonth = (txnsLastMonth ?? []).reduce((s, t) => s + Number(t.amount || 0), 0);
+      contributionsGrowth = calcGrowth(contributionsThisMonth, contributionsLastMonth);
+      const { count: txnsCountThisMonth } = await supabase.from("transactions").select("*", { count: "exact", head: true }).gte("created_at", monthStart);
+      const { count: txnsCountLastMonth } = await supabase.from("transactions").select("*", { count: "exact", head: true }).gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
+      monthlyGrowth = calcGrowth(txnsCountThisMonth ?? 0, txnsCountLastMonth ?? 0);
+    } catch {
+    }
+    res.json({
+      totalMembers: memberCount ?? 0,
+      activeMembers: activeMembersCount ?? 0,
+      activeLoans,
+      totalContributions,
+      totalSavings: totalContributions,
+      loansDisbursed,
+      totalLoansIssued: loansDisbursed,
+      repaymentRate: Math.round(repaymentRate * 10) / 10,
+      pendingCompliance: pendingKyc ?? 0,
+      openSupportTickets: openTickets ?? 0,
+      totalInvestments,
+      riskExposure,
+      activeDefaulters,
+      activeOrganizations,
+      monthlyGrowth,
+      membersGrowth,
+      loansGrowth,
+      savingsGrowth,
+      contributionsGrowth
+    });
+  } catch (error) {
+    console.error("Dashboard summary error:", error);
+    res.status(500).json({ error: "Failed to load dashboard summary" });
   }
-  const now = /* @__PURE__ */ new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
-  const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString();
-  const { count: newThisMonth } = await supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", monthStart);
-  const { count: newLastMonth } = await supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
-  const membersGrowth = calcGrowth(newThisMonth ?? 0, newLastMonth ?? 0);
-  const { data: savingsThisMonth } = await supabase.from("savings").select("total_saved").gte("updated_at", monthStart);
-  const { data: savingsLastMonth } = await supabase.from("savings").select("total_saved").gte("updated_at", prevMonthStart).lt("updated_at", prevMonthEnd);
-  const savingsThisMonthTotal = (savingsThisMonth ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
-  const savingsLastMonthTotal = (savingsLastMonth ?? []).reduce((s, r) => s + Number(r.total_saved || 0), 0);
-  const savingsGrowth = calcGrowth(savingsThisMonthTotal, savingsLastMonthTotal);
-  const { count: loansThisMonth } = await supabase.from("loans").select("*", { count: "exact", head: true }).in("status", ["active", "completed"]).gte("approved_at", monthStart);
-  const { count: loansLastMonth } = await supabase.from("loans").select("*", { count: "exact", head: true }).in("status", ["active", "completed"]).gte("approved_at", prevMonthStart).lt("approved_at", prevMonthEnd);
-  const loansGrowth = calcGrowth(loansThisMonth ?? 0, loansLastMonth ?? 0);
-  const { data: txnsThisMonth } = await supabase.from("transactions").select("amount").in("type", ["savings_deposit", "deposit"]).eq("status", "completed").gte("created_at", monthStart);
-  const { data: txnsLastMonth } = await supabase.from("transactions").select("amount").in("type", ["savings_deposit", "deposit"]).eq("status", "completed").gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
-  const contributionsThisMonth = (txnsThisMonth ?? []).reduce((s, t) => s + Number(t.amount || 0), 0);
-  const contributionsLastMonth = (txnsLastMonth ?? []).reduce((s, t) => s + Number(t.amount || 0), 0);
-  const contributionsGrowth = calcGrowth(contributionsThisMonth, contributionsLastMonth);
-  const { count: txnsCountThisMonth } = await supabase.from("transactions").select("*", { count: "exact", head: true }).gte("created_at", monthStart);
-  const { count: txnsCountLastMonth } = await supabase.from("transactions").select("*", { count: "exact", head: true }).gte("created_at", prevMonthStart).lt("created_at", prevMonthEnd);
-  const monthlyGrowth = calcGrowth(txnsCountThisMonth ?? 0, txnsCountLastMonth ?? 0);
-  res.json({
-    totalMembers: memberCount ?? 0,
-    activeMembers: activeMembersCount ?? 0,
-    activeLoans,
-    totalContributions,
-    totalSavings: totalContributions,
-    loansDisbursed,
-    totalLoansIssued: loansDisbursed,
-    repaymentRate: Math.round(repaymentRate * 10) / 10,
-    pendingCompliance: pendingKyc ?? 0,
-    openSupportTickets: openTickets ?? 0,
-    totalInvestments,
-    riskExposure,
-    activeDefaulters,
-    activeOrganizations,
-    monthlyGrowth,
-    membersGrowth,
-    loansGrowth,
-    savingsGrowth,
-    contributionsGrowth
-  });
 });
-router3.get("/dashboard/monthly-contributions", async (req, res) => {
+router5.get("/dashboard/monthly-contributions", async (req, res) => {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const now = /* @__PURE__ */ new Date();
   const year = now.getFullYear();
@@ -34745,7 +34966,7 @@ router3.get("/dashboard/monthly-contributions", async (req, res) => {
   }));
   res.json(data);
 });
-router3.get("/dashboard/loan-status-breakdown", async (req, res) => {
+router5.get("/dashboard/loan-status-breakdown", async (req, res) => {
   const { data: loans } = await supabase.from("loans").select("amount, status");
   const rows = loans ?? [];
   const grouped = /* @__PURE__ */ new Map();
@@ -34763,7 +34984,7 @@ router3.get("/dashboard/loan-status-breakdown", async (req, res) => {
   }));
   res.json(breakdown);
 });
-router3.get("/dashboard/recent-activity", async (req, res) => {
+router5.get("/dashboard/recent-activity", async (req, res) => {
   const { data: recentTxns } = await supabase.from("transactions").select("id, profile_id, amount, type, created_at, profiles!transactions_profile_id_fkey(name)").in("type", ["savings_deposit", "deposit"]).order("created_at", { ascending: false }).limit(5);
   const { data: recentLoans } = await supabase.from("loans").select("id, profile_id, amount, status, created_at, profiles!loans_profile_id_fkey(name)").order("created_at", { ascending: false }).limit(5);
   const activities = [
@@ -34790,12 +35011,12 @@ router3.get("/dashboard/recent-activity", async (req, res) => {
   activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   res.json(activities.slice(0, 10));
 });
-var dashboard_default = router3;
+var dashboard_default = router5;
 
 // src/routes/members.ts
-var import_express4 = __toESM(require_express2(), 1);
-var router4 = (0, import_express4.Router)();
-router4.use(requireAuth);
+var import_express6 = __toESM(require_express2(), 1);
+var router6 = (0, import_express6.Router)();
+router6.use(requireAuth);
 async function syncAuthUsersToProfiles() {
   try {
     const { data, error } = await supabase.auth.admin.listUsers({ perPage: 1e3 });
@@ -34821,7 +35042,7 @@ async function syncAuthUsersToProfiles() {
   } catch {
   }
 }
-router4.get("/members/stats", async (req, res) => {
+router6.get("/members/stats", async (req, res) => {
   await syncAuthUsersToProfiles();
   const { count: total } = await supabase.from("profiles").select("*", { count: "exact", head: true });
   const { count: active } = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_active", true).eq("kyc_verified", true).eq("is_flagged", false);
@@ -34844,7 +35065,7 @@ router4.get("/members/stats", async (req, res) => {
     highRisk: highRisk ?? 0
   });
 });
-router4.get("/members", async (req, res) => {
+router6.get("/members", async (req, res) => {
   await syncAuthUsersToProfiles();
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
@@ -34899,7 +35120,7 @@ router4.get("/members", async (req, res) => {
     limit
   });
 });
-router4.post("/members", async (req, res) => {
+router6.post("/members", async (req, res) => {
   const parsed = CreateMemberBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
@@ -35020,7 +35241,7 @@ async function buildMemberDetail(profile) {
     avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??"
   };
 }
-router4.get("/members/:id", async (req, res) => {
+router6.get("/members/:id", async (req, res) => {
   const id = req.params.id;
   const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", id).single();
   if (error || !profile) {
@@ -35029,7 +35250,7 @@ router4.get("/members/:id", async (req, res) => {
   }
   res.json(await buildMemberDetail(profile));
 });
-router4.get("/members/user/:userId", async (req, res) => {
+router6.get("/members/user/:userId", async (req, res) => {
   const userId = req.params.userId;
   const { data: profile, error } = await supabase.from("profiles").select("*").eq("user_id", userId).single();
   if (error || !profile) {
@@ -35038,7 +35259,7 @@ router4.get("/members/user/:userId", async (req, res) => {
   }
   res.json(await buildMemberDetail(profile));
 });
-router4.patch("/members/:id", async (req, res) => {
+router6.patch("/members/:id", async (req, res) => {
   const id = req.params.id;
   const { status, kyc_verified, is_flagged, is_active } = req.body;
   const updates = {};
@@ -35089,7 +35310,7 @@ router4.patch("/members/:id", async (req, res) => {
   const { firstName, lastName } = splitName(profile.name);
   res.json({ id: profile.id, memberId: profile.user_id, firstName, lastName, email: profile.email, phone: profile.phone ?? "", status: deriveStatus(profile), joinDate: profile.created_at?.slice(0, 10) ?? null, address: null, occupation: null, createdAt: profile.created_at, totalContributions: 0, activeLoan: 0, riskScore: 0, avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" });
 });
-router4.put("/members/:id", async (req, res) => {
+router6.put("/members/:id", async (req, res) => {
   const id = req.params.id;
   const { status, kyc_verified, is_flagged, is_active, role } = req.body;
   const updates = {};
@@ -35162,7 +35383,7 @@ router4.put("/members/:id", async (req, res) => {
     avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??"
   });
 });
-router4.post("/members/:id/role", requireAuth, requireRole("super_admin"), async (req, res) => {
+router6.post("/members/:id/role", requireAuth, requireRole("super_admin"), async (req, res) => {
   const id = req.params.id;
   const { role } = req.body;
   if (!role || !["member", "viewer", "operator", "admin", "super_admin"].includes(role)) {
@@ -35203,7 +35424,7 @@ router4.post("/members/:id/role", requireAuth, requireRole("super_admin"), async
     avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??"
   });
 });
-router4.delete("/members/:id", requireAuth, requireRole("super_admin"), async (req, res) => {
+router6.delete("/members/:id", requireAuth, requireRole("super_admin"), async (req, res) => {
   const id = req.params.id;
   const { data: profile, error: fetchError } = await supabase.from("profiles").select("id, email, name, role").eq("id", id).single();
   if (fetchError || !profile) {
@@ -35232,13 +35453,13 @@ router4.delete("/members/:id", requireAuth, requireRole("super_admin"), async (r
     message: `Member ${profile.name} (${profile.email}) has been deleted`
   });
 });
-var members_default = router4;
+var members_default = router6;
 
 // src/routes/loans.ts
-var import_express5 = __toESM(require_express2(), 1);
-var router5 = (0, import_express5.Router)();
-router5.use(requireAuth);
-router5.get("/loans/portfolio-summary", async (req, res) => {
+var import_express7 = __toESM(require_express2(), 1);
+var router7 = (0, import_express7.Router)();
+router7.use(requireAuth);
+router7.get("/loans/portfolio-summary", async (req, res) => {
   const { data: loans } = await supabase.from("loans").select("amount, remaining_balance, status");
   const rows = loans ?? [];
   const activeOrCompleted = rows.filter((l) => l.status === "active" || l.status === "completed");
@@ -35263,13 +35484,13 @@ router5.get("/loans/portfolio-summary", async (req, res) => {
     pendingCount
   });
 });
-router5.get("/loans", async (req, res) => {
+router7.get("/loans", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
   const status = req.query.status;
   const memberId = req.query.memberId;
-  let query = supabase.from("loans").select("*, profiles!loans_profile_id_fkey(name)", { count: "exact" });
+  let query = supabase.from("loans").select("*, profiles!loans_profile_id_fkey(id, first_name, last_name, name, email)", { count: "exact" });
   if (status) query = query.eq("status", status === "repaid" ? "completed" : status);
   if (memberId) query = query.eq("profile_id", memberId);
   const { data: loans, count, error } = await query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
@@ -35280,11 +35501,15 @@ router5.get("/loans", async (req, res) => {
   res.json({
     data: (loans ?? []).map((l) => {
       const profile = l.profiles;
+      let memberName = profile?.name ?? "";
+      if (!memberName && profile) {
+        memberName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile?.email || `Member ${l.profile_id?.slice(0, 8)}`;
+      }
       return {
         id: l.id,
         loanId: l.loan_id,
         memberId: l.profile_id,
-        memberName: profile?.name ?? "",
+        memberName,
         amount: Number(l.amount),
         balance: Number(l.remaining_balance ?? l.amount),
         interestRate: Number(l.effective_interest_rate),
@@ -35304,7 +35529,7 @@ router5.get("/loans", async (req, res) => {
     limit
   });
 });
-router5.post("/loans/apply", async (req, res) => {
+router7.post("/loans/apply", async (req, res) => {
   try {
     const { memberId, amount, tenure, purpose, guarantorIds } = req.body;
     if (!memberId || !amount || !tenure) {
@@ -35343,7 +35568,11 @@ router5.post("/loans/apply", async (req, res) => {
       }));
       await supabase.from("loan_guarantors").insert(guarantorRecords);
     }
-    const { data: profile } = await supabase.from("profiles").select("name").eq("id", memberId).single();
+    const { data: profile } = await supabase.from("profiles").select("name, first_name, last_name, email").eq("id", memberId).single();
+    let memberName = profile?.name ?? "";
+    if (!memberName && profile) {
+      memberName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email || `Member ${memberId?.slice(0, 8)}`;
+    }
     res.status(201).json({
       success: true,
       loanId: loan.loan_id,
@@ -35352,7 +35581,7 @@ router5.post("/loans/apply", async (req, res) => {
         id: loan.id,
         loanId: loan.loan_id,
         memberId: loan.profile_id,
-        memberName: profile?.name ?? "",
+        memberName,
         amount: Number(loan.amount),
         balance: Number(loan.remaining_balance),
         interestRate: Number(loan.effective_interest_rate),
@@ -35368,7 +35597,7 @@ router5.post("/loans/apply", async (req, res) => {
     res.status(500).json({ error: "Failed to process loan application" });
   }
 });
-router5.post("/loans", async (req, res) => {
+router7.post("/loans", async (req, res) => {
   const parsed = CreateLoanBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
@@ -35397,12 +35626,16 @@ router5.post("/loans", async (req, res) => {
     res.status(500).json({ error: error.message });
     return;
   }
-  const { data: profile } = await supabase.from("profiles").select("name").eq("id", memberId).single();
+  const { data: profile } = await supabase.from("profiles").select("name, first_name, last_name, email").eq("id", memberId).single();
+  let memberName = profile?.name ?? "";
+  if (!memberName && profile) {
+    memberName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email || `Member ${memberId?.slice(0, 8)}`;
+  }
   res.status(201).json({
     id: loan.id,
     loanId: loan.loan_id,
     memberId: loan.profile_id,
-    memberName: profile?.name ?? "",
+    memberName,
     amount: Number(loan.amount),
     balance: Number(loan.remaining_balance),
     interestRate: Number(loan.effective_interest_rate),
@@ -35413,19 +35646,23 @@ router5.post("/loans", async (req, res) => {
     createdAt: loan.created_at
   });
 });
-router5.get("/loans/:id", async (req, res) => {
+router7.get("/loans/:id", async (req, res) => {
   const id = req.params.id;
-  const { data: loan, error } = await supabase.from("loans").select("*, profiles!loans_profile_id_fkey(name)").eq("id", id).single();
+  const { data: loan, error } = await supabase.from("loans").select("*, profiles!loans_profile_id_fkey(id, first_name, last_name, name, email)").eq("id", id).single();
   if (error || !loan) {
     res.status(404).json({ error: "Loan not found" });
     return;
   }
   const profile = loan.profiles;
+  let memberName = profile?.name ?? "";
+  if (!memberName && profile) {
+    memberName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email || `Member ${loan.profile_id?.slice(0, 8)}`;
+  }
   res.json({
     id: loan.id,
     loanId: loan.loan_id,
     memberId: loan.profile_id,
-    memberName: profile?.name ?? "",
+    memberName,
     amount: Number(loan.amount),
     balance: Number(loan.remaining_balance ?? loan.amount),
     interestRate: Number(loan.effective_interest_rate),
@@ -35440,69 +35677,118 @@ router5.get("/loans/:id", async (req, res) => {
     createdAt: loan.created_at
   });
 });
-router5.post("/loans/:id/approve", requireRole("operator"), async (req, res) => {
+router7.post("/loans/:id/approve", requireRole("operator"), async (req, res) => {
   const id = req.params.id;
   const now = /* @__PURE__ */ new Date();
   const dueDate = new Date(now);
   dueDate.setMonth(dueDate.getMonth() + 12);
+  const adminId = req.session?.profileId || req.headers["x-admin-id"] || "";
+  const adminName = req.session?.profileName || req.headers["x-admin-name"] || "Admin";
   const { data: loan, error } = await supabase.from("loans").update({
     status: "active",
     approved_at: now.toISOString(),
-    next_due_date: dueDate.toISOString().slice(0, 10)
+    next_due_date: dueDate.toISOString().slice(0, 10),
+    approved_by: adminId || null
   }).eq("id", id).select().single();
   if (error || !loan) {
     res.status(404).json({ error: "Loan not found" });
     return;
   }
-  const { data: profile } = await supabase.from("profiles").select("name").eq("id", loan.profile_id).single();
+  await supabase.from("loan_audit_log").insert({
+    loan_id: loan.loan_id,
+    action: "APPROVED",
+    old_status: "pending",
+    new_status: "active",
+    admin_id: adminId || null,
+    admin_name: adminName,
+    notes: `Loan approved by ${adminName}`
+  });
+  const { data: profile } = await supabase.from("profiles").select("name, first_name, last_name, email").eq("id", loan.profile_id).single();
+  let memberName = profile?.name ?? "";
+  if (!memberName && profile) {
+    memberName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email || `Member ${loan.profile_id?.slice(0, 8)}`;
+  }
   res.json({
     id: loan.id,
     loanId: loan.loan_id,
     memberId: loan.profile_id,
-    memberName: profile?.name ?? "",
+    memberName,
     amount: Number(loan.amount),
     balance: Number(loan.remaining_balance ?? loan.amount),
     interestRate: Number(loan.effective_interest_rate),
     status: loan.status,
+    approvedBy: adminName,
+    approvedAt: now.toISOString(),
     createdAt: loan.created_at
   });
 });
-router5.post("/loans/:id/reject", requireRole("operator"), async (req, res) => {
+router7.post("/loans/:id/reject", requireRole("operator"), async (req, res) => {
   const id = req.params.id;
   const { reason } = req.body;
   if (!reason || typeof reason !== "string" || reason.trim().length === 0) {
     res.status(400).json({ error: "reason is required" });
     return;
   }
+  const adminId = req.session?.profileId || req.headers["x-admin-id"] || "";
+  const adminName = req.session?.profileName || req.headers["x-admin-name"] || "Admin";
   const { data: loan, error } = await supabase.from("loans").update({
     status: "rejected",
-    rejected_reason: reason.trim()
+    rejected_reason: reason.trim(),
+    rejected_by: adminId || null
   }).eq("id", id).select().single();
   if (error || !loan) {
     res.status(404).json({ error: "Loan not found" });
     return;
   }
-  const { data: profile } = await supabase.from("profiles").select("name").eq("id", loan.profile_id).single();
+  await supabase.from("loan_audit_log").insert({
+    loan_id: loan.loan_id,
+    action: "REJECTED",
+    old_status: "pending",
+    new_status: "rejected",
+    admin_id: adminId || null,
+    admin_name: adminName,
+    notes: reason.trim()
+  });
+  const { data: profile } = await supabase.from("profiles").select("name, first_name, last_name, email").eq("id", loan.profile_id).single();
+  let memberName = profile?.name ?? "";
+  if (!memberName && profile) {
+    memberName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email || `Member ${loan.profile_id?.slice(0, 8)}`;
+  }
   res.json({
     id: loan.id,
     loanId: loan.loan_id,
     memberId: loan.profile_id,
-    memberName: profile?.name ?? "",
+    memberName,
     amount: Number(loan.amount),
     balance: Number(loan.remaining_balance ?? loan.amount),
     interestRate: Number(loan.effective_interest_rate),
     status: loan.status,
     rejectionReason: loan.rejected_reason,
+    rejectedBy: adminName,
     createdAt: loan.created_at
   });
 });
-var loans_default = router5;
+router7.get("/loans/:id/audit", async (req, res) => {
+  const id = req.params.id;
+  const { data: loan } = await supabase.from("loans").select("loan_id").eq("id", id).single();
+  if (!loan) {
+    res.status(404).json({ error: "Loan not found" });
+    return;
+  }
+  const { data: logs, error } = await supabase.from("loan_audit_log").select("*").eq("loan_id", loan.loan_id).order("created_at", { ascending: true });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ logs: logs ?? [] });
+});
+var loans_default = router7;
 
 // src/routes/contributions.ts
-var import_express6 = __toESM(require_express2(), 1);
-var router6 = (0, import_express6.Router)();
-router6.use(requireAuth);
-router6.get("/contributions/summary", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
+var import_express8 = __toESM(require_express2(), 1);
+var router8 = (0, import_express8.Router)();
+router8.use(requireAuth);
+router8.get("/contributions/summary", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
   const { data: savingsRows } = await supabase.from("savings").select("total_saved, monthly_savings, profile_id");
   const rows = savingsRows ?? [];
   const totalCollected = rows.reduce((s, r) => s + Number(r.total_saved || 0), 0);
@@ -35520,7 +35806,7 @@ router6.get("/contributions/summary", requireRole("viewer", "operator", "admin",
     paidThisMonth: membersWithSavings
   });
 });
-router6.get("/contributions", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
+router8.get("/contributions", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -35576,7 +35862,7 @@ router6.get("/contributions", requireRole("viewer", "operator", "admin", "super_
     limit
   });
 });
-router6.post("/contributions", requireRole("operator", "admin", "super_admin"), async (req, res) => {
+router8.post("/contributions", requireRole("operator", "admin", "super_admin"), async (req, res) => {
   const body = req.body ?? {};
   const memberId = typeof body.memberId === "string" ? body.memberId.trim() : "";
   const amount = Number(body.amount);
@@ -35647,11 +35933,11 @@ router6.post("/contributions", requireRole("operator", "admin", "super_admin"), 
       minimum_amount: Number(amount)
     });
   }
-  const { data: profile } = await supabase.from("profiles").select("name").eq("id", memberId).single();
+  const { data: profile } = await supabase.from("profiles").select("name, first_name, last_name, email").eq("id", memberId).single();
   res.status(201).json({
     id: contribution.id,
     memberId: contribution.profile_id,
-    memberName: profile?.name ?? "",
+    memberName: [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || profile?.email || `Member ${memberId?.slice(0, 8)}`,
     amount: Number(contribution.amount),
     month,
     paymentMethod,
@@ -35660,12 +35946,12 @@ router6.post("/contributions", requireRole("operator", "admin", "super_admin"), 
     createdAt: contribution.created_at
   });
 });
-var contributions_default = router6;
+var contributions_default = router8;
 
 // src/routes/investments.ts
-var import_express7 = __toESM(require_express2(), 1);
-var router7 = (0, import_express7.Router)();
-router7.use(requireAuth);
+var import_express9 = __toESM(require_express2(), 1);
+var router9 = (0, import_express9.Router)();
+router9.use(requireAuth);
 var CreateInvestmentBody2 = external_exports.object({
   name: external_exports.string().min(1, "name is required"),
   type: external_exports.string().min(1, "type is required"),
@@ -35674,7 +35960,7 @@ var CreateInvestmentBody2 = external_exports.object({
   maturityDate: external_exports.string().optional(),
   description: external_exports.string().optional()
 });
-router7.get("/investments/portfolio", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
+router9.get("/investments/portfolio", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
   const { data: pools, error } = await supabase.from("investment_pools").select("*");
   if (error) {
     res.status(500).json({
@@ -35717,7 +36003,7 @@ router7.get("/investments/portfolio", requireRole("viewer", "operator", "admin",
     }))
   });
 });
-router7.get("/investments", async (req, res) => {
+router9.get("/investments", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -35781,7 +36067,7 @@ router7.get("/investments", async (req, res) => {
     limit
   });
 });
-router7.post("/investments", async (req, res) => {
+router9.post("/investments", async (req, res) => {
   const parsed = CreateInvestmentBody2.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
@@ -35822,13 +36108,13 @@ router7.post("/investments", async (req, res) => {
     createdAt: pool.created_at
   });
 });
-var investments_default = router7;
+var investments_default = router9;
 
 // src/routes/compliance.ts
-var import_express8 = __toESM(require_express2(), 1);
-var router8 = (0, import_express8.Router)();
-router8.use(requireAuth);
-router8.get("/compliance/summary", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
+var import_express10 = __toESM(require_express2(), 1);
+var router10 = (0, import_express10.Router)();
+router10.use(requireAuth);
+router10.get("/compliance/summary", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
   const { count: pending } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "pending");
   const { count: approved } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "verified");
   const { count: flagged } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "in_review");
@@ -35847,13 +36133,13 @@ router8.get("/compliance/summary", requireRole("viewer", "operator", "admin", "s
     approvalRate: Math.round(approvalRate * 10) / 10
   });
 });
-router8.get("/compliance", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
+router10.get("/compliance", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
   const status = req.query.status;
   const statusMap = { pending: "pending", approved: "verified", flagged: "in_review", rejected: "rejected" };
-  let query = supabase.from("kyc").select("*, profiles!kyc_profile_id_fkey(name, user_id)", { count: "exact" });
+  let query = supabase.from("kyc").select("*, profiles!kyc_profile_id_fkey(id, first_name, last_name, name, email, user_id)", { count: "exact" });
   if (status && statusMap[status]) query = query.eq("status", statusMap[status]);
   const { data: kycItems, count, error } = await query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
   if (error) {
@@ -35864,10 +36150,11 @@ router8.get("/compliance", requireRole("viewer", "operator", "admin", "super_adm
   res.json({
     data: (kycItems ?? []).map((k) => {
       const profile = k.profiles;
+      const memberName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || profile?.email || `Member ${k.profile_id?.slice(0, 8)}`;
       return {
         id: k.id,
         memberId: k.profile_id,
-        memberName: profile?.name ?? "",
+        memberName,
         type: "KYC Verification",
         status: reverseStatusMap[k.status] ?? k.status,
         description: `KYC level ${k.verification_level ?? 0} verification`,
@@ -35883,7 +36170,7 @@ router8.get("/compliance", requireRole("viewer", "operator", "admin", "super_adm
     limit
   });
 });
-router8.post("/compliance/:id/approve", requireRole("operator", "admin", "super_admin"), async (req, res) => {
+router10.post("/compliance/:id/approve", requireRole("operator", "admin", "super_admin"), async (req, res) => {
   const id = req.params.id;
   const { data: updated, error } = await supabase.from("kyc").update({
     status: "verified",
@@ -35899,7 +36186,7 @@ router8.post("/compliance/:id/approve", requireRole("operator", "admin", "super_
   }
   res.json({ id: updated.id, status: "approved", reviewedAt: updated.verified_at });
 });
-router8.post("/compliance/:id/reject", requireRole("operator", "admin", "super_admin"), async (req, res) => {
+router10.post("/compliance/:id/reject", requireRole("operator", "admin", "super_admin"), async (req, res) => {
   const id = req.params.id;
   const { reason } = req.body;
   const { data: updated, error } = await supabase.from("kyc").update({
@@ -35913,12 +36200,74 @@ router8.post("/compliance/:id/reject", requireRole("operator", "admin", "super_a
   }
   res.json({ id: updated.id, status: "rejected", reviewedAt: (/* @__PURE__ */ new Date()).toISOString() });
 });
-var compliance_default = router8;
+var compliance_default = router10;
 
 // src/routes/notifications.ts
-var import_express9 = __toESM(require_express2(), 1);
-var router9 = (0, import_express9.Router)();
-router9.get("/notifications", async (req, res) => {
+var import_express11 = __toESM(require_express2(), 1);
+var router11 = (0, import_express11.Router)();
+var _firebaseApp = null;
+function getFirebaseAdmin() {
+  if (_firebaseApp !== null) return _firebaseApp;
+  const hasEnvCreds = process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY;
+  const hasAppCreds = !!process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  if (!hasEnvCreds && !hasAppCreds) {
+    _firebaseApp = false;
+    return false;
+  }
+  try {
+    const admin = __require("firebase-admin");
+    if (admin.apps.length > 0) {
+      _firebaseApp = admin.apps[0];
+    } else {
+      const credential = hasEnvCreds ? admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
+      }) : admin.credential.applicationDefault();
+      _firebaseApp = admin.initializeApp({ credential });
+    }
+    return _firebaseApp;
+  } catch {
+    _firebaseApp = false;
+    return false;
+  }
+}
+async function dispatchPushNotifications(title, message, type) {
+  const app2 = getFirebaseAdmin();
+  if (!app2) return { targeted: 0, errors: 0 };
+  const { data: tokens, error } = await supabase.from("device_tokens").select("token").eq("active", true);
+  if (error || !tokens || tokens.length === 0) return { targeted: 0, errors: 0 };
+  const admin = __require("firebase-admin");
+  const messaging = admin.messaging(app2);
+  const fcmTokens = tokens.map((t) => t.token);
+  let targeted = 0;
+  let errors = 0;
+  for (let i = 0; i < fcmTokens.length; i += 500) {
+    const batch = fcmTokens.slice(i, i + 500);
+    try {
+      const response = await messaging.sendEachForMulticast({
+        tokens: batch,
+        notification: { title, body: message },
+        data: { type: type || "system" },
+        android: {
+          notification: {
+            clickAction: "FLUTTER_NOTIFICATION_CLICK",
+            channelId: "coopvest_notifications"
+          }
+        },
+        apns: {
+          payload: { aps: { alert: { title, body: message }, badge: 1, sound: "default" } }
+        }
+      });
+      targeted += batch.length;
+      errors += response.failureCount ?? 0;
+    } catch {
+      errors += batch.length;
+    }
+  }
+  return { targeted, errors };
+}
+router11.get("/notifications", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -35947,7 +36296,7 @@ router9.get("/notifications", async (req, res) => {
     limit
   });
 });
-router9.post("/notifications", async (req, res) => {
+router11.post("/notifications", async (req, res) => {
   const { title, message, type, targetAudience, channels, audience } = req.body;
   if (!title || !message || !type) {
     res.status(400).json({ error: "title, message, type are required" });
@@ -35967,6 +36316,10 @@ router9.post("/notifications", async (req, res) => {
   }
   const deliveredVia = channels ?? ["push"];
   const targetGroup = audience ?? targetAudience ?? "all";
+  let pushResult = { targeted: 0, errors: 0 };
+  if (deliveredVia.includes("push")) {
+    pushResult = await dispatchPushNotifications(title, message, type);
+  }
   res.status(201).json({
     id: notification.id,
     title: notification.title,
@@ -35976,14 +36329,15 @@ router9.post("/notifications", async (req, res) => {
     targetAudience: targetGroup,
     channels: deliveredVia,
     createdAt: notification.created_at,
-    status: "sent"
+    status: "sent",
+    push: pushResult
   });
 });
-router9.post("/notifications/read-all", async (_req, res) => {
+router11.post("/notifications/read-all", async (_req, res) => {
   await supabase.from("notifications").update({ is_read: true, read_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("is_read", false);
   res.json({ success: true });
 });
-router9.post("/notifications/:id/read", async (req, res) => {
+router11.post("/notifications/:id/read", async (req, res) => {
   const id = req.params.id;
   const { data: updated, error } = await supabase.from("notifications").update({ is_read: true, read_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", id).select().single();
   if (error || !updated) {
@@ -35999,12 +36353,12 @@ router9.post("/notifications/:id/read", async (req, res) => {
     createdAt: updated.created_at
   });
 });
-var notifications_default = router9;
+var notifications_default = router11;
 
 // src/routes/audit_logs.ts
-var import_express10 = __toESM(require_express2(), 1);
-var router10 = (0, import_express10.Router)();
-router10.get("/audit-logs", async (req, res) => {
+var import_express12 = __toESM(require_express2(), 1);
+var router12 = (0, import_express12.Router)();
+router12.get("/audit-logs", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -36034,13 +36388,13 @@ router10.get("/audit-logs", async (req, res) => {
     limit
   });
 });
-var audit_logs_default = router10;
+var audit_logs_default = router12;
 
 // src/routes/support.ts
-var import_express11 = __toESM(require_express2(), 1);
-var router11 = (0, import_express11.Router)();
-router11.use(requireAuth);
-router11.get("/support-tickets/summary", async (req, res) => {
+var import_express13 = __toESM(require_express2(), 1);
+var router13 = (0, import_express13.Router)();
+router13.use(requireAuth);
+router13.get("/support-tickets/summary", async (req, res) => {
   const { count: total } = await supabase.from("tickets").select("*", { count: "exact", head: true });
   const { count: open } = await supabase.from("tickets").select("*", { count: "exact", head: true }).eq("status", "open");
   const { count: inProgress } = await supabase.from("tickets").select("*", { count: "exact", head: true }).eq("status", "in_progress");
@@ -36054,13 +36408,13 @@ router11.get("/support-tickets/summary", async (req, res) => {
     closed: closed ?? 0
   });
 });
-router11.get("/support-tickets", async (req, res) => {
+router13.get("/support-tickets", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
   const status = req.query.status;
   const priority = req.query.priority;
-  let query = supabase.from("tickets").select("*, profiles!tickets_profile_id_fkey(name, user_id)", { count: "exact" });
+  let query = supabase.from("tickets").select("*, profiles!tickets_profile_id_fkey(id, first_name, last_name, name, email, user_id)", { count: "exact" });
   if (status) query = query.eq("status", status);
   if (priority) query = query.eq("priority", priority);
   const { data: tickets, count, error } = await query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
@@ -36071,11 +36425,12 @@ router11.get("/support-tickets", async (req, res) => {
   res.json({
     data: (tickets ?? []).map((t) => {
       const profile = t.profiles;
+      const memberName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || profile?.email || `Member ${t.profile_id?.slice(0, 8)}`;
       return {
         id: t.id,
         ticketId: t.ticket_id,
         memberId: t.profile_id,
-        memberName: profile?.name ?? "",
+        memberName,
         subject: t.subject,
         description: t.description,
         status: t.status,
@@ -36090,20 +36445,21 @@ router11.get("/support-tickets", async (req, res) => {
     limit
   });
 });
-router11.get("/support-tickets/:id", async (req, res) => {
+router13.get("/support-tickets/:id", async (req, res) => {
   const id = req.params.id;
-  const { data: ticket, error } = await supabase.from("tickets").select("*, profiles!tickets_profile_id_fkey(name)").eq("id", id).single();
+  const { data: ticket, error } = await supabase.from("tickets").select("*, profiles!tickets_profile_id_fkey(id, first_name, last_name, name, email)").eq("id", id).single();
   if (error || !ticket) {
     res.status(404).json({ error: "Ticket not found" });
     return;
   }
   const { data: messages } = await supabase.from("ticket_messages").select("*").eq("ticket_id", ticket.id).order("created_at", { ascending: true });
   const profile = ticket.profiles;
+  const memberName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || profile?.email || `Member ${ticket.profile_id?.slice(0, 8)}`;
   res.json({
     id: ticket.id,
     ticketId: ticket.ticket_id,
     memberId: ticket.profile_id,
-    memberName: profile?.name ?? "",
+    memberName,
     subject: ticket.subject,
     description: ticket.description,
     status: ticket.status,
@@ -36120,7 +36476,7 @@ router11.get("/support-tickets/:id", async (req, res) => {
     }))
   });
 });
-router11.post("/support-tickets/:id/reply", async (req, res) => {
+router13.post("/support-tickets/:id/reply", async (req, res) => {
   const id = req.params.id;
   const { message } = req.body;
   if (!message) {
@@ -36145,7 +36501,7 @@ router11.post("/support-tickets/:id/reply", async (req, res) => {
     createdAt: msg.created_at
   });
 });
-router11.post("/support-tickets/:id/close", requireRole("operator"), async (req, res) => {
+router13.post("/support-tickets/:id/close", requireRole("operator"), async (req, res) => {
   const id = req.params.id;
   const { data: ticket, error } = await supabase.from("tickets").update({
     status: "closed",
@@ -36158,12 +36514,12 @@ router11.post("/support-tickets/:id/close", requireRole("operator"), async (req,
   }
   res.json({ id: ticket.id, status: ticket.status });
 });
-var support_default = router11;
+var support_default = router13;
 
 // src/routes/risk_scoring.ts
-var import_express12 = __toESM(require_express2(), 1);
-var router12 = (0, import_express12.Router)();
-router12.get("/risk-scoring", async (req, res) => {
+var import_express14 = __toESM(require_express2(), 1);
+var router14 = (0, import_express14.Router)();
+router14.get("/risk-scoring", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -36207,11 +36563,11 @@ router12.get("/risk-scoring", async (req, res) => {
     limit
   });
 });
-var risk_scoring_default = router12;
+var risk_scoring_default = router14;
 
 // src/routes/interest_rates.ts
-var import_express13 = __toESM(require_express2(), 1);
-var router13 = (0, import_express13.Router)();
+var import_express15 = __toESM(require_express2(), 1);
+var router15 = (0, import_express15.Router)();
 var CreateInterestRateBody2 = external_exports.object({
   name: external_exports.string().min(1, "name is required"),
   baseRate: external_exports.number().min(0, "baseRate must be non-negative"),
@@ -36229,13 +36585,24 @@ var UpdateInterestRateBody = external_exports.object({
   maxAmount: external_exports.number().min(0).optional(),
   isActive: external_exports.boolean().optional()
 });
-router13.get("/interest-rates", async (req, res) => {
+router15.get("/interest-rates", async (req, res) => {
   const { data: settings } = await supabase.from("system_settings").select("*").eq("key", "interest_rates").single();
   if (settings?.value) {
     try {
       const rates = JSON.parse(settings.value);
       if (Array.isArray(rates)) {
-        res.json({ data: rates });
+        const transformed = rates.map((r, idx) => ({
+          id: r.id ?? idx + 1,
+          loanType: r.name?.toLowerCase().replace(/\s+/g, "_") ?? `loan_type_${idx}`,
+          minAmount: r.minAmount ?? r.min_amount ?? 0,
+          maxAmount: r.maxAmount ?? r.max_amount ?? 0,
+          rate: r.baseRate ?? r.rate ?? r.interest_rate ?? 0,
+          tenure: r.minTenure ?? r.tenure ?? 12,
+          description: r.name ?? "",
+          isActive: r.isActive ?? r.is_active ?? true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        }));
+        res.json({ data: transformed });
         return;
       }
     } catch {
@@ -36243,13 +36610,13 @@ router13.get("/interest-rates", async (req, res) => {
   }
   res.json({
     data: [
-      { id: "1", name: "Quick Loan", baseRate: 5, minTenure: 1, maxTenure: 12, minAmount: 1e4, maxAmount: 5e5, isActive: true },
-      { id: "2", name: "Business Loan", baseRate: 8, minTenure: 6, maxTenure: 24, minAmount: 5e4, maxAmount: 2e6, isActive: true },
-      { id: "3", name: "Emergency Loan", baseRate: 3.5, minTenure: 1, maxTenure: 6, minAmount: 5e3, maxAmount: 2e5, isActive: true }
+      { id: 1, loanType: "personal", minAmount: 1e4, maxAmount: 5e5, rate: 5, tenure: 12, description: "Quick Loan", isActive: true, createdAt: (/* @__PURE__ */ new Date()).toISOString() },
+      { id: 2, loanType: "business", minAmount: 5e4, maxAmount: 2e6, rate: 8, tenure: 24, description: "Business Loan", isActive: true, createdAt: (/* @__PURE__ */ new Date()).toISOString() },
+      { id: 3, loanType: "emergency", minAmount: 5e3, maxAmount: 2e5, rate: 3.5, tenure: 6, description: "Emergency Loan", isActive: true, createdAt: (/* @__PURE__ */ new Date()).toISOString() }
     ]
   });
 });
-router13.post("/interest-rates", async (req, res) => {
+router15.post("/interest-rates", async (req, res) => {
   const parsed = CreateInterestRateBody2.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
@@ -36280,9 +36647,19 @@ router13.post("/interest-rates", async (req, res) => {
     value: JSON.stringify(rates),
     description: "Loan interest rate configurations"
   });
-  res.status(201).json(newRate);
+  res.status(201).json({
+    id: rates.length,
+    loanType: name.toLowerCase().replace(/\s+/g, "_"),
+    minAmount,
+    maxAmount,
+    rate: baseRate,
+    tenure: minTenure,
+    description: name,
+    isActive: true,
+    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+  });
 });
-router13.put("/interest-rates/:id", async (req, res) => {
+router15.put("/interest-rates/:id", async (req, res) => {
   const parsed = UpdateInterestRateBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
@@ -36311,11 +36688,11 @@ router13.put("/interest-rates/:id", async (req, res) => {
   });
   res.json(rates[idx]);
 });
-var interest_rates_default = router13;
+var interest_rates_default = router15;
 
 // src/routes/rollovers.ts
-var import_express14 = __toESM(require_express2(), 1);
-var router14 = (0, import_express14.Router)();
+var import_express16 = __toESM(require_express2(), 1);
+var router16 = (0, import_express16.Router)();
 var RequestRolloverBody = external_exports.object({
   loan_id: external_exports.string().min(1, "loan_id is required"),
   member_id: external_exports.string().min(1, "member_id is required"),
@@ -36339,7 +36716,7 @@ var RejectRolloverBody = external_exports.object({
   reason: external_exports.string().min(1, "reason is required"),
   admin_id: external_exports.string().optional()
 });
-router14.post("/rollovers/request", async (req, res) => {
+router16.post("/rollovers/request", async (req, res) => {
   const parsed = RequestRolloverBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
@@ -36389,14 +36766,15 @@ router14.post("/rollovers/request", async (req, res) => {
     }
   });
 });
-router14.get("/rollovers/:rolloverId", async (req, res) => {
+router16.get("/rollovers/:rolloverId", async (req, res) => {
   const rolloverId = req.params.rolloverId;
-  const { data: rollover } = await supabase.from("rollovers").select("*, profiles!rollovers_profile_id_fkey(name)").eq("rollover_id", rolloverId).single();
+  const { data: rollover } = await supabase.from("rollovers").select("*, profiles!rollovers_profile_id_fkey(id, first_name, last_name, name, email)").eq("rollover_id", rolloverId).single();
   if (!rollover) {
     res.status(404).json({ success: false, message: "Rollover not found" });
     return;
   }
   const profile = rollover.profiles;
+  const memberName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || profile?.email || `Member ${rollover.profile_id?.slice(0, 8)}`;
   res.json({
     success: true,
     rollover: {
@@ -36404,7 +36782,7 @@ router14.get("/rollovers/:rolloverId", async (req, res) => {
       rolloverId: rollover.rollover_id,
       loanId: rollover.loan_id,
       memberId: rollover.profile_id,
-      memberName: profile?.name ?? "",
+      memberName,
       originalAmount: Number(rollover.original_amount),
       outstandingBalance: Number(rollover.outstanding_balance),
       rolloverFee: Number(rollover.rollover_fee),
@@ -36416,7 +36794,7 @@ router14.get("/rollovers/:rolloverId", async (req, res) => {
     }
   });
 });
-router14.post("/rollovers/:rolloverId/guarantors", async (req, res) => {
+router16.post("/rollovers/:rolloverId/guarantors", async (req, res) => {
   const parsed = AddGuarantorBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
@@ -36442,7 +36820,7 @@ router14.post("/rollovers/:rolloverId/guarantors", async (req, res) => {
   }
   res.status(201).json({ success: true, message: "Guarantor added successfully", guarantor });
 });
-router14.get("/rollovers/:rolloverId/guarantors", async (req, res) => {
+router16.get("/rollovers/:rolloverId/guarantors", async (req, res) => {
   const rolloverId = req.params.rolloverId;
   const { data: rollover } = await supabase.from("rollovers").select("id").eq("rollover_id", rolloverId).single();
   if (!rollover) {
@@ -36452,7 +36830,7 @@ router14.get("/rollovers/:rolloverId/guarantors", async (req, res) => {
   const { data: guarantors } = await supabase.from("loan_guarantors").select("*").eq("loan_id", rollover.id);
   res.json({ success: true, message: "Guarantors retrieved", guarantors: guarantors ?? [] });
 });
-router14.post("/rollovers/:rolloverId/guarantors/:guarantorId/respond", async (req, res) => {
+router16.post("/rollovers/:rolloverId/guarantors/:guarantorId/respond", async (req, res) => {
   const parsed = GuarantorRespondBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
@@ -36491,7 +36869,7 @@ router14.post("/rollovers/:rolloverId/guarantors/:guarantorId/respond", async (r
     all_consented: allConsented
   });
 });
-router14.post("/rollovers/:rolloverId/cancel", async (req, res) => {
+router16.post("/rollovers/:rolloverId/cancel", async (req, res) => {
   const rolloverId = req.params.rolloverId;
   const { reason } = req.body;
   const { data: rollover, error } = await supabase.from("rollovers").update({ status: "cancelled", rejection_reason: reason || "Cancelled by member" }).eq("rollover_id", rolloverId).select().single();
@@ -36509,7 +36887,7 @@ router14.post("/rollovers/:rolloverId/cancel", async (req, res) => {
     }
   });
 });
-router14.put("/rollovers/:rolloverId/guarantors/:guarantorId", async (req, res) => {
+router16.put("/rollovers/:rolloverId/guarantors/:guarantorId", async (req, res) => {
   const parsed = AddGuarantorBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
@@ -36539,7 +36917,7 @@ router14.put("/rollovers/:rolloverId/guarantors/:guarantorId", async (req, res) 
     guarantors: guarantors ?? []
   });
 });
-router14.post("/rollovers/:rolloverId/approve", async (req, res) => {
+router16.post("/rollovers/:rolloverId/approve", async (req, res) => {
   const parsed = ApproveRolloverBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
@@ -36576,7 +36954,7 @@ router14.post("/rollovers/:rolloverId/approve", async (req, res) => {
     }
   });
 });
-router14.post("/rollovers/:rolloverId/reject", async (req, res) => {
+router16.post("/rollovers/:rolloverId/reject", async (req, res) => {
   const parsed = RejectRolloverBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ success: false, message: "Validation failed", details: parsed.error.flatten().fieldErrors });
@@ -36603,12 +36981,12 @@ router14.post("/rollovers/:rolloverId/reject", async (req, res) => {
     }
   });
 });
-router14.get("/rollovers", async (req, res) => {
+router16.get("/rollovers", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
   const status = req.query.status;
-  let query = supabase.from("rollovers").select("*, profiles!rollovers_profile_id_fkey(name)", { count: "exact" });
+  let query = supabase.from("rollovers").select("*, profiles!rollovers_profile_id_fkey(id, first_name, last_name, name, email)", { count: "exact" });
   if (status) query = query.eq("status", status);
   const { data: rollovers, count, error } = await query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
   if (error) {
@@ -36616,31 +36994,35 @@ router14.get("/rollovers", async (req, res) => {
     return;
   }
   res.json({
-    data: (rollovers ?? []).map((r) => ({
-      id: r.id,
-      rolloverId: r.rollover_id,
-      loanId: r.loan_id,
-      memberId: r.profile_id,
-      memberName: r.profiles?.name ?? "",
-      originalAmount: Number(r.original_amount),
-      outstandingBalance: Number(r.outstanding_balance),
-      rolloverFee: Number(r.rollover_fee),
-      newTenure: r.new_tenure,
-      newMonthlyPayment: r.new_monthly_payment ? Number(r.new_monthly_payment) : void 0,
-      status: r.status,
-      createdAt: r.created_at
-    })),
+    data: (rollovers ?? []).map((r) => {
+      const profile = r.profiles;
+      const memberName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || profile?.email || `Member ${r.profile_id?.slice(0, 8)}`;
+      return {
+        id: r.id,
+        rolloverId: r.rollover_id,
+        loanId: r.loan_id,
+        memberId: r.profile_id,
+        memberName,
+        originalAmount: Number(r.original_amount),
+        outstandingBalance: Number(r.outstanding_balance),
+        rolloverFee: Number(r.rollover_fee),
+        newTenure: r.new_tenure,
+        newMonthlyPayment: r.new_monthly_payment ? Number(r.new_monthly_payment) : void 0,
+        status: r.status,
+        createdAt: r.created_at
+      };
+    }),
     total: count ?? 0,
     page,
     limit
   });
 });
-var rollovers_default = router14;
+var rollovers_default = router16;
 
 // src/routes/payroll.ts
-var import_express15 = __toESM(require_express2(), 1);
-var router15 = (0, import_express15.Router)();
-router15.get("/payroll/batches", async (req, res) => {
+var import_express17 = __toESM(require_express2(), 1);
+var router17 = (0, import_express17.Router)();
+router17.get("/payroll/batches", async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -36654,7 +37036,7 @@ router15.get("/payroll/batches", async (req, res) => {
   }
   res.json({ data: data ?? [], total: count ?? 0, page, limit });
 });
-router15.get("/payroll/batches/:id", async (req, res) => {
+router17.get("/payroll/batches/:id", async (req, res) => {
   const { id } = req.params;
   const { data, error } = await supabase.from("payroll_batches").select("*").eq("id", id).single();
   if (error) {
@@ -36663,7 +37045,7 @@ router15.get("/payroll/batches/:id", async (req, res) => {
   }
   res.json(data);
 });
-router15.post("/payroll/batches", async (req, res) => {
+router17.post("/payroll/batches", async (req, res) => {
   const { organization, month, record_count, total_amount, uploaded_by } = req.body;
   if (!organization || !month || record_count == null || total_amount == null) {
     res.status(400).json({ error: "organization, month, record_count, and total_amount are required" });
@@ -36685,7 +37067,7 @@ router15.post("/payroll/batches", async (req, res) => {
   }
   res.status(201).json(data);
 });
-router15.patch("/payroll/batches/:id/status", async (req, res) => {
+router17.patch("/payroll/batches/:id/status", async (req, res) => {
   const { id } = req.params;
   const { status, matched_count, unmatched_count } = req.body;
   const allowed = ["pending", "processing", "completed", "failed"];
@@ -36700,10 +37082,10 @@ router15.patch("/payroll/batches/:id/status", async (req, res) => {
   }
   res.json(data);
 });
-var payroll_default = router15;
+var payroll_default = router17;
 
 // src/routes/mobile_features.ts
-var import_express16 = __toESM(require_express2(), 1);
+var import_express18 = __toESM(require_express2(), 1);
 
 // src/lib/store.ts
 import { promises as fs } from "node:fs";
@@ -36739,7 +37121,7 @@ async function writeData(filename, data) {
 }
 
 // src/routes/mobile_features.ts
-var router16 = (0, import_express16.Router)();
+var router18 = (0, import_express18.Router)();
 var defaultFeatures = [
   { id: "loan_requests", name: "Loan Requests", description: "Allow users to submit new loan applications", enabled: true, updatedAt: (/* @__PURE__ */ new Date()).toISOString(), updatedBy: "Super Admin" },
   { id: "registration", name: "Registration", description: "Allow new users to register on the platform", enabled: true, updatedAt: (/* @__PURE__ */ new Date()).toISOString(), updatedBy: "Super Admin" },
@@ -36762,7 +37144,7 @@ var defaultContentSections = [
   { key: "privacy_policy", label: "Privacy Policy", value: "Coopvest Africa is committed to protecting your personal data. We collect only what is necessary to provide our services." },
   { key: "about", label: "About Us", value: "Coopvest Africa is a cooperative investment and savings platform dedicated to empowering individuals and organizations through collective financial growth." }
 ];
-router16.get("/mobile-features", async (_req, res) => {
+router18.get("/mobile-features", async (_req, res) => {
   const { data: rows } = await supabase.from("mobile_features").select("key, label, enabled, updated_at");
   const overrides = {};
   for (const r of rows ?? []) overrides[r.key] = { enabled: r.enabled, updated_at: r.updated_at, label: r.label };
@@ -36779,7 +37161,7 @@ router16.get("/mobile-features", async (_req, res) => {
   });
   res.json({ features });
 });
-router16.put("/mobile-features/:id", async (req, res) => {
+router18.put("/mobile-features/:id", async (req, res) => {
   const catalog = defaultFeatures.find((f) => f.id === req.params.id);
   if (!catalog) {
     res.status(404).json({ error: "Feature not found" });
@@ -36797,18 +37179,18 @@ router16.put("/mobile-features/:id", async (req, res) => {
     message: "Feature updated successfully"
   });
 });
-router16.get("/mobile-content/onboarding", async (_req, res) => {
+router18.get("/mobile-content/onboarding", async (_req, res) => {
   const slides = await readData("mobile_slides.json", defaultSlides);
   res.json({ slides });
 });
-router16.post("/mobile-content/onboarding", async (req, res) => {
+router18.post("/mobile-content/onboarding", async (req, res) => {
   const slides = await readData("mobile_slides.json", defaultSlides);
   const newSlide = { id: String(Date.now()), ...req.body, order: slides.length + 1 };
   slides.push(newSlide);
   await writeData("mobile_slides.json", slides);
   res.status(201).json({ slide: newSlide });
 });
-router16.put("/mobile-content/onboarding/:id", async (req, res) => {
+router18.put("/mobile-content/onboarding/:id", async (req, res) => {
   const slides = await readData("mobile_slides.json", defaultSlides);
   const i = slides.findIndex((s) => s.id === req.params.id);
   if (i === -1) {
@@ -36819,17 +37201,17 @@ router16.put("/mobile-content/onboarding/:id", async (req, res) => {
   await writeData("mobile_slides.json", slides);
   res.json({ slide: slides[i] });
 });
-router16.delete("/mobile-content/onboarding/:id", async (req, res) => {
+router18.delete("/mobile-content/onboarding/:id", async (req, res) => {
   let slides = await readData("mobile_slides.json", defaultSlides);
   slides = slides.filter((s) => s.id !== req.params.id);
   await writeData("mobile_slides.json", slides);
   res.json({ success: true });
 });
-router16.get("/mobile-content/text", async (_req, res) => {
+router18.get("/mobile-content/text", async (_req, res) => {
   const contentSections = await readData("mobile_text.json", defaultContentSections);
   res.json({ sections: contentSections });
 });
-router16.put("/mobile-content/text/:key", async (req, res) => {
+router18.put("/mobile-content/text/:key", async (req, res) => {
   const contentSections = await readData("mobile_text.json", defaultContentSections);
   const i = contentSections.findIndex((s) => s.key === req.params.key);
   if (i === -1) {
@@ -36840,13 +37222,12 @@ router16.put("/mobile-content/text/:key", async (req, res) => {
   await writeData("mobile_text.json", contentSections);
   res.json({ section: contentSections[i], message: "Content updated successfully" });
 });
-var mobile_features_default = router16;
+var mobile_features_default = router18;
 
 // src/routes/roles.ts
-var import_express17 = __toESM(require_express2(), 1);
-var router17 = (0, import_express17.Router)();
+var import_express19 = __toESM(require_express2(), 1);
+var router19 = (0, import_express19.Router)();
 var ADMIN_ROLES = ["super_admin", "admin", "operator", "viewer"];
-var ROLE_HIERARCHY2 = { super_admin: 4, admin: 3, operator: 2, viewer: 1 };
 function toAdmin(p) {
   return {
     id: p.id,
@@ -36855,20 +37236,51 @@ function toAdmin(p) {
     role: p.role || "viewer",
     status: p.is_active ? "active" : "inactive",
     lastActive: p.updated_at,
-    createdAt: p.created_at
+    createdAt: p.created_at,
+    customPermissions: p.custom_permissions || []
   };
 }
-router17.use(requireAuth);
-router17.get("/roles", requireRole("admin"), async (_req, res) => {
-  const { data, error } = await supabase.from("profiles").select("id, name, email, role, is_active, updated_at, created_at").in("role", ADMIN_ROLES).order("created_at", { ascending: true });
+router19.use(requireAuth);
+router19.get("/roles", requireRole("admin"), async (_req, res) => {
+  const { data, error } = await supabase.from("profiles").select("id, name, email, role, is_active, updated_at, created_at, custom_permissions").in("role", ADMIN_ROLES).order("created_at", { ascending: true });
   if (error) {
     res.status(500).json({ error: error.message });
     return;
   }
-  res.json({ admins: (data ?? []).map((p) => toAdmin(p)), roleHierarchy: ROLE_HIERARCHY2 });
+  res.json({ admins: (data ?? []).map((p) => toAdmin(p)) });
 });
-router17.post("/roles", requireRole("admin"), async (req, res) => {
-  const { email, role } = req.body ?? {};
+router19.get("/roles/all", requireRole("admin"), async (_req, res) => {
+  const { data, error } = await supabase.from("admin_roles").select("*").eq("is_active", true).order("hierarchy", { ascending: false });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ roles: data });
+});
+router19.get("/roles/permissions", requireRole("admin"), async (_req, res) => {
+  const { data, error } = await supabase.from("admin_permissions").select("*").eq("is_active", true).order("category", { ascending: true });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  const grouped = (data ?? []).reduce((acc, p) => {
+    if (!acc[p.category]) acc[p.category] = [];
+    acc[p.category].push(p);
+    return acc;
+  }, {});
+  res.json({ permissions: data, groupedPermissions: grouped });
+});
+router19.get("/roles/:id/permissions", requireRole("admin"), async (req, res) => {
+  const { data, error } = await supabase.from("role_permissions").select("permission:admin_permissions!permission_id(perm_key)").eq("role_id", req.params.id);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  const permissions = (data ?? []).map((r) => r.permission?.perm_key).filter(Boolean);
+  res.json({ permissions });
+});
+router19.post("/roles", requireRole("admin"), async (req, res) => {
+  const { email, role, customPermissions } = req.body ?? {};
   if (!email || !role) {
     res.status(400).json({ error: "email and role are required" });
     return;
@@ -36878,38 +37290,83 @@ router17.post("/roles", requireRole("admin"), async (req, res) => {
     res.status(404).json({ error: "No registered user with that email. Ask them to sign up first." });
     return;
   }
-  const { data, error } = await supabase.from("profiles").update({ role, is_active: true, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", profile.id).select("id, name, email, role, is_active, updated_at, created_at").single();
+  const VALID_ROLES = ["admin", "operator", "viewer", "super_admin"];
+  const isValidRole = VALID_ROLES.includes(role) || (await supabase.from("admin_roles").select("role_key").eq("role_key", role).single()).data;
+  if (!isValidRole) {
+    res.status(400).json({ error: "Invalid role specified" });
+    return;
+  }
+  const updateData = {
+    role,
+    is_active: true,
+    updated_at: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  if (customPermissions && Array.isArray(customPermissions)) {
+    updateData.custom_permissions = customPermissions;
+  }
+  const { data, error } = await supabase.from("profiles").update(updateData).eq("id", profile.id).select("id, name, email, role, is_active, updated_at, created_at, custom_permissions").single();
   if (error || !data) {
     res.status(500).json({ error: error?.message || "Failed to assign role" });
     return;
   }
   res.status(201).json({ admin: toAdmin(data), message: "Admin role assigned" });
 });
-router17.put("/roles/:id", requireRole("admin"), async (req, res) => {
-  const { role, status } = req.body ?? {};
+router19.put("/roles/:id", requireRole("admin"), async (req, res) => {
+  const { role, status, customPermissions } = req.body ?? {};
   const update = { updated_at: (/* @__PURE__ */ new Date()).toISOString() };
-  if (role) update.role = role;
+  if (role) {
+    const VALID_ROLES = ["admin", "operator", "viewer", "super_admin"];
+    const isValidRole = VALID_ROLES.includes(role) || (await supabase.from("admin_roles").select("role_key").eq("role_key", role).single()).data;
+    if (!isValidRole) {
+      res.status(400).json({ error: "Invalid role specified" });
+      return;
+    }
+    update.role = role;
+  }
   if (status) update.is_active = status === "active";
-  const { data, error } = await supabase.from("profiles").update(update).eq("id", req.params.id).select("id, name, email, role, is_active, updated_at, created_at").single();
+  if (customPermissions !== void 0 && Array.isArray(customPermissions)) {
+    update.custom_permissions = customPermissions;
+  }
+  const { data, error } = await supabase.from("profiles").update(update).eq("id", req.params.id).select("id, name, email, role, is_active, updated_at, created_at, custom_permissions").single();
   if (error || !data) {
     res.status(404).json({ error: error?.message || "User not found" });
     return;
   }
   res.json({ admin: toAdmin(data), message: "Role updated successfully" });
 });
-router17.delete("/roles/:id", requireRole("super_admin"), async (req, res) => {
-  const { error } = await supabase.from("profiles").update({ role: "member", updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", req.params.id);
+router19.put("/roles/:id/permissions", requireRole("super_admin"), async (req, res) => {
+  const { permissions } = req.body ?? {};
+  if (!Array.isArray(permissions)) {
+    res.status(400).json({ error: "permissions must be an array" });
+    return;
+  }
+  const { data: validPerms } = await supabase.from("admin_permissions").select("perm_key").in("perm_key", permissions);
+  const validPermKeys = (validPerms ?? []).map((p) => p.perm_key);
+  const invalidPerms = permissions.filter((p) => !validPermKeys.includes(p));
+  if (invalidPerms.length > 0) {
+    res.status(400).json({ error: `Invalid permissions: ${invalidPerms.join(", ")}` });
+    return;
+  }
+  const { data, error } = await supabase.from("profiles").update({ custom_permissions: permissions, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", req.params.id).select("id, name, email, role, is_active, updated_at, created_at, custom_permissions").single();
+  if (error || !data) {
+    res.status(404).json({ error: error?.message || "User not found" });
+    return;
+  }
+  res.json({ admin: toAdmin(data), message: "Permissions updated successfully" });
+});
+router19.delete("/roles/:id", requireRole("super_admin"), async (req, res) => {
+  const { error } = await supabase.from("profiles").update({ role: "member", is_active: true, custom_permissions: [], updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", req.params.id);
   if (error) {
     res.status(500).json({ error: error.message });
     return;
   }
   res.json({ message: "Admin access revoked" });
 });
-var roles_default = router17;
+var roles_default = router19;
 
 // src/routes/fraud_detection.ts
-var import_express18 = __toESM(require_express2(), 1);
-var router18 = (0, import_express18.Router)();
+var import_express20 = __toESM(require_express2(), 1);
+var router20 = (0, import_express20.Router)();
 var RISK_LABEL = {
   critical: "Critical",
   high: "High",
@@ -36936,7 +37393,7 @@ function toCamel(a) {
     amount: a.amount != null ? Number(a.amount) : void 0
   };
 }
-router18.get("/fraud-detection", async (req, res) => {
+router20.get("/fraud-detection", async (req, res) => {
   const { riskLevel, status } = req.query;
   let query = supabase.from("fraud_alerts").select("*").order("created_at", { ascending: false });
   if (riskLevel) query = query.eq("risk_level", String(riskLevel).toLowerCase());
@@ -36948,7 +37405,7 @@ router18.get("/fraud-detection", async (req, res) => {
   }
   res.json((data ?? []).map((a) => toCamel(a)));
 });
-router18.get("/fraud-detection/stats", async (_req, res) => {
+router20.get("/fraud-detection/stats", async (_req, res) => {
   const { data } = await supabase.from("fraud_alerts").select("risk_level, status, amount, created_at");
   const rows = data ?? [];
   const since = Date.now() - 864e5;
@@ -36967,7 +37424,7 @@ var ACTION_STATUS = {
   review: "under_review",
   resolve: "resolved"
 };
-router18.patch("/fraud-detection/:id", async (req, res) => {
+router20.patch("/fraud-detection/:id", async (req, res) => {
   const action = String(req.body?.action ?? "");
   const newStatus = ACTION_STATUS[action];
   if (!newStatus) {
@@ -36981,7 +37438,7 @@ router18.patch("/fraud-detection/:id", async (req, res) => {
   }
   res.json({ alert: toCamel(data), message: `Action '${action}' applied` });
 });
-router18.put("/fraud-detection/:id/action", async (req, res) => {
+router20.put("/fraud-detection/:id/action", async (req, res) => {
   const action = String(req.body?.action ?? "");
   const newStatus = ACTION_STATUS[action];
   if (!newStatus) {
@@ -36995,11 +37452,11 @@ router18.put("/fraud-detection/:id/action", async (req, res) => {
   }
   res.json({ flag: toCamel(data), message: `Action '${action}' applied successfully` });
 });
-var fraud_detection_default = router18;
+var fraud_detection_default = router20;
 
 // src/routes/organizations.ts
-var import_express19 = __toESM(require_express2(), 1);
-var router19 = (0, import_express19.Router)();
+var import_express21 = __toESM(require_express2(), 1);
+var router21 = (0, import_express21.Router)();
 function toCamel2(o) {
   return {
     id: o.id,
@@ -37012,7 +37469,7 @@ function toCamel2(o) {
     address: o.address || ""
   };
 }
-router19.get("/organizations", async (_req, res) => {
+router21.get("/organizations", async (_req, res) => {
   const { data, error } = await supabase.from("organizations").select("*").order("date_added", { ascending: false });
   if (error) {
     res.status(500).json({ error: error.message });
@@ -37021,24 +37478,24 @@ router19.get("/organizations", async (_req, res) => {
   const organizations = (data ?? []).map((o) => toCamel2(o));
   res.json({ organizations, total: organizations.length });
 });
-router19.post("/organizations", async (req, res) => {
+router21.post("/organizations", async (req, res) => {
   const b = req.body ?? {};
   const { data, error } = await supabase.from("organizations").insert({
     name: b.name,
-    type: (b.type || "").toLowerCase(),
+    type: (b.type || b.deduction_type || "").toLowerCase(),
     contact_email: b.contactEmail,
     address: b.address,
-    status: b.status || "pending",
+    status: b.status || "active",
     member_count: 0,
     date_added: (/* @__PURE__ */ new Date()).toISOString()
   }).select("*").single();
   if (error || !data) {
-    res.status(500).json({ error: error?.message || "Failed to create organization" });
+    res.status(500).json({ success: false, error: error?.message || "Failed to create organization" });
     return;
   }
-  res.status(201).json({ organization: toCamel2(data) });
+  res.status(201).json({ success: true, organization: toCamel2(data) });
 });
-router19.put("/organizations/:id", async (req, res) => {
+router21.put("/organizations/:id", async (req, res) => {
   const b = req.body ?? {};
   const update = { updated_at: (/* @__PURE__ */ new Date()).toISOString() };
   if (b.name !== void 0) update.name = b.name;
@@ -37053,7 +37510,7 @@ router19.put("/organizations/:id", async (req, res) => {
   }
   res.json({ organization: toCamel2(data) });
 });
-router19.get("/organizations/:id/staff", async (req, res) => {
+router21.get("/organizations/:id/staff", async (req, res) => {
   const { data } = await supabase.from("profiles").select("id, name, email, role, department").eq("organization_id", req.params.id);
   const staff = (data ?? []).map((p) => ({
     id: p.id,
@@ -37064,17 +37521,17 @@ router19.get("/organizations/:id/staff", async (req, res) => {
   }));
   res.json({ staff, organizationId: req.params.id });
 });
-var organizations_default = router19;
+var organizations_default = router21;
 
 // src/routes/analytics.ts
-var import_express20 = __toESM(require_express2(), 1);
-var router20 = (0, import_express20.Router)();
-router20.use(requireAuth);
+var import_express22 = __toESM(require_express2(), 1);
+var router22 = (0, import_express22.Router)();
+router22.use(requireAuth);
 function calcTrend(current, previous) {
   if (previous === 0) return current > 0 ? 100 : 0;
   return Math.round((current - previous) / previous * 1e3) / 10;
 }
-router20.get("/analytics/repayment-trend", requireRole("operator", "admin", "super_admin"), async (req, res) => {
+router22.get("/analytics/repayment-trend", requireRole("operator", "admin", "super_admin"), async (req, res) => {
   const now = /* @__PURE__ */ new Date();
   const trends = [];
   for (let i = 5; i >= 0; i--) {
@@ -37093,7 +37550,7 @@ router20.get("/analytics/repayment-trend", requireRole("operator", "admin", "sup
   }
   res.json({ trends });
 });
-router20.get("/analytics/risk-exposure", requireRole("operator", "admin", "super_admin"), async (req, res) => {
+router22.get("/analytics/risk-exposure", requireRole("operator", "admin", "super_admin"), async (req, res) => {
   const now = /* @__PURE__ */ new Date();
   const exposures = [];
   for (let i = 5; i >= 0; i--) {
@@ -37112,7 +37569,7 @@ router20.get("/analytics/risk-exposure", requireRole("operator", "admin", "super
   }
   res.json({ exposures });
 });
-router20.get("/analytics/defaulter-trend", requireRole("operator", "admin", "super_admin"), async (req, res) => {
+router22.get("/analytics/defaulter-trend", requireRole("operator", "admin", "super_admin"), async (req, res) => {
   const now = /* @__PURE__ */ new Date();
   const trends = [];
   for (let i = 5; i >= 0; i--) {
@@ -37129,7 +37586,7 @@ router20.get("/analytics/defaulter-trend", requireRole("operator", "admin", "sup
   }
   res.json({ trends });
 });
-router20.get("/analytics/kpis", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
+router22.get("/analytics/kpis", requireRole("viewer", "operator", "admin", "super_admin"), async (req, res) => {
   const now = /* @__PURE__ */ new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
@@ -37162,11 +37619,11 @@ router20.get("/analytics/kpis", requireRole("viewer", "operator", "admin", "supe
     }
   });
 });
-var analytics_default = router20;
+var analytics_default = router22;
 
 // src/routes/security.ts
-var import_express21 = __toESM(require_express2(), 1);
-var router21 = (0, import_express21.Router)();
+var import_express23 = __toESM(require_express2(), 1);
+var router23 = (0, import_express23.Router)();
 function settingsToCamel(s) {
   return {
     twoFactorRequired: s?.two_factor_required ?? false,
@@ -37182,7 +37639,7 @@ async function loadSettingsRow() {
   const { data } = await supabase.from("security_settings").select("*").limit(1).maybeSingle();
   return data ?? null;
 }
-router21.get("/security/sessions", async (_req, res) => {
+router23.get("/security/sessions", async (_req, res) => {
   const { data, error } = await supabase.from("security_sessions").select("*").order("login_time", { ascending: false });
   if (error) {
     res.status(500).json({ error: error.message });
@@ -37201,7 +37658,7 @@ router21.get("/security/sessions", async (_req, res) => {
   }));
   res.json({ sessions, total: sessions.length });
 });
-router21.delete("/security/sessions/:id", async (req, res) => {
+router23.delete("/security/sessions/:id", async (req, res) => {
   const { error } = await supabase.from("security_sessions").delete().eq("id", req.params.id);
   if (error) {
     res.status(500).json({ error: error.message });
@@ -37209,7 +37666,7 @@ router21.delete("/security/sessions/:id", async (req, res) => {
   }
   res.json({ message: "Session terminated" });
 });
-router21.get("/security/events", async (_req, res) => {
+router23.get("/security/events", async (_req, res) => {
   const { data, error } = await supabase.from("security_events").select("*").order("created_at", { ascending: false });
   if (error) {
     res.status(500).json({ error: error.message });
@@ -37227,10 +37684,10 @@ router21.get("/security/events", async (_req, res) => {
   }));
   res.json({ events, total: events.length });
 });
-router21.get("/security/settings", async (_req, res) => {
+router23.get("/security/settings", async (_req, res) => {
   res.json({ settings: settingsToCamel(await loadSettingsRow()) });
 });
-router21.put("/security/settings", async (req, res) => {
+router23.put("/security/settings", async (req, res) => {
   const b = req.body ?? {};
   const update = { updated_at: (/* @__PURE__ */ new Date()).toISOString() };
   if (b.twoFactorRequired !== void 0) update.two_factor_required = !!b.twoFactorRequired;
@@ -37248,7 +37705,7 @@ router21.put("/security/settings", async (req, res) => {
   }
   res.json({ settings: settingsToCamel(await loadSettingsRow()), message: "Security settings updated" });
 });
-router21.post("/security/ip-block", async (req, res) => {
+router23.post("/security/ip-block", async (req, res) => {
   const { ip, action } = req.body ?? {};
   if (!ip) {
     res.status(400).json({ error: "ip is required" });
@@ -37266,15 +37723,15 @@ router21.post("/security/ip-block", async (req, res) => {
   }
   res.json({ settings: settingsToCamel(await loadSettingsRow()), message: action === "unblock" ? "IP unblocked" : "IP blocked" });
 });
-var security_default = router21;
+var security_default = router23;
 
 // src/routes/wallets.ts
-var import_express22 = __toESM(require_express2(), 1);
-var router22 = (0, import_express22.Router)();
+var import_express24 = __toESM(require_express2(), 1);
+var router24 = (0, import_express24.Router)();
 function newRef(prefix) {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 }
-router22.get("/wallets", async (req, res) => {
+router24.get("/wallets", async (req, res) => {
   const { status, search } = req.query;
   const { data: walletRows, error } = await supabase.from("wallets").select("id, profile_id, balance, is_active, last_updated").order("last_updated", { ascending: false });
   if (error) {
@@ -37324,7 +37781,7 @@ router22.get("/wallets", async (req, res) => {
     totalBalance
   });
 });
-router22.get("/wallets/stats", async (_req, res) => {
+router24.get("/wallets/stats", async (_req, res) => {
   const { data: wallets } = await supabase.from("wallets").select("balance, is_active");
   const rows = wallets ?? [];
   res.json({
@@ -37335,7 +37792,7 @@ router22.get("/wallets/stats", async (_req, res) => {
     totalWallets: rows.length
   });
 });
-router22.patch("/wallets/:id/status", async (req, res) => {
+router24.patch("/wallets/:id/status", async (req, res) => {
   const { status } = req.body;
   const isActive = status === "active";
   const { data, error } = await supabase.from("wallets").update({ is_active: isActive, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", req.params.id).select("*").single();
@@ -37345,7 +37802,7 @@ router22.patch("/wallets/:id/status", async (req, res) => {
   }
   res.json({ wallet: data, message: "Wallet status updated" });
 });
-router22.post("/wallets/:id/adjust", async (req, res) => {
+router24.post("/wallets/:id/adjust", async (req, res) => {
   const amount = Number(req.body?.amount ?? 0);
   const note = String(req.body?.note ?? "Manual adjustment");
   if (!Number.isFinite(amount) || amount === 0) {
@@ -37379,11 +37836,11 @@ router22.post("/wallets/:id/adjust", async (req, res) => {
   });
   res.json({ wallet: updated, message: "Balance adjusted successfully" });
 });
-var wallets_default = router22;
+var wallets_default = router24;
 
 // src/routes/withdrawals.ts
-var import_express23 = __toESM(require_express2(), 1);
-var router23 = (0, import_express23.Router)();
+var import_express25 = __toESM(require_express2(), 1);
+var router25 = (0, import_express25.Router)();
 function toCamel3(w) {
   return {
     id: w.id,
@@ -37399,7 +37856,7 @@ function toCamel3(w) {
     riskReason: w.risk_reason || void 0
   };
 }
-router23.get("/withdrawals", async (req, res) => {
+router25.get("/withdrawals", async (req, res) => {
   const { status, search } = req.query;
   let query = supabase.from("withdrawal_requests").select("*").order("created_at", { ascending: false });
   if (status && status !== "all") query = query.eq("status", status);
@@ -37423,7 +37880,7 @@ var ACTION_STATUS2 = {
   hold: "on_hold",
   flag: "pending"
 };
-router23.post("/withdrawals/:id/:action", async (req, res) => {
+router25.post("/withdrawals/:id/:action", async (req, res) => {
   const { id, action } = req.params;
   const newStatus = ACTION_STATUS2[action];
   if (!newStatus) {
@@ -37443,7 +37900,7 @@ router23.post("/withdrawals/:id/:action", async (req, res) => {
   }
   res.json({ withdrawal: toCamel3(data), message: `Withdrawal ${newStatus}` });
 });
-router23.post("/withdrawals/bulk-approve", async (req, res) => {
+router25.post("/withdrawals/bulk-approve", async (req, res) => {
   const ids = Array.isArray(req.body?.ids) ? req.body.ids.map(String) : [];
   if (!ids.length) {
     res.status(400).json({ error: "No ids provided" });
@@ -37456,7 +37913,7 @@ router23.post("/withdrawals/bulk-approve", async (req, res) => {
   }
   res.json({ message: `${ids.length} withdrawal(s) approved`, count: ids.length });
 });
-router23.get("/withdrawals/settings", async (_req, res) => {
+router25.get("/withdrawals/settings", async (_req, res) => {
   const { data } = await supabase.from("withdrawal_settings").select("*").limit(1).maybeSingle();
   res.json({
     settings: {
@@ -37467,7 +37924,7 @@ router23.get("/withdrawals/settings", async (_req, res) => {
     }
   });
 });
-router23.put("/withdrawals/daily-limit", async (req, res) => {
+router25.put("/withdrawals/daily-limit", async (req, res) => {
   const limit = Number(req.body?.limit ?? 0);
   const { data: existing } = await supabase.from("withdrawal_settings").select("id").limit(1).maybeSingle();
   if (existing?.id) {
@@ -37477,11 +37934,11 @@ router23.put("/withdrawals/daily-limit", async (req, res) => {
   }
   res.json({ message: "Daily limit updated", dailyLimit: limit });
 });
-var withdrawals_default = router23;
+var withdrawals_default = router25;
 
 // src/routes/verification.ts
-var import_express24 = __toESM(require_express2(), 1);
-var router24 = (0, import_express24.Router)();
+var import_express26 = __toESM(require_express2(), 1);
+var router26 = (0, import_express26.Router)();
 function deriveDocType(data) {
   const raw = String(data?.idType ?? data?.documentType ?? "").toLowerCase();
   if (raw.includes("nin")) return "NIN";
@@ -37498,7 +37955,7 @@ function deriveStatus2(p) {
   if (p.is_flagged) return "rejected";
   return "pending";
 }
-router24.get("/verification", async (req, res) => {
+router26.get("/verification", async (req, res) => {
   const { status, search, page = "1", limit = "20" } = req.query;
   const { data: subs, error } = await supabase.from("kyc_submissions").select("id, user_id, data, submitted_at").order("submitted_at", { ascending: false });
   if (error) {
@@ -37547,7 +38004,7 @@ router24.get("/verification", async (req, res) => {
   const paged = records.slice((p - 1) * l, (p - 1) * l + l);
   res.json({ data: paged, total, pendingCount, verifiedToday, rejectedCount, totalVerified });
 });
-router24.post("/verification/:id/:action", async (req, res) => {
+router26.post("/verification/:id/:action", async (req, res) => {
   const { id, action } = req.params;
   const reason = req.body?.reason;
   const { data: sub } = await supabase.from("kyc_submissions").select("id, user_id").eq("id", id).maybeSingle();
@@ -37572,11 +38029,11 @@ router24.post("/verification/:id/:action", async (req, res) => {
   }
   res.json({ message: `KYC ${action.replace("_", " ")} applied` });
 });
-var verification_default = router24;
+var verification_default = router26;
 
 // src/routes/referrals.ts
-var import_express25 = __toESM(require_express2(), 1);
-var router25 = (0, import_express25.Router)();
+var import_express27 = __toESM(require_express2(), 1);
+var router27 = (0, import_express27.Router)();
 async function loadSettings() {
   const { data } = await supabase.from("referral_settings").select("*").limit(1).maybeSingle();
   return {
@@ -37585,7 +38042,7 @@ async function loadSettings() {
     maxReferralsPerUser: Number(data?.max_referrals_per_user ?? 0)
   };
 }
-router25.get("/referrals", async (_req, res) => {
+router27.get("/referrals", async (_req, res) => {
   const { data: refs, error } = await supabase.from("referrals").select("profile_id, referral_count, confirmed_referral_count, current_tier_bonus").order("referral_count", { ascending: false });
   if (error) {
     res.status(500).json({ error: error.message });
@@ -37624,10 +38081,10 @@ router25.get("/referrals", async (_req, res) => {
     }
   });
 });
-router25.get("/referrals/settings", async (_req, res) => {
+router27.get("/referrals/settings", async (_req, res) => {
   res.json({ settings: await loadSettings() });
 });
-router25.put("/referrals/settings", async (req, res) => {
+router27.put("/referrals/settings", async (req, res) => {
   const b = req.body ?? {};
   const update = {
     program_enabled: b.enabled !== void 0 ? !!b.enabled : void 0,
@@ -37643,11 +38100,11 @@ router25.put("/referrals/settings", async (req, res) => {
   }
   res.json({ settings: await loadSettings(), message: "Referral settings updated" });
 });
-var referrals_default = router25;
+var referrals_default = router27;
 
 // src/routes/guarantors.ts
-var import_express26 = __toESM(require_express2(), 1);
-var router26 = (0, import_express26.Router)();
+var import_express28 = __toESM(require_express2(), 1);
+var router28 = (0, import_express28.Router)();
 var ACTIVE_STATUSES = ["confirmed", "consented", "active", "accepted"];
 var PENDING_STATUSES = ["pending", "requested", "scanned"];
 async function loadSettings2() {
@@ -37658,7 +38115,7 @@ async function loadSettings2() {
     minimumMembershipMonths: Number(data?.minimum_membership_months ?? 0)
   };
 }
-router26.get("/guarantors", async (_req, res) => {
+router28.get("/guarantors", async (_req, res) => {
   const { data: links, error } = await supabase.from("loan_guarantors").select("id, loan_id, guarantor_id, status, consented_at, created_at").order("created_at", { ascending: false });
   if (error) {
     res.status(500).json({ error: error.message });
@@ -37705,7 +38162,7 @@ router26.get("/guarantors", async (_req, res) => {
     totalRelationships: relationships.length
   });
 });
-router26.put("/guarantors/settings", async (req, res) => {
+router28.put("/guarantors/settings", async (req, res) => {
   const body = req.body ?? {};
   const update = {
     system_enabled: !!body.requireGuarantor,
@@ -37721,7 +38178,7 @@ router26.put("/guarantors/settings", async (req, res) => {
   }
   res.json({ settings: await loadSettings2(), message: "Guarantor settings updated" });
 });
-router26.post("/guarantors/requests/:id/:action", async (req, res) => {
+router28.post("/guarantors/requests/:id/:action", async (req, res) => {
   const { id, action } = req.params;
   const newStatus = action === "approve" ? "confirmed" : "rejected";
   const { data, error } = await supabase.from("loan_guarantors").update({
@@ -37735,13 +38192,13 @@ router26.post("/guarantors/requests/:id/:action", async (req, res) => {
   }
   res.json({ message: `Request ${action}d`, request: data });
 });
-var guarantors_default = router26;
+var guarantors_default = router28;
 
 // src/routes/system.ts
-var import_express27 = __toESM(require_express2(), 1);
-var router27 = (0, import_express27.Router)();
-router27.use(requireAuth);
-router27.get("/system/health", requireRole("admin", "super_admin"), async (req, res) => {
+var import_express29 = __toESM(require_express2(), 1);
+var router29 = (0, import_express29.Router)();
+router29.use(requireAuth);
+router29.get("/system/health", requireRole("admin", "super_admin"), async (req, res) => {
   try {
     const startDb = Date.now();
     const { error: dbError } = await supabase.from("profiles").select("count").limit(1);
@@ -37773,7 +38230,7 @@ router27.get("/system/health", requireRole("admin", "super_admin"), async (req, 
     res.status(500).json({ error: "Failed to fetch system health" });
   }
 });
-router27.get("/system/rate-limits", requireRole("admin", "super_admin"), async (req, res) => {
+router29.get("/system/rate-limits", requireRole("admin", "super_admin"), async (req, res) => {
   const { data: settings } = await supabase.from("admin_settings").select("*").eq("category", "rate_limits").single();
   const defaults = {
     global: { requests: 100, window: "minute" },
@@ -37795,7 +38252,7 @@ var RateLimitSchema = external_exports.object({
     window: external_exports.enum(["second", "minute", "hour"])
   }))
 });
-router27.put("/system/rate-limits", requireRole("super_admin"), async (req, res) => {
+router29.put("/system/rate-limits", requireRole("super_admin"), async (req, res) => {
   const parsed = RateLimitSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid rate limit configuration", details: parsed.error.flatten() });
@@ -37809,7 +38266,7 @@ router27.put("/system/rate-limits", requireRole("super_admin"), async (req, res)
   }
   res.json({ success: true, settings: parsed.data });
 });
-router27.get("/system/ip-allowlist", requireRole("super_admin"), async (req, res) => {
+router29.get("/system/ip-allowlist", requireRole("super_admin"), async (req, res) => {
   const { data: settings } = await supabase.from("admin_settings").select("*").eq("category", "ip_allowlist").single();
   res.json({
     enabled: settings?.settings?.enabled ?? false,
@@ -37821,7 +38278,7 @@ var IPAllowlistSchema = external_exports.object({
   enabled: external_exports.boolean(),
   ips: external_exports.array(external_exports.string().ip())
 });
-router27.put("/system/ip-allowlist", requireRole("super_admin"), async (req, res) => {
+router29.put("/system/ip-allowlist", requireRole("super_admin"), async (req, res) => {
   const parsed = IPAllowlistSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid IP allowlist configuration" });
@@ -37835,7 +38292,7 @@ router27.put("/system/ip-allowlist", requireRole("super_admin"), async (req, res
   }
   res.json({ success: true });
 });
-router27.get("/system/penalties", requireRole("admin", "super_admin"), async (req, res) => {
+router29.get("/system/penalties", requireRole("admin", "super_admin"), async (req, res) => {
   const { data: settings } = await supabase.from("admin_settings").select("*").eq("category", "penalties").single();
   const defaults = {
     latePaymentFee: 500,
@@ -37861,7 +38318,7 @@ var PenaltySchema = external_exports.object({
   minimumBalance: external_exports.number().min(0),
   maxPenaltyCycle: external_exports.number().min(1).max(12)
 });
-router27.put("/system/penalties", requireRole("super_admin"), async (req, res) => {
+router29.put("/system/penalties", requireRole("super_admin"), async (req, res) => {
   const parsed = PenaltySchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid penalty configuration" });
@@ -37875,7 +38332,7 @@ router27.put("/system/penalties", requireRole("super_admin"), async (req, res) =
   }
   res.json({ success: true, settings: parsed.data });
 });
-router27.get("/system/settings", requireRole("admin", "super_admin"), async (req, res) => {
+router29.get("/system/settings", requireRole("admin", "super_admin"), async (req, res) => {
   const { data: settings } = await supabase.from("admin_settings").select("category, updated_at");
   const categories = settings?.map((s) => s.category) || [];
   res.json({
@@ -37883,13 +38340,13 @@ router27.get("/system/settings", requireRole("admin", "super_admin"), async (req
     lastUpdated: settings?.reduce((latest, s) => !latest || s.updated_at > latest ? s.updated_at : latest, null)
   });
 });
-var system_default = router27;
+var system_default = router29;
 
 // src/routes/reports.ts
-var import_express28 = __toESM(require_express2(), 1);
-var router28 = (0, import_express28.Router)();
-router28.use(requireAuth);
-router28.get("/reports/scheduled", requireRole("admin", "super_admin"), async (req, res) => {
+var import_express30 = __toESM(require_express2(), 1);
+var router30 = (0, import_express30.Router)();
+router30.use(requireAuth);
+router30.get("/reports/scheduled", requireRole("admin", "super_admin"), async (req, res) => {
   const { data: reports, error } = await supabase.from("scheduled_reports").select("*").order("created_at", { ascending: false });
   if (error) {
     res.status(500).json({ error: error.message });
@@ -37918,7 +38375,7 @@ var CreateReportSchema = external_exports.object({
   dayOfMonth: external_exports.number().min(1).max(28).optional()
   // For monthly reports
 });
-router28.post("/reports/scheduled", requireRole("super_admin"), async (req, res) => {
+router30.post("/reports/scheduled", requireRole("super_admin"), async (req, res) => {
   const parsed = CreateReportSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Validation failed", details: parsed.error.flatten() });
@@ -37944,7 +38401,7 @@ router28.post("/reports/scheduled", requireRole("super_admin"), async (req, res)
   }
   res.status(201).json(report);
 });
-router28.patch("/reports/scheduled/:id", requireRole("super_admin"), async (req, res) => {
+router30.patch("/reports/scheduled/:id", requireRole("super_admin"), async (req, res) => {
   const { id } = req.params;
   const updates = { ...req.body };
   if (updates.reportType) {
@@ -37979,7 +38436,7 @@ router28.patch("/reports/scheduled/:id", requireRole("super_admin"), async (req,
   }
   res.json(report);
 });
-router28.delete("/reports/scheduled/:id", requireRole("super_admin"), async (req, res) => {
+router30.delete("/reports/scheduled/:id", requireRole("super_admin"), async (req, res) => {
   const { id } = req.params;
   const { error } = await supabase.from("scheduled_reports").delete().eq("id", id);
   if (error) {
@@ -37988,7 +38445,7 @@ router28.delete("/reports/scheduled/:id", requireRole("super_admin"), async (req
   }
   res.json({ success: true });
 });
-router28.post("/reports/scheduled/:id/toggle", requireRole("super_admin"), async (req, res) => {
+router30.post("/reports/scheduled/:id/toggle", requireRole("super_admin"), async (req, res) => {
   const { id } = req.params;
   const { enabled } = req.body;
   const { data: report, error } = await supabase.from("scheduled_reports").update({ enabled, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", id).select().single();
@@ -37998,7 +38455,7 @@ router28.post("/reports/scheduled/:id/toggle", requireRole("super_admin"), async
   }
   res.json(report);
 });
-router28.post("/reports/scheduled/:id/run", requireRole("admin", "super_admin"), async (req, res) => {
+router30.post("/reports/scheduled/:id/run", requireRole("admin", "super_admin"), async (req, res) => {
   const { id } = req.params;
   const { data: report } = await supabase.from("scheduled_reports").select("*").eq("id", id).single();
   if (!report) {
@@ -38018,7 +38475,7 @@ router28.post("/reports/scheduled/:id/run", requireRole("admin", "super_admin"),
     data: reportData
   });
 });
-router28.get("/reports/history", requireRole("admin", "super_admin"), async (req, res) => {
+router30.get("/reports/history", requireRole("admin", "super_admin"), async (req, res) => {
   const { data: history } = await supabase.from("report_history").select("*").order("generated_at", { ascending: false }).limit(50);
   res.json({ data: history || [] });
 });
@@ -38071,13 +38528,13 @@ async function generateReportData(reportType, filters) {
   const { data } = await query;
   return data || [];
 }
-var reports_default = router28;
+var reports_default = router30;
 
 // src/routes/sessions.ts
-var import_express29 = __toESM(require_express2(), 1);
-var router29 = (0, import_express29.Router)();
-router29.use(requireAuth);
-router29.get("/sessions", requireRole("admin", "super_admin"), async (req, res) => {
+var import_express31 = __toESM(require_express2(), 1);
+var router31 = (0, import_express31.Router)();
+router31.use(requireAuth);
+router31.get("/sessions", requireRole("admin", "super_admin"), async (req, res) => {
   const { data: sessions, error } = await supabase.from("admin_sessions").select("*").eq("is_active", true).order("last_activity", { ascending: false });
   if (error) {
     res.status(500).json({ error: error.message });
@@ -38085,7 +38542,7 @@ router29.get("/sessions", requireRole("admin", "super_admin"), async (req, res) 
   }
   res.json({ data: sessions || [] });
 });
-router29.get("/sessions/me", async (req, res) => {
+router31.get("/sessions/me", async (req, res) => {
   const userId = req.user?.id;
   if (!userId) {
     res.status(401).json({ error: "Unauthorized" });
@@ -38098,7 +38555,7 @@ router29.get("/sessions/me", async (req, res) => {
   }
   res.json({ data: sessions || [] });
 });
-router29.delete("/sessions/:sessionId", requireRole("admin", "super_admin"), async (req, res) => {
+router31.delete("/sessions/:sessionId", requireRole("admin", "super_admin"), async (req, res) => {
   const { sessionId } = req.params;
   const { error } = await supabase.from("admin_sessions").update({ is_active: false, terminated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", sessionId);
   if (error) {
@@ -38107,7 +38564,7 @@ router29.delete("/sessions/:sessionId", requireRole("admin", "super_admin"), asy
   }
   res.json({ success: true });
 });
-router29.delete("/sessions/user/:userId", requireRole("super_admin"), async (req, res) => {
+router31.delete("/sessions/user/:userId", requireRole("super_admin"), async (req, res) => {
   const { userId } = req.params;
   const currentUserId = req.user?.id;
   if (userId === currentUserId) {
@@ -38121,7 +38578,7 @@ router29.delete("/sessions/user/:userId", requireRole("super_admin"), async (req
   }
   res.json({ success: true, message: "All sessions terminated" });
 });
-router29.delete("/sessions/terminate-others", async (req, res) => {
+router31.delete("/sessions/terminate-others", async (req, res) => {
   const userId = req.user?.id;
   const currentSessionId = req.headers["x-session-id"];
   if (!userId) {
@@ -38135,7 +38592,7 @@ router29.delete("/sessions/terminate-others", async (req, res) => {
   }
   res.json({ success: true });
 });
-router29.get("/sessions/stats", requireRole("admin", "super_admin"), async (req, res) => {
+router31.get("/sessions/stats", requireRole("admin", "super_admin"), async (req, res) => {
   const { count: activeSessions } = await supabase.from("admin_sessions").select("*", { count: "exact", head: true }).eq("is_active", true);
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1e3).toISOString();
   const { count: recentSessions } = await supabase.from("admin_sessions").select("*", { count: "exact", head: true }).eq("is_active", true).gte("last_activity", oneHourAgo);
@@ -38150,18 +38607,18 @@ router29.get("/sessions/stats", requireRole("admin", "super_admin"), async (req,
     byRole: roleCounts
   });
 });
-router29.post("/sessions/:sessionId/heartbeat", async (req, res) => {
+router31.post("/sessions/:sessionId/heartbeat", async (req, res) => {
   const { sessionId } = req.params;
   await supabase.from("admin_sessions").update({ last_activity: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", sessionId);
   res.json({ success: true });
 });
-var sessions_default = router29;
+var sessions_default = router31;
 
 // src/routes/bulk.ts
-var import_express30 = __toESM(require_express2(), 1);
-var router30 = (0, import_express30.Router)();
-router30.use(requireAuth);
-router30.post("/bulk/import-members", requireRole("admin", "super_admin"), async (req, res) => {
+var import_express32 = __toESM(require_express2(), 1);
+var router32 = (0, import_express32.Router)();
+router32.use(requireAuth);
+router32.post("/bulk/import-members", requireRole("admin", "super_admin"), async (req, res) => {
   const { members } = req.body;
   if (!Array.isArray(members)) {
     res.status(400).json({ error: "Members must be an array" });
@@ -38209,7 +38666,7 @@ router30.post("/bulk/import-members", requireRole("admin", "super_admin"), async
     results
   });
 });
-router30.post("/bulk/update-status", requireRole("admin", "super_admin"), async (req, res) => {
+router32.post("/bulk/update-status", requireRole("admin", "super_admin"), async (req, res) => {
   const { memberIds, status } = req.body;
   if (!Array.isArray(memberIds) || memberIds.length === 0) {
     res.status(400).json({ error: "memberIds must be a non-empty array" });
@@ -38248,7 +38705,7 @@ router30.post("/bulk/update-status", requireRole("admin", "super_admin"), async 
     members: data
   });
 });
-router30.get("/bulk/export-members", requireRole("admin", "super_admin"), async (req, res) => {
+router32.get("/bulk/export-members", requireRole("admin", "super_admin"), async (req, res) => {
   const { status, organization, format = "csv" } = req.query;
   let query = supabase.from("profiles").select("*");
   if (status === "active") query = query.eq("is_active", true).eq("kyc_verified", true);
@@ -38279,7 +38736,7 @@ router30.get("/bulk/export-members", requireRole("admin", "super_admin"), async 
     res.json({ data: profiles || [] });
   }
 });
-router30.post("/bulk/import-contributions", requireRole("admin", "super_admin"), async (req, res) => {
+router32.post("/bulk/import-contributions", requireRole("admin", "super_admin"), async (req, res) => {
   const { contributions } = req.body;
   if (!Array.isArray(contributions)) {
     res.status(400).json({ error: "Contributions must be an array" });
@@ -38320,7 +38777,7 @@ router30.post("/bulk/import-contributions", requireRole("admin", "super_admin"),
     results
   });
 });
-router30.get("/bulk/template/:type", requireRole("admin", "super_admin"), async (req, res) => {
+router32.get("/bulk/template/:type", requireRole("admin", "super_admin"), async (req, res) => {
   const { type } = req.params;
   let headers, sampleRows;
   switch (type) {
@@ -38347,7 +38804,7 @@ router30.get("/bulk/template/:type", requireRole("admin", "super_admin"), async 
   res.setHeader("Content-Disposition", `attachment; filename="${type}-import-template.csv"`);
   res.send(csv);
 });
-router30.get("/bulk/history", requireRole("admin", "super_admin"), async (req, res) => {
+router32.get("/bulk/history", requireRole("admin", "super_admin"), async (req, res) => {
   const { data: history, error } = await supabase.from("bulk_operations").select("*").order("created_at", { ascending: false }).limit(50);
   if (error) {
     res.status(500).json({ error: error.message });
@@ -38355,7 +38812,7 @@ router30.get("/bulk/history", requireRole("admin", "super_admin"), async (req, r
   }
   res.json({ data: history || [] });
 });
-router30.post("/bulk/log", requireRole("admin", "super_admin"), async (req, res) => {
+router32.post("/bulk/log", requireRole("admin", "super_admin"), async (req, res) => {
   const { type, success, failed, details } = req.body;
   const userId = req.user?.id;
   const { data, error } = await supabase.from("bulk_operations").insert({
@@ -38378,13 +38835,13 @@ function deriveStatus3(row) {
   if (row.is_active && !row.kyc_verified) return "pending";
   return "active";
 }
-var bulk_default = router30;
+var bulk_default = router32;
 
 // src/routes/reconciliation.ts
-var import_express31 = __toESM(require_express2(), 1);
-var router31 = (0, import_express31.Router)();
-router31.use(requireAuth);
-router31.get("/reconciliation/overview", requireRole("admin", "super_admin"), async (req, res) => {
+var import_express33 = __toESM(require_express2(), 1);
+var router33 = (0, import_express33.Router)();
+router33.use(requireAuth);
+router33.get("/reconciliation/overview", requireRole("admin", "super_admin"), async (req, res) => {
   const { month } = req.query;
   const targetMonth = month || (/* @__PURE__ */ new Date()).toISOString().slice(0, 7);
   const { data: contributions } = await supabase.from("contributions").select("profile_id, amount, status, payment_method").like("month", `${targetMonth}%`);
@@ -38410,7 +38867,7 @@ router31.get("/reconciliation/overview", requireRole("admin", "super_admin"), as
     transactionCount: contributions?.length || 0
   });
 });
-router31.get("/reconciliation/unreconciled", requireRole("admin", "super_admin"), async (req, res) => {
+router33.get("/reconciliation/unreconciled", requireRole("admin", "super_admin"), async (req, res) => {
   const { type = "contributions" } = req.query;
   let query;
   if (type === "contributions") {
@@ -38425,7 +38882,7 @@ router31.get("/reconciliation/unreconciled", requireRole("admin", "super_admin")
   }
   res.json({ data: data || [] });
 });
-router31.post("/reconciliation/reconcile", requireRole("admin", "super_admin"), async (req, res) => {
+router33.post("/reconciliation/reconcile", requireRole("admin", "super_admin"), async (req, res) => {
   const { transactionId, transactionType, action, note } = req.body;
   const userId = req.user?.id;
   if (!["approve", "reject"].includes(action)) {
@@ -38454,7 +38911,7 @@ router31.post("/reconciliation/reconcile", requireRole("admin", "super_admin"), 
   });
   res.json({ success: true, transaction: data });
 });
-router31.post("/reconciliation/bulk-reconcile", requireRole("super_admin"), async (req, res) => {
+router33.post("/reconciliation/bulk-reconcile", requireRole("super_admin"), async (req, res) => {
   const { transactionIds, transactionType, action, note } = req.body;
   const userId = req.user?.id;
   if (!Array.isArray(transactionIds) || transactionIds.length === 0) {
@@ -38479,7 +38936,7 @@ router31.post("/reconciliation/bulk-reconcile", requireRole("super_admin"), asyn
     status: newStatus
   });
 });
-router31.get("/reconciliation/history", requireRole("admin", "super_admin"), async (req, res) => {
+router33.get("/reconciliation/history", requireRole("admin", "super_admin"), async (req, res) => {
   const { page = 1, limit = 50 } = req.query;
   const offset = (Number(page) - 1) * Number(limit);
   const { data: history, count, error } = await supabase.from("reconciliation_logs").select("*", { count: "exact" }).order("created_at", { ascending: false }).range(offset, offset + Number(limit) - 1);
@@ -38489,7 +38946,7 @@ router31.get("/reconciliation/history", requireRole("admin", "super_admin"), asy
   }
   res.json({ data: history || [], total: count || 0, page: Number(page), limit: Number(limit) });
 });
-router31.get("/reconciliation/monthly-report", requireRole("admin", "super_admin"), async (req, res) => {
+router33.get("/reconciliation/monthly-report", requireRole("admin", "super_admin"), async (req, res) => {
   const { months = 6 } = req.query;
   const reports = [];
   const now = /* @__PURE__ */ new Date();
@@ -38509,7 +38966,7 @@ router31.get("/reconciliation/monthly-report", requireRole("admin", "super_admin
   }
   res.json({ data: reports.reverse() });
 });
-router31.get("/reconciliation/discrepancies", requireRole("admin", "super_admin"), async (req, res) => {
+router33.get("/reconciliation/discrepancies", requireRole("admin", "super_admin"), async (req, res) => {
   const { startDate, endDate } = req.query;
   let query = supabase.from("contributions").select("*, profiles!inner(name, email, user_id)").eq("status", "failed").order("created_at", { ascending: false }).limit(100);
   if (startDate) query = query.gte("created_at", startDate);
@@ -38533,13 +38990,13 @@ router31.get("/reconciliation/discrepancies", requireRole("admin", "super_admin"
     }
   });
 });
-var reconciliation_default = router31;
+var reconciliation_default = router33;
 
 // src/routes/login_history.ts
-var import_express32 = __toESM(require_express2(), 1);
-var router32 = (0, import_express32.Router)();
-router32.use(requireAuth);
-router32.get("/members/:memberId/login-history", requireRole("admin", "super_admin"), async (req, res) => {
+var import_express34 = __toESM(require_express2(), 1);
+var router34 = (0, import_express34.Router)();
+router34.use(requireAuth);
+router34.get("/members/:memberId/login-history", requireRole("admin", "super_admin"), async (req, res) => {
   const { memberId } = req.params;
   const { page = 1, limit = 20 } = req.query;
   const offset = (Number(page) - 1) * Number(limit);
@@ -38555,7 +39012,7 @@ router32.get("/members/:memberId/login-history", requireRole("admin", "super_adm
   }
   res.json({ data: history || [], total: count || 0, page: Number(page), limit: Number(limit) });
 });
-router32.get("/login-history", requireRole("admin", "super_admin"), async (req, res) => {
+router34.get("/login-history", requireRole("admin", "super_admin"), async (req, res) => {
   const { page = 1, limit = 50, search, startDate, endDate, status } = req.query;
   const offset = (Number(page) - 1) * Number(limit);
   let query = supabase.from("login_history").select("*, profiles!inner(name, email, user_id)", { count: "exact" }).order("created_at", { ascending: false }).range(offset, offset + Number(limit) - 1);
@@ -38577,7 +39034,7 @@ router32.get("/login-history", requireRole("admin", "super_admin"), async (req, 
   }
   res.json({ data: filtered, total: count || 0, page: Number(page), limit: Number(limit) });
 });
-router32.get("/login-history/suspicious", requireRole("admin", "super_admin"), async (req, res) => {
+router34.get("/login-history/suspicious", requireRole("admin", "super_admin"), async (req, res) => {
   const { hours = 24 } = req.query;
   const since = new Date(Date.now() - Number(hours) * 60 * 60 * 1e3).toISOString();
   const { data: failedLogins, error } = await supabase.from("login_history").select("*, profiles!inner(name, email, user_id)").eq("success", false).gte("created_at", since).order("created_at", { ascending: false });
@@ -38622,7 +39079,7 @@ router32.get("/login-history/suspicious", requireRole("admin", "super_admin"), a
     allAttempts: failedLogins || []
   });
 });
-router32.get("/members/:memberId/devices", requireRole("admin", "super_admin"), async (req, res) => {
+router34.get("/members/:memberId/devices", requireRole("admin", "super_admin"), async (req, res) => {
   const { memberId } = req.params;
   const { data: profile } = await supabase.from("profiles").select("id").or(`id.eq.${memberId},user_id.eq.${memberId}`).single();
   if (!profile) {
@@ -38651,7 +39108,7 @@ router32.get("/members/:memberId/devices", requireRole("admin", "super_admin"), 
   });
   res.json({ devices: Object.values(devices) });
 });
-router32.post("/security/block", requireRole("admin", "super_admin"), async (req, res) => {
+router34.post("/security/block", requireRole("admin", "super_admin"), async (req, res) => {
   const { type, value, reason, expiresAt } = req.body;
   const userId = req.user?.id;
   if (!["ip", "device"].includes(type)) {
@@ -38674,7 +39131,7 @@ router32.post("/security/block", requireRole("admin", "super_admin"), async (req
   }
   res.json({ success: true, block });
 });
-router32.get("/security/blocked", requireRole("admin", "super_admin"), async (req, res) => {
+router34.get("/security/blocked", requireRole("admin", "super_admin"), async (req, res) => {
   const { data: blocked, error } = await supabase.from("blocked_entities").select("*").order("created_at", { ascending: false });
   if (error) {
     res.status(500).json({ error: error.message });
@@ -38682,7 +39139,7 @@ router32.get("/security/blocked", requireRole("admin", "super_admin"), async (re
   }
   res.json({ data: blocked || [] });
 });
-router32.delete("/security/block/:id", requireRole("super_admin"), async (req, res) => {
+router34.delete("/security/block/:id", requireRole("super_admin"), async (req, res) => {
   const { id } = req.params;
   const { error } = await supabase.from("blocked_entities").delete().eq("id", id);
   if (error) {
@@ -38691,7 +39148,7 @@ router32.delete("/security/block/:id", requireRole("super_admin"), async (req, r
   }
   res.json({ success: true });
 });
-router32.get("/login-history/stats", requireRole("admin", "super_admin"), async (req, res) => {
+router34.get("/login-history/stats", requireRole("admin", "super_admin"), async (req, res) => {
   const now = /* @__PURE__ */ new Date();
   const today = now.toISOString().slice(0, 10);
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1e3).toISOString();
@@ -38717,11 +39174,11 @@ router32.get("/login-history/stats", requireRole("admin", "super_admin"), async 
     month: { logins: monthLogins.count ?? 0 }
   });
 });
-var login_history_default = router32;
+var login_history_default = router34;
 
 // src/routes/excel-uploads.ts
-var import_express33 = __toESM(require_express2(), 1);
-var router33 = (0, import_express33.Router)();
+var import_express35 = __toESM(require_express2(), 1);
+var router35 = (0, import_express35.Router)();
 var UploadRecordSchema = external_exports.object({
   filename: external_exports.string().min(1),
   type: external_exports.enum(["bulk_contributions", "user_import", "payroll", "reconciliation"]),
@@ -38732,7 +39189,7 @@ var UploadRecordSchema = external_exports.object({
   error_count: external_exports.number().int().nonnegative().default(0),
   notes: external_exports.string().optional()
 });
-router33.get("/excel-uploads", requireAuth, async (req, res) => {
+router35.get("/excel-uploads", requireAuth, async (req, res) => {
   try {
     const page = Math.max(1, Number(req.query.page) || 1);
     const limit = Math.min(100, Number(req.query.limit) || 20);
@@ -38771,7 +39228,7 @@ router33.get("/excel-uploads", requireAuth, async (req, res) => {
     res.status(500).json({ data: [], total: 0, page: 1, limit: 20 });
   }
 });
-router33.get("/excel-uploads/:id", requireAuth, async (req, res) => {
+router35.get("/excel-uploads/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
   const { data: record, error } = await supabase.from("excel_uploads").select("*").eq("id", id).single();
   if (error || !record) {
@@ -38791,7 +39248,7 @@ router33.get("/excel-uploads/:id", requireAuth, async (req, res) => {
     notes: record.notes || null
   });
 });
-router33.post("/excel-uploads", requireAuth, async (req, res) => {
+router35.post("/excel-uploads", requireAuth, async (req, res) => {
   const parsed = UploadRecordSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
@@ -38836,7 +39293,7 @@ router33.post("/excel-uploads", requireAuth, async (req, res) => {
     notes: record.notes
   });
 });
-router33.patch("/excel-uploads/:id", requireAuth, async (req, res) => {
+router35.patch("/excel-uploads/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
   const { status, error_count, notes, record_count } = req.body;
   const updates = { updated_at: (/* @__PURE__ */ new Date()).toISOString() };
@@ -38867,7 +39324,7 @@ router33.patch("/excel-uploads/:id", requireAuth, async (req, res) => {
     notes: record.notes
   });
 });
-router33.delete("/excel-uploads/:id", requireAuth, async (req, res) => {
+router35.delete("/excel-uploads/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
   const { error } = await supabase.from("excel_uploads").delete().eq("id", id);
   if (error) {
@@ -38877,72 +39334,56 @@ router33.delete("/excel-uploads/:id", requireAuth, async (req, res) => {
   }
   res.json({ success: true, message: "Upload record deleted" });
 });
-var excel_uploads_default = router33;
+var excel_uploads_default = router35;
 
 // src/routes/index.ts
-var router34 = (0, import_express34.Router)();
-router34.use(health_default);
-router34.use(setup_default);
-router34.use(requireAuth);
-router34.use(dashboard_default);
-router34.use(members_default);
-router34.use(loans_default);
-router34.use(contributions_default);
-router34.use(investments_default);
-router34.use(compliance_default);
-router34.use(notifications_default);
-router34.use(audit_logs_default);
-router34.use(support_default);
-router34.use(risk_scoring_default);
-router34.use(interest_rates_default);
-router34.use(rollovers_default);
-router34.use(payroll_default);
-router34.use(mobile_features_default);
-router34.use(roles_default);
-router34.use(fraud_detection_default);
-router34.use(organizations_default);
-router34.use(analytics_default);
-router34.use(security_default);
-router34.use(wallets_default);
-router34.use(withdrawals_default);
-router34.use(verification_default);
-router34.use(referrals_default);
-router34.use(guarantors_default);
-router34.use(system_default);
-router34.use(reports_default);
-router34.use(sessions_default);
-router34.use(bulk_default);
-router34.use(reconciliation_default);
-router34.use(login_history_default);
-router34.use(excel_uploads_default);
-var routes_default = router34;
-
-// src/lib/logger.ts
-var import_pino = __toESM(require_pino(), 1);
-var isProduction = process.env.NODE_ENV === "production";
-var logger = (0, import_pino.default)({
-  level: process.env.LOG_LEVEL ?? "info",
-  redact: [
-    "req.headers.authorization",
-    "req.headers.cookie",
-    "res.headers['set-cookie']"
-  ],
-  ...isProduction ? {} : {
-    transport: {
-      target: "pino-pretty",
-      options: { colorize: true }
-    }
-  }
-});
+var router36 = (0, import_express36.Router)();
+router36.use(health_default);
+router36.use(auth_default);
+router36.use(password_reset_default);
+router36.use(setup_default);
+router36.use(requireAuth);
+router36.use(dashboard_default);
+router36.use(members_default);
+router36.use(loans_default);
+router36.use(contributions_default);
+router36.use(investments_default);
+router36.use(compliance_default);
+router36.use(notifications_default);
+router36.use(audit_logs_default);
+router36.use(support_default);
+router36.use(risk_scoring_default);
+router36.use(interest_rates_default);
+router36.use(rollovers_default);
+router36.use(payroll_default);
+router36.use(mobile_features_default);
+router36.use(roles_default);
+router36.use(fraud_detection_default);
+router36.use(organizations_default);
+router36.use(analytics_default);
+router36.use(security_default);
+router36.use(wallets_default);
+router36.use(withdrawals_default);
+router36.use(verification_default);
+router36.use(referrals_default);
+router36.use(guarantors_default);
+router36.use(system_default);
+router36.use(reports_default);
+router36.use(sessions_default);
+router36.use(bulk_default);
+router36.use(reconciliation_default);
+router36.use(login_history_default);
+router36.use(excel_uploads_default);
+var routes_default = router36;
 
 // src/app.ts
-if (process.env.NODE_ENV === "production" && !process.env.ALLOWED_ORIGIN) {
+if (!process.env.ALLOWED_ORIGIN) {
   logger.fatal(
     "ALLOWED_ORIGIN environment variable is not set. Refusing to start in production with a wildcard CORS origin. Set ALLOWED_ORIGIN to your frontend URL (e.g. https://app.coopvest.africa)."
   );
   process.exit(1);
 }
-var app = (0, import_express35.default)();
+var app = (0, import_express37.default)();
 app.use(helmet());
 app.use(
   (0, import_cors.default)({
@@ -38972,8 +39413,8 @@ app.use(
     }
   })
 );
-app.use(import_express35.default.json({ limit: "100kb" }));
-app.use(import_express35.default.urlencoded({ limit: "100kb", extended: true }));
+app.use(import_express37.default.json({ limit: "100kb" }));
+app.use(import_express37.default.urlencoded({ limit: "100kb", extended: true }));
 app.use("/api", routes_default);
 app.use((err, req, res, next) => {
   logger.error({ err }, "Unhandled error");
