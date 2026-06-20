@@ -15,10 +15,19 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Check if supabase is available on mount
+  // Check if supabase is available on mount and handle redirect errors
   useEffect(() => {
     if (!supabase) {
       setError("Authentication service not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.");
+      return;
+    }
+    
+    // Check for redirect error
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('error') === 'unauthorized') {
+      setError("Access denied. You don't have permission to access the admin dashboard.");
+      // Clean up URL
+      window.history.replaceState({}, '', '/');
     }
   }, []);
 
@@ -37,12 +46,30 @@ export default function Login() {
     const email = (form.elements.namedItem("email") as HTMLInputElement).value;
     const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: sessionData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (authError) {
       setError(authError.message);
       setIsLoading(false);
       return;
+    }
+
+    // Check if user has admin role
+    if (sessionData?.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', sessionData.user.id)
+        .maybeSingle();
+
+      const validAdminRoles = ['admin', 'super_admin', 'operator', 'finance', 'support'];
+      if (!profile?.role || !validAdminRoles.includes(profile.role)) {
+        // Sign out and show error
+        await supabase.auth.signOut();
+        setError("Access denied. You don't have permission to access the admin dashboard.");
+        setIsLoading(false);
+        return;
+      }
     }
 
     setLocation("/dashboard");
