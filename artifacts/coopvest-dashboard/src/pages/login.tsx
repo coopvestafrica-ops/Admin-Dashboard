@@ -8,6 +8,7 @@ import { ShieldCheck, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 // Fix #5: use toast instead of native alert()
 import { useToast } from "@/hooks/use-toast";
+import { isValidAdminRole } from "@/lib/permissions";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -24,9 +25,12 @@ export default function Login() {
     
     // Check for redirect error
     const params = new URLSearchParams(window.location.search);
-    if (params.get('error') === 'unauthorized') {
+    const error = params.get('error');
+    if (error === 'unauthorized') {
       setError("Access denied. You don't have permission to access the admin dashboard.");
-      // Clean up URL
+      window.history.replaceState({}, '', '/');
+    } else if (error === 'no_permission') {
+      setError("You don't have permission to access this page.");
       window.history.replaceState({}, '', '/');
     }
   }, []);
@@ -62,8 +66,7 @@ export default function Login() {
         .eq('id', sessionData.user.id)
         .maybeSingle();
 
-      const validAdminRoles = ['admin', 'superadmin', 'staff'];
-      if (!profile?.role || !validAdminRoles.includes(profile.role)) {
+      if (!isValidAdminRole(profile?.role ?? null)) {
         // Sign out and show error
         await supabase.auth.signOut();
         setError("Access denied. You don't have permission to access the admin dashboard.");

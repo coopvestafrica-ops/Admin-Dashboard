@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   LayoutDashboard, 
@@ -43,90 +43,100 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useUserRole } from "@/hooks/useUserRole";
+import { PAGES, ROUTE_TO_PAGE, hasPermission, PageKey } from "@/lib/permissions";
 
-const sidebarGroups = [
+// Sidebar items with page keys for permission checking
+const sidebarGroupsBase = [
   {
     title: "Core Operations",
     key: "core",
     items: [
-      { title: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-      { title: "Members", icon: Users, href: "/members" },
-      { title: "Loans", icon: CreditCard, href: "/loans" },
-      { title: "Contributions", icon: Wallet, href: "/contributions" },
-      { title: "Payroll", icon: Briefcase, href: "/payroll" },
-      { title: "Excel Manager", icon: FileSpreadsheet, href: "/excel-manager" },
-      { title: "Investments", icon: PieChart, href: "/investments" },
+      { title: "Dashboard", icon: LayoutDashboard, href: "/dashboard", page: PAGES.DASHBOARD },
+      { title: "Members", icon: Users, href: "/members", page: PAGES.MEMBERS },
+      { title: "Loans", icon: CreditCard, href: "/loans", page: PAGES.LOANS },
+      { title: "Contributions", icon: Wallet, href: "/contributions", page: PAGES.CONTRIBUTIONS },
+      { title: "Payroll", icon: Briefcase, href: "/payroll", page: PAGES.PAYROLL },
+      { title: "Excel Manager", icon: FileSpreadsheet, href: "/excel-manager", page: PAGES.EXCEL_MANAGER },
+      { title: "Investments", icon: PieChart, href: "/investments", page: PAGES.INVESTMENTS },
     ],
   },
   {
     title: "Financial Control",
     key: "finance",
     items: [
-      { title: "Financial Dashboard", icon: DollarSign, href: "/financial-dashboard" },
-      { title: "Wallet Management", icon: WalletCards, href: "/wallet-management" },
-      { title: "Deposit Verification", icon: BadgeDollarSign, href: "/deposit-verification" },
-      { title: "Withdrawal Approvals", icon: ArrowDownToLine, href: "/withdrawal-management" },
-      { title: "Guarantor System", icon: HandshakeIcon, href: "/guarantor-system" },
-      { title: "Interest Rates", icon: Percent, href: "/interest-rates" },
-      { title: "Reconciliation", icon: RefreshCw, href: "/reconciliation" },
+      { title: "Financial Dashboard", icon: DollarSign, href: "/financial-dashboard", page: PAGES.FINANCIAL_DASHBOARD },
+      { title: "Wallet Management", icon: WalletCards, href: "/wallet-management", page: PAGES.WALLET_MANAGEMENT },
+      { title: "Deposit Verification", icon: BadgeDollarSign, href: "/deposit-verification", page: PAGES.DEPOSIT_VERIFICATION },
+      { title: "Withdrawal Approvals", icon: ArrowDownToLine, href: "/withdrawal-management", page: PAGES.WITHDRAWAL_MANAGEMENT },
+      { title: "Guarantor System", icon: HandshakeIcon, href: "/guarantor-system", page: PAGES.GUARANTOR_SYSTEM },
+      { title: "Interest Rates", icon: Percent, href: "/interest-rates", page: PAGES.INTEREST_RATES },
+      { title: "Reconciliation", icon: RefreshCw, href: "/reconciliation", page: PAGES.RECONCILIATION },
     ],
   },
   {
     title: "Operations",
     key: "ops",
     items: [
-      { title: "System Settings", icon: Server, href: "/system-settings" },
-      { title: "Reports", icon: FileBarChart, href: "/reports" },
-      { title: "Bulk Operations", icon: Upload, href: "/bulk-operations" },
-      { title: "Session Management", icon: Monitor, href: "/sessions" },
-      { title: "Login History", icon: History, href: "/login-history" },
+      { title: "System Settings", icon: Server, href: "/system-settings", page: PAGES.SYSTEM_SETTINGS },
+      { title: "Reports", icon: FileBarChart, href: "/reports", page: PAGES.REPORTS },
+      { title: "Bulk Operations", icon: Upload, href: "/bulk-operations", page: PAGES.BULK_OPERATIONS },
+      { title: "Session Management", icon: Monitor, href: "/sessions", page: PAGES.SESSION_MANAGEMENT },
+      { title: "Login History", icon: History, href: "/login-history", page: PAGES.LOGIN_HISTORY },
     ],
   },
   {
     title: "Platform Control",
     key: "platform",
     items: [
-      { title: "Mobile App Controls", icon: Smartphone, href: "/mobile-feature-controls" },
-      { title: "Role Management", icon: UserCog, href: "/role-management" },
-      { title: "Security & Access", icon: Lock, href: "/security-access" },
-      { title: "Organizations", icon: Building2, href: "/organizations" },
-      { title: "Referral Program", icon: Gift, href: "/referral-program" },
+      { title: "Mobile App Controls", icon: Smartphone, href: "/mobile-feature-controls", page: PAGES.MOBILE_FEATURE_CONTROLS },
+      { title: "Role Management", icon: UserCog, href: "/role-management", page: PAGES.ROLE_MANAGEMENT },
+      { title: "Security & Access", icon: Lock, href: "/security-access", page: PAGES.SECURITY_ACCESS },
+      { title: "Organizations", icon: Building2, href: "/organizations", page: PAGES.ORGANIZATIONS },
+      { title: "Referral Program", icon: Gift, href: "/referral-program", page: PAGES.REFERRAL_PROGRAM },
     ],
   },
   {
     title: "Analytics & Risk",
     key: "analytics",
     items: [
-      { title: "Platform Analytics", icon: BarChart3, href: "/platform-analytics" },
-      { title: "Fraud Detection", icon: AlertTriangle, href: "/fraud-detection" },
-      { title: "Risk Scoring", icon: Activity, href: "/risk-scoring" },
-      { title: "KYC Verification", icon: BadgeCheck, href: "/user-verification" },
+      { title: "Platform Analytics", icon: BarChart3, href: "/platform-analytics", page: PAGES.PLATFORM_ANALYTICS },
+      { title: "Fraud Detection", icon: AlertTriangle, href: "/fraud-detection", page: PAGES.FRAUD_DETECTION },
+      { title: "Risk Scoring", icon: Activity, href: "/risk-scoring", page: PAGES.RISK_SCORING },
+      { title: "KYC Verification", icon: BadgeCheck, href: "/user-verification", page: PAGES.KYC_VERIFICATION },
     ],
   },
   {
     title: "Governance",
     key: "governance",
     items: [
-      { title: "Compliance", icon: ShieldCheck, href: "/compliance" },
-      { title: "Audit Logs", icon: FileText, href: "/audit-logs" },
+      { title: "Compliance", icon: ShieldCheck, href: "/compliance", page: PAGES.COMPLIANCE },
+      { title: "Audit Logs", icon: FileText, href: "/audit-logs", page: PAGES.AUDIT_LOGS },
     ],
   },
   {
     title: "Support",
     key: "support",
     items: [
-      { title: "Notifications", icon: Bell, href: "/notifications" },
-      { title: "Support Tickets", icon: LifeBuoy, href: "/support" },
+      { title: "Notifications", icon: Bell, href: "/notifications", page: PAGES.NOTIFICATIONS },
+      { title: "Support Tickets", icon: LifeBuoy, href: "/support", page: PAGES.SUPPORT_TICKETS },
     ],
   },
   {
     title: "Settings",
     key: "settings",
     items: [
-      { title: "Settings", icon: Settings, href: "/settings" },
+      { title: "Settings", icon: Settings, href: "/settings", page: PAGES.SETTINGS },
     ],
   },
 ];
+
+interface SidebarItem {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  href: string;
+  page: PageKey;
+}
 
 const STORAGE_KEY = "coopvest-sidebar-groups";
 
@@ -147,6 +157,19 @@ interface SidebarProps {
 export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: SidebarProps) {
   const [location] = useLocation();
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(loadCollapsedGroups);
+  const { role, isLoading } = useUserRole();
+
+  // Filter sidebar groups based on user role
+  const sidebarGroups = useMemo(() => {
+    if (!role) return [];
+    
+    return sidebarGroupsBase
+      .map(group => ({
+        ...group,
+        items: group.items.filter(item => hasPermission(role, item.page))
+      }))
+      .filter(group => group.items.length > 0);
+  }, [role]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsedGroups));
@@ -164,7 +187,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
         break;
       }
     }
-  }, [location]);
+  }, [location, sidebarGroups]);
 
   // Close mobile sidebar on route change
   useEffect(() => {
