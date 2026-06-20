@@ -43,6 +43,7 @@ import Reconciliation from "@/pages/reconciliation/index";
 import Sessions from "@/pages/sessions/index";
 import LoginHistory from "@/pages/login-history/index";
 import FinancialDashboard from "@/pages/financial-dashboard/index";
+import DepositVerification from "@/pages/deposit-verification/index";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -83,6 +84,7 @@ function Router() {
       <Route path="/security-access">{() => <ProtectedRoute component={SecurityAccess} />}</Route>
       <Route path="/wallet-management">{() => <ProtectedRoute component={WalletManagement} />}</Route>
       <Route path="/withdrawal-management">{() => <ProtectedRoute component={WithdrawalManagement} />}</Route>
+      <Route path="/deposit-verification">{() => <ProtectedRoute component={DepositVerification} />}</Route>
       <Route path="/user-verification">{() => <ProtectedRoute component={UserVerification} />}</Route>
       <Route path="/referral-program">{() => <ProtectedRoute component={ReferralProgram} />}</Route>
       <Route path="/guarantor-system">{() => <ProtectedRoute component={GuarantorSystem} />}</Route>

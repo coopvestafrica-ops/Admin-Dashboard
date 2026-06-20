@@ -37,6 +37,7 @@ import {
   ChevronDown,
   DollarSign,
   X,
+  BadgeDollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,7 @@ const sidebarGroups = [
     items: [
       { title: "Financial Dashboard", icon: DollarSign, href: "/financial-dashboard" },
       { title: "Wallet Management", icon: WalletCards, href: "/wallet-management" },
+      { title: "Deposit Verification", icon: BadgeDollarSign, href: "/deposit-verification" },
       { title: "Withdrawal Approvals", icon: ArrowDownToLine, href: "/withdrawal-management" },
       { title: "Guarantor System", icon: HandshakeIcon, href: "/guarantor-system" },
       { title: "Interest Rates", icon: Percent, href: "/interest-rates" },
