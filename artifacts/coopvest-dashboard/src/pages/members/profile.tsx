@@ -77,7 +77,7 @@ export default function MemberProfile() {
       setIsFetching(true);
       setLoadingError(null);
       try {
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token || '';
         
@@ -174,7 +174,7 @@ export default function MemberProfile() {
 
   // Direct API call for member updates
   const updateMemberApi = async (memberId: string, updates: any) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token || '';
 
@@ -197,7 +197,7 @@ export default function MemberProfile() {
 
   // Direct API call for role management
   const updateMemberRole = async (memberId: string, role: string) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token || '';
 
@@ -222,7 +222,7 @@ export default function MemberProfile() {
   const refreshMemberData = async () => {
     if (!memberIdFromUrl || !memberData?.id) return;
     
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token || '';
     
@@ -253,7 +253,7 @@ export default function MemberProfile() {
     }
     setSavingContribution(true);
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token || '';
       const response = await fetch(`${baseUrl}/api/contributions`, {

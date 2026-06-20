@@ -68,7 +68,7 @@ export default function Members() {
 
   // Direct API call for member updates
   const updateMemberApi = async (memberId: string, updates: any) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token || '';
 
@@ -91,7 +91,7 @@ export default function Members() {
 
   // Create new member
   const createMember = async (memberData: { firstName: string; lastName: string; email: string; phone: string }) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token || '';
 
@@ -114,7 +114,7 @@ export default function Members() {
 
   // Direct API call for role management (only super_admin can do this)
   const updateMemberRole = async (memberId: string, role: string) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token || '';
 
@@ -137,7 +137,7 @@ export default function Members() {
 
   // Direct API call for deleting members (only super_admin can do this)
   const deleteMember = async (memberId: string) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token || '';
 

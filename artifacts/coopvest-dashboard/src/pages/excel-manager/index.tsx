@@ -77,7 +77,7 @@ export default function ExcelManager() {
     setLoading(true);
     try {
       const token = await getAccessToken();
-      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
       const response = await fetch(`${apiUrl}/api/excel-uploads?limit=100`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -125,7 +125,7 @@ export default function ExcelManager() {
     setUploading(true);
     try {
       const token = await getAccessToken();
-      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
       
       // Count rows in the file (approximate for CSV)
       let rowCount = 0;
