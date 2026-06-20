@@ -5,6 +5,8 @@
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
   "framework": "vite",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://coopvest-api.onrender.com/api/$1" }
+    { "source": "/api/v1/admin/(.*)", "destination": "https://coopvest-api.onrender.com/api/v1/admin/$1" },
+    { "source": "/api/v2/admin/(.*)", "destination": "https://coopvest-api.onrender.com/api/v2/admin/$1" },
+    { "source": "/api/(.*)", "destination": "https://coopvest-api.onrender.com/api/v2/admin/$1" }
   ]
 }

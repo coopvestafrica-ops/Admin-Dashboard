@@ -18,6 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { api, getAdminApiUrl } from "@/lib/api";
 
 // Type for stats cards
 interface StatCard {
@@ -68,93 +69,22 @@ export default function Members() {
 
   // Direct API call for member updates
   const updateMemberApi = async (memberId: string, updates: any) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token || '';
-
-    const response = await fetch(`${baseUrl}/api/members/${memberId}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(updates),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Update failed');
-    }
-
-    return response.json();
+    return api.put<{ success: boolean }>(`/members/${memberId}`, updates);
   };
 
   // Create new member
   const createMember = async (memberData: { firstName: string; lastName: string; email: string; phone: string }) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token || '';
-
-    const response = await fetch(`${baseUrl}/api/members`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(memberData),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to create member');
-    }
-
-    return response.json();
+    return api.post<{ success: boolean; member: any }>('/members', memberData);
   };
 
   // Direct API call for role management (only super_admin can do this)
   const updateMemberRole = async (memberId: string, role: string) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token || '';
-
-    const response = await fetch(`${baseUrl}/api/members/${memberId}/role`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ role }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to update role');
-    }
-
-    return response.json();
+    return api.post<{ success: boolean }>(`/members/${memberId}/role`, { role });
   };
 
   // Direct API call for deleting members (only super_admin can do this)
   const deleteMember = async (memberId: string) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token || '';
-
-    const response = await fetch(`${baseUrl}/api/members/${memberId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to delete member');
-    }
-
-    return response.json();
+    return api.delete<{ success: boolean }>(`/members/${memberId}`);
   };
 
   // Map tabs to filter params

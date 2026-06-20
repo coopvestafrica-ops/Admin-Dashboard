@@ -2,16 +2,19 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import { setBaseUrl, setAuthTokenGetter } from "@/lib/api-client";
-import { getAccessToken } from "@/lib/supabase";
+import { getApiBaseUrl } from "@/lib/api";
 
 // Initialize API client with the correct backend URL
-// Note: Don't include /api here - the generated API client already adds /api prefix
-const apiUrl = import.meta.env.VITE_API_BASE_URL || "https://coopvest-api.onrender.com";
-if (apiUrl) {
-  setBaseUrl(apiUrl);
-}
+// Backend routes are at /api/v2/admin/*, but API client uses /api/*
+const baseUrl = `${getApiBaseUrl()}/api/v2/admin`;
+setBaseUrl(baseUrl);
 
-// Set up auth token getter for API calls
-setAuthTokenGetter(getAccessToken);
+// Set up auth token getter for API calls using the api-client format
+setAuthTokenGetter(async () => {
+  const { supabase } = await import("@/lib/supabase");
+  if (!supabase) return null;
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token || null;
+});
 
 createRoot(document.getElementById("root")!).render(<App />);

@@ -22,33 +22,7 @@ import {
   ClipboardCheck, Download, ToggleLeft, Database, Mail, Bell, FileSpreadsheet
 } from "lucide-react";
 
-// ── API Base URL ────────────────────────────────────────────────────────────────
-// Use relative URL - Vercel will proxy /api/* to Render API
-// For local dev, use localhost; for production, use relative path
-const isDev = import.meta.env.DEV;
-const API_BASE = isDev 
-  ? (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001')
-  : '';  // Relative URL for Vercel proxy
-
-// ── Get auth headers ───────────────────────────────────────────────────────────
-function getAuthHeaders(): HeadersInit {
-  // Try to get the Supabase auth token from localStorage
-  const sbToken = localStorage.getItem('sb-nyoauzqezpxeonmrxxgi-auth-token');
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  
-  if (sbToken) {
-    try {
-      const tokenData = JSON.parse(sbToken);
-      if (tokenData.access_token) {
-        headers["Authorization"] = `Bearer ${tokenData.access_token}`;
-      }
-    } catch (e) {
-      console.warn('Failed to parse auth token:', e);
-    }
-  }
-  
-  return headers;
-}
+import { api } from "@/lib/api";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Role {
@@ -148,14 +122,7 @@ export default function RoleManagement() {
   // Fetch admins from API
   const fetchAdmins = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/roles`, {
-        headers: getAuthHeaders(),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to fetch admins");
-      }
-      const data = await res.json();
+      const data = await api.get<{ success: boolean; admins: AdminAccount[] }>('/admins');
       const adminsData: AdminAccount[] = Array.isArray(data.admins) ? data.admins : [];
       setAdmins(adminsData);
     } catch (err: any) {
@@ -169,19 +136,11 @@ export default function RoleManagement() {
 
   const fetchPermissions = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/roles/permissions`, {
-        headers: getAuthHeaders(),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to fetch permissions");
-      }
-      const data = await res.json();
-      const permsData: Permission[] = Array.isArray(data.permissions) ? data.permissions : [];
-      setPermissions(permsData);
+      const data = await api.get<{ success: boolean; roles: Role[] }>('/roles');
+      const rolesData: Role[] = Array.isArray(data.roles) ? data.roles : [];
+      setRoles(rolesData);
     } catch (err: any) {
       console.error('Failed to fetch permissions:', err);
-      setPermissions([]);
     } finally {
       setLoadingPerms(false);
     }
@@ -247,18 +206,10 @@ export default function RoleManagement() {
     if (!editAdmin) return;
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/api/roles/${editAdmin.id}`, {
-        method: "PUT",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          role: formRole,
-          status: formStatus ? "active" : "inactive",
-        }),
+      await api.patch(`/admins/${editAdmin.id}/role`, {
+        role: formRole,
+        is_active: formStatus,
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to update role");
-      }
       
       toast({ title: "Success", description: "Role updated successfully" });
       setEditAdmin(null);
@@ -274,33 +225,11 @@ export default function RoleManagement() {
     }
   }
 
-  // Save custom permissions
+  // Save custom permissions (simplified - permissions are role-based)
   async function savePermissions() {
-    if (!permEditAdmin) return;
-    setSaving(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/roles/${permEditAdmin.id}/permissions`, {
-        method: "PUT",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ permissions: selectedPermissions }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to update permissions");
-      }
-      
-      toast({ title: "Success", description: "Permissions updated successfully" });
-      setPermEditAdmin(null);
-      fetchAdmins();
-    } catch (err: any) {
-      toast({ 
-        title: "Error", 
-        description: err.message || "Failed to update permissions", 
-        variant: "destructive" 
-      });
-    } finally {
-      setSaving(false);
-    }
+    // Permissions are managed via roles. Custom permissions UI is a placeholder.
+    toast({ title: "Info", description: "Permissions are managed via roles" });
+    setPermEditAdmin(null);
   }
 
   // Assign new role to user by email
@@ -311,15 +240,9 @@ export default function RoleManagement() {
     }
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/api/roles`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ email: formEmail, role: formRole }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      await api.post('/admins', { email: formEmail, role: formRole });
       
-      toast({ title: "Success", description: data.message || `Role '${formRole}' assigned successfully` });
+      toast({ title: "Success", description: `Role '${formRole}' assigned successfully` });
       setShowCreateDialog(false);
       setFormEmail("");
       setFormRole("admin");
@@ -340,14 +263,7 @@ export default function RoleManagement() {
     if (!confirm("Are you sure you want to revoke this admin's access?")) return;
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/api/roles/${adminId}`, { 
-        method: "DELETE",
-        headers: getAuthHeaders(),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to revoke access");
-      }
+      await api.delete(`/admins/${adminId}`);
       toast({ title: "Success", description: "Admin access revoked" });
       fetchAdmins();
     } catch (err: any) {

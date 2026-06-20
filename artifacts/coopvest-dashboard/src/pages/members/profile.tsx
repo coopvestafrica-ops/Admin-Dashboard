@@ -23,6 +23,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { api, getAdminApiUrl } from "@/lib/api";
 
 const statusColors: Record<string, string> = {
   active: "bg-emerald-100 text-emerald-800",
@@ -77,51 +78,19 @@ export default function MemberProfile() {
       setIsFetching(true);
       setLoadingError(null);
       try {
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
-        const { data: { session } } = await supabase.auth.getSession();
-        const token = session?.access_token || '';
-        
         // Fetch member directly by ID
-        const response = await fetch(`${baseUrl}/api/members/${memberIdFromUrl}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        const member = await api.get<any>(`/members/${memberIdFromUrl}`);
+        setMemberData(member);
         
-        if (response.ok) {
-          const member = await response.json();
-          setMemberData(member);
-          
-          // Fetch related data for this member
-          fetchRelatedData(baseUrl, token, memberIdFromUrl);
-        } else if (response.status === 404) {
+        // Fetch related data for this member
+        fetchRelatedData(memberIdFromUrl);
+      } catch (err: any) {
+        console.error('Error fetching member:', err);
+        if (err.message?.includes('404') || err.message?.includes('not found')) {
           setLoadingError('Member not found');
         } else {
-          // Try fetching from the list as fallback
-          const listResponse = await fetch(`${baseUrl}/api/members?limit=100`, {
-            headers: { 'Authorization': `Bearer ${token}` },
-          });
-          if (listResponse.ok) {
-            const listData = await listResponse.json();
-            const members = listData.data || listData;
-            const found = members.find((m: any) => 
-              String(m.id) === String(memberIdFromUrl) || 
-              String(m.memberId) === String(memberIdFromUrl)
-            );
-            if (found) {
-              setMemberData(found);
-              fetchRelatedData(baseUrl, token, found.id);
-            } else {
-              setLoadingError('Member not found');
-            }
-          } else {
-            setLoadingError('Failed to load member');
-          }
+          setLoadingError('Network error');
         }
-      } catch (err) {
-        console.error('Error fetching member:', err);
-        setLoadingError('Network error');
       } finally {
         setIsFetching(false);
       }
@@ -131,42 +100,24 @@ export default function MemberProfile() {
   }, [memberIdFromUrl]);
 
   // Fetch loans, contributions, investments for this member
-  const fetchRelatedData = async (baseUrl: string, token: string, profileId: string) => {
+  const fetchRelatedData = async (profileId: string) => {
     try {
-      // Fetch loans
-      const loansRes = await fetch(`${baseUrl}/api/loans?profileId=${profileId}&limit=50`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (loansRes.ok) {
-        const loansJson = await loansRes.json();
-        setLoansData(loansJson.data || []);
-      }
+      const loansJson = await api.get<any>(`/loans?profileId=${profileId}&limit=50`);
+      setLoansData(loansJson.data || []);
     } catch (e) {
       console.log('Loans fetch error:', e);
     }
 
     try {
-      // Fetch contributions
-      const contribRes = await fetch(`${baseUrl}/api/contributions?profileId=${profileId}&limit=50`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (contribRes.ok) {
-        const contribJson = await contribRes.json();
-        setContributionsData(contribJson.data || []);
-      }
+      const contribJson = await api.get<any>(`/contributions?profileId=${profileId}&limit=50`);
+      setContributionsData(contribJson.data || []);
     } catch (e) {
       console.log('Contributions fetch error:', e);
     }
 
     try {
-      // Fetch investments
-      const investRes = await fetch(`${baseUrl}/api/investments?profile_id=${profileId}&limit=50`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (investRes.ok) {
-        const investJson = await investRes.json();
-        setInvestmentsData(investJson.data || []);
-      }
+      const investJson = await api.get<any>(`/investments?profile_id=${profileId}&limit=50`);
+      setInvestmentsData(investJson.data || []);
     } catch (e) {
       console.log('Investments fetch error:', e);
     }
@@ -174,48 +125,12 @@ export default function MemberProfile() {
 
   // Direct API call for member updates
   const updateMemberApi = async (memberId: string, updates: any) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token || '';
-
-    const response = await fetch(`${baseUrl}/api/members/${memberId}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(updates),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Update failed');
-    }
-
-    return response.json();
+    return api.put<{ success: boolean }>(`/members/${memberId}`, updates);
   };
 
   // Direct API call for role management
   const updateMemberRole = async (memberId: string, role: string) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token || '';
-
-    const response = await fetch(`${baseUrl}/api/members/${memberId}/role`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ role }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to update role');
-    }
-
-    return response.json();
+    return api.post<{ success: boolean }>(`/members/${memberId}/role`, { role });
   };
 
   // Refresh member data
