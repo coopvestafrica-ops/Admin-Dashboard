@@ -26,8 +26,8 @@ export default function Login() {
     // Check for redirect error
     const params = new URLSearchParams(window.location.search);
     const error = params.get('error');
-    if (error === 'unauthorized') {
-      setError("Access denied. You don't have permission to access the admin dashboard.");
+    if (error === 'unauthorized' || error === 'not_admin') {
+      setError("Access denied. Only authorized administrators can access this dashboard.");
       window.history.replaceState({}, '', '/');
     } else if (error === 'no_permission') {
       setError("You don't have permission to access this page.");
@@ -58,7 +58,7 @@ export default function Login() {
       return;
     }
 
-    // Check if user has admin role
+    // Check if user has admin role (must be super_admin, admin, operator, or viewer)
     if (sessionData?.user) {
       const { data: profile } = await supabase
         .from('profiles')
@@ -67,9 +67,9 @@ export default function Login() {
         .maybeSingle();
 
       if (!isValidAdminRole(profile?.role ?? null)) {
-        // Sign out and show error
+        // Sign out and show error - only admins, operators, and viewers can access
         await supabase.auth.signOut();
-        setError("Access denied. You don't have permission to access the admin dashboard.");
+        setError("Access denied. Only authorized administrators can access this dashboard.");
         setIsLoading(false);
         return;
       }

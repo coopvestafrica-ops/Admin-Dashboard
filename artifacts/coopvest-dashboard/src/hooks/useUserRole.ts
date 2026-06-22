@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Role, isValidAdminRole, getAccessiblePages, hasPermission, PageKey } from '@/lib/permissions';
+import { Role, isValidAdminRole, isElevatedAdminRole, getAccessiblePages, hasPermission, PageKey, ADMIN_ROLES } from '@/lib/permissions';
 
 interface UserProfile {
   id: string;
@@ -11,6 +11,7 @@ interface UseUserRoleReturn {
   role: Role | null;
   isLoading: boolean;
   isAdmin: boolean;
+  isElevatedAdmin: boolean;
   accessiblePages: PageKey[];
   hasPagePermission: (page: PageKey) => boolean;
   refreshRole: () => Promise<void>;
@@ -86,6 +87,7 @@ export function useUserRole(): UseUserRoleReturn {
     role: profile?.role ?? null,
     isLoading,
     isAdmin: isValidAdminRole(profile?.role ?? null),
+    isElevatedAdmin: isElevatedAdminRole(profile?.role ?? null),
     accessiblePages: getAccessiblePages(profile?.role ?? null),
     hasPagePermission,
     refreshRole: fetchProfile,

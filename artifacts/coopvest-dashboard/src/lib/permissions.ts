@@ -2,7 +2,10 @@
  * Role-Based Access Control (RBAC) Configuration
  * 
  * Defines which pages each role can access.
- * Roles hierarchy: superadmin > admin > staff
+ * Roles hierarchy: super_admin > admin > operator > viewer > member
+ * 
+ * NOTE: Role names must match the database (profiles.role column)
+ * Valid roles: 'super_admin', 'admin', 'operator', 'viewer', 'member'
  */
 
 // Page identifiers - must match route paths
@@ -60,18 +63,22 @@ export const PAGES = {
 } as const;
 
 export type PageKey = typeof PAGES[keyof typeof PAGES];
-export type Role = 'superadmin' | 'admin' | 'staff';
+
+// Role types must match database schema
+export type Role = 'super_admin' | 'admin' | 'operator' | 'viewer' | 'member';
 
 // Role hierarchy - higher roles inherit permissions from lower roles
 export const ROLE_HIERARCHY: Record<Role, number> = {
-  superadmin: 3,
-  admin: 2,
-  staff: 1,
+  super_admin: 4,
+  admin: 3,
+  operator: 2,
+  viewer: 1,
+  member: 0,
 };
 
 // Page permissions by role
 export const ROLE_PERMISSIONS: Record<Role, PageKey[]> = {
-  superadmin: Object.values(PAGES), // Full access
+  super_admin: Object.values(PAGES), // Full access to everything
   
   admin: [
     // Core Operations
@@ -122,17 +129,26 @@ export const ROLE_PERMISSIONS: Record<Role, PageKey[]> = {
     PAGES.PROFILE,
   ],
   
-  staff: [
-    // Core Operations - limited
+  operator: [
+    // Core Operations
     PAGES.DASHBOARD,
     PAGES.MEMBERS,
     PAGES.MEMBER_PROFILE,
     PAGES.LOANS,
     PAGES.CONTRIBUTIONS,
+    PAGES.INVESTMENTS,
     
-    // Financial Control - view only for some
+    // Financial Control
     PAGES.WALLET_MANAGEMENT,
     PAGES.DEPOSIT_VERIFICATION,
+    PAGES.WITHDRAWAL_MANAGEMENT,
+    
+    // Operations
+    PAGES.REPORTS,
+    
+    // Analytics & Risk
+    PAGES.PLATFORM_ANALYTICS,
+    PAGES.RISK_SCORING,
     
     // Support
     PAGES.SUPPORT_TICKETS,
@@ -142,6 +158,18 @@ export const ROLE_PERMISSIONS: Record<Role, PageKey[]> = {
     PAGES.SETTINGS,
     PAGES.PROFILE,
   ],
+  
+  viewer: [
+    // Read-only access to basic features
+    PAGES.DASHBOARD,
+    PAGES.MEMBERS,
+    PAGES.MEMBER_PROFILE,
+    PAGES.NOTIFICATIONS,
+    PAGES.SETTINGS,
+    PAGES.PROFILE,
+  ],
+  
+  member: [], // No access to admin dashboard
 };
 
 // Map route paths to page keys
@@ -214,13 +242,38 @@ export function hasPrivilege(roleA: Role, roleB: Role): boolean {
 }
 
 /**
- * Valid admin roles
+ * Valid admin roles (roles that can access the admin dashboard)
+ * Order matters: more privileged roles first for display purposes
  */
-export const VALID_ADMIN_ROLES: Role[] = ['superadmin', 'admin', 'staff'];
+export const ADMIN_ROLES: Role[] = ['super_admin', 'admin', 'operator', 'viewer'];
 
 /**
- * Check if a role is a valid admin role
+ * Check if a role is a valid admin role (can access admin dashboard)
  */
 export function isValidAdminRole(role: string | null | undefined): role is Role {
-  return !!role && VALID_ADMIN_ROLES.includes(role as Role);
+  if (!role) return false;
+  return ADMIN_ROLES.includes(role as Role);
+}
+
+/**
+ * Check if a role has elevated admin privileges (can manage other admins)
+ * Only super_admin and admin have elevated privileges
+ */
+export function isElevatedAdminRole(role: string | null | undefined): boolean {
+  if (!role) return false;
+  return role === 'super_admin' || role === 'admin';
+}
+
+/**
+ * Get display name for a role
+ */
+export function getRoleDisplayName(role: Role): string {
+  const names: Record<Role, string> = {
+    super_admin: 'Super Admin',
+    admin: 'Admin',
+    operator: 'Operator',
+    viewer: 'Viewer',
+    member: 'Member',
+  };
+  return names[role] || role;
 }

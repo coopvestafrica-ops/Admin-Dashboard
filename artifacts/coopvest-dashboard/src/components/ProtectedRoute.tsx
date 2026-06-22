@@ -45,9 +45,17 @@ export function ProtectedRoute({ component: Component }: ProtectedRouteProps) {
   useEffect(() => {
     if (roleLoading) return;
 
-    // Must be logged in and have valid admin role
-    if (!authenticated || !isValidAdminRole(role)) {
+    // Must be logged in AND have a valid admin role (super_admin, admin, operator, or viewer)
+    if (!authenticated) {
       setHasAccess(false);
+      return;
+    }
+
+    // Check if user has a valid admin role
+    if (!isValidAdminRole(role)) {
+      // User is logged in but not an admin - redirect to login with error
+      setHasAccess(false);
+      setLocation("/?error=not_admin");
       return;
     }
 
