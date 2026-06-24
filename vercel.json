@@ -4,9 +4,11 @@
   "buildCommand": "cd artifacts/coopvest-dashboard && npx vite build --config vite.config.ts",
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
   "framework": "vite",
-  "rewrites": [
-    { "source": "/api/v1/admin/(.*)", "destination": "https://coopvest-api.onrender.com/api/v1/admin/$1" },
-    { "source": "/api/v2/admin/(.*)", "destination": "https://coopvest-api.onrender.com/api/v2/admin/$1" },
-    { "source": "/api/(.*)", "destination": "https://coopvest-api.onrender.com/api/v2/admin/$1" }
+  "routes": [
+    { "src": "/api/v1/admin/(.*)", "dest": "https://coopvest-api.onrender.com/api/v1/admin/$1" },
+    { "src": "/api/v2/admin/(.*)", "dest": "https://coopvest-api.onrender.com/api/v2/admin/$1" },
+    { "src": "/api/(.*)", "dest": "https://coopvest-api.onrender.com/api/v2/admin/$1" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
