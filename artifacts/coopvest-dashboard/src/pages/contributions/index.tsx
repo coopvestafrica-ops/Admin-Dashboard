@@ -4,9 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useGetContributions, useGetContributionSummary, useGetMonthlyContributions } from "@/lib/api-client";
+import { useGetContributions, useGetContributionSummary, useGetMonthlyContributions, useGetDeposits, useGetDepositSummary, useVerifyDeposit, useRejectDeposit } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/format";
-import { Search, Wallet, TrendingUp, CheckCircle, AlertCircle, XCircle, Download, Upload, RefreshCw, PlusCircle, FileSpreadsheet, ArrowDownUp } from "lucide-react";
+import { Search, Wallet, TrendingUp, CheckCircle, AlertCircle, XCircle, Download, Upload, RefreshCw, PlusCircle, FileSpreadsheet, ArrowDownUp, Banknote, Clock, Check, X, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,22 +23,30 @@ const statusColors: Record<string, string> = {
   pending: "bg-amber-100 text-amber-800",
   overdue: "bg-red-100 text-red-800",
   reversed: "bg-gray-100 text-gray-600",
+  verified: "bg-emerald-100 text-emerald-800",
+  rejected: "bg-red-100 text-red-800",
+  cancelled: "bg-gray-100 text-gray-600",
 };
 
-type DialogType = "approve" | "reverse" | "adjust" | "add" | "addSingle" | null;
+type DialogType = "approve" | "reverse" | "adjust" | "add" | "addSingle" | "verifyDeposit" | "rejectDeposit" | null;
 
 export default function Contributions() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("");
   const [page, setPage] = useState(1);
   const [activeTab, setActiveTab] = useState("all");
-  const [dialog, setDialog] = useState<{ type: DialogType; contributionId?: number; memberName?: string }>({ type: null });
+  const [dialog, setDialog] = useState<{ type: DialogType; contributionId?: number; memberName?: string; depositId?: string }>({ type: null });
   const [adjustAmount, setAdjustAmount] = useState("");
   const [adjustNote, setAdjustNote] = useState("");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Deposit page state
+  const [depositPage, setDepositPage] = useState(1);
+  const [depositStatus, setDepositStatus] = useState<string>("");
+  const [depositActionNote, setDepositActionNote] = useState("");
 
   // Single contribution form state
   const [singleAmount, setSingleAmount] = useState("");
@@ -53,6 +61,16 @@ export default function Contributions() {
   const { data: summary, isLoading: loadingSummary } = useGetContributionSummary();
   const { data, isLoading, refetch } = useGetContributions({ page, limit: 20 });
   const { data: trendsRaw } = useGetMonthlyContributions();
+
+  // Deposit hooks
+  const { data: depositSummary, isLoading: loadingDepositSummary } = useGetDepositSummary();
+  const { data: depositsData, isLoading: loadingDeposits, refetch: refetchDeposits } = useGetDeposits({ 
+    page: depositPage, 
+    limit: 20,
+    status: depositStatus as "pending" | "verified" | "rejected" | "cancelled" | undefined
+  });
+  const verifyDepositMutation = useVerifyDeposit();
+  const rejectDepositMutation = useRejectDeposit();
 
   const contributions = Array.isArray(data?.data) ? data.data : [];
   const trendsData = Array.isArray(trendsRaw) ? trendsRaw : [];
@@ -241,6 +259,7 @@ export default function Contributions() {
             <TabsTrigger value="pending">Pending Approval</TabsTrigger>
             <TabsTrigger value="missed">Missed / Overdue</TabsTrigger>
             <TabsTrigger value="trends">Contribution Trends</TabsTrigger>
+            <TabsTrigger value="deposits">Deposits</TabsTrigger>
           </TabsList>
 
           {/* All + Pending + Missed */}
@@ -423,6 +442,169 @@ export default function Contributions() {
                     })}
                   </tbody>
                 </table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Deposits Tab */}
+          <TabsContent value="deposits" className="mt-4 space-y-4">
+            {/* Deposit Summary Stats */}
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {[
+                { label: "Pending", value: depositSummary?.pendingCount, amount: depositSummary?.pendingAmount, icon: Clock, color: "text-amber-500" },
+                { label: "Verified", value: depositSummary?.verifiedCount, amount: depositSummary?.verifiedAmount, icon: CheckCircle, color: "text-emerald-600" },
+                { label: "Rejected", value: depositSummary?.rejectedCount, amount: null, icon: XCircle, color: "text-red-500" },
+                { label: "Total", value: depositSummary?.totalCount, amount: null, icon: Banknote, color: "text-primary" },
+              ].map(s => (
+                <Card key={s.label}>
+                  <CardContent className="p-4 flex items-center gap-3">
+                    {loadingDepositSummary ? <Skeleton className="h-10 w-full" /> : (
+                      <>
+                        <div className="p-2 rounded-lg bg-muted">
+                          <s.icon className={`h-5 w-5 ${s.color}`} />
+                        </div>
+                        <div>
+                          <div className="text-xl font-bold">{(s.value ?? 0).toLocaleString()}</div>
+                          <div className="text-xs text-muted-foreground">{s.label}</div>
+                          {s.amount !== null && (
+                            <div className="text-xs font-medium text-muted-foreground">{formatCurrency(s.amount)}</div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Deposits Table */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Search by member name, email, or reference…" 
+                      className="pl-9" 
+                      value={search} 
+                      onChange={(e) => setSearch(e.target.value)} 
+                    />
+                  </div>
+                  <Select value={depositStatus} onValueChange={(v) => { setDepositStatus(v === "all" ? "" : v); setDepositPage(1); }}>
+                    <SelectTrigger className="w-36"><SelectValue placeholder="Status" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="verified">Verified</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="sm" onClick={() => refetchDeposits()}>
+                    <RefreshCw className="mr-2 h-4 w-4" /> Refresh
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {loadingDeposits ? (
+                  <div className="space-y-3">
+                    {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b bg-muted/40 text-xs font-semibold uppercase text-muted-foreground">
+                          <th className="px-4 py-3 text-left">Member</th>
+                          <th className="px-4 py-3 text-right">Amount</th>
+                          <th className="px-4 py-3 text-left">Bank Details</th>
+                          <th className="px-4 py-3 text-left">Status</th>
+                          <th className="px-4 py-3 text-left">Date</th>
+                          <th className="px-4 py-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {(depositsData?.data ?? []).length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                              No deposit requests found
+                            </td>
+                          </tr>
+                        ) : (
+                          (depositsData?.data ?? []).map((deposit) => (
+                            <tr key={deposit.id} className="hover:bg-muted/30">
+                              <td className="px-4 py-3">
+                                <div className="font-medium">{deposit.memberName}</div>
+                                <div className="text-xs text-muted-foreground">{deposit.memberEmail || deposit.memberPhone || "No contact"}</div>
+                              </td>
+                              <td className="px-4 py-3 text-right font-medium">
+                                {formatCurrency(deposit.amount)}
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="text-xs">
+                                  {deposit.bankName && <div>{deposit.bankName}</div>}
+                                  {deposit.senderAccountNumber && <div className="text-muted-foreground">****{deposit.senderAccountNumber.slice(-4)}</div>}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${statusColors[deposit.status] || ""}`}>
+                                  {deposit.status}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-xs text-muted-foreground">
+                                {new Date(deposit.createdAt).toLocaleDateString()}
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="flex items-center justify-end gap-1">
+                                  {deposit.paymentProofUrl && (
+                                    <Button variant="ghost" size="sm" asChild>
+                                      <a href={deposit.paymentProofUrl} target="_blank" rel="noreferrer">
+                                        <Eye className="h-4 w-4" />
+                                      </a>
+                                    </Button>
+                                  )}
+                                  {deposit.status === "pending" && (
+                                    <>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                        onClick={() => setDialog({ type: "verifyDeposit", depositId: deposit.id, memberName: deposit.memberName })}
+                                      >
+                                        <Check className="h-4 w-4" />
+                                      </Button>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        onClick={() => setDialog({ type: "rejectDeposit", depositId: deposit.id, memberName: deposit.memberName })}
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+
+                    {/* Pagination */}
+                    {(depositsData?.total ?? 0) > 20 && (
+                      <div className="flex items-center justify-between px-4 py-3 border-t">
+                        <div className="text-xs text-muted-foreground">
+                          Showing {((depositPage - 1) * 20) + 1} to {Math.min(depositPage * 20, depositsData?.total ?? 0)} of {depositsData?.total} deposits
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" disabled={depositPage === 1} onClick={() => setDepositPage(p => p - 1)}>Previous</Button>
+                          <Button variant="outline" size="sm" disabled={depositPage >= Math.ceil((depositsData?.total ?? 0) / 20)} onClick={() => setDepositPage(p => p + 1)}>Next</Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -610,6 +792,99 @@ export default function Contributions() {
             <Button variant="outline" onClick={() => { setDialog({ type: null }); resetSingleContributionForm(); }}>Cancel</Button>
             <Button onClick={submitSingleContribution} disabled={!selectedMember || !singleAmount || !singleMonth || submitting}>
               {submitting ? "Submitting…" : "Record Contribution"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Verify Deposit Dialog */}
+      <Dialog open={dialog.type === "verifyDeposit"} onOpenChange={() => { setDialog({ type: null }); setDepositActionNote(""); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-emerald-600" /> Verify Deposit
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              Verify deposit of <span className="font-semibold text-foreground">{dialog.memberName}</span>? This will credit their savings and wallet balance.
+            </p>
+            <div className="space-y-1.5">
+              <Label>Note (optional)</Label>
+              <Textarea 
+                placeholder="Add a note about this verification…" 
+                value={depositActionNote} 
+                onChange={(e) => setDepositActionNote(e.target.value)} 
+                rows={2} 
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDialog({ type: null }); setDepositActionNote(""); }}>Cancel</Button>
+            <Button 
+              onClick={async () => {
+                if (!dialog.depositId) return;
+                try {
+                  await verifyDepositMutation.mutateAsync({ id: dialog.depositId, adminNotes: depositActionNote });
+                  toast({ title: "Success", description: "Deposit verified successfully. Member balance updated." });
+                  setDialog({ type: null });
+                  setDepositActionNote("");
+                } catch (err) {
+                  toast({ title: "Error", description: "Failed to verify deposit", variant: "destructive" });
+                }
+              }}
+              disabled={verifyDepositMutation.isPending}
+            >
+              {verifyDepositMutation.isPending ? "Verifying…" : "Verify Deposit"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Deposit Dialog */}
+      <Dialog open={dialog.type === "rejectDeposit"} onOpenChange={() => { setDialog({ type: null }); setDepositActionNote(""); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-600" /> Reject Deposit
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              Reject deposit from <span className="font-semibold text-foreground">{dialog.memberName}</span>? No balance changes will be made.
+            </p>
+            <div className="space-y-1.5">
+              <Label>Reason for rejection *</Label>
+              <Textarea 
+                placeholder="Explain why this deposit is being rejected…" 
+                value={depositActionNote} 
+                onChange={(e) => setDepositActionNote(e.target.value)} 
+                rows={3} 
+                required
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDialog({ type: null }); setDepositActionNote(""); }}>Cancel</Button>
+            <Button 
+              variant="destructive"
+              onClick={async () => {
+                if (!dialog.depositId || !depositActionNote.trim()) {
+                  toast({ title: "Error", description: "Please provide a reason for rejection", variant: "destructive" });
+                  return;
+                }
+                try {
+                  await rejectDepositMutation.mutateAsync({ id: dialog.depositId, adminNotes: depositActionNote });
+                  toast({ title: "Success", description: "Deposit rejected." });
+                  setDialog({ type: null });
+                  setDepositActionNote("");
+                } catch (err) {
+                  toast({ title: "Error", description: "Failed to reject deposit", variant: "destructive" });
+                }
+              }}
+              disabled={rejectDepositMutation.isPending}
+            >
+              {rejectDepositMutation.isPending ? "Rejecting…" : "Reject Deposit"}
             </Button>
           </DialogFooter>
         </DialogContent>
