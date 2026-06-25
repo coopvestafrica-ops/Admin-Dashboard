@@ -37,6 +37,7 @@ import bulkRouter from "./bulk";
 import reconciliationRouter from "./reconciliation";
 import loginHistoryRouter from "./login_history";
 import excelUploadsRouter from "./excel-uploads";
+import depositsRouter from "./deposits";
 
 const router: IRouter = Router();
 
@@ -87,5 +88,6 @@ router.use(bulkRouter);
 router.use(reconciliationRouter);
 router.use(loginHistoryRouter);
 router.use(excelUploadsRouter);
+router.use(depositsRouter);
 
 export default router;
