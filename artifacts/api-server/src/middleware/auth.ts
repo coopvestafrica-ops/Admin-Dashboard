@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { supabase } from "@workspace/db";
+import { supabase } from "../lib/supabase";
 
 // Extend Express Request to carry the authenticated user and their role
 export interface AuthenticatedRequest extends Request {

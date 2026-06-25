@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
-import { supabase, splitName } from "@workspace/db";
+import { supabase, splitName } from "../lib/supabase";
 // Fix #2: Import generated Zod schemas for input validation
-import { CreateLoanBody } from "@workspace/api-zod";
+import { CreateLoanBody } from "../lib/types";
 import { requireAuth, requireRole } from "../middleware/auth";
 
 const router: IRouter = Router();

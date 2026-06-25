@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { supabase, splitName } from "@workspace/db";
+import { supabase, splitName } from "../lib/supabase";
 
 const router: IRouter = Router();
 

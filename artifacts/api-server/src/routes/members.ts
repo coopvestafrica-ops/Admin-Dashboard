@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { supabase, splitName, deriveStatus } from "@workspace/db";
-import { CreateMemberBody } from "@workspace/api-zod";
+import { supabase, splitName, deriveStatus } from "../lib/supabase";
+import { CreateMemberBody } from "../lib/types";
 import { requireAuth, requireRole } from "../middleware/auth";
 
 const router: IRouter = Router();

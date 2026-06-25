@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { supabase } from "@workspace/db";
+import { supabase } from "../lib/supabase";
 import { requireAuth, requireRole } from "../middleware/auth";
 
 const router: IRouter = Router();

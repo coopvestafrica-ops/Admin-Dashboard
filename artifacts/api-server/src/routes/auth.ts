@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { supabase } from "@workspace/db";
+import { supabase } from "../lib/supabase";
 import { logger } from "../lib/logger";
 
 const router = Router();
