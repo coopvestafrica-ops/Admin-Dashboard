@@ -36,8 +36,8 @@ import {
 type WalletStatus = "active" | "frozen" | "suspended";
 
 interface UserWallet {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   userName: string;
   userEmail: string;
   balance: number;
@@ -68,7 +68,7 @@ async function fetchWallets(params: Record<string, string>): Promise<WalletsResp
   return res.json();
 }
 
-async function updateWalletStatus(id: number, status: WalletStatus): Promise<void> {
+async function updateWalletStatus(id: string, status: WalletStatus): Promise<void> {
   const res = await fetch(`/api/wallets/${id}/status`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -77,7 +77,7 @@ async function updateWalletStatus(id: number, status: WalletStatus): Promise<voi
   if (!res.ok) throw new Error("Failed to update wallet status");
 }
 
-async function adjustWalletBalance(id: number, amount: number, note: string): Promise<void> {
+async function adjustWalletBalance(id: string, amount: number, note: string): Promise<void> {
   const res = await fetch(`/api/wallets/${id}/adjust`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -90,7 +90,7 @@ export default function WalletManagement() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<number[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
   const [adjustWallet, setAdjustWallet] = useState<UserWallet | null>(null);
   const [adjustAmount, setAdjustAmount] = useState("");
   const [adjustNote, setAdjustNote] = useState("");
@@ -110,7 +110,7 @@ export default function WalletManagement() {
   });
 
   const { mutate: toggleStatus, isPending: toggling } = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: WalletStatus }) =>
+    mutationFn: ({ id, status }: { id: string; status: WalletStatus }) =>
       updateWalletStatus(id, status),
     onSuccess: () => {
       toast({ title: "Wallet updated", description: "Wallet status changed successfully." });
@@ -121,7 +121,7 @@ export default function WalletManagement() {
   });
 
   const { mutate: doAdjust, isPending: adjusting } = useMutation({
-    mutationFn: ({ id, amount, note }: { id: number; amount: number; note: string }) =>
+    mutationFn: ({ id, amount, note }: { id: string; amount: number; note: string }) =>
       adjustWalletBalance(id, amount, note),
     onSuccess: () => {
       toast({ title: "Balance adjusted", description: "Manual adjustment applied successfully." });
@@ -138,7 +138,7 @@ export default function WalletManagement() {
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / 20);
 
-  const toggleSelect = (id: number) =>
+  const toggleSelect = (id: string) =>
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   const toggleAll = () =>
     setSelected(selected.length === wallets.length ? [] : wallets.map((w) => w.id));
