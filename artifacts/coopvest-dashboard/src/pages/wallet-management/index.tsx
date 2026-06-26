@@ -23,6 +23,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/format";
+import { supabase } from "@/lib/supabase";
 import {
   Wallet,
   Search,
@@ -62,25 +63,39 @@ const statusConfig: Record<WalletStatus, { label: string; className: string }> =
 };
 
 async function fetchWallets(params: Record<string, string>): Promise<WalletsResponse> {
+  const { data: { session } } = await supabase!.auth.getSession();
+  const token = session?.access_token || '';
   const qs = new URLSearchParams(params).toString();
-  const res = await fetch(`/api/wallets?${qs}`);
+  const res = await fetch(`/api/wallets?${qs}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
   if (!res.ok) throw new Error("Failed to fetch wallets");
   return res.json();
 }
 
 async function updateWalletStatus(id: string, status: WalletStatus): Promise<void> {
+  const { data: { session } } = await supabase!.auth.getSession();
+  const token = session?.access_token || '';
   const res = await fetch(`/api/wallets/${id}/status`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({ status }),
   });
   if (!res.ok) throw new Error("Failed to update wallet status");
 }
 
 async function adjustWalletBalance(id: string, amount: number, note: string): Promise<void> {
+  const { data: { session } } = await supabase!.auth.getSession();
+  const token = session?.access_token || '';
   const res = await fetch(`/api/wallets/${id}/adjust`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({ amount, note }),
   });
   if (!res.ok) throw new Error("Failed to adjust balance");
