@@ -34,13 +34,6 @@ jobs:
           npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: artifacts/coopvest-dashboard
 
-      - name: Clear Vercel Cache
-        run: |
-          unset VERCEL_ORG_ID
-          unset VERCEL_PROJECT_ID
-          rm -rf .vercel
-        working-directory: artifacts/coopvest-dashboard
-
       - name: Build Project
         run: |
           unset VERCEL_ORG_ID
