@@ -70,6 +70,7 @@ const sidebarGroupsBase = [
       { title: "Deposit Verification", icon: BadgeDollarSign, href: "/deposit-verification", page: PAGES.DEPOSIT_VERIFICATION },
       { title: "Withdrawal Approvals", icon: ArrowDownToLine, href: "/withdrawal-management", page: PAGES.WITHDRAWAL_MANAGEMENT },
       { title: "Guarantor System", icon: HandshakeIcon, href: "/guarantor-system", page: PAGES.GUARANTOR_SYSTEM },
+      { title: "Loan Rollovers", icon: RefreshCw, href: "/rollover-management", page: PAGES.LOANS },
       { title: "Interest Rates", icon: Percent, href: "/interest-rates", page: PAGES.INTEREST_RATES },
       { title: "Reconciliation", icon: RefreshCw, href: "/reconciliation", page: PAGES.RECONCILIATION },
     ],
