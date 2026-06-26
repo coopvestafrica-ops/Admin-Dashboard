@@ -71,3 +71,4 @@ docker run -p 5173:5173 coopvest-frontend
 This monorepo is fully configured for continuous deployment on **Render** using the provided `render.yaml` infrastructure blueprint. Simply link your repository to Render, and it will spin up:
 1. `coopvest-api-server` (Web Service running Docker container)
 2. `coopvest-admin-dashboard` (Web Service running Docker container)
+# Trigger
