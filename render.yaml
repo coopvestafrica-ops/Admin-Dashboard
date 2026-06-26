@@ -1,27 +1,30 @@
 services:
   # ──────────────────────────────────────────────────────────────────────────────
   # Backend: Express API Server on Render
-  # Service: https://coopvest-api.onrender.com
+  # Service: https://coopvest-api-v3.onrender.com
   # ──────────────────────────────────────────────────────────────────────────────
   - type: web
-    name: coopvest-api
+    name: coopvest-api-v3
     env: node
     plan: free
-    buildCommand: ./render-build.sh
-    startCommand: pnpm --filter @workspace/api-server start
+    runtime: node_24
+    region: oregon
+    buildCommand: bash render-build.sh
+    startCommand: node --enable-source-maps artifacts/api-server/dist/index.mjs
+    id: srv-d8epoj42m8qs7396p1tg
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: "10000"
       - key: SUPABASE_URL
-        sync: false
+        value: "https://placeholder.supabase.co"
       - key: SUPABASE_SERVICE_ROLE_KEY
-        sync: false
+        value: "placeholder-key-replace-in-dashboard"
       - key: ALLOWED_ORIGIN
-        sync: false
+        value: "*"
       - key: DASHBOARD_URL
-        sync: false
+        value: "https://coopvest-admin-dashboard.vercel.app"
 
   # ──────────────────────────────────────────────────────────────────────────────
   # Frontend: React Dashboard on Render (alternative to Vercel)
