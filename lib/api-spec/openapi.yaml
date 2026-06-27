@@ -10,6 +10,7 @@ tags:
   - name: health
   - name: dashboard
   - name: members
+  - name: kyc
   - name: loans
   - name: contributions
   - name: investments
@@ -1544,6 +1545,649 @@ components:
           type: string
       required: [loanType, minAmount, maxAmount, rate, tenure]
 
+    # ============================================================================
+    # KYC SCHEMAS
+    # ============================================================================
+
+    KycRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        profileId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, in_review, verified, rejected, expired]
+        verified:
+          type: boolean
+        verifiedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        nationalId:
+          type: string
+        address:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        idType:
+          type: string
+        idNumber:
+          type: string
+        idIssueDate:
+          type: string
+          format: date
+        idExpiryDate:
+          type: string
+          format: date
+        idFrontImageUrl:
+          type: string
+        idBackImageUrl:
+          type: string
+        selfieUrl:
+          type: string
+        bvn:
+          type: string
+        nin:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        profile:
+          type: object
+          properties:
+            id:
+              type: string
+            userId:
+              type: string
+            name:
+              type: string
+            email:
+              type: string
+            phone:
+              type: string
+            memberId:
+              type: string
+            isActive:
+              type: boolean
+            isFlagged:
+              type: boolean
+      required: [id, profileId, status, verified, createdAt]
+
+    KycDetail:
+      type: object
+      properties:
+        personalInfo:
+          $ref: "#/components/schemas/PersonalInfo"
+        identityVerification:
+          $ref: "#/components/schemas/IdentityVerification"
+        bankInfo:
+          $ref: "#/components/schemas/BankInfo"
+        nextOfKin:
+          $ref: "#/components/schemas/NextOfKin"
+        employmentInfo:
+          $ref: "#/components/schemas/EmploymentInfo"
+        contributionInfo:
+          $ref: "#/components/schemas/ContributionInfo"
+        loanInfo:
+          $ref: "#/components/schemas/LoanInfo"
+        guarantorInfo:
+          $ref: "#/components/schemas/GuarantorInfo"
+        documents:
+          $ref: "#/components/schemas/Documents"
+        auditInfo:
+          $ref: "#/components/schemas/AuditInfo"
+
+    PersonalInfo:
+      type: object
+      properties:
+        fullName:
+          type: string
+        memberId:
+          type: string
+        profilePhoto:
+          type: string
+        gender:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        maritalStatus:
+          type: string
+        nationality:
+          type: string
+        residentialAddress:
+          type: string
+        state:
+          type: string
+        lga:
+          type: string
+        city:
+          type: string
+        occupation:
+          type: string
+        employerName:
+          type: string
+        employmentStatus:
+          type: string
+        monthlyIncome:
+          type: number
+        phoneNumber:
+          type: string
+        emailAddress:
+          type: string
+        registrationDate:
+          type: string
+          format: date-time
+        accountStatus:
+          type: string
+        kycVerificationStatus:
+          type: string
+        selfieUrl:
+          type: string
+
+    IdentityVerification:
+      type: object
+      properties:
+        meansOfIdentification:
+          type: string
+        idType:
+          type: string
+          enum: [national_id, international_passport, drivers_license, voters_card]
+        idNumber:
+          type: string
+        dateOfIssue:
+          type: string
+          format: date
+        expiryDate:
+          type: string
+          format: date
+        uploadedFrontImage:
+          type: string
+        uploadedBackImage:
+          type: string
+        selfieVerificationImage:
+          type: string
+        passportPhoto:
+          type: string
+        signature:
+          type: string
+        kycStatus:
+          type: string
+        kycVerified:
+          type: boolean
+        bvn:
+          type: string
+        nin:
+          type: string
+
+    BankInfo:
+      type: object
+      properties:
+        accounts:
+          type: array
+          items:
+            type: object
+            properties:
+              bankName:
+                type: string
+              accountName:
+                type: string
+              accountNumber:
+                type: string
+              bankVerificationStatus:
+                type: string
+              isPrimary:
+                type: boolean
+
+    NextOfKin:
+      type: object
+      properties:
+        fullName:
+          type: string
+        relationship:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        residentialAddress:
+          type: string
+
+    EmploymentInfo:
+      type: object
+      properties:
+        employerName:
+          type: string
+        employerAddress:
+          type: string
+        staffId:
+          type: string
+        employmentType:
+          type: string
+        salaryPaymentFrequency:
+          type: string
+        payrollDeductionConsentStatus:
+          type: string
+        occupation:
+          type: string
+        monthlyIncome:
+          type: number
+
+    ContributionInfo:
+      type: object
+      properties:
+        totalSavings:
+          type: number
+        monthlyContributionAmount:
+          type: number
+        firstSavingsDate:
+          type: string
+          format: date-time
+        consecutiveMonths:
+          type: integer
+        lastSavingsDate:
+          type: string
+          format: date-time
+        missedContributions:
+          type: integer
+        contributionHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              amount:
+                type: number
+              date:
+                type: string
+                format: date-time
+              status:
+                type: string
+              type:
+                type: string
+
+    LoanInfo:
+      type: object
+      properties:
+        loanEligibilityStatus:
+          type: string
+        monthsCompleted:
+          type: integer
+        loanCategoryEligible:
+          type: string
+        maximumLoanAmount:
+          type: number
+        activeLoans:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              type:
+                type: string
+              amount:
+                type: number
+              outstandingBalance:
+                type: number
+              status:
+                type: string
+              disbursedAt:
+                type: string
+                format: date-time
+              maturityDate:
+                type: string
+                format: date
+              monthlyRepayment:
+                type: number
+        totalActiveLoans:
+          type: integer
+        totalOutstandingBalance:
+          type: number
+        completedLoans:
+          type: integer
+        rejectedLoans:
+          type: integer
+        repaymentHistory:
+          type: array
+          items:
+            type: object
+
+    GuarantorInfo:
+      type: object
+      properties:
+        guaranteesGiven:
+          type: object
+          properties:
+            total:
+              type: integer
+            pending:
+              type: integer
+            approved:
+              type: integer
+            rejected:
+              type: integer
+            requests:
+              type: array
+              items:
+                type: object
+        guaranteesReceived:
+          type: object
+          properties:
+            total:
+              type: integer
+            pending:
+              type: integer
+            approved:
+              type: integer
+
+    Documents:
+      type: object
+      properties:
+        kycDocuments:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              type:
+                type: string
+              documentNumber:
+                type: string
+              expiryDate:
+                type: string
+                format: date
+              frontImageUrl:
+                type: string
+              backImageUrl:
+                type: string
+              status:
+                type: string
+              uploadedAt:
+                type: string
+                format: date-time
+        memberDocuments:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              type:
+                type: string
+              fileUrl:
+                type: string
+              fileName:
+                type: string
+              status:
+                type: string
+              uploadedAt:
+                type: string
+                format: date-time
+
+    AuditInfo:
+      type: object
+      properties:
+        registrationDate:
+          type: string
+          format: date-time
+        lastLogin:
+          type: string
+          format: date-time
+        deviceUsed:
+          type: string
+        ipAddress:
+          type: string
+        registrationChannel:
+          type: string
+        lastProfileUpdate:
+          type: string
+          format: date-time
+        lastPasswordChange:
+          type: string
+          format: date-time
+        recentActivity:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              description:
+                type: string
+              date:
+                type: string
+                format: date-time
+              ipAddress:
+                type: string
+              deviceInfo:
+                type: string
+        adminNotes:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              note:
+                type: string
+              createdAt:
+                type: string
+                format: date-time
+              adminName:
+                type: string
+
+    # Request/Response Schemas
+    KycListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        kycRecords:
+          type: array
+          items:
+            $ref: "#/components/schemas/KycRecord"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    KycDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        member:
+          type: object
+          properties:
+            kyc:
+              $ref: "#/components/schemas/KycRecord"
+            kycDocuments:
+              type: array
+              items:
+                type: object
+            memberDocuments:
+              type: array
+              items:
+                type: object
+            bankAccounts:
+              type: array
+              items:
+                type: object
+            nextOfKin:
+                type: object
+            adminNotes:
+              type: array
+              items:
+                type: object
+            activityTimeline:
+              type: array
+              items:
+                type: object
+
+    KycResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        kyc:
+          $ref: "#/components/schemas/KycRecord"
+
+    KycDocumentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        document:
+          type: object
+
+    VerifyKycBody:
+      type: object
+      properties:
+        verificationLevel:
+          type: integer
+          minimum: 0
+          maximum: 3
+          default: 1
+        notes:
+          type: string
+
+    RejectKycBody:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 1000
+        requestDocuments:
+          type: boolean
+          default: false
+
+    MemberResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        profile:
+          type: object
+
+    AdminNotesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        notes:
+          type: array
+          items:
+            type: object
+
+    AdminNoteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        note:
+          type: object
+
+    DocumentRequestBody:
+      type: object
+      properties:
+        documentType:
+          type: string
+          enum: [passport_photograph, signature, means_of_identification, proof_of_address, employment_letter, payslip, utility_bill, bank_statement]
+        reason:
+          type: string
+          maxLength: 500
+        expiresInDays:
+          type: integer
+          minimum: 1
+          maximum: 30
+          default: 7
+      required: [documentType]
+
+    DocumentRequestResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        request:
+          type: object
+
+    TimelineResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        timeline:
+          type: array
+          items:
+            type: object
+
+    MemberProfileResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        member:
+          $ref: "#/components/schemas/KycDetail"
+        metadata:
+          type: object
+          properties:
+            profileId:
+              type: string
+              format: uuid
+            userId:
+              type: string
+            email:
+              type: string
+            role:
+              type: string
+            isActive:
+              type: boolean
+            isFlagged:
+              type: boolean
+            flaggedReason:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+
+    ActivitiesListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        activities:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    TransactionsListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        transactions:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
 # New endpoint for member lookup by user_id (CVA-XXX format)
   /members/user/{userId}:
     get:
@@ -1563,3 +2207,437 @@ components:
             application/json:
               schema:
                 $ref: "#/components/schemas/Member"
+
+  # ============================================================================
+  # KYC MANAGEMENT ENDPOINTS
+  # ============================================================================
+
+  /kyc:
+    get:
+      operationId: getKycList
+      tags: [kyc]
+      summary: List all KYC records
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, in_review, verified, rejected, expired]
+        - name: verified
+          in: query
+          schema:
+            type: boolean
+        - name: profileId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: KYC records list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KycListResponse"
+
+  /kyc/{profileId}:
+    get:
+      operationId: getKycDetail
+      tags: [kyc]
+      summary: Get complete KYC details for a member
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Complete KYC details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KycDetailResponse"
+
+  /kyc/{profileId}/verify:
+    post:
+      operationId: verifyKyc
+      tags: [kyc]
+      summary: Verify KYC for a member
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyKycBody"
+      responses:
+        "200":
+          description: KYC verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KycResponse"
+
+  /kyc/{profileId}/reject:
+    post:
+      operationId: rejectKyc
+      tags: [kyc]
+      summary: Reject KYC for a member
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectKycBody"
+      responses:
+        "200":
+          description: KYC rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KycResponse"
+
+  /kyc/{profileId}/documents/{documentId}/verify:
+    post:
+      operationId: verifyKycDocument
+      tags: [kyc]
+      summary: Verify a specific KYC document
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notes:
+                  type: string
+      responses:
+        "200":
+          description: Document verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KycDocumentResponse"
+
+  /kyc/{profileId}/documents/{documentId}/reject:
+    post:
+      operationId: rejectKycDocument
+      tags: [kyc]
+      summary: Reject a specific KYC document
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+              required: [reason]
+      responses:
+        "200":
+          description: Document rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KycDocumentResponse"
+
+  /kyc/{profileId}/suspend:
+    post:
+      operationId: suspendMember
+      tags: [kyc]
+      summary: Suspend a member account
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  minLength: 5
+                  maxLength: 500
+              required: [reason]
+      responses:
+        "200":
+          description: Member suspended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberResponse"
+
+  /kyc/{profileId}/reactivate:
+    post:
+      operationId: reactivateMember
+      tags: [kyc]
+      summary: Reactivate a suspended member account
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Member reactivated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberResponse"
+
+  /kyc/{profileId}/notes:
+    get:
+      operationId: getMemberNotes
+      tags: [kyc]
+      summary: Get admin notes for a member
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Admin notes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminNotesResponse"
+    post:
+      operationId: addMemberNote
+      tags: [kyc]
+      summary: Add an admin note for a member
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+                  minLength: 1
+                  maxLength: 5000
+              required: [note]
+      responses:
+        "201":
+          description: Note added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminNoteResponse"
+
+  /kyc/{profileId}/documents/request:
+    post:
+      operationId: requestDocument
+      tags: [kyc]
+      summary: Request additional documents from a member
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentRequestBody"
+      responses:
+        "201":
+          description: Document request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentRequestResponse"
+
+  /kyc/{profileId}/timeline:
+    get:
+      operationId: getMemberTimeline
+      tags: [kyc]
+      summary: Get activity timeline for a member
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Activity timeline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimelineResponse"
+
+  # ============================================================================
+  # MEMBER PROFILE DETAIL ENDPOINTS
+  # ============================================================================
+
+  /members/{profileId}/profile:
+    get:
+      operationId: getMemberProfile
+      tags: [members]
+      summary: Get complete member profile with all details
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Complete member profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberProfileResponse"
+
+  /members/{profileId}/activity:
+    get:
+      operationId: getMemberActivity
+      tags: [members]
+      summary: Get member activity with pagination
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Member activities
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivitiesListResponse"
+
+  /members/{profileId}/transactions:
+    get:
+      operationId: getMemberTransactions
+      tags: [members]
+      summary: Get member transactions
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Member transactions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionsListResponse"
