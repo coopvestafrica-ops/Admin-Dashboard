@@ -6,6 +6,162 @@ import { requireAuth, requireRole } from "../middleware/auth";
 const router: IRouter = Router();
 router.use(requireAuth);
 
+// POST /support-tickets - Create a new support ticket (mobile app users)
+router.post("/support-tickets", async (req, res): Promise<void> => {
+  const { title, description, category, priority } = req.body;
+
+  // Validate required fields
+  if (!title || !description || !category) {
+    res.status(400).json({ 
+      success: false,
+      error: "Missing required fields: title, description, and category are required" 
+    });
+    return;
+  }
+
+  // Get user ID from auth token
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    res.status(401).json({ success: false, error: "Authorization token required" });
+    return;
+  }
+
+  try {
+    // Verify the token and get user info
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      res.status(401).json({ success: false, error: "Invalid or expired token" });
+      return;
+    }
+
+    // Get user profile to find profile_id
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, user_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!profile) {
+      res.status(404).json({ success: false, error: "User profile not found" });
+      return;
+    }
+
+    // Generate ticket ID
+    const ticketId = "TKT-" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
+
+    // Create the ticket
+    const { data: ticket, error } = await supabase
+      .from("tickets")
+      .insert({
+        ticket_id: ticketId,
+        profile_id: profile.id,
+        subject: title,
+        description: description,
+        category: category,
+        priority: priority || "medium",
+        status: "open",
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating ticket:", error);
+      res.status(500).json({ success: false, error: "Failed to create ticket: " + error.message });
+      return;
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Your complaint has been submitted successfully!",
+      ticket: {
+        id: ticket.id,
+        ticketId: ticket.ticket_id,
+        subject: ticket.subject,
+        description: ticket.description,
+        category: ticket.category,
+        priority: ticket.priority,
+        status: ticket.status,
+        createdAt: ticket.created_at,
+      },
+    });
+  } catch (err) {
+    console.error("Unexpected error creating ticket:", err);
+    res.status(500).json({ success: false, error: "An unexpected error occurred" });
+  }
+});
+
+// GET /support-tickets/my - Get current user's tickets (mobile app)
+router.get("/support-tickets/my", async (req, res): Promise<void> => {
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(100, Number(req.query.limit) || 20);
+  const offset = (page - 1) * limit;
+
+  // Get user ID from auth token
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    res.status(401).json({ success: false, error: "Authorization token required" });
+    return;
+  }
+
+  try {
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      res.status(401).json({ success: false, error: "Invalid or expired token" });
+      return;
+    }
+
+    // Get user profile
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!profile) {
+      res.status(404).json({ success: false, error: "User profile not found" });
+      return;
+    }
+
+    // Get user's tickets
+    const { data: tickets, count, error } = await supabase
+      .from("tickets")
+      .select("*", { count: "exact" })
+      .eq("profile_id", profile.id)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      res.status(500).json({ success: false, error: error.message });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: (tickets ?? []).map(t => ({
+        id: t.id,
+        ticketId: t.ticket_id,
+        subject: t.subject,
+        description: t.description,
+        category: t.category,
+        priority: t.priority,
+        status: t.status,
+        createdAt: t.created_at,
+        updatedAt: t.updated_at ?? t.created_at,
+      })),
+      total: count ?? 0,
+      page,
+      limit,
+    });
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    res.status(500).json({ success: false, error: "An unexpected error occurred" });
+  }
+});
+
 router.get("/support-tickets/summary", async (req, res): Promise<void> => {
   const { count: total } = await supabase.from("tickets").select("*", { count: "exact", head: true });
   const { count: open } = await supabase.from("tickets").select("*", { count: "exact", head: true }).eq("status", "open");
