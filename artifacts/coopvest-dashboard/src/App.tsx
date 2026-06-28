@@ -45,6 +45,7 @@ import LoginHistory from "@/pages/login-history/index";
 import FinancialDashboard from "@/pages/financial-dashboard/index";
 import DepositVerification from "@/pages/deposit-verification/index";
 import RolloverManagement from "@/pages/rollover-management/index";
+import MemberContributions from "@/pages/member-contributions/index";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,6 +68,7 @@ function Router() {
       <Route path="/members/:id">{() => <ProtectedRoute component={MemberProfile} />}</Route>
       <Route path="/loans">{() => <ProtectedRoute component={Loans} />}</Route>
       <Route path="/contributions">{() => <ProtectedRoute component={Contributions} />}</Route>
+      <Route path="/member-contributions">{() => <ProtectedRoute component={MemberContributions} />}</Route>
       <Route path="/investments">{() => <ProtectedRoute component={Investments} />}</Route>
       <Route path="/compliance">{() => <ProtectedRoute component={Compliance} />}</Route>
       <Route path="/notifications">{() => <ProtectedRoute component={Notifications} />}</Route>
