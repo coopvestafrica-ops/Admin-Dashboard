@@ -5,6 +5,6 @@
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
   "framework": "vite",
   "rewrites": [
-    { "source": "/api/v2/admin/:path*", "destination": "/api/admin/:path*" }
+    { "source": "/(.*)", "destination": "/" }
   ]
 }
