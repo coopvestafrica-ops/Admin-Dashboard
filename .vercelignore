@@ -1,2 +1,3 @@
-# Exclude API directories from Vercel build
-artifacts/api-server/**
+# Exclude api folder (Next.js routes - not needed for Vite build)
+api
+api-server
