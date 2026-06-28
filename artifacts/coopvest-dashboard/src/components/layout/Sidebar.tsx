@@ -56,6 +56,7 @@ const sidebarGroupsBase = [
       { title: "Members", icon: Users, href: "/members", page: PAGES.MEMBERS },
       { title: "Loans", icon: CreditCard, href: "/loans", page: PAGES.LOANS },
       { title: "Contributions", icon: Wallet, href: "/contributions", page: PAGES.CONTRIBUTIONS },
+      { title: "Member Contributions", icon: Receipt, href: "/member-contributions", page: PAGES.MEMBER_CONTRIBUTIONS },
       { title: "Payroll", icon: Briefcase, href: "/payroll", page: PAGES.PAYROLL },
       { title: "Excel Manager", icon: FileSpreadsheet, href: "/excel-manager", page: PAGES.EXCEL_MANAGER },
       { title: "Investments", icon: PieChart, href: "/investments", page: PAGES.INVESTMENTS },
