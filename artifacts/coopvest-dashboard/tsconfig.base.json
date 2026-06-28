@@ -21,5 +21,6 @@
     "target": "es2022",
     "types": ["node"],
     "customConditions": ["workspace"]
-  }
+  },
+  "exclude": ["../../api/**/*", "**/node_modules/**/*"]
 }
