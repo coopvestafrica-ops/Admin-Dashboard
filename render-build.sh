@@ -11,6 +11,6 @@ echo "Installing dependencies..."
 pnpm install --no-frozen-lockfile 2>&1 || pnpm install 2>&1
 
 echo "Building api-server..."
-pnpm --filter @workspace/api-server run build 2>&1
+cd artifacts/api-server && pnpm run build 2>&1
 
 echo "Build complete!"
