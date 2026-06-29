@@ -6,8 +6,8 @@ import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
-// ── Fix #1: CORS – fail fast if ALLOWED_ORIGIN is unset in production ─────────
-if (process.env.NODE_ENV === "production" && !process.env.ALLOWED_ORIGIN) {
+// ── Fix #1: CORS – fail fast if ALLOWED_ORIGIN is unset in production (except on Vercel) ─────────
+if (process.env.NODE_ENV === "production" && !process.env.VERCEL && !process.env.ALLOWED_ORIGIN) {
   logger.fatal(
     "ALLOWED_ORIGIN environment variable is not set. " +
     "Refusing to start in production with a wildcard CORS origin. " +

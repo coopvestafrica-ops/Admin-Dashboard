@@ -20777,7 +20777,7 @@ var require_route = __commonJS({
         sync = 0;
       }
     };
-    Route.prototype.all = function all(handler) {
+    Route.prototype.all = function all(handler2) {
       const callbacks = flatten.call(slice.call(arguments), Infinity);
       if (callbacks.length === 0) {
         throw new TypeError("argument handler is required");
@@ -20795,7 +20795,7 @@ var require_route = __commonJS({
       return this;
     };
     methods.forEach(function(method) {
-      Route.prototype[method] = function(handler) {
+      Route.prototype[method] = function(handler2) {
         const callbacks = flatten.call(slice.call(arguments), Infinity);
         if (callbacks.length === 0) {
           throw new TypeError("argument handler is required");
@@ -20998,17 +20998,17 @@ var require_router = __commonJS({
         }
       }
     };
-    Router38.prototype.use = function use(handler) {
+    Router38.prototype.use = function use(handler2) {
       let offset = 0;
       let path2 = "/";
-      if (typeof handler !== "function") {
-        let arg = handler;
+      if (typeof handler2 !== "function") {
+        let arg = handler2;
         while (Array.isArray(arg) && arg.length !== 0) {
           arg = arg[0];
         }
         if (typeof arg !== "function") {
           offset = 1;
-          path2 = handler;
+          path2 = handler2;
         }
       }
       const callbacks = flatten.call(slice.call(arguments, offset), Infinity);
@@ -39746,7 +39746,7 @@ router37.use(deposits_default);
 var routes_default = router37;
 
 // src/app.ts
-if (process.env.NODE_ENV === "production" && !process.env.ALLOWED_ORIGIN) {
+if (process.env.NODE_ENV === "production" && !process.env.VERCEL && !process.env.ALLOWED_ORIGIN) {
   logger.fatal(
     "ALLOWED_ORIGIN environment variable is not set. Refusing to start in production with a wildcard CORS origin. Set ALLOWED_ORIGIN to your frontend URL (e.g. https://app.coopvest.africa)."
   );
@@ -39804,23 +39804,31 @@ process.on("uncaughtException", (err) => {
   logger.fatal(err, "Uncaught exception");
   process.exit(1);
 });
-var rawPort = process.env["PORT"];
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided."
-  );
+function handler(req, res) {
+  app_default(req, res);
 }
-var port = Number(rawPort);
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
-app_default.listen(port, (err) => {
-  if (err) {
-    logger.error({ err }, "Error listening on port");
-    process.exit(1);
+if (process.env.VERCEL === void 0) {
+  const rawPort = process.env["PORT"];
+  if (!rawPort) {
+    throw new Error(
+      "PORT environment variable is required but was not provided."
+    );
   }
-  logger.info({ port }, "Server listening");
-});
+  const port = Number(rawPort);
+  if (Number.isNaN(port) || port <= 0) {
+    throw new Error(`Invalid PORT value: "${rawPort}"`);
+  }
+  app_default.listen(port, (err) => {
+    if (err) {
+      logger.error({ err }, "Error listening on port");
+      process.exit(1);
+    }
+    logger.info({ port }, "Server listening");
+  });
+}
+export {
+  handler as default
+};
 /*! Bundled license information:
 
 depd/index.js:

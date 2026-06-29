@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 // Unhandled rejection & uncaught exception handlers
 process.on("unhandledRejection", (err) => {
@@ -12,25 +13,33 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 });
 
-const rawPort = process.env["PORT"];
-
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
+// Vercel serverless handler
+export default function handler(req: VercelRequest, res: VercelResponse) {
+  app(req, res);
 }
 
-const port = Number(rawPort);
+// Standalone server (used when running locally or on traditional hosting)
+if (process.env.VERCEL === undefined) {
+  const rawPort = process.env["PORT"];
 
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
-
-app.listen(port, (err) => {
-  if (err) {
-    logger.error({ err }, "Error listening on port");
-    process.exit(1);
+  if (!rawPort) {
+    throw new Error(
+      "PORT environment variable is required but was not provided.",
+    );
   }
 
-  logger.info({ port }, "Server listening");
-});
+  const port = Number(rawPort);
+
+  if (Number.isNaN(port) || port <= 0) {
+    throw new Error(`Invalid PORT value: "${rawPort}"`);
+  }
+
+  app.listen(port, (err) => {
+    if (err) {
+      logger.error({ err }, "Error listening on port");
+      process.exit(1);
+    }
+
+    logger.info({ port }, "Server listening");
+  });
+}
