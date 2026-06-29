@@ -9,9 +9,8 @@ services:
     plan: free
     runtime: node_24
     region: oregon
-    buildCommand: bash render-build.sh
+    buildCommand: cd artifacts/api-server && npm install --legacy-peer-deps && npm run build
     startCommand: node --enable-source-maps artifacts/api-server/dist/index.mjs
-    rootDir: artifacts/api-server
     id: srv-d8epoj42m8qs7396p1tg
     envVars:
       - key: NODE_ENV
