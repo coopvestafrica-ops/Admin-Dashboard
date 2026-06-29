@@ -141,7 +141,7 @@ router.post("/loans/apply", async (req, res): Promise<void> => {
     // Add guarantors if provided
     if (guarantorIds && Array.isArray(guarantorIds)) {
       const guarantorRecords = guarantorIds.map((gid: string) => ({
-        loan_id: loan.id, profile_id: gid, status: "pending", confirmed_at: null,
+        loan_id: loan.id, guarantor_id: gid, status: "pending", consented_at: null,
       }));
       await supabase.from("loan_guarantors").insert(guarantorRecords);
     }

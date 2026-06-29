@@ -118,21 +118,35 @@ router.post("/rollovers/:rolloverId/guarantors", async (req, res): Promise<void>
   }
 
   const rolloverId = req.params.rolloverId;
-  const { guarantor_id, guarantor_name, guarantor_phone } = parsed.data;
+  const { guarantor_id } = parsed.data;
 
   const { data: rollover } = await supabase.from("rollovers").select("id").eq("rollover_id", rolloverId).single();
   if (!rollover) { res.status(404).json({ success: false, message: "Rollover not found" }); return; }
 
+  // Get guarantor profile info
+  const { data: guarantorProfile } = await supabase
+    .from("profiles")
+    .select("name, email, phone")
+    .eq("id", guarantor_id)
+    .single();
+
   const { data: guarantor, error } = await supabase.from("loan_guarantors").insert({
     loan_id: rollover.id,
     guarantor_id,
-    name: guarantor_name,
-    phone: guarantor_phone,
     status: "pending",
   }).select().single();
 
   if (error) { res.status(500).json({ success: false, message: error.message }); return; }
-  res.status(201).json({ success: true, message: "Guarantor added successfully", guarantor });
+  
+  res.status(201).json({ 
+    success: true, 
+    message: "Guarantor added successfully", 
+    guarantor: {
+      ...guarantor,
+      guarantor_name: guarantorProfile?.name || guarantorProfile?.email || "Unknown",
+      guarantor_phone: guarantorProfile?.phone || null,
+    }
+  });
 });
 
 router.get("/rollovers/:rolloverId/guarantors", async (req, res): Promise<void> => {
