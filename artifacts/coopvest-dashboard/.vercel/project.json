@@ -1,11 +1,1 @@
-{
-  "orgId": "coopvest-africas-projects",
-  "projectId": "admin-dashboard-api-server",
-  "settings": {
-    "framework": "vite",
-    "buildCommand": "npm run build",
-    "outputDirectory": "dist/public",
-    "devCommand": "npm run dev",
-    "installCommand": "npm install"
-  }
-}
+{"projectId":"prj_BGtJ9vPBuxB5HgoZDFjMhmJjlGcT","orgId":"team_NvQ5Ivi4LjtPiZk3PWorsFyK","projectName":"coopvest-dashboard"}
