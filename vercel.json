@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "installCommand": "corepack enable && corepack prepare pnpm@9 --activate && pnpm install --ignore-scripts",
+  "installCommand": "cd artifacts/coopvest-dashboard && corepack enable && corepack prepare pnpm@9 --activate && pnpm install --ignore-scripts",
   "buildCommand": "cd artifacts/coopvest-dashboard && npx vite build --config vite.config.ts",
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
   "framework": "vite",
