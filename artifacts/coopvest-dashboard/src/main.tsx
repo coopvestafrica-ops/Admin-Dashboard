@@ -4,10 +4,17 @@ import "./index.css";
 import { setBaseUrl, setAuthTokenGetter } from "@/lib/api-client";
 import { getApiBaseUrl } from "@/lib/api";
 
+// Debug logging
+console.log("[DEBUG] main.tsx loaded");
+console.log("[DEBUG] VITE_SUPABASE_URL:", import.meta.env.VITE_SUPABASE_URL);
+console.log("[DEBUG] VITE_SUPABASE_ANON_KEY:", import.meta.env.VITE_SUPABASE_ANON_KEY ? "present" : "missing");
+console.log("[DEBUG] VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
+
 // Initialize API client with the correct backend URL
 // Backend routes are at /api/v2/admin/*, but API client uses /api/*
 const baseUrl = `${getApiBaseUrl()}/api/v2/admin`;
 setBaseUrl(baseUrl);
+console.log("[DEBUG] API Base URL set to:", baseUrl);
 
 // Set up auth token getter for API calls
 // Use SERVICE_ROLE_KEY for admin API calls (service-to-service auth)
@@ -24,4 +31,6 @@ if (serviceToken) {
   });
 }
 
+console.log("[DEBUG] Creating React root...");
 createRoot(document.getElementById("root")!).render(<App />);
+console.log("[DEBUG] React app rendered");
