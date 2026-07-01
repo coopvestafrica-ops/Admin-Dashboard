@@ -6,8 +6,10 @@
     "build": "pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/coopvest-dashboard run build"
   },
   "dependencies": {
+    "@playwright/test": "^1.61.1",
     "@supabase/supabase-js": "^2.107.0",
-    "vercel": "^54.9.0"
+    "playwright": "^1.61.1",
+    "puppeteer-core": "^25.2.1"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -16,5 +18,8 @@
       "protobufjs",
       "tsx"
     ]
+  },
+  "devDependencies": {
+    "vercel": "^54.18.6"
   }
 }

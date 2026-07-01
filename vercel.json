@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "installCommand": "cd artifacts/coopvest-dashboard && npm install --include=dev",
+  "installCommand": "cd artifacts/coopvest-dashboard && npm install --include=dev --ignore-scripts=false",
   "buildCommand": "cd artifacts/coopvest-dashboard && npm run build",
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
   "framework": "vite",
