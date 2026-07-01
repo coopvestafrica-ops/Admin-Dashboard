@@ -3,7 +3,7 @@
   "framework": null,
   "buildCommand": "echo skip",
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
-  "routes": [
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
