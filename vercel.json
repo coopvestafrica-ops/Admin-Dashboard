@@ -3,10 +3,10 @@
   "framework": null,
   "builds": [
     { "src": "api/**/*.js", "use": "@vercel/node" },
-    { "src": "public/**", "use": "@vercel/static", "dest": "public/index.html" }
+    { "src": "vercel-dist/**", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)", "dest": "/public/index.html", "statusCode": 200 }
+    { "src": "/(.*)", "dest": "/vercel-dist/index.html", "statusCode": 200 }
   ]
 }
