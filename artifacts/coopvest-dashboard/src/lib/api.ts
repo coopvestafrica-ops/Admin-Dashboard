@@ -1,7 +1,8 @@
 /**
  * Shared API utilities for the admin dashboard
  * All API calls should use these helpers to ensure consistent URLs
- * Updated: Force rebuild with correct API_BASE_URL
+ * FIXED: API URL properly configured for production build
+ * Build: 2026-07-01
  */
 
 import { supabase } from './supabase';
