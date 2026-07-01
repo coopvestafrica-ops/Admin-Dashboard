@@ -1,6 +1,10 @@
 {
   "version": 2,
   "framework": null,
-  "buildCommand": "echo skip",
-  "outputDirectory": "artifacts/coopvest-dashboard/dist/public"
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" }
+  ]
 }
