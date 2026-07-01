@@ -420,9 +420,11 @@ router.get("/loans/:id/guarantors", async (req, res): Promise<void> => {
 // Confirm guarantee (guarantor accepts the request)
 router.post("/loans/:id/guarantors/confirm", async (req, res): Promise<void> => {
   const loanId = req.params.id;
-  const { guarantorId, consentToken } = req.body;
+  const { guarantorId, guarantor_id, consentToken } = req.body;
+    // Support both camelCase and snake_case
+    const guarantorIdToUse = guarantorId || guarantor_id;
 
-  if (!guarantorId) {
+  if (!guarantorIdToUse) {
     res.status(400).json({ error: "guarantorId is required" });
     return;
   }
@@ -444,7 +446,7 @@ router.post("/loans/:id/guarantors/confirm", async (req, res): Promise<void> => 
     const { data: guarantorProfile, error: profileError } = await supabase
       .from("profiles")
       .select("id, name, email, phone")
-      .eq("id", guarantorId)
+      .eq("id", guarantorIdToUse)
       .single();
 
     if (profileError || !guarantorProfile) {
@@ -457,7 +459,7 @@ router.post("/loans/:id/guarantors/confirm", async (req, res): Promise<void> => 
       .from("loan_guarantors")
       .select("*")
       .eq("loan_id", loan.id)
-      .eq("guarantor_id", guarantorId)
+      .eq("guarantor_id", guarantorIdToUse)
       .maybeSingle();
 
     let guarantorRecord;
@@ -486,7 +488,7 @@ router.post("/loans/:id/guarantors/confirm", async (req, res): Promise<void> => 
         .from("loan_guarantors")
         .insert({
           loan_id: loan.id,
-          guarantor_id: guarantorId,
+          guarantor_id: guarantorIdToUse,
           status: "confirmed",
           consented_at: new Date().toISOString(),
           created_at: new Date().toISOString(),
@@ -503,14 +505,23 @@ router.post("/loans/:id/guarantors/confirm", async (req, res): Promise<void> => 
       guarantorRecord = data;
     }
 
+    // Count how many guarantors are now confirmed for this loan
+    const { count: guarantorsNowConfirmed } = await supabase
+      .from("loan_guarantors")
+      .select("*", { count: "exact", head: true })
+      .eq("loan_id", loan.id)
+      .eq("status", "confirmed");
+
     res.json({
       success: true,
       message: "Guarantee confirmed successfully",
+      guarantor_status: "confirmed",
+      guarantors_now_confirmed: guarantorsNowConfirmed ?? 0,
       guarantee: {
         id: guarantorRecord.id,
         loanId: loan.id,
         loanNumber: loan.loan_id,
-        guarantorId: guarantorId,
+        guarantorId: guarantorIdToUse,
         guarantorName: guarantorProfile.name || guarantorProfile.email,
         status: "confirmed",
         confirmedAt: guarantorRecord.consented_at,
@@ -525,9 +536,10 @@ router.post("/loans/:id/guarantors/confirm", async (req, res): Promise<void> => 
 // Decline guarantee (guarantor rejects the request)
 router.post("/loans/:id/guarantors/decline", async (req, res): Promise<void> => {
   const loanId = req.params.id;
-  const { guarantorId, reason } = req.body;
+  const { guarantorId, guarantor_id, reason } = req.body;
+  const guarantorIdToUse = guarantorId || guarantor_id;
 
-  if (!guarantorId) {
+  if (!guarantorIdToUse) {
     res.status(400).json({ error: "guarantorId is required" });
     return;
   }
@@ -554,7 +566,7 @@ router.post("/loans/:id/guarantors/decline", async (req, res): Promise<void> => 
         consent_reason: reason || null,
       })
       .eq("loan_id", loan.id)
-      .eq("guarantor_id", guarantorId)
+      .eq("guarantor_id", guarantorIdToUse)
       .select()
       .single();
 
