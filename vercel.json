@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "installCommand": "cd artifacts/coopvest-dashboard && npm install",
-  "buildCommand": "cd artifacts/coopvest-dashboard && npx vite build --config vite.config.ts",
+  "installCommand": "cd artifacts/coopvest-dashboard && npm install --include=dev",
+  "buildCommand": "cd artifacts/coopvest-dashboard && npm run build",
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
   "framework": "vite",
   "rewrites": [
