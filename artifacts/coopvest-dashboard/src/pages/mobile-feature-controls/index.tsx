@@ -85,7 +85,7 @@ function useToggleFeature() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ featureId, enabled }: { featureId: string; enabled: boolean }) => {
-      return api.put<{ success: boolean; message?: string }>("/mobile-features", { featureId, enabled });
+      return api.put<{ success: boolean; message?: string }>("/mobile-features/" + featureId, { enabled });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/mobile-features"] }),
   });

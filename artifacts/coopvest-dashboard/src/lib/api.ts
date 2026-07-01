@@ -19,8 +19,8 @@ export function getApiBaseUrl(): string {
     }
     return normalized;
   }
-  // Default to production
-  return 'https://coopvest-api-v3.onrender.com';
+  // Default to Vercel admin API server
+  return 'https://admin-dashboard-api-server.vercel.app';
 }
 
 // Get the admin API URL - use /api prefix for all endpoints
