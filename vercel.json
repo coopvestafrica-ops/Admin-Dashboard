@@ -3,7 +3,7 @@
   "installCommand": "echo 'skipping install'",
   "buildCommand": "echo 'skipping build'",
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
-  "framework": null,
+  "framework": "vite",
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
   ]
