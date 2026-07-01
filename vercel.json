@@ -7,6 +7,11 @@
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/assets/(.*)", "dest": "/vercel-dist/assets/$1" },
+    { "src": "/favicon.svg", "dest": "/vercel-dist/favicon.svg" },
+    { "src": "/manifest.json", "dest": "/vercel-dist/manifest.json" },
+    { "src": "/opengraph.svg", "dest": "/vercel-dist/opengraph.svg" },
+    { "src": "/opengraph.jpg", "dest": "/vercel-dist/opengraph.jpg" },
     { "src": "/(.*)", "dest": "/vercel-dist/index.html", "statusCode": 200 }
   ]
 }
