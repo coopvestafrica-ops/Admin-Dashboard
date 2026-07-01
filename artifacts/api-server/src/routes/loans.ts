@@ -419,10 +419,10 @@ router.get("/loans/:id/guarantors", async (req, res): Promise<void> => {
 
 // Confirm guarantee (guarantor accepts the request)
 router.post("/loans/:id/guarantors/confirm", async (req, res): Promise<void> => {
-  const loanId = req.params.id;
+  const loanIdParam = req.params.id;
   const { guarantorId, guarantor_id, consentToken } = req.body;
-    // Support both camelCase and snake_case
-    const guarantorIdToUse = guarantorId || guarantor_id;
+  // Support both camelCase and snake_case
+  const guarantorIdToUse = guarantorId || guarantor_id;
 
   if (!guarantorIdToUse) {
     res.status(400).json({ error: "guarantorId is required" });
@@ -430,14 +430,40 @@ router.post("/loans/:id/guarantors/confirm", async (req, res): Promise<void> => 
   }
 
   try {
-    // Get the loan
-    const { data: loan, error: loanError } = await supabase
-      .from("loans")
-      .select("id, loan_id, amount, profile_id")
-      .eq("id", loanId)
-      .single();
+    // First, try to find the loan by loan_id (e.g., "LN-XXXX") or by UUID
+    // The mobile app sends loan_id like "LN-XXXX" in the URL
+    let loan;
+    
+    // Check if it looks like a UUID (contains hyphens and is longer)
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(loanIdParam);
+    
+    if (isUuid) {
+      // It's a UUID, query by id
+      const { data, error } = await supabase
+        .from("loans")
+        .select("id, loan_id, amount, profile_id")
+        .eq("id", loanIdParam)
+        .single();
+      loan = data;
+      if (error) {
+        console.error("Error finding loan by UUID:", error);
+      }
+    }
+    
+    // If not found by UUID, try by loan_id
+    if (!loan) {
+      const { data, error } = await supabase
+        .from("loans")
+        .select("id, loan_id, amount, profile_id")
+        .eq("loan_id", loanIdParam)
+        .single();
+      loan = data;
+      if (error) {
+        console.error("Error finding loan by loan_id:", error);
+      }
+    }
 
-    if (loanError || !loan) {
+    if (!loan) {
       res.status(404).json({ error: "Loan not found" });
       return;
     }
@@ -535,7 +561,7 @@ router.post("/loans/:id/guarantors/confirm", async (req, res): Promise<void> => 
 
 // Decline guarantee (guarantor rejects the request)
 router.post("/loans/:id/guarantors/decline", async (req, res): Promise<void> => {
-  const loanId = req.params.id;
+  const loanIdParam = req.params.id;
   const { guarantorId, guarantor_id, reason } = req.body;
   const guarantorIdToUse = guarantorId || guarantor_id;
 
@@ -545,14 +571,30 @@ router.post("/loans/:id/guarantors/decline", async (req, res): Promise<void> => 
   }
 
   try {
-    // Get the loan
-    const { data: loan, error: loanError } = await supabase
-      .from("loans")
-      .select("id, loan_id")
-      .eq("id", loanId)
-      .single();
+    // First, try to find the loan by loan_id or by UUID
+    let loan;
+    
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(loanIdParam);
+    
+    if (isUuid) {
+      const { data, error } = await supabase
+        .from("loans")
+        .select("id, loan_id")
+        .eq("id", loanIdParam)
+        .single();
+      loan = data;
+    }
+    
+    if (!loan) {
+      const { data, error } = await supabase
+        .from("loans")
+        .select("id, loan_id")
+        .eq("loan_id", loanIdParam)
+        .single();
+      loan = data;
+    }
 
-    if (loanError || !loan) {
+    if (!loan) {
       res.status(404).json({ error: "Loan not found" });
       return;
     }
