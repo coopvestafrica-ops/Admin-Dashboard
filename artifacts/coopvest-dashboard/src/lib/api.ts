@@ -1,6 +1,7 @@
 /**
  * Shared API utilities for the admin dashboard
  * All API calls should use these helpers to ensure consistent URLs
+ * Updated: Force rebuild with correct API_BASE_URL
  */
 
 import { supabase } from './supabase';
@@ -21,13 +22,10 @@ export function getApiBaseUrl(): string {
   return 'https://coopvest-api-v3.onrender.com';
 }
 
-// Get the admin API URL
+// Get the admin API URL - use /api prefix for all endpoints
 export function getAdminApiUrl(): string {
   const base = getApiBaseUrl();
-  // Only add /api if base doesn't already end with it
-  if (base.endsWith('/api')) {
-    return base;
-  }
+  // Always append /api to base URL for admin endpoints
   return `${base}/api`;
 }
 
