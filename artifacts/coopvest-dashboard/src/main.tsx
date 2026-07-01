@@ -11,7 +11,8 @@ console.log("[DEBUG] VITE_SUPABASE_ANON_KEY:", import.meta.env.VITE_SUPABASE_ANO
 console.log("[DEBUG] VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
 
 // Initialize API client with the correct backend URL
-const baseUrl = `${getApiBaseUrl()}/api`;
+// Use getAdminApiUrl() which properly handles trailing slashes and /api duplication
+const baseUrl = getAdminApiUrl();
 setBaseUrl(baseUrl);
 console.log("[DEBUG] API Base URL set to:", baseUrl);
 

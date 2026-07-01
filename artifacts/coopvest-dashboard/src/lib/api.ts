@@ -9,8 +9,13 @@ import { supabase } from './supabase';
 export function getApiBaseUrl(): string {
   const envUrl = import.meta.env.VITE_API_BASE_URL;
   if (envUrl) {
-    // If user provides full URL, use it directly
-    return envUrl.replace(/\/+$/, '');
+    // Normalize: remove trailing slashes and /api suffix to avoid duplication
+    let normalized = envUrl.replace(/\/+$/, '');
+    // If URL already ends with /api, don't add it again
+    if (normalized.endsWith('/api')) {
+      return normalized;
+    }
+    return normalized;
   }
   // Default to production
   return 'https://coopvest-api-v3.onrender.com';
@@ -18,7 +23,12 @@ export function getApiBaseUrl(): string {
 
 // Get the admin API URL
 export function getAdminApiUrl(): string {
-  return `${getApiBaseUrl()}/api`;
+  const base = getApiBaseUrl();
+  // Only add /api if base doesn't already end with it
+  if (base.endsWith('/api')) {
+    return base;
+  }
+  return `${base}/api`;
 }
 
 // Get auth token from Supabase session
