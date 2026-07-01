@@ -2,11 +2,12 @@
   "version": 2,
   "framework": null,
   "builds": [
+    { "src": "artifacts/api-server/src/**/*.ts", "use": "@vercel/node" },
     { "src": "api/**/*.js", "use": "@vercel/node" },
     { "src": "vercel-dist/**", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/api/(.*)", "dest": "/artifacts/api-server/src/$1" },
     { "src": "/assets/(.*)", "dest": "/vercel-dist/assets/$1" },
     { "src": "/favicon.svg", "dest": "/vercel-dist/favicon.svg" },
     { "src": "/manifest.json", "dest": "/vercel-dist/manifest.json" },
