@@ -6,25 +6,18 @@ import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
-// ── Fix #1: CORS – fail fast if ALLOWED_ORIGIN is unset in production (except on Vercel) ─────────
-if (process.env.NODE_ENV === "production" && !process.env.VERCEL && !process.env.ALLOWED_ORIGIN) {
-  logger.fatal(
-    "ALLOWED_ORIGIN environment variable is not set. " +
-    "Refusing to start in production with a wildcard CORS origin. " +
-    "Set ALLOWED_ORIGIN to your frontend URL (e.g. https://app.coopvest.africa).",
-  );
-  process.exit(1);
-}
+// CORS configuration
+const allowedOrigin = process.env.ALLOWED_ORIGIN || "*";
 
 const app: Express = express();
 
 // Security headers
 app.use(helmet());
 
-// CORS — restrict to allowed origin in production
+// CORS — use allowed origin
 app.use(
   cors({
-    origin: process.env.ALLOWED_ORIGIN ?? "*",
+    origin: allowedOrigin,
     credentials: true,
   }),
 );
