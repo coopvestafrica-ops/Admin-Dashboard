@@ -11,8 +11,7 @@ console.log("[DEBUG] VITE_SUPABASE_ANON_KEY:", import.meta.env.VITE_SUPABASE_ANO
 console.log("[DEBUG] VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
 
 // Initialize API client with the correct backend URL
-// Backend routes are at /api/v2/admin/*, but API client uses /api/*
-const baseUrl = `${getApiBaseUrl()}/api/v2/admin`;
+const baseUrl = `${getApiBaseUrl()}/api`;
 setBaseUrl(baseUrl);
 console.log("[DEBUG] API Base URL set to:", baseUrl);
 

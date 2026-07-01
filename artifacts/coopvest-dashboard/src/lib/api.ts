@@ -16,9 +16,9 @@ export function getApiBaseUrl(): string {
   return 'https://coopvest-api-v3.onrender.com';
 }
 
-// Get the admin API URL (v2)
+// Get the admin API URL
 export function getAdminApiUrl(): string {
-  return `${getApiBaseUrl()}/api/v2/admin`;
+  return `${getApiBaseUrl()}/api`;
 }
 
 // Get auth token from Supabase session
