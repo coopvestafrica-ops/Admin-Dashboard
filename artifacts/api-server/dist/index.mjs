@@ -1,11 +1,3 @@
-import { createRequire as __bannerCrReq } from 'node:module';
-import __bannerPath from 'node:path';
-import __bannerUrl from 'node:url';
-
-globalThis.require = __bannerCrReq(import.meta.url);
-globalThis.__filename = __bannerUrl.fileURLToPath(import.meta.url);
-globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
-    
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -28330,17 +28322,7 @@ var require_multistream = __commonJS({
 // node_modules/pino/pino.js
 var require_pino = __commonJS({
   "node_modules/pino/pino.js"(exports, module) {
-    function pinoBundlerAbsolutePath(p) {
-      try {
-        const path2 = __require("path");
-        const outputDir = "/workspace/project/22ddacd087da4c2aacdd8ac9211e5753/Admin-Dashboard/artifacts/api-server/dist";
-        return path2.resolve(outputDir, p.replace(/^\.\//, ""));
-      } catch (e) {
-        const f = new Function("p", "return new URL(p, import.meta.url).pathname");
-        return f(p);
-      }
-    }
-    globalThis.__bundlerPathsOverrides = { ...globalThis.__bundlerPathsOverrides || {}, "thread-stream-worker": pinoBundlerAbsolutePath("./thread-stream-worker.mjs"), "pino-worker": pinoBundlerAbsolutePath("./pino-worker.mjs"), "pino/file": pinoBundlerAbsolutePath("./pino-file.mjs"), "pino-pretty": pinoBundlerAbsolutePath("./pino-pretty.mjs") };
+    "use strict";
     var os = __require("node:os");
     var stdSerializers = require_pino_std_serializers();
     var caller = require_caller();
