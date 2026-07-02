@@ -3,14 +3,14 @@
   "installCommand": "cd artifacts/api-server && npm install",
   "builds": [
     {
-      "src": "artifacts/api-server/src/index.ts",
+      "src": "artifacts/api-server/dist/index.cjs",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/artifacts/api-server/src/index.ts"
+      "dest": "/artifacts/api-server/dist/index.cjs"
     }
   ]
 }
