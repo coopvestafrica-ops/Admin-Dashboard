@@ -1,15 +1,17 @@
 {
   "version": 2,
+  "buildCommand": "cd artifacts/api-server && npm install && npm run build",
+  "installCommand": "cd artifacts/api-server && npm install",
   "builds": [
     {
-      "src": "artifacts/api-server/src/index.ts",
+      "src": "artifacts/api-server/dist/index.mjs",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/artifacts/api-server/src/index.ts"
+      "dest": "/artifacts/api-server/dist/index.mjs"
     }
   ]
 }
