@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "framework": null,
+  "builds": [
+    {
+      "src": "artifacts/api-server/src/index.ts",
+      "use": "@vercel/node",
+      "config": {
+        "maxLambdaSize": "10mb"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/artifacts/api-server/src/index.ts"
+    }
+  ]
+}
