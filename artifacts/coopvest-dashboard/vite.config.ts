@@ -27,7 +27,7 @@ import { defineConfig, loadEnv } from "vite";
 
   const supabaseUrl = env.VITE_SUPABASE_URL || 'https://nyoauzqezpxeonmrxxgi.supabase.co';
   const supabaseKey = env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55b2F1enFlenB4ZW9ubXJ4eGdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyODI3MzUsImV4cCI6MjA4OTg1ODczNX0.5WfECoO2Xu5VfBzFbQd2CA8rIeBVnOkiKmnnbYRA8VU';
-  const apiBaseUrl = env.VITE_API_BASE_URL ? env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://coopvest-api-v3.onrender.com';
+  const apiBaseUrl = env.VITE_API_BASE_URL || 'https://admin-dashboard-api-server.vercel.app';
 
   export default defineConfig({
     base: basePath,
