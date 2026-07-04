@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { requireAuth } from "../middleware/auth";
+import { rateLimiter, trackLoginAttempt } from "../middleware/security";
 import healthRouter from "./health";
 import setupRouter from "./setup";
 import authRouter from "./auth";
@@ -44,7 +45,11 @@ const router: IRouter = Router();
 // Public — no auth required
 router.use(healthRouter);
 
-// Auth routes — public endpoints for mobile app
+// Rate limiting for all requests
+router.use(rateLimiter);
+
+// Auth routes — public endpoints for mobile app (with login tracking)
+router.use(trackLoginAttempt);
 router.use(authRouter);
 
 // Password reset — public endpoint
