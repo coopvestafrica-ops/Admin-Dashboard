@@ -28,6 +28,85 @@ async function verifyToken(req: Request, res: Response) {
   }
 }
 
+// Admin login - sign in with Supabase Auth and return token
+router.post("/auth/login", async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      res.status(400).json({ error: "Email and password are required" });
+      return;
+    }
+
+    // Sign in with Supabase Auth
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password: password,
+    });
+
+    if (error) {
+      logger.warn({ email, error: error.message }, "Admin login failed");
+      res.status(401).json({ error: error.message || "Invalid credentials" });
+      return;
+    }
+
+    // Get user profile to check role
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, name, email, role")
+      .eq("id", data.user.id)
+      .single();
+
+    // Return token and user data
+    res.json({
+      data: {
+        token: data.session.access_token,
+        refreshToken: data.session.refresh_token,
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+          name: profile?.name || data.user.email?.split('@')[0],
+          role: profile?.role || "member",
+        },
+      },
+    });
+  } catch (err) {
+    logger.error({ err }, "Admin login error");
+    res.status(500).json({ error: "Login failed" });
+  }
+});
+
+// Refresh token endpoint
+router.post("/auth/refresh", async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      res.status(400).json({ error: "Refresh token is required" });
+      return;
+    }
+
+    const { data, error } = await supabase.auth.refreshSession({
+      refresh_token: refreshToken,
+    });
+
+    if (error || !data.session) {
+      res.status(401).json({ error: "Invalid refresh token" });
+      return;
+    }
+
+    res.json({
+      data: {
+        token: data.session.access_token,
+        refreshToken: data.session.refresh_token,
+      },
+    });
+  } catch (err) {
+    logger.error({ err }, "Token refresh error");
+    res.status(500).json({ error: "Token refresh failed" });
+  }
+});
+
 // Complete registration — save all onboarding data to Supabase
 router.post("/auth/complete-registration", async (req: Request, res: Response) => {
   try {

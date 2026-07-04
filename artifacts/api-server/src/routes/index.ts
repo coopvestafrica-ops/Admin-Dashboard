@@ -39,6 +39,8 @@ import reconciliationRouter from "./reconciliation";
 import loginHistoryRouter from "./login_history";
 import excelUploadsRouter from "./excel-uploads";
 import depositsRouter from "./deposits";
+// Statistics routes for frontend dashboard
+import statisticsRouter from "./statistics";
 
 const router: IRouter = Router();
 
@@ -61,6 +63,7 @@ router.use(setupRouter);
 // Protected — all routes below require a valid Supabase JWT
 router.use(requireAuth);
 router.use(dashboardRouter);
+router.use(statisticsRouter);
 router.use(membersRouter);
 router.use(loansRouter);
 router.use(contributionsRouter);
