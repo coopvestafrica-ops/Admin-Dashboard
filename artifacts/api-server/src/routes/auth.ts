@@ -184,6 +184,7 @@ router.post("/auth/sync", async (req: Request, res: Response) => {
         phone: profileData.phone,
         isEmailVerified: user.email_confirmed_at !== null,
         kycStatus: existingProfile?.kyc_status || 'pending',
+        registrationCompleted: profileData.registration_completed,
         createdAt: profileData.created_at,
       }
     });
