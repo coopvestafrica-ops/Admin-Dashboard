@@ -176,11 +176,19 @@ async function buildMemberDetail(profile: any) {
     supabase.from("users").select("*").eq("email", profile.email).maybeSingle(),
   ]);
 
-  // The full registration form lives in kyc_submissions.data (JSONB), keyed by the
-  // signup email. Fall back to the most recent submission for this email.
+  // The full registration form data comes from the kyc table's personal_info JSONB field.
+  // Fall back to building from individual fields if personal_info is empty.
   let registration: Record<string, any> | null = null;
   let submittedAt: string | null = null;
-  if (profile.email) {
+  
+  // First try kyc table's personal_info field
+  if (kyc && (kyc as any).personal_info) {
+    registration = { ...((kyc as any).personal_info as Record<string, any>) };
+    submittedAt = (kyc as any).updated_at ?? null;
+  }
+  
+  // Also try kyc_submissions table as fallback
+  if (!registration && profile.email) {
     const { data: subs } = await supabase
       .from("kyc_submissions")
       .select("data, submitted_at")
