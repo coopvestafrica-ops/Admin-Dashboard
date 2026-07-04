@@ -120,7 +120,7 @@ router.post("/auth/complete-registration", async (req: Request, res: Response) =
       occupation, employer_name, employment_type, employer_staff_id, work_address, years_of_employment,
       monthly_amount, contribution_method, preferred_payment_day,
       nok_name, nok_relationship, nok_phone, nok_address,
-      contribution_type
+      contribution_type, bank_name, bank_code, account_number, account_name, account_type, bvn, nin
     } = req.body;
 
     // Build profile data
@@ -157,6 +157,13 @@ router.post("/auth/complete-registration", async (req: Request, res: Response) =
     if (nok_phone) profileData.nok_phone = nok_phone;
     if (nok_address) profileData.nok_address = nok_address;
     if (contribution_type) profileData.contribution_type = contribution_type;
+    if (bank_name) profileData.bank_name = bank_name;
+    if (bank_code) profileData.bank_code = bank_code;
+    if (account_number) profileData.account_number = account_number;
+    if (account_name) profileData.account_name = account_name;
+    if (account_type) profileData.account_type = account_type;
+    if (bvn) profileData.bvn = bvn;
+    if (nin) profileData.nin = nin;
 
     // Upsert to profiles table
     const { error: profileError } = await supabase
@@ -168,6 +175,17 @@ router.post("/auth/complete-registration", async (req: Request, res: Response) =
       res.status(500).json({ error: "Failed to save registration data" });
       return;
     }
+
+    // Save to kyc_submissions table for admin dashboard
+    await supabase
+      .from('kyc_submissions')
+      .insert({
+        profile_id: user.id,
+        email: user.email,
+        data: req.body,
+        submitted_at: new Date().toISOString(),
+        status: 'pending',
+      });
 
     logger.info({ userId: user.id }, "Registration completed successfully");
     res.json({ 
