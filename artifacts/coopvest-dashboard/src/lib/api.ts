@@ -26,6 +26,10 @@ export function getApiBaseUrl(): string {
 // Get the admin API URL - use /api prefix for all endpoints
 export function getAdminApiUrl(): string {
   const base = getApiBaseUrl();
+  // Don't add /api if URL already contains /api (for backend URLs like /api/v2)
+  if (base.includes('/api')) {
+    return base;
+  }
   // Always append /api to base URL for admin endpoints
   return `${base}/api`;
 }
