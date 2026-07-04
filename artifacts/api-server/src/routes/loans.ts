@@ -9,7 +9,7 @@ const router: IRouter = Router();
 // All loan routes require authentication
 router.use(requireAuth);
 
-router.get("/loans/portfolio-summary", async (req, res): Promise<void> => {
+router.get("/portfolio-summary", async (req, res): Promise<void> => {
   const { data: loans } = await supabase.from("loans").select("amount, remaining_balance, status");
   const rows = loans ?? [];
 
@@ -34,7 +34,7 @@ router.get("/loans/portfolio-summary", async (req, res): Promise<void> => {
   });
 });
 
-router.get("/loans", async (req, res): Promise<void> => {
+router.get("/", async (req, res): Promise<void> => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Number(req.query.limit) || 20);
   const offset = (page - 1) * limit;
@@ -112,7 +112,7 @@ router.get("/loans", async (req, res): Promise<void> => {
 
 // Fix #2: Validate POST body with Zod before inserting
 // POST /loans/apply - Mobile app endpoint for applying loans
-router.post("/loans/apply", async (req, res): Promise<void> => {
+router.post("/apply", async (req, res): Promise<void> => {
   try {
     // Mobile app sends: { memberId, amount, tenure, purpose, guarantorIds? }
     const { memberId, amount, tenure, purpose, guarantorIds } = req.body;
@@ -169,7 +169,7 @@ router.post("/loans/apply", async (req, res): Promise<void> => {
   }
 });
 
-router.post("/loans", async (req, res): Promise<void> => {
+router.post("/", async (req, res): Promise<void> => {
   const parsed = CreateLoanBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
@@ -207,7 +207,7 @@ router.post("/loans", async (req, res): Promise<void> => {
   });
 });
 
-router.get("/loans/:id", async (req, res): Promise<void> => {
+router.get("/:id", async (req, res): Promise<void> => {
   const id = req.params.id;
   const { data: loan, error } = await supabase.from("loans")
     .select("*, profiles!loans_profile_id_fkey(id, first_name, last_name, name, email, phone)").eq("id", id).single();
@@ -260,7 +260,7 @@ router.get("/loans/:id", async (req, res): Promise<void> => {
 });
 
 // Fix #4: Approve/reject require at minimum "operator" role
-router.post("/loans/:id/approve", requireRole("operator"), async (req, res): Promise<void> => {
+router.post("/:id/approve", requireRole("operator"), async (req, res): Promise<void> => {
   const id = req.params.id;
   const now = new Date();
   const dueDate = new Date(now);
@@ -305,7 +305,7 @@ router.post("/loans/:id/approve", requireRole("operator"), async (req, res): Pro
 });
 
 // Fix #4: Reject requires at minimum "operator" role
-router.post("/loans/:id/reject", requireRole("operator"), async (req, res): Promise<void> => {
+router.post("/:id/reject", requireRole("operator"), async (req, res): Promise<void> => {
   const id = req.params.id;
   const { reason } = req.body;
   if (!reason || typeof reason !== "string" || reason.trim().length === 0) {
@@ -351,7 +351,7 @@ router.post("/loans/:id/reject", requireRole("operator"), async (req, res): Prom
 });
 
 // Get loan audit log
-router.get("/loans/:id/audit", async (req, res): Promise<void> => {
+router.get("/:id/audit", async (req, res): Promise<void> => {
   const id = req.params.id;
   const { data: loan } = await supabase.from("loans").select("loan_id").eq("id", id).single();
   if (!loan) { res.status(404).json({ error: "Loan not found" }); return; }
@@ -367,7 +367,7 @@ router.get("/loans/:id/audit", async (req, res): Promise<void> => {
 });
 
 // Get guarantors for a loan
-router.get("/loans/:id/guarantors", async (req, res): Promise<void> => {
+router.get("/:id/guarantors", async (req, res): Promise<void> => {
   const loanId = req.params.id;
   
   // Get the loan to verify it exists
@@ -418,7 +418,7 @@ router.get("/loans/:id/guarantors", async (req, res): Promise<void> => {
 });
 
 // Confirm guarantee (guarantor accepts the request)
-router.post("/loans/:id/guarantors/confirm", async (req, res): Promise<void> => {
+router.post("/:id/guarantors/confirm", async (req, res): Promise<void> => {
   const loanIdParam = req.params.id;
   const { guarantorId, guarantor_id, consentToken } = req.body;
   // Support both camelCase and snake_case
@@ -560,7 +560,7 @@ router.post("/loans/:id/guarantors/confirm", async (req, res): Promise<void> => 
 });
 
 // Decline guarantee (guarantor rejects the request)
-router.post("/loans/:id/guarantors/decline", async (req, res): Promise<void> => {
+router.post("/:id/guarantors/decline", async (req, res): Promise<void> => {
   const loanIdParam = req.params.id;
   const { guarantorId, guarantor_id, reason } = req.body;
   const guarantorIdToUse = guarantorId || guarantor_id;
