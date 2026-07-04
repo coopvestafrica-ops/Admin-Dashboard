@@ -641,6 +641,33 @@ export default function MemberProfile() {
               </Card>
             )}
 
+            {/* Bank Info from Registration */}
+            {activeMember.bankInfo && (activeMember.bankInfo.bankName || activeMember.bankInfo.accountNumber) && (
+              <Card>
+                <CardHeader><CardTitle className="text-base flex items-center gap-2"><Building2 className="h-4 w-4" /> Bank Info (Registration)</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Bank</span>
+                      <p className="font-medium">{activeMember.bankInfo.bankName || "—"}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Account Number</span>
+                      <p className="font-medium">{activeMember.bankInfo.accountNumber || "—"}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Account Name</span>
+                      <p className="font-medium">{activeMember.bankInfo.accountName || "—"}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Account Type</span>
+                      <p className="font-medium capitalize">{activeMember.bankInfo.accountType || "—"}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Every submitted field (raw) — ensures nothing is hidden */}
             {activeMember.registration && Object.keys(activeMember.registration).length > 0 && (
               <Card>

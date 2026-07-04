@@ -245,6 +245,14 @@ async function buildMemberDetail(profile: any) {
       address: pick(registration, "nok_address"),
       relationship: pick(registration, "nok_relationship"),
     },
+    // Bank Information (from registration form)
+    bankInfo: {
+      bankName: pick(registration, "bank_name"),
+      bankCode: pick(registration, "bank_code"),
+      accountNumber: pick(registration, "account_number"),
+      accountName: pick(registration, "account_name"),
+      accountType: pick(registration, "account_type"),
+    },
     // Contribution preferences chosen at signup
     monthlyAmount: pick(registration, "monthly_amount"),
     contributionMethod: pick(registration, "contribution_method") || "monthly",
