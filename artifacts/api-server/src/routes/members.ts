@@ -513,7 +513,8 @@ router.post("/members/:id/role", requireAuth, requireRole("super_admin"), async 
     activeLoan: 0, 
     riskScore: 0, 
     avatarInitials: ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase() || "??" 
-});
+  });
+  });
 
 // Delete member - only super_admin can delete members
 // This will COMPLETELY remove the user - they cannot login again
