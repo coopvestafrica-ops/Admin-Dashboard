@@ -112,7 +112,7 @@ export default function Members() {
       console.error('[Members] Error loading members:', error);
     }
     if (data) {
-      console.log('[Members] Received data:', data);
+      console.log('[Members] Received data:', JSON.stringify(data).substring(0, 500));
     }
   }, [data, isLoading, error]);
 
@@ -120,14 +120,47 @@ export default function Members() {
   const rawData = data;
   let members: any[] = [];
   
-  if (Array.isArray(rawData)) {
-    members = rawData;
-  } else if (rawData && typeof rawData === 'object' && 'data' in rawData) {
-    const d = (rawData as any).data;
-    members = Array.isArray(d) ? d : [];
+  // Handle new response format from /api/v1/admin/members
+  // Response: { success: true, data: profiles[], pagination: { page, limit, total, totalPages } }
+  if (rawData && typeof rawData === 'object') {
+    const resp = rawData as any;
+    if (Array.isArray(resp.data)) {
+      // Transform backend profile data to frontend format
+      members = resp.data.map((profile: any) => ({
+        id: profile.id,
+        memberId: profile.user_id || profile.id,
+        firstName: profile.name?.split(' ')[0] || profile.name || '',
+        lastName: profile.name?.split(' ').slice(1).join(' ') || '',
+        name: profile.name || '',
+        email: profile.email || '',
+        phone: profile.phone || '',
+        status: profile.is_active ? 'active' : (profile.is_flagged ? 'high-risk' : 'pending'),
+        occupation: profile.occupation || '',
+        totalContributions: profile.total_contributions || 0,
+        riskScore: profile.risk_score || 0,
+        joinDate: profile.created_at,
+        isFlagged: profile.is_flagged || false,
+        role: profile.role || 'member',
+        ...profile
+      }));
+    } else if (Array.isArray(resp.members)) {
+      // Old format: { success: true, members: [] }
+      members = resp.members;
+    } else if (Array.isArray(resp)) {
+      // Direct array response
+      members = resp;
+    }
   }
   
-  const total = (data && typeof data === 'object' && typeof (data as any).total === 'number') ? (data as any).total : 0;
+  // Extract total from either format
+  const total = (() => {
+    if (rawData && typeof rawData === 'object') {
+      const resp = rawData as any;
+      if (typeof resp.total === 'number') return resp.total;
+      if (resp.pagination && typeof resp.pagination.total === 'number') return resp.pagination.total;
+    }
+    return 0;
+  })();
   const totalPages = total > 0 ? Math.ceil(total / 20) : 0;
 
   // Safely extract stats with fallbacks - ensure always array of StatCard
