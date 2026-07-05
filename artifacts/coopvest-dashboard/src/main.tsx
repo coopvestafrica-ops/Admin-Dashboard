@@ -10,8 +10,8 @@ console.log("[DEBUG] VITE_SUPABASE_ANON_KEY:", import.meta.env.VITE_SUPABASE_ANO
 console.log("[DEBUG] VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
 
 // Initialize API client with the correct backend URL
-// Use VITE_API_BASE_URL if defined, otherwise fallback to Render API server
-const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+// Use VITE_API_BASE_URL if defined, otherwise fallback to Vercel API server
+const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://admin-dashboard-api-server.vercel.app';
 setBaseUrl(baseUrl);
 console.log("[DEBUG] API Base URL set to:", baseUrl);
 

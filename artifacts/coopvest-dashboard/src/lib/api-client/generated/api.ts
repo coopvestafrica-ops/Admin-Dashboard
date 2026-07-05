@@ -474,7 +474,7 @@ export const getGetMembersUrl = (params?: GetMembersParams,) => {
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/members?${stringifiedParams}` : `/members`
+  return stringifiedParams.length > 0 ? `/api/members?${stringifiedParams}` : `/api/members`
 }
 
 /**
