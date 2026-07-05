@@ -474,8 +474,8 @@ export const getGetMembersUrl = (params?: GetMembersParams,) => {
 
   const stringifiedParams = normalizedParams.toString();
 
-  // Render server expects /members endpoint
-  return stringifiedParams.length > 0 ? `/members?${stringifiedParams}` : `/members`
+  // Express server mounts router at /api, so endpoint is /api/members
+  return stringifiedParams.length > 0 ? `/api/members?${stringifiedParams}` : `/api/members`
 }
 
 /**
