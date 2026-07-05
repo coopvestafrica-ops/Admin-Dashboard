@@ -2,12 +2,12 @@
  * Shared API utilities for the admin dashboard
  * All API calls should use these helpers to ensure consistent URLs
  * FIXED: API URL properly configured for production build
- * Build: 2026-07-01
+ * Build: 2026-07-05
  */
 
 import { supabase } from './supabase';
 
-// Get the base API URL - use environment variable or default to production
+// Get the base API URL - use environment variable or default to Render API
 export function getApiBaseUrl(): string {
   const envUrl = import.meta.env.VITE_API_BASE_URL;
   if (envUrl) {
@@ -19,8 +19,8 @@ export function getApiBaseUrl(): string {
     }
     return normalized;
   }
-  // Default to Vercel admin API server
-  return 'https://admin-dashboard-api-server.vercel.app';
+  // Default to Render API server (production) - this is the primary backend
+  return 'https://coopvest-api-v3.onrender.com';
 }
 
 // Get the admin API URL - use /api prefix for all endpoints
