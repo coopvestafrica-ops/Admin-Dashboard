@@ -1,3 +1,6 @@
 .vercel
-.env*
 workspace-api-client-react-0.0.0.tgz
+# Keep .env for deployment
+!.env
+.env.local
+.env.production
