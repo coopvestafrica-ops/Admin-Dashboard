@@ -120,29 +120,13 @@ export default function Members() {
   const rawData = data;
   let members: any[] = [];
   
-  // Handle new response format from /api/v1/admin/members
-  // Response: { success: true, data: profiles[], pagination: { page, limit, total, totalPages } }
+  // Handle response format from /members endpoint
+  // Response: { data: Member[], total: number, page: number, limit: number }
   if (rawData && typeof rawData === 'object') {
     const resp = rawData as any;
     if (Array.isArray(resp.data)) {
-      // Transform backend profile data to frontend format
-      members = resp.data.map((profile: any) => ({
-        id: profile.id,
-        memberId: profile.user_id || profile.id,
-        firstName: profile.name?.split(' ')[0] || profile.name || '',
-        lastName: profile.name?.split(' ').slice(1).join(' ') || '',
-        name: profile.name || '',
-        email: profile.email || '',
-        phone: profile.phone || '',
-        status: profile.is_active ? 'active' : (profile.is_flagged ? 'high-risk' : 'pending'),
-        occupation: profile.occupation || '',
-        totalContributions: profile.total_contributions || 0,
-        riskScore: profile.risk_score || 0,
-        joinDate: profile.created_at,
-        isFlagged: profile.is_flagged || false,
-        role: profile.role || 'member',
-        ...profile
-      }));
+      // API returns members in data array with proper Member format
+      members = resp.data;
     } else if (Array.isArray(resp.members)) {
       // Old format: { success: true, members: [] }
       members = resp.members;
@@ -152,14 +136,13 @@ export default function Members() {
     }
   }
   
-  // Extract total from either format
+  // Extract total from response
   const total = (() => {
     if (rawData && typeof rawData === 'object') {
       const resp = rawData as any;
       if (typeof resp.total === 'number') return resp.total;
-      if (resp.pagination && typeof resp.pagination.total === 'number') return resp.pagination.total;
     }
-    return 0;
+    return members.length;
   })();
   const totalPages = total > 0 ? Math.ceil(total / 20) : 0;
 
