@@ -21,7 +21,7 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import { customFetch, setBaseUrl } from "@/lib/api-client";
+import { customFetch } from "@/lib/api-client";
 import { toast } from "sonner";
 
 interface Organization {
@@ -70,11 +70,8 @@ export default function Settings() {
   useEffect(() => {
     async function fetchSettings() {
       try {
-        // Only set base URL if VITE_API_BASE_URL is explicitly defined
-        // Otherwise keep the default set in main.tsx
-        if (import.meta.env.VITE_API_BASE_URL) {
-          setBaseUrl(import.meta.env.VITE_API_BASE_URL);
-        }
+        // NOTE: Do NOT set base URL here - it's already set in main.tsx
+        // Setting it to undefined or empty would break API calls
         
         // Fetch salary deduction setting
         const deductionRes = await customFetch<{ success: boolean; enabled: boolean }>(
