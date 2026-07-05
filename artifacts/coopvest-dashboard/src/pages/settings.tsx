@@ -70,8 +70,11 @@ export default function Settings() {
   useEffect(() => {
     async function fetchSettings() {
       try {
-        // Set base URL for API calls (Vite env var)
-        setBaseUrl(import.meta.env.VITE_API_BASE_URL || "");
+        // Only set base URL if VITE_API_BASE_URL is explicitly defined
+        // Otherwise keep the default set in main.tsx
+        if (import.meta.env.VITE_API_BASE_URL) {
+          setBaseUrl(import.meta.env.VITE_API_BASE_URL);
+        }
         
         // Fetch salary deduction setting
         const deductionRes = await customFetch<{ success: boolean; enabled: boolean }>(
