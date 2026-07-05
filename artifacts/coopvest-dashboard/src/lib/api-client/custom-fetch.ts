@@ -361,15 +361,24 @@ export async function customFetch<T = unknown>(
   }
 
   const requestInfo = { method, url: resolveUrl(input) };
+  
+  console.log('[API] Fetching:', requestInfo.url, 'Base URL:', _baseUrl);
 
-  const response = await fetch(input, { ...init, method, headers });
+  try {
+    const response = await fetch(input, { ...init, method, headers });
 
-  if (!response.ok) {
-    const errorData = await parseErrorBody(response, method);
-    console.error('[API] Error response:', resolvedUrl, response.status, errorData);
-    throw new ApiError(response, errorData, requestInfo);
+    if (!response.ok) {
+      const errorData = await parseErrorBody(response, method);
+      console.error('[API] Error response:', resolvedUrl, response.status, errorData);
+      throw new ApiError(response, errorData, requestInfo);
+    }
+
+    console.log('[API] Success:', resolvedUrl);
+    return (await parseSuccessBody(response, responseType, requestInfo)) as T;
+  } catch (err) {
+    if (err instanceof TypeError && err.message.includes('fetch')) {
+      console.error('[API] Network error:', err.message, 'URL:', requestInfo.url);
+    }
+    throw err;
   }
-
-  console.log('[API] Success:', resolvedUrl);
-  return (await parseSuccessBody(response, responseType, requestInfo)) as T;
 }
