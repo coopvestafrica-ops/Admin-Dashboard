@@ -1,17 +1,5 @@
 {
   "version": 2,
-  "installCommand": "cd artifacts/api-server && npm install && cd ../coopvest-dashboard && npm install",
-  "buildCommand": "cd artifacts/api-server && npm run build && cd ../coopvest-dashboard && npm run build",
-  "builds": [
-    {
-      "src": "artifacts/api-server/dist/index.mjs",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "artifacts/api-server/dist/index.mjs"
-    }
-  ]
+  "installCommand": "cd artifacts/coopvest-dashboard && npm install",
+  "buildCommand": "cd artifacts/coopvest-dashboard && npm run build"
 }
