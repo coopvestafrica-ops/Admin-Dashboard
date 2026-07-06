@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const API_BASE_URL = 'https://coopvest-api-v3.onrender.com';
 
-// Supabase service role key - used for backend authentication
-const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55b2F1enFlenB4ZW9ubXJ4eGdpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDI4MjczNSwiZXhwIjoyMDg5ODU4NzM1fQ.zCX5ZMW42kwjszRmT6HREZOCjTs5z7ZlXidK4BM-coM';
-
 export const runtime = 'edge';
 
 export async function GET(
@@ -18,12 +15,19 @@ export async function GET(
   
   const targetUrl = `${API_BASE_URL}/api/${apiPath}${queryString}`;
   
+  // Forward the Authorization header (user's JWT token)
+  const authHeader = request.headers.get('authorization');
+  
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  if (authHeader) {
+    headers['Authorization'] = authHeader;
+  }
+  
   const response = await fetch(targetUrl, {
     method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-      'Content-Type': 'application/json',
-    },
+    headers,
   });
   
   const data = await response.json();
@@ -40,12 +44,19 @@ export async function POST(
   
   const targetUrl = `${API_BASE_URL}/api/${apiPath}`;
   
+  // Forward the Authorization header (user's JWT token)
+  const authHeader = request.headers.get('authorization');
+  
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  if (authHeader) {
+    headers['Authorization'] = authHeader;
+  }
+  
   const response = await fetch(targetUrl, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(body),
   });
   
@@ -63,12 +74,19 @@ export async function PUT(
   
   const targetUrl = `${API_BASE_URL}/api/${apiPath}`;
   
+  // Forward the Authorization header (user's JWT token)
+  const authHeader = request.headers.get('authorization');
+  
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  if (authHeader) {
+    headers['Authorization'] = authHeader;
+  }
+  
   const response = await fetch(targetUrl, {
     method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(body),
   });
   
@@ -86,12 +104,19 @@ export async function PATCH(
   
   const targetUrl = `${API_BASE_URL}/api/${apiPath}`;
   
+  // Forward the Authorization header (user's JWT token)
+  const authHeader = request.headers.get('authorization');
+  
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  if (authHeader) {
+    headers['Authorization'] = authHeader;
+  }
+  
   const response = await fetch(targetUrl, {
     method: 'PATCH',
-    headers: {
-      'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(body),
   });
   
@@ -108,12 +133,19 @@ export async function DELETE(
   
   const targetUrl = `${API_BASE_URL}/api/${apiPath}`;
   
+  // Forward the Authorization header (user's JWT token)
+  const authHeader = request.headers.get('authorization');
+  
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  if (authHeader) {
+    headers['Authorization'] = authHeader;
+  }
+  
   const response = await fetch(targetUrl, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-      'Content-Type': 'application/json',
-    },
+    headers,
   });
   
   const data = await response.json();
