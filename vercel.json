@@ -11,11 +11,11 @@
   "routes": [
     {
       "src": "/api/admin/(.*)",
-      "dest": "/api/admin/$1"
+      "dest": "artifacts/api-server/dist/index.mjs"
     },
     {
       "src": "/api/v1/(.*)",
-      "dest": "/api/admin/$1"
+      "dest": "artifacts/api-server/dist/index.mjs"
     },
     {
       "src": "/api/(.*)",
