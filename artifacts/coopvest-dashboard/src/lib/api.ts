@@ -11,23 +11,21 @@ import { supabase } from './supabase';
 export function getApiBaseUrl(): string {
   const envUrl = import.meta.env.VITE_API_BASE_URL;
   if (envUrl) {
-    // Normalize: remove trailing slashes and /api suffix to avoid duplication
+    // Normalize: remove trailing slashes
     let normalized = envUrl.replace(/\/+$/, '');
-    // If URL already ends with /api, don't add it again
-    if (normalized.endsWith('/api')) {
-      return normalized;
-    }
     return normalized;
   }
   // Default to Render API server (production) - this is the primary backend
+  // IMPORTANT: The frontend now calls the Render API directly to avoid Vercel routing issues
   return 'https://coopvest-api-v3.onrender.com';
 }
 
-// Get the admin API URL - use /api/admin prefix for all endpoints
+// Get the admin API URL - used by the API client for all admin endpoints
+// Note: The generated API client endpoints already include full paths like /api/members/stats
 export function getAdminApiUrl(): string {
   const base = getApiBaseUrl();
-  // Always append /api/admin since the frontend expects /api/admin/* paths
-  return `${base}/api/admin`;
+  // Don't add /api since the generated API client URLs already include it
+  return base;
 }
 
 // Get auth token from Supabase session
