@@ -4,6 +4,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import pinoHttp from "pino-http";
 import multer from "multer";
+import path from "path";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -11,6 +12,10 @@ import { logger } from "./lib/logger";
 const allowedOrigin = process.env.ALLOWED_ORIGIN || "*";
 
 const app: Express = express();
+
+// Serve static frontend files from coopvest-dashboard
+const frontendDistPath = path.resolve(__dirname, "../../coopvest-dashboard/dist/public");
+app.use(express.static(frontendDistPath));
 
 // Security headers
 app.use(helmet());
@@ -79,6 +84,10 @@ app.use((err: any, req: any, res: any, next: any) => {
 // Catch-all 404 handler
 app.use((req, res) => {
   logger.info({ path: req.path }, "Unhandled route");
+  // Serve index.html for SPA routing (but not for API routes)
+  if (!req.path.startsWith('/api')) {
+    return res.sendFile(path.join(frontendDistPath, 'index.html'));
+  }
   res.status(404).json({ success: false, error: "Endpoint not found", path: req.path });
 });
 
