@@ -14,10 +14,8 @@ const allowedOrigin = process.env.ALLOWED_ORIGIN || "*";
 const app: Express = express();
 
 // Serve static frontend files from coopvest-dashboard
-// In Vercel serverless, use VERCEL_DIR or cwd
-const frontendDistPath = process.env.VERCEL ? 
-  path.join(process.env.VERCEL_DIR || '/var/task', "coopvest-dashboard/dist/public") :
-  path.resolve(__dirname, "../../coopvest-dashboard/dist/public");
+// In Vercel serverless, use cwd which points to the deployment root
+const frontendDistPath = path.resolve(process.cwd(), "coopvest-dashboard/dist/public");
 app.use(express.static(frontendDistPath));
 
 // Security headers
