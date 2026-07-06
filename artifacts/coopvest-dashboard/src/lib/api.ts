@@ -2,7 +2,7 @@
  * Shared API utilities for the admin dashboard
  * All API calls should use these helpers to ensure consistent URLs
  * FIXED: API URL properly configured for production build
- * Build: 2026-07-05
+ * Build: 2026-07-06 - Updated to use Render API directly
  */
 
 import { supabase } from './supabase';
