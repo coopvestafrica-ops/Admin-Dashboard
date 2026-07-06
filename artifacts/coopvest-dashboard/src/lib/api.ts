@@ -23,15 +23,11 @@ export function getApiBaseUrl(): string {
   return 'https://coopvest-api-v3.onrender.com';
 }
 
-// Get the admin API URL - use /api prefix for all endpoints
+// Get the admin API URL - use /api/admin prefix for all endpoints
 export function getAdminApiUrl(): string {
   const base = getApiBaseUrl();
-  // Don't add /api if URL already contains /api (for backend URLs like /api/v2)
-  if (base.includes('/api')) {
-    return base;
-  }
-  // Always append /api to base URL for admin endpoints
-  return `${base}/api`;
+  // Always append /api/admin since the frontend expects /api/admin/* paths
+  return `${base}/api/admin`;
 }
 
 // Get auth token from Supabase session
