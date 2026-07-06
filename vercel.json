@@ -12,10 +12,6 @@
     {
       "src": "/api/(.*)",
       "dest": "artifacts/api-server/dist/index.mjs"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "artifacts/coopvest-dashboard/dist/public/index.html"
     }
   ]
 }
