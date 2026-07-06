@@ -14,10 +14,6 @@
       "dest": "artifacts/api-server/dist/index.mjs"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "artifacts/coopvest-dashboard/dist/public/assets/$1"
-    },
-    {
       "src": "/(.*)",
       "dest": "artifacts/coopvest-dashboard/dist/public/index.html"
     }
