@@ -1,25 +1,25 @@
 {
   "version": 2,
-  "installCommand": "cd artifacts/api-server && npm install && cd artifacts/coopvest-dashboard && npm install",
+  "installCommand": "cd artifacts/api-server && npm install && cd ../coopvest-dashboard && npm install",
   "buildCommand": "cd artifacts/api-server && npm run build && cd ../coopvest-dashboard && npm run build",
   "builds": [
     {
       "src": "artifacts/api-server/dist/index.mjs",
       "use": "@vercel/node"
-    },
-    {
-      "src": "artifacts/coopvest-dashboard/dist/**",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/artifacts/api-server/dist/index.mjs"
+      "dest": "artifacts/api-server/dist/index.mjs"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "artifacts/coopvest-dashboard/dist/public/assets/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/artifacts/coopvest-dashboard/dist/index.html"
+      "dest": "artifacts/coopvest-dashboard/dist/public/index.html"
     }
   ]
 }
