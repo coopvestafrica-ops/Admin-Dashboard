@@ -54,7 +54,7 @@ export async function apiRequest<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const baseUrl = getAdminApiUrl();
+  const baseUrl = getApiBaseUrl();
   const url = endpoint.startsWith('/') ? `${baseUrl}${endpoint}` : `${baseUrl}/${endpoint}`;
   const headers = await getAuthHeaders();
   
