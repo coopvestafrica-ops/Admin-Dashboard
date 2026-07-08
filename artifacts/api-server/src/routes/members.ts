@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { supabase, splitName, deriveStatus } from "../lib/supabase";
 import { CreateMemberBody } from "../lib/types";
-import { requireAuth, requireRole } from "../middleware/auth";
+import { requireAuth, requireRole, type AuthenticatedRequest } from "../middleware/auth";
 
 const router: IRouter = Router();
 router.use(requireAuth);
@@ -516,12 +516,44 @@ router.post("/members/:id/role", requireAuth, requireRole("super_admin"), async 
   });
   });
 
-// Delete member - only super_admin can delete members
-// This will COMPLETELY remove the user - they cannot login again
-router.delete("/members/:id", requireAuth, requireRole("super_admin"), async (req, res): Promise<void> => {
-  const id = req.params.id;
+// In-memory store for deletion confirmations (in production, use Redis or database)
+const deletionConfirmations = new Map<string, {
+  memberId: string;
+  memberEmail: string;
+  memberName: string;
+  initiatedBy: string;
+  initiatedAt: Date;
+  confirmationCode: string;
+  expiresAt: Date;
+  completed: boolean;
+}>();
 
-  // First check if member exists
+// Generate a random confirmation code
+function generateConfirmationCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+// Clean up expired confirmations every 10 minutes
+setInterval(() => {
+  const now = new Date();
+  for (const [key, value] of deletionConfirmations.entries()) {
+    if (value.expiresAt < now || value.completed) {
+      deletionConfirmations.delete(key);
+    }
+  }
+}, 10 * 60 * 1000);
+
+// DELETE /members/:id/confirm-delete - Initiate deletion process (Step 1)
+// Returns a confirmation code that must be entered to complete deletion
+router.post("/members/:id/confirm-delete", requireAuth, requireRole("super_admin"), async (req, res): Promise<void> => {
+  const id = String(req.params.id);
+
+  // Check if member exists
   const { data: profile, error: fetchError } = await supabase
     .from("profiles")
     .select("id, email, name, role, user_id")
@@ -533,9 +565,6 @@ router.delete("/members/:id", requireAuth, requireRole("super_admin"), async (re
     return;
   }
 
-  // Get current user's email
-  const currentUserEmail = (req as AuthenticatedRequest).user?.email;
-
   // Prevent deleting yourself
   if (profile.id === (req as AuthenticatedRequest).user?.profileId) {
     res.status(400).json({ error: "Cannot delete your own account" });
@@ -544,13 +573,186 @@ router.delete("/members/:id", requireAuth, requireRole("super_admin"), async (re
 
   // Only ayanlowo89@gmail.com can delete other super_admins
   if (profile.role === "super_admin") {
+    const currentUserEmail = (req as AuthenticatedRequest).user?.email;
     if (currentUserEmail !== "ayanlowo89@gmail.com") {
       res.status(403).json({ error: "Only the primary admin can delete other super admins" });
       return;
     }
   }
 
+  // Generate confirmation code
+  const confirmationCode = generateConfirmationCode();
+  const initiatedBy = (req as AuthenticatedRequest).user?.email || "unknown";
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+  // Store confirmation
+  const confirmationKey = `${id}:${initiatedBy}`;
+  deletionConfirmations.set(confirmationKey, {
+    memberId: id,
+    memberEmail: profile.email || "",
+    memberName: profile.name || "",
+    initiatedBy,
+    initiatedAt: new Date(),
+    confirmationCode,
+    expiresAt,
+    completed: false,
+  });
+
+  // Log the initiation
+  await supabase.from("audit_logs").insert({
+    profile_id: id,
+    action: "DELETE_INITIATED",
+    performed_by: initiatedBy,
+    details: {
+      target_email: profile.email,
+      target_name: profile.name,
+      confirmation_code: confirmationCode,
+      expires_at: expiresAt.toISOString(),
+    },
+    ip_address: typeof req.ip === 'string' ? req.ip : String(req.ip || ''),
+    user_agent: req.headers["user-agent"] as string || '',
+    created_at: new Date().toISOString(),
+  });
+
+  res.json({
+    success: true,
+    message: "Deletion process initiated. A confirmation code has been generated.",
+    confirmationCode,
+    memberName: profile.name,
+    memberEmail: profile.email,
+    expiresAt: expiresAt.toISOString(),
+    instructions: "Please enter the confirmation code and your password to complete the deletion.",
+  });
+});
+
+// DELETE /members/:id - Complete the deletion with confirmation (Step 2)
+// Requires confirmation code and password verification
+router.delete("/members/:id", requireAuth, requireRole("super_admin"), async (req, res): Promise<void> => {
+  const id = req.params.id;
+  const { confirmationCode, password, confirmPhrase } = req.body;
+
+  // Verify confirmation code is provided
+  if (!confirmationCode) {
+    res.status(400).json({ 
+      error: "Confirmation code is required. Please initiate deletion first.",
+      requiresConfirmation: true,
+    });
+    return;
+  }
+
+  // Find the pending confirmation
+  const initiatedBy = (req as AuthenticatedRequest).user?.email || "";
+  const confirmationKey = `${id}:${initiatedBy}`;
+  const confirmation = deletionConfirmations.get(confirmationKey);
+
+  if (!confirmation) {
+    res.status(400).json({ 
+      error: "No pending deletion found or confirmation has expired. Please initiate deletion again.",
+      requiresConfirmation: true,
+    });
+    return;
+  }
+
+  // Verify confirmation code matches
+  if (confirmation.confirmationCode !== confirmationCode.toUpperCase()) {
+    res.status(400).json({ 
+      error: "Invalid confirmation code. Please check the code and try again.",
+      attemptsRemaining: 2,
+    });
+    return;
+  }
+
+  // Verify confirmation hasn't expired
+  if (confirmation.expiresAt < new Date()) {
+    deletionConfirmations.delete(confirmationKey);
+    res.status(400).json({ 
+      error: "Confirmation has expired. Please initiate deletion again.",
+      requiresConfirmation: true,
+    });
+    return;
+  }
+
+  // Verify confirmation belongs to this member
+  if (confirmation.memberId !== id) {
+    res.status(400).json({ 
+      error: "Invalid deletion request. Please initiate deletion again.",
+      requiresConfirmation: true,
+    });
+    return;
+  }
+
+  // Verify password is provided
+  if (!password) {
+    res.status(400).json({ 
+      error: "Password verification is required to complete this action.",
+      requiresPassword: true,
+    });
+    return;
+  }
+
+  // Verify the confirm phrase matches exactly "DELETE"
+  if (!confirmPhrase || confirmPhrase.toUpperCase() !== "DELETE") {
+    res.status(400).json({ 
+      error: 'Please type "DELETE" exactly to confirm this action.',
+      requiresConfirmPhrase: true,
+    });
+    return;
+  }
+
+  // Verify the admin's password
+  const { data: userProfile } = await supabase
+    .from("profiles")
+    .select("id, email")
+    .eq("email", initiatedBy)
+    .single();
+
+  if (!userProfile) {
+    res.status(401).json({ error: "User profile not found. Please re-authenticate." });
+    return;
+  }
+
   try {
+    // Re-authenticate admin with password
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: initiatedBy,
+      password: password,
+    });
+
+    if (signInError || !signInData.user) {
+      res.status(401).json({ 
+        error: "Password verification failed. Please enter your correct password.",
+        requiresPassword: true,
+      });
+      return;
+    }
+
+    // Get member details
+    const { data: profile, error: fetchError } = await supabase
+      .from("profiles")
+      .select("id, email, name, role, user_id")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !profile) {
+      res.status(404).json({ error: "Member not found" });
+      return;
+    }
+
+    // Additional safety check: prevent deleting yourself
+    if (profile.id === (req as AuthenticatedRequest).user?.profileId) {
+      res.status(400).json({ error: "Cannot delete your own account" });
+      return;
+    }
+
+    // Additional safety: Only ayanlowo89@gmail.com can delete other super_admins
+    if (profile.role === "super_admin" && initiatedBy !== "ayanlowo89@gmail.com") {
+      res.status(403).json({ error: "Only the primary admin can delete other super admins" });
+      return;
+    }
+
+    // Mark confirmation as completed
+    confirmation.completed = true;
+
     // Step 1: Delete user from Supabase Auth (this prevents login)
     if (profile.email) {
       const { data: authUsers, error: listError } = await (supabase.auth.admin as any).listUsers();
@@ -578,6 +780,10 @@ router.delete("/members/:id", requireAuth, requireRole("super_admin"), async (re
       "guarantors",
       "documents",
       "audit_logs",
+      "withdrawals",
+      "deposits",
+      "referrals",
+      "login_history",
     ];
 
     for (const table of tablesToClean) {
@@ -596,13 +802,50 @@ router.delete("/members/:id", requireAuth, requireRole("super_admin"), async (re
 
     if (deleteError) {
       console.error("Error deleting profile:", deleteError);
-      res.status(500).json({ error: deleteError.message });
+      
+      // Log the failure
+      await supabase.from("audit_logs").insert({
+        profile_id: id,
+        action: "DELETE_FAILED",
+        performed_by: initiatedBy,
+        details: {
+          target_email: profile.email,
+          target_name: profile.name,
+          error: deleteError.message,
+          step: "profile_deletion",
+        },
+        ip_address: typeof req.ip === 'string' ? req.ip : String(req.ip || ''),
+        user_agent: req.headers["user-agent"] as string || '',
+        created_at: new Date().toISOString(),
+      });
+
+      res.status(500).json({ error: "Failed to delete member completely. Please contact support." });
       return;
     }
 
+    // Log successful deletion
+    await supabase.from("audit_logs").insert({
+      profile_id: id,
+      action: "MEMBER_DELETED",
+      performed_by: initiatedBy,
+      details: {
+        target_email: profile.email,
+        target_name: profile.name,
+        target_user_id: profile.user_id,
+        deleted_at: new Date().toISOString(),
+      },
+      ip_address: typeof req.ip === 'string' ? req.ip : String(req.ip || ''),
+      user_agent: req.headers["user-agent"] as string || '',
+      created_at: new Date().toISOString(),
+    });
+
+    // Clean up the confirmation
+    deletionConfirmations.delete(confirmationKey);
+
     res.json({
       success: true,
-      message: `Member ${profile.name} (${profile.email}) has been COMPLETELY deleted. They cannot login again and must register fresh.`
+      message: `Member ${profile.name} (${profile.email}) has been COMPLETELY deleted. They cannot login again and must register fresh.`,
+      deletedAt: new Date().toISOString(),
     });
 
   } catch (error) {

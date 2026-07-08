@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetMembers, useGetMemberStats } from "@/lib/api-client";
-import { Search, UserPlus, Users, UserCheck, UserX, Clock, ShieldAlert, AlertTriangle, CheckCircle2, MoreVertical, Ban, Lock, KeyRound, Unlock, CreditCard, ArrowUpDown, Download, Upload, Crown, Shield, Trash2 } from "lucide-react";
+import { Search, UserPlus, Users, UserCheck, UserX, Clock, ShieldAlert, AlertTriangle, CheckCircle2, MoreVertical, Ban, Lock, KeyRound, Unlock, CreditCard, ArrowUpDown, Download, Upload, Crown, Shield, Trash2, AlertOctagon, Eye, EyeOff, CheckCircle, XCircle, ShieldCheck, Warning } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
@@ -66,6 +66,35 @@ export default function Members() {
   const [contributionMethod, setContributionMethod] = useState("monthly");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Super Admin Deletion Confirmation State
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState<{
+    open: boolean;
+    step: number; // 1: Warning, 2: Code Entry, 3: Password + Confirm Phrase
+    memberId: string | null;
+    memberName: string;
+    memberEmail: string;
+    confirmationCode: string;
+    password: string;
+    confirmPhrase: string;
+    showPassword: boolean;
+    generatedCode: string;
+    expiresAt: string;
+    error: string;
+  }>({
+    open: false,
+    step: 1,
+    memberId: null,
+    memberName: "",
+    memberEmail: "",
+    confirmationCode: "",
+    password: "",
+    confirmPhrase: "",
+    showPassword: false,
+    generatedCode: "",
+    expiresAt: "",
+    error: "",
+  });
 
   // Direct API call for member updates
   const updateMemberApi = async (memberId: string, updates: any) => {
@@ -173,12 +202,49 @@ export default function Members() {
   const stats: StatCard[] = safeStats;
 
   function openAction(memberId: string, action: AdminAction, memberName: string) {
+    // Special handling for delete action - opens the super admin deletion confirmation
+    if (action === "delete") {
+      // Find the member's email from the members list
+      const member = members.find((m: any) => m.id === memberId);
+      setDeleteConfirmDialog({
+        open: true,
+        step: 1,
+        memberId,
+        memberName,
+        memberEmail: member?.email || "",
+        confirmationCode: "",
+        password: "",
+        confirmPhrase: "",
+        showPassword: false,
+        generatedCode: "",
+        expiresAt: "",
+        error: "",
+      });
+      return;
+    }
     setActionDialog({ open: true, memberId, action, memberName });
     setActionNote("");
   }
 
   function closeAction() {
     setActionDialog({ open: false, memberId: null, action: null, memberName: "" });
+  }
+  
+  function closeDeleteConfirmDialog() {
+    setDeleteConfirmDialog({
+      open: false,
+      step: 1,
+      memberId: null,
+      memberName: "",
+      memberEmail: "",
+      confirmationCode: "",
+      password: "",
+      confirmPhrase: "",
+      showPassword: false,
+      generatedCode: "",
+      expiresAt: "",
+      error: "",
+    });
   }
 
   async function handleAddMember() {
@@ -203,6 +269,10 @@ export default function Members() {
 
   async function executeAction() {
     if (!actionDialog.memberId || !actionDialog.action) return;
+    
+    // Skip delete action - handled by separate confirmation flow
+    if (actionDialog.action === "delete") return;
+    
     setIsProcessing(true);
     const { action, memberId, memberName } = actionDialog;
 
@@ -225,7 +295,6 @@ export default function Members() {
       change_contribution: `Contribution method updated for ${memberName}.`,
       make_admin: `${memberName} has been granted admin privileges.`,
       remove_admin: `Admin privileges removed from ${memberName}.`,
-      delete: `${memberName} has been deleted.`,
     };
 
     try {
@@ -235,9 +304,6 @@ export default function Members() {
         toast({ title: "Success", description: messages[action] || "Action completed." });
       } else if (action === "remove_admin") {
         await updateMemberRole(memberId, "member");
-        toast({ title: "Success", description: messages[action] || "Action completed." });
-      } else if (action === "delete") {
-        await deleteMember(memberId);
         toast({ title: "Success", description: messages[action] || "Action completed." });
       } else {
         const updates = statusMap[action];
@@ -252,6 +318,110 @@ export default function Members() {
     } catch (err: any) {
       console.error('Update error:', err);
       toast({ title: "Error", description: err.message || "Action failed. Please try again.", variant: "destructive" });
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+  
+  // Super Admin Deletion Functions
+  async function initiateDeletion() {
+    if (!deleteConfirmDialog.memberId) return;
+    
+    setIsProcessing(true);
+    setDeleteConfirmDialog(prev => ({ ...prev, error: "" }));
+    
+    try {
+      const response = await api.post<{
+        success: boolean;
+        confirmationCode: string;
+        memberName: string;
+        memberEmail: string;
+        expiresAt: string;
+        message: string;
+      }>(`/members/${deleteConfirmDialog.memberId}/confirm-delete`, {});
+      
+      if (response.success) {
+        setDeleteConfirmDialog(prev => ({
+          ...prev,
+          step: 2,
+          generatedCode: response.confirmationCode,
+          expiresAt: response.expiresAt,
+          error: "",
+        }));
+        toast({
+          title: "Confirmation Code Generated",
+          description: `Your confirmation code is: ${response.confirmationCode}. You have 30 minutes to complete the deletion.`,
+        });
+      }
+    } catch (err: any) {
+      console.error('Deletion initiation error:', err);
+      setDeleteConfirmDialog(prev => ({ 
+        ...prev, 
+        error: err.message || "Failed to initiate deletion. Please try again." 
+      }));
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+  
+  async function completeDeletion() {
+    if (!deleteConfirmDialog.memberId) return;
+    
+    // Validate inputs
+    if (!deleteConfirmDialog.confirmationCode) {
+      setDeleteConfirmDialog(prev => ({ 
+        ...prev, 
+        error: "Please enter the confirmation code." 
+      }));
+      return;
+    }
+    
+    if (!deleteConfirmDialog.password) {
+      setDeleteConfirmDialog(prev => ({ 
+        ...prev, 
+        error: "Please enter your password to verify your identity." 
+      }));
+      return;
+    }
+    
+    if (deleteConfirmDialog.confirmPhrase.toUpperCase() !== "DELETE") {
+      setDeleteConfirmDialog(prev => ({ 
+        ...prev, 
+        error: 'Please type "DELETE" exactly to confirm this action.' 
+      }));
+      return;
+    }
+    
+    setIsProcessing(true);
+    setDeleteConfirmDialog(prev => ({ ...prev, error: "" }));
+    
+    try {
+      const response = await api.delete<{
+        success: boolean;
+        message: string;
+        deletedAt: string;
+      }>(`/members/${deleteConfirmDialog.memberId}`, {
+        confirmationCode: deleteConfirmDialog.confirmationCode.toUpperCase(),
+        password: deleteConfirmDialog.password,
+        confirmPhrase: deleteConfirmDialog.confirmPhrase.toUpperCase(),
+      });
+      
+      if (response.success) {
+        toast({
+          title: "Member Deleted Successfully",
+          description: `${deleteConfirmDialog.memberName} has been permanently deleted.`,
+          variant: "destructive",
+        });
+        queryClient.invalidateQueries({ queryKey: ["getMembers"] });
+        queryClient.invalidateQueries({ queryKey: ["getMemberStats"] });
+        closeDeleteConfirmDialog();
+      }
+    } catch (err: any) {
+      console.error('Deletion error:', err);
+      setDeleteConfirmDialog(prev => ({ 
+        ...prev, 
+        error: err.message || "Failed to delete member. Please check your inputs and try again." 
+      }));
     } finally {
       setIsProcessing(false);
     }
@@ -573,7 +743,7 @@ export default function Members() {
             <Button
               onClick={executeAction}
               disabled={isProcessing}
-              variant={["suspend", "freeze", "restrict_loans", "downgrade", "remove_admin", "delete"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
+              variant={["suspend", "freeze", "restrict_loans", "downgrade", "remove_admin"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
             >
               {isProcessing ? "Processing…" : "Confirm"}
             </Button>
@@ -630,6 +800,216 @@ export default function Members() {
             <Button onClick={handleAddMember} disabled={isProcessing}>
               {isProcessing ? "Adding…" : "Add Member"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Super Admin Multi-Step Deletion Confirmation Dialog */}
+      <Dialog open={deleteConfirmDialog.open} onOpenChange={(o) => { if (!o) closeDeleteConfirmDialog(); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <ShieldCheck className="h-5 w-5" />
+              {deleteConfirmDialog.step === 1 && "Super Admin Deletion - Warning"}
+              {deleteConfirmDialog.step === 2 && "Enter Confirmation Code"}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Step 1: Warning */}
+            {deleteConfirmDialog.step === 1 && (
+              <div className="space-y-4">
+                <div className="rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 p-4">
+                  <div className="flex gap-3">
+                    <AlertOctagon className="h-6 w-6 text-red-600 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-red-800 dark:text-red-400">Permanent Deletion Warning</h4>
+                      <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                        You are about to permanently delete the account for:
+                      </p>
+                      <div className="mt-2 p-2 bg-red-100/50 dark:bg-red-900/30 rounded">
+                        <p className="font-medium text-red-900 dark:text-red-200">{deleteConfirmDialog.memberName}</p>
+                        <p className="text-sm text-red-700 dark:text-red-400">{deleteConfirmDialog.memberEmail}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h4 className="font-medium text-foreground">This action will:</h4>
+                  <ul className="space-y-1.5 text-sm text-muted-foreground">
+                    <li className="flex items-center gap-2">
+                      <XCircle className="h-4 w-4 text-red-500" />
+                      Permanently delete this user's account
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <XCircle className="h-4 w-4 text-red-500" />
+                      Remove all associated data (contributions, loans, transactions)
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <XCircle className="h-4 w-4 text-red-500" />
+                      Prevent the user from logging in with this account
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <XCircle className="h-4 w-4 text-red-500" />
+                      Remove all KYC and verification data
+                    </li>
+                  </ul>
+                </div>
+                
+                <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 p-3">
+                  <div className="flex gap-2">
+                    <Warning className="h-5 w-5 text-amber-600 flex-shrink-0" />
+                    <p className="text-sm text-amber-800 dark:text-amber-300">
+                      This action is <strong>IRREVERSIBLE</strong>. The user will need to create a completely new account if they wish to rejoin.
+                    </p>
+                  </div>
+                </div>
+                
+                {deleteConfirmDialog.error && (
+                  <div className="rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 p-3">
+                    <p className="text-sm text-red-700 dark:text-red-400">{deleteConfirmDialog.error}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Step 2: Code Entry */}
+            {deleteConfirmDialog.step === 2 && (
+              <div className="space-y-4">
+                <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 p-4">
+                  <div className="flex gap-3">
+                    <CheckCircle className="h-6 w-6 text-blue-600 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-blue-800 dark:text-blue-400">Confirmation Code Generated</h4>
+                      <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                        A 6-character confirmation code has been generated. Please enter it below along with your password.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmationCode">Confirmation Code</Label>
+                    <Input
+                      id="confirmationCode"
+                      placeholder="Enter 6-character code"
+                      value={deleteConfirmDialog.confirmationCode}
+                      onChange={(e) => setDeleteConfirmDialog(prev => ({ 
+                        ...prev, 
+                        confirmationCode: e.target.value.toUpperCase().slice(0, 6) 
+                      }))}
+                      className="text-center text-xl font-mono tracking-widest"
+                      maxLength={6}
+                    />
+                    <p className="text-xs text-muted-foreground text-center">
+                      Your code was sent via notification and expires in 30 minutes
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Your Password (to verify identity)</Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={deleteConfirmDialog.showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        value={deleteConfirmDialog.password}
+                        onChange={(e) => setDeleteConfirmDialog(prev => ({ 
+                          ...prev, 
+                          password: e.target.value 
+                        }))}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirmDialog(prev => ({ 
+                          ...prev, 
+                          showPassword: !prev.showPassword 
+                        }))}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {deleteConfirmDialog.showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPhrase">Type "DELETE" to confirm</Label>
+                    <Input
+                      id="confirmPhrase"
+                      placeholder='Type DELETE exactly'
+                      value={deleteConfirmDialog.confirmPhrase}
+                      onChange={(e) => setDeleteConfirmDialog(prev => ({ 
+                        ...prev, 
+                        confirmPhrase: e.target.value 
+                      }))}
+                      className="text-center font-mono"
+                    />
+                    <p className="text-xs text-muted-foreground text-center">
+                      This confirms you understand the permanent nature of this action
+                    </p>
+                  </div>
+                </div>
+                
+                {deleteConfirmDialog.error && (
+                  <div className="rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 p-3">
+                    <p className="text-sm text-red-700 dark:text-red-400">{deleteConfirmDialog.error}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={closeDeleteConfirmDialog}>
+              Cancel
+            </Button>
+            
+            {deleteConfirmDialog.step === 1 && (
+              <Button
+                variant="destructive"
+                onClick={initiateDeletion}
+                disabled={isProcessing}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isProcessing ? (
+                  <>
+                    <span className="mr-2">Initiating...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldAlert className="mr-2 h-4 w-4" />
+                    Proceed to Deletion
+                  </>
+                )}
+              </Button>
+            )}
+            
+            {deleteConfirmDialog.step === 2 && (
+              <Button
+                variant="destructive"
+                onClick={completeDeletion}
+                disabled={isProcessing || deleteConfirmDialog.confirmationCode.length !== 6 || !deleteConfirmDialog.password}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isProcessing ? (
+                  <>
+                    <span className="mr-2">Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Permanently Delete Member
+                  </>
+                )}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
