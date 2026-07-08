@@ -22,9 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { formatCurrency, formatDateTime } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
 import {
   Search,
@@ -34,14 +33,14 @@ import {
   User,
   Banknote,
   Calendar,
-  FileText,
   CheckCircle2,
-  Clock,
+  AlertTriangle,
   ArrowUpRight,
   ArrowDownRight,
   RefreshCw,
   Download,
-  Filter,
+  Shield,
+  LucideIcon,
 } from "lucide-react";
 
 // Types
@@ -73,34 +72,106 @@ interface DepositRecord {
   payment_method: "cash" | "bank_transfer" | "pos" | "cash_deposit" | "adjustment";
   collected_by: string;
   created_at: string;
-  processed_by?: string;
+  admin_name?: string;
   member_name?: string;
+  profiles?: { name: string };
+  admin_profile?: { name: string };
 }
 
-interface TransactionHistory {
+interface TransactionRecord {
   id: string;
   profile_id: string;
-  type: "deposit" | "withdrawal" | "adjustment";
+  type: "deposit" | "withdrawal" | "adjustment" | "credit" | "debit";
   amount: number;
   balance_before: number;
   balance_after: number;
   description: string;
+  reference?: string;
+  category?: string;
   created_at: string;
   created_by: string;
+  admin_name?: string;
 }
 
+interface AuditLog {
+  id: string;
+  action: string;
+  table_name: string;
+  record_id: string;
+  old_values: Record<string, unknown>;
+  new_values: Record<string, unknown>;
+  performed_by: string;
+  admin_name?: string;
+  admin_email?: string;
+  ip_address?: string;
+  created_at: string;
+  details?: string;
+  admin_profile?: { name: string; email: string };
+}
+
+interface AdminUser {
+  id: string;
+  email: string;
+  name?: string;
+}
+
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
+const depositTypeLabels: Record<string, string> = {
+  savings: "Savings Contribution",
+  levy: "Monthly Levy",
+  entrance_fee: "Entrance Fee",
+  special: "Special Contribution",
+  adjustment: "Adjustment (Credit)",
+  refund: "Refund",
+};
+
+const depositTypeColors: Record<string, string> = {
+  savings: "bg-emerald-100 text-emerald-800",
+  levy: "bg-blue-100 text-blue-800",
+  entrance_fee: "bg-purple-100 text-purple-800",
+  special: "bg-amber-100 text-amber-800",
+  adjustment: "bg-cyan-100 text-cyan-800",
+  refund: "bg-pink-100 text-pink-800",
+};
+
+const transactionTypeColors: Record<string, { bg: string; text: string; icon: LucideIcon }> = {
+  deposit: { bg: "bg-emerald-100", text: "text-emerald-600", icon: ArrowDownRight },
+  withdrawal: { bg: "bg-red-100", text: "text-red-600", icon: ArrowUpRight },
+  adjustment: { bg: "bg-blue-100", text: "text-blue-600", icon: RefreshCw },
+  credit: { bg: "bg-emerald-100", text: "text-emerald-600", icon: CheckCircle2 },
+  debit: { bg: "bg-amber-100", text: "text-amber-600", icon: AlertTriangle },
+};
+
 export default function ManualDeposits() {
+  // State
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-  const [walletBalance, setWalletBalance] = useState<WalletBalance | null>(null);
+  const [memberWallet, setMemberWallet] = useState<WalletBalance | null>(null);
+  
+  // Dialog states
   const [showAddDeposit, setShowAddDeposit] = useState(false);
   const [showViewHistory, setShowViewHistory] = useState(false);
+  const [showAuditLog, setShowAuditLog] = useState(false);
+  
+  // Form state
   const [depositAmount, setDepositAmount] = useState("");
   const [depositType, setDepositType] = useState<DepositRecord["deposit_type"]>("savings");
   const [paymentMethod, setPaymentMethod] = useState<DepositRecord["payment_method"]>("cash");
   const [depositDescription, setDepositDescription] = useState("");
   const [depositReference, setDepositReference] = useState("");
   
+  // Validation errors
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  
+  // Filters
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [filterType, setFilterType] = useState<string>("all");
+
   const { toast } = useToast();
   const qc = useQueryClient();
 
@@ -121,7 +192,7 @@ export default function ManualDeposits() {
   });
 
   // Fetch wallet balance for selected member
-  const { data: memberWallet, isLoading: loadingWallet } = useQuery({
+  const { data: walletData, isLoading: loadingWallet } = useQuery({
     queryKey: ["wallet-balance", selectedMember?.id],
     queryFn: async () => {
       if (!selectedMember) return null;
@@ -132,7 +203,6 @@ export default function ManualDeposits() {
         .single();
       if (error && error.code !== "PGRST116") throw error;
       
-      // If no wallet exists, return default values
       if (!data) {
         return {
           id: "",
@@ -148,36 +218,100 @@ export default function ManualDeposits() {
     enabled: !!selectedMember,
   });
 
-  // Fetch deposit history
-  const { data: depositHistory, isLoading: loadingHistory } = useQuery({
-    queryKey: ["deposit-history", selectedMember?.id],
+  // Update local wallet state when data changes
+  useMemo(() => {
+    if (walletData) setMemberWallet(walletData);
+  }, [walletData]);
+
+  // Fetch member's visible transaction history
+  const { data: memberTransactions, isLoading: loadingTransactions } = useQuery({
+    queryKey: ["member-transactions", selectedMember?.id],
     queryFn: async () => {
       if (!selectedMember) return [];
       const { data, error } = await supabase
-        .from("deposits")
+        .from("transactions")
         .select("*")
         .eq("profile_id", selectedMember.id)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(100);
       if (error) throw error;
-      return (data || []) as DepositRecord[];
+      return (data || []) as TransactionRecord[];
     },
     enabled: !!selectedMember,
   });
 
-  // Fetch all manual deposits (for admin overview)
+  // Fetch all manual deposits with admin info
   const { data: allDeposits, isLoading: loadingAll, refetch: refetchAll } = useQuery({
-    queryKey: ["all-manual-deposits"],
+    queryKey: ["all-manual-deposits", dateFrom, dateTo, filterType],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("deposits")
-        .select("*, profiles(name)")
+        .select(`
+          *,
+          profiles!deposits_profile_id_fkey(name, email),
+          admin_profile:collected_by_profiles(name, email)
+        `)
         .order("created_at", { ascending: false })
         .limit(100);
+      
+      if (dateFrom) query = query.gte("created_at", dateFrom);
+      if (dateTo) query = query.lte("created_at", dateTo + "T23:59:59");
+      if (filterType !== "all") query = query.eq("deposit_type", filterType);
+      
+      const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as (DepositRecord & { profiles?: { name: string } })[];
+      return (data || []) as (DepositRecord & { profiles?: { name: string }; admin_profile?: { name: string } })[];
     },
   });
+
+  // Fetch audit logs
+  const { data: auditLogs, isLoading: loadingAudit, refetch: refetchAudit } = useQuery({
+    queryKey: ["deposit-audit-logs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("audit_logs")
+        .select(`*, admin_profile:performed_by_profiles(name, email)`)
+        .eq("table_name", "deposits")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data || []) as (AuditLog & { admin_profile?: { name: string; email: string } })[];
+    },
+  });
+
+  // Validation function
+  const validateDeposit = (): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    
+    if (!selectedMember) {
+      errors.push({ field: "member", message: "Please select a member first" });
+    }
+    
+    const amount = parseFloat(depositAmount);
+    if (!depositAmount || isNaN(amount)) {
+      errors.push({ field: "amount", message: "Please enter a valid amount" });
+    } else if (amount <= 0) {
+      errors.push({ field: "amount", message: "Amount must be greater than zero" });
+    } else if (amount > 100000000) {
+      errors.push({ field: "amount", message: "Amount exceeds maximum limit (₦100,000,000)" });
+    } else if (!/^\d+(\.\d{1,2})?$/.test(depositAmount)) {
+      errors.push({ field: "amount", message: "Amount can have maximum 2 decimal places" });
+    }
+    
+    if (!depositReference || depositReference.trim().length < 3) {
+      errors.push({ field: "reference", message: "Please enter a valid reference (min 3 characters)" });
+    }
+    
+    if (!depositDescription || depositDescription.trim().length < 5) {
+      errors.push({ field: "description", message: "Please enter a description (min 5 characters)" });
+    }
+    
+    return errors;
+  };
+
+  const getError = (field: string): string | undefined => {
+    return validationErrors.find(e => e.field === field)?.message;
+  };
 
   // Create manual deposit mutation
   const { mutate: createDeposit, isPending: creating } = useMutation({
@@ -192,8 +326,12 @@ export default function ManualDeposits() {
       
       // Get current admin user
       const { data: { user } } = await supabase.auth.getUser();
+      const adminId = user?.id || "system";
       
-      // Create deposit record
+      // Start transaction-like operations
+      const timestamp = new Date().toISOString();
+      
+      // 1. Create deposit record
       const { data: deposit, error: depositError } = await supabase
         .from("deposits")
         .insert({
@@ -202,32 +340,34 @@ export default function ManualDeposits() {
           deposit_type: depositData.deposit_type,
           payment_method: depositData.payment_method,
           description: depositData.description,
-          reference: depositData.reference || `MD-${Date.now()}`,
-          collected_by: user?.id || "system",
-          created_at: new Date().toISOString(),
+          reference: depositData.reference,
+          collected_by: adminId,
+          created_at: timestamp,
         })
         .select()
         .single();
       
-      if (depositError) throw depositError;
+      if (depositError) throw new Error(`Failed to create deposit: ${depositError.message}`);
       
-      // Update wallet balance
+      // 2. Get current wallet state
       const { data: currentWallet } = await supabase
         .from("wallet_balances")
         .select("*")
         .eq("profile_id", selectedMember.id)
         .single();
       
-      const newBalance = (currentWallet?.balance || 0) + depositData.amount;
+      const balanceBefore = currentWallet?.balance || 0;
+      const newBalance = balanceBefore + depositData.amount;
       const newTotalContributions = (currentWallet?.total_contributions || 0) + depositData.amount;
       
+      // 3. Update or create wallet balance
       if (currentWallet) {
         await supabase
           .from("wallet_balances")
           .update({
             balance: newBalance,
             total_contributions: newTotalContributions,
-            last_updated: new Date().toISOString(),
+            last_updated: timestamp,
           })
           .eq("profile_id", selectedMember.id);
       } else {
@@ -238,69 +378,111 @@ export default function ManualDeposits() {
             balance: depositData.amount,
             total_contributions: depositData.amount,
             total_withdrawals: 0,
-            last_updated: new Date().toISOString(),
+            last_updated: timestamp,
           });
       }
 
-      // Create transaction record
-      await supabase
-        .from("transactions")
-        .insert({
+      // 4. Create visible transaction record (user-facing)
+      await supabase.from("transactions").insert({
+        profile_id: selectedMember.id,
+        type: "deposit",
+        amount: depositData.amount,
+        balance_before: balanceBefore,
+        balance_after: newBalance,
+        description: `${depositTypeLabels[depositData.deposit_type]}: ${depositData.description}`,
+        reference: depositData.reference,
+        category: depositData.deposit_type,
+        created_by: adminId,
+        created_at: timestamp,
+      });
+
+      // 5. Create audit log entry
+      await supabase.from("audit_logs").insert({
+        action: "CREATE",
+        table_name: "deposits",
+        record_id: deposit.id,
+        old_values: {},
+        new_values: {
           profile_id: selectedMember.id,
-          type: "deposit",
+          member_name: selectedMember.name,
           amount: depositData.amount,
-          balance_before: currentWallet?.balance || 0,
+          deposit_type: depositData.deposit_type,
+          payment_method: depositData.payment_method,
+          description: depositData.description,
+          reference: depositData.reference,
+          balance_before: balanceBefore,
           balance_after: newBalance,
-          description: `${depositData.deposit_type}: ${depositData.description}`,
-          created_by: user?.id || "system",
-          created_at: new Date().toISOString(),
-        });
+        },
+        performed_by: adminId,
+        details: `Manual deposit: ${depositTypeLabels[depositData.deposit_type]} of ${formatCurrency(depositData.amount)} for ${selectedMember.name}`,
+        ip_address: "admin-panel",
+        created_at: timestamp,
+      });
       
       return deposit;
     },
     onSuccess: () => {
-      toast({ title: "Success", description: "Deposit recorded and wallet credited successfully!" });
+      toast({ 
+        title: "Deposit Recorded Successfully", 
+        description: "The deposit has been credited and all records updated.",
+        className: "bg-emerald-50 border-emerald-200",
+      });
       qc.invalidateQueries({ queryKey: ["wallet-balance", selectedMember?.id] });
-      qc.invalidateQueries({ queryKey: ["deposit-history", selectedMember?.id] });
+      qc.invalidateQueries({ queryKey: ["member-transactions", selectedMember?.id] });
       qc.invalidateQueries({ queryKey: ["all-manual-deposits"] });
+      qc.invalidateQueries({ queryKey: ["deposit-audit-logs"] });
+      
+      // Reset form
       setShowAddDeposit(false);
       setDepositAmount("");
       setDepositDescription("");
       setDepositReference("");
       setDepositType("savings");
       setPaymentMethod("cash");
+      setValidationErrors([]);
     },
     onError: (err: Error) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     },
   });
 
-  const depositTypeLabels: Record<string, string> = {
-    savings: "Savings Contribution",
-    levy: "Monthly Levy",
-    entrance_fee: "Entrance Fee",
-    special: "Special Contribution",
-    adjustment: "Adjustment (Credit)",
-    refund: "Refund",
+  const handleSubmitDeposit = () => {
+    const errors = validateDeposit();
+    setValidationErrors(errors);
+    
+    if (errors.length === 0) {
+      createDeposit({
+        amount: parseFloat(depositAmount),
+        deposit_type: depositType,
+        payment_method: paymentMethod,
+        description: depositDescription,
+        reference: depositReference,
+      });
+    }
   };
 
-  const depositTypeColors: Record<string, string> = {
-    savings: "bg-emerald-100 text-emerald-800",
-    levy: "bg-blue-100 text-blue-800",
-    entrance_fee: "bg-purple-100 text-purple-800",
-    special: "bg-amber-100 text-amber-800",
-    adjustment: "bg-cyan-100 text-cyan-800",
-    refund: "bg-pink-100 text-pink-800",
+  const handleSelectMember = (member: Member) => {
+    setSelectedMember(member);
+    setSearchQuery("");
+    setValidationErrors([]);
   };
 
   // Calculate totals
   const totals = useMemo(() => {
-    if (!allDeposits) return { count: 0, amount: 0 };
+    if (!allDeposits) return { count: 0, amount: 0, today: 0 };
+    const today = new Date().toISOString().split("T")[0];
     return {
       count: allDeposits.length,
       amount: allDeposits.reduce((sum, d) => sum + d.amount, 0),
+      today: allDeposits.filter(d => d.created_at.startsWith(today)).reduce((sum, d) => sum + d.amount, 0),
     };
   }, [allDeposits]);
+
+  const clearFilters = () => {
+    setDateFrom("");
+    setDateTo("");
+    setFilterType("all");
+  };
 
   return (
     <Layout>
@@ -310,17 +492,23 @@ export default function ManualDeposits() {
           <div>
             <h1 className="text-2xl font-bold">Manual Deposit Management</h1>
             <p className="text-muted-foreground">
-              Manually record deposits and update member accounts
+              Record deposits with full transaction history and audit trail
             </p>
           </div>
-          <Button variant="outline" onClick={() => refetchAll()}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => { setShowAuditLog(true); refetchAudit(); }}>
+              <Shield className="h-4 w-4 mr-2" />
+              Audit Trail
+            </Button>
+            <Button variant="outline" onClick={() => refetchAll()}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100">
@@ -345,8 +533,19 @@ export default function ManualDeposits() {
           </Card>
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-100">
+                <Calendar className="h-6 w-6 text-amber-600" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold">{formatCurrency(totals.today)}</div>
+                <div className="text-sm text-muted-foreground">Today's Deposits</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
-                <Plus className="h-6 w-6 text-purple-600" />
+                <Shield className="h-6 w-6 text-purple-600" />
               </div>
               <div>
                 <div className="text-2xl font-bold">{selectedMember ? "1" : "0"}</div>
@@ -356,12 +555,13 @@ export default function ManualDeposits() {
           </Card>
         </div>
 
-        {/* Member Search & Selection */}
+        {/* Member Search */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <User className="h-5 w-5" />
               Member Selection
+              <Badge variant="outline" className="ml-2 text-amber-600 border-amber-200 bg-amber-50">Required</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -375,7 +575,6 @@ export default function ManualDeposits() {
               />
             </div>
 
-            {/* Search Results */}
             {searchQuery.length >= 2 && (
               <div className="border rounded-lg overflow-hidden">
                 {searching ? (
@@ -388,13 +587,8 @@ export default function ManualDeposits() {
                     {searchResults.map((member) => (
                       <button
                         key={member.id}
-                        className={`w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors text-left ${
-                          selectedMember?.id === member.id ? "bg-primary/10" : ""
-                        }`}
-                        onClick={() => {
-                          setSelectedMember(member);
-                          setSearchQuery("");
-                        }}
+                        className={`w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors text-left ${selectedMember?.id === member.id ? "bg-primary/10" : ""}`}
+                        onClick={() => handleSelectMember(member)}
                       >
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                           <User className="h-5 w-5 text-primary" />
@@ -405,9 +599,7 @@ export default function ManualDeposits() {
                             {member.email} • {member.phone || "No phone"}
                           </div>
                         </div>
-                        {selectedMember?.id === member.id && (
-                          <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
-                        )}
+                        {selectedMember?.id === member.id && <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />}
                       </button>
                     ))}
                   </div>
@@ -419,7 +611,14 @@ export default function ManualDeposits() {
               </div>
             )}
 
-            {/* Selected Member Info */}
+            {getError("member") && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                {getError("member")}
+              </div>
+            )}
+
+            {/* Selected Member */}
             {selectedMember && (
               <div className="border-2 border-primary/20 rounded-lg p-4 bg-primary/5">
                 <div className="flex items-start justify-between">
@@ -432,51 +631,33 @@ export default function ManualDeposits() {
                       <div className="text-sm text-muted-foreground">
                         {selectedMember.email} • {selectedMember.phone || "No phone"}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Member since: {new Date(selectedMember.created_at).toLocaleDateString()}
-                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">ID: {selectedMember.id}</div>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowViewHistory(true)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => setShowViewHistory(true)}>
                       <History className="h-4 w-4 mr-1" />
-                      History
+                      Transactions
                     </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => setShowAddDeposit(true)}
-                    >
+                    <Button size="sm" onClick={() => { setValidationErrors([]); setShowAddDeposit(true); }}>
                       <Plus className="h-4 w-4 mr-1" />
                       Add Deposit
                     </Button>
                   </div>
                 </div>
 
-                {/* Wallet Balance Display */}
-                {loadingWallet ? (
-                  <Skeleton className="h-20 w-full mt-4" />
-                ) : (
+                {loadingWallet ? <Skeleton className="h-20 w-full mt-4" /> : (
                   <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-emerald-600">
-                        {formatCurrency(memberWallet?.balance || 0)}
-                      </div>
+                      <div className="text-2xl font-bold text-emerald-600">{formatCurrency(memberWallet?.balance || 0)}</div>
                       <div className="text-xs text-muted-foreground">Current Balance</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {formatCurrency(memberWallet?.total_contributions || 0)}
-                      </div>
+                      <div className="text-2xl font-bold text-blue-600">{formatCurrency(memberWallet?.total_contributions || 0)}</div>
                       <div className="text-xs text-muted-foreground">Total Contributions</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-red-600">
-                        {formatCurrency(memberWallet?.total_withdrawals || 0)}
-                      </div>
+                      <div className="text-2xl font-bold text-red-600">{formatCurrency(memberWallet?.total_withdrawals || 0)}</div>
                       <div className="text-xs text-muted-foreground">Total Withdrawals</div>
                     </div>
                   </div>
@@ -486,73 +667,66 @@ export default function ManualDeposits() {
           </CardContent>
         </Card>
 
-        {/* Recent Deposits Table */}
+        {/* Deposits Table */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Banknote className="h-5 w-5" />
-              Recent Manual Deposits
-            </CardTitle>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-1" />
-              Export
-            </Button>
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Banknote className="h-5 w-5" />
+                Deposit Records
+              </CardTitle>
+              <div className="flex flex-wrap gap-2">
+                <Input type="date" className="w-auto text-sm" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+                <Input type="date" className="w-auto text-sm" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger className="w-auto text-sm"><SelectValue placeholder="Filter by type" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="savings">Savings</SelectItem>
+                    <SelectItem value="levy">Levy</SelectItem>
+                    <SelectItem value="entrance_fee">Entrance Fee</SelectItem>
+                    <SelectItem value="special">Special</SelectItem>
+                    <SelectItem value="adjustment">Adjustment</SelectItem>
+                    <SelectItem value="refund">Refund</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" size="sm" onClick={clearFilters}>Clear</Button>
+                <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1" />Export</Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {loadingAll ? (
-              <div className="space-y-3">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
-                ))}
-              </div>
+              <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-muted-foreground">
-                      <th className="pb-3 text-left font-medium">Date</th>
+                      <th className="pb-3 text-left font-medium">Date & Time</th>
                       <th className="pb-3 text-left font-medium">Member</th>
                       <th className="pb-3 text-left font-medium">Type</th>
                       <th className="pb-3 text-left font-medium">Reference</th>
                       <th className="pb-3 text-right font-medium">Amount</th>
-                      <th className="pb-3 text-left font-medium">Payment Method</th>
+                      <th className="pb-3 text-left font-medium">Method</th>
+                      <th className="pb-3 text-left font-medium">Recorded By</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {allDeposits && allDeposits.length > 0 ? (
-                      allDeposits.slice(0, 20).map((deposit) => (
-                        <tr key={deposit.id} className="hover:bg-muted/50">
-                          <td className="py-3">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
-                              {new Date(deposit.created_at).toLocaleDateString()}
-                            </div>
-                          </td>
-                          <td className="py-3 font-medium">
-                            {deposit.profiles?.name || deposit.member_name || "Unknown"}
-                          </td>
-                          <td className="py-3">
-                            <Badge className={depositTypeColors[deposit.deposit_type] || "bg-gray-100"}>
-                              {depositTypeLabels[deposit.deposit_type] || deposit.deposit_type}
-                            </Badge>
-                          </td>
-                          <td className="py-3 font-mono text-xs">
-                            {deposit.reference || "—"}
-                          </td>
-                          <td className="py-3 text-right font-semibold text-emerald-600">
-                            +{formatCurrency(deposit.amount)}
-                          </td>
-                          <td className="py-3 text-muted-foreground capitalize">
-                            {deposit.payment_method?.replace("_", " ") || "—"}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={6} className="py-12 text-center text-muted-foreground">
-                          No deposits recorded yet
+                    {allDeposits && allDeposits.length > 0 ? allDeposits.map((deposit) => (
+                      <tr key={deposit.id} className="hover:bg-muted/50">
+                        <td className="py-3">
+                          <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground" />{new Date(deposit.created_at).toLocaleString()}</div>
                         </td>
+                        <td className="py-3 font-medium">{deposit.profiles?.name || deposit.member_name || "Unknown"}</td>
+                        <td className="py-3"><Badge className={depositTypeColors[deposit.deposit_type] || "bg-gray-100"}>{depositTypeLabels[deposit.deposit_type] || deposit.deposit_type}</Badge></td>
+                        <td className="py-3 font-mono text-xs">{deposit.reference || "—"}</td>
+                        <td className="py-3 text-right font-semibold text-emerald-600">+{formatCurrency(deposit.amount)}</td>
+                        <td className="py-3 text-muted-foreground capitalize">{deposit.payment_method?.replace("_", " ") || "—"}</td>
+                        <td className="py-3 text-muted-foreground text-xs">{deposit.admin_profile?.name || deposit.collected_by?.slice(0, 8) || "System"}</td>
                       </tr>
+                    )) : (
+                      <tr><td colSpan={7} className="py-12 text-center text-muted-foreground">No deposits found with current filters</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -563,35 +737,31 @@ export default function ManualDeposits() {
       </div>
 
       {/* Add Deposit Dialog */}
-      <Dialog open={showAddDeposit} onOpenChange={setShowAddDeposit}>
+      <Dialog open={showAddDeposit} onOpenChange={(open) => { setShowAddDeposit(open); if (!open) setValidationErrors([]); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Record Manual Deposit</DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><Plus className="h-5 w-5" />Record Manual Deposit</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="p-3 bg-muted rounded-lg">
               <div className="text-sm text-muted-foreground">Recording for:</div>
               <div className="font-medium">{selectedMember?.name || "Unknown"}</div>
               <div className="text-sm text-muted-foreground">{selectedMember?.email}</div>
+              <div className="text-xs text-muted-foreground mt-1">ID: {selectedMember?.id}</div>
             </div>
 
             <div className="space-y-2">
-              <Label>Deposit Amount (NGN)</Label>
-              <Input
-                type="number"
-                placeholder="Enter amount"
-                value={depositAmount}
-                onChange={(e) => setDepositAmount(e.target.value)}
-                className="text-lg font-semibold"
-              />
+              <Label>Deposit Amount (NGN)<span className="text-red-500 ml-1">*</span></Label>
+              <Input type="number" placeholder="Enter amount (e.g., 5000)" value={depositAmount}
+                onChange={(e) => { setDepositAmount(e.target.value); setValidationErrors(prev => prev.filter(e => e.field !== "amount")); }}
+                className={`text-lg font-semibold ${getError("amount") ? "border-red-500" : ""}`} min="0.01" step="0.01" />
+              {getError("amount") && <div className="flex items-center gap-1 text-red-500 text-xs"><AlertTriangle className="h-3 w-3" />{getError("amount")}</div>}
             </div>
 
             <div className="space-y-2">
-              <Label>Deposit Type</Label>
+              <Label>Deposit Type<span className="text-red-500 ml-1">*</span></Label>
               <Select value={depositType} onValueChange={(v) => setDepositType(v as DepositRecord["deposit_type"])}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="savings">Savings Contribution</SelectItem>
                   <SelectItem value="levy">Monthly Levy</SelectItem>
@@ -604,11 +774,9 @@ export default function ManualDeposits() {
             </div>
 
             <div className="space-y-2">
-              <Label>Payment Method</Label>
+              <Label>Payment Method<span className="text-red-500 ml-1">*</span></Label>
               <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as DepositRecord["payment_method"])}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="cash">Cash</SelectItem>
                   <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
@@ -620,99 +788,162 @@ export default function ManualDeposits() {
             </div>
 
             <div className="space-y-2">
-              <Label>Reference / Transaction ID</Label>
-              <Input
-                placeholder="e.g., FBN/2024/001234"
-                value={depositReference}
-                onChange={(e) => setDepositReference(e.target.value)}
-              />
+              <Label>Reference / Transaction ID<span className="text-red-500 ml-1">*</span></Label>
+              <Input placeholder="e.g., FBN/2024/001234" value={depositReference}
+                onChange={(e) => { setDepositReference(e.target.value); setValidationErrors(prev => prev.filter(e => e.field !== "reference")); }}
+                className={getError("reference") ? "border-red-500" : ""} />
+              {getError("reference") && <div className="flex items-center gap-1 text-red-500 text-xs"><AlertTriangle className="h-3 w-3" />{getError("reference")}</div>}
             </div>
 
             <div className="space-y-2">
-              <Label>Description / Notes</Label>
-              <Textarea
-                placeholder="Enter description or notes..."
-                value={depositDescription}
-                onChange={(e) => setDepositDescription(e.target.value)}
-                rows={2}
-              />
+              <Label>Description / Notes<span className="text-red-500 ml-1">*</span></Label>
+              <Textarea placeholder="Enter description or notes (min 5 characters)..." value={depositDescription}
+                onChange={(e) => { setDepositDescription(e.target.value); setValidationErrors(prev => prev.filter(e => e.field !== "description")); }}
+                className={getError("description") ? "border-red-500" : ""} rows={2} />
+              {getError("description") && <div className="flex items-center gap-1 text-red-500 text-xs"><AlertTriangle className="h-3 w-3" />{getError("description")}</div>}
             </div>
 
-            {depositAmount && (
+            {depositAmount && !getError("amount") && (
               <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                <div className="flex items-center gap-2 text-emerald-800">
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span className="font-medium">New Balance: {formatCurrency((memberWallet?.balance || 0) + parseFloat(depositAmount || "0"))}</span>
+                <div className="text-sm text-emerald-800 mb-2">Balance Update Preview:</div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div><span className="text-muted-foreground">Current:</span><div className="font-medium">{formatCurrency(memberWallet?.balance || 0)}</div></div>
+                  <div><span className="text-muted-foreground">Deposit:</span><div className="font-medium text-emerald-600">+{formatCurrency(parseFloat(depositAmount) || 0)}</div></div>
+                  <div className="col-span-2 border-t pt-2 mt-2"><span className="text-muted-foreground">New Balance:</span><div className="font-bold text-lg text-emerald-700">{formatCurrency((memberWallet?.balance || 0) + (parseFloat(depositAmount) || 0))}</div></div>
                 </div>
+              </div>
+            )}
+
+            {validationErrors.length > 0 && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="text-sm text-red-700 font-medium mb-1">Please fix the following errors:</div>
+                {validationErrors.map((err, i) => <div key={i} className="text-xs text-red-600">• {err.message}</div>)}
               </div>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddDeposit(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                createDeposit({
-                  amount: parseFloat(depositAmount),
-                  deposit_type: depositType,
-                  payment_method: paymentMethod,
-                  description: depositDescription,
-                  reference: depositReference,
-                });
-              }}
-              disabled={!depositAmount || creating}
-            >
-              {creating ? "Processing..." : "Record Deposit"}
+            <Button variant="outline" onClick={() => { setShowAddDeposit(false); setValidationErrors([]); }}>Cancel</Button>
+            <Button onClick={handleSubmitDeposit} disabled={creating} className="bg-emerald-600 hover:bg-emerald-700">
+              {creating ? <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />Processing...</> : <><CheckCircle2 className="h-4 w-4 mr-2" />Record Deposit</>}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Deposit History Dialog */}
+      {/* Transaction History Dialog */}
       <Dialog open={showViewHistory} onOpenChange={setShowViewHistory}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Deposit History</DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><History className="h-5 w-5" />Transaction History<Badge variant="outline" className="ml-2">{selectedMember?.name}</Badge></DialogTitle>
           </DialogHeader>
           <div className="max-h-[60vh] overflow-y-auto">
-            {loadingHistory ? (
+            {loadingTransactions ? (
+              <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
+            ) : memberTransactions && memberTransactions.length > 0 ? (
               <div className="space-y-3">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
-                ))}
-              </div>
-            ) : depositHistory && depositHistory.length > 0 ? (
-              <div className="space-y-3">
-                {depositHistory.map((deposit) => (
-                  <div key={deposit.id} className="flex items-center gap-4 p-3 border rounded-lg">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
-                      <ArrowDownRight className="h-5 w-5 text-emerald-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium">{depositTypeLabels[deposit.deposit_type] || deposit.deposit_type}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {deposit.description || "No description"} • {new Date(deposit.created_at).toLocaleString()}
+                <div className="grid grid-cols-2 gap-3 p-3 bg-muted rounded-lg">
+                  <div><div className="text-xs text-muted-foreground">Current Balance</div><div className="font-bold text-lg">{formatCurrency(memberWallet?.balance || 0)}</div></div>
+                  <div><div className="text-xs text-muted-foreground">Total Transactions</div><div className="font-bold text-lg">{memberTransactions.length}</div></div>
+                </div>
+                <div className="border rounded-lg overflow-hidden">
+                  {memberTransactions.map((txn) => {
+                    const config = transactionTypeColors[txn.type] || transactionTypeColors.deposit;
+                    const Icon = config.icon;
+                    return (
+                      <div key={txn.id} className="flex items-start gap-4 p-4 border-b last:border-b-0 hover:bg-muted/30">
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-full ${config.bg}`}><Icon className={`h-5 w-5 ${config.text}`} /></div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="font-medium">{txn.description || txn.type}</div>
+                              <div className="text-xs text-muted-foreground mt-0.5">{new Date(txn.created_at).toLocaleString()}{txn.reference && ` • Ref: ${txn.reference}`}</div>
+                            </div>
+                            <div className="text-right shrink-0 ml-4">
+                              <div className={`font-semibold ${txn.type === "deposit" || txn.type === "credit" ? "text-emerald-600" : "text-red-600"}`}>
+                                {txn.type === "deposit" || txn.type === "credit" ? "+" : "-"}{formatCurrency(txn.amount)}
+                              </div>
+                              <div className="text-xs text-muted-foreground">Balance: {formatCurrency(txn.balance_after)}</div>
+                            </div>
+                          </div>
+                          {txn.admin_name && <div className="text-xs text-muted-foreground mt-1">By: {txn.admin_name}</div>}
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-emerald-600">+{formatCurrency(deposit.amount)}</div>
-                      <div className="text-xs text-muted-foreground">{deposit.payment_method}</div>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })}
+                </div>
               </div>
             ) : (
-              <div className="py-12 text-center text-muted-foreground">
-                No deposit history found
-              </div>
+              <div className="py-12 text-center text-muted-foreground"><History className="h-12 w-12 mx-auto mb-3 opacity-50" /><div>No transactions found</div><div className="text-sm mt-1">Transactions will appear here once deposits are recorded</div></div>
             )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowViewHistory(false)}>
-              Close
-            </Button>
-          </DialogFooter>
+          <DialogFooter><Button variant="outline" onClick={() => setShowViewHistory(false)}>Close</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Audit Log Dialog */}
+      <Dialog open={showAuditLog} onOpenChange={setShowAuditLog}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Shield className="h-5 w-5" />Deposit Audit Trail</DialogTitle>
+            <p className="text-sm text-muted-foreground">Complete record of all deposit actions with admin details and timestamps</p>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {loadingAudit ? (
+              <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}</div>
+            ) : auditLogs && auditLogs.length > 0 ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-3 p-3 bg-muted rounded-lg">
+                  <div className="text-center"><div className="text-2xl font-bold">{auditLogs.length}</div><div className="text-xs text-muted-foreground">Total Actions</div></div>
+                  <div className="text-center"><div className="text-2xl font-bold">{[...new Set(auditLogs.map(l => l.performed_by))].length}</div><div className="text-xs text-muted-foreground">Admins</div></div>
+                  <div className="text-center"><div className="text-2xl font-bold">{[...new Set(auditLogs.map(l => l.record_id))].length}</div><div className="text-xs text-muted-foreground">Deposits</div></div>
+                </div>
+                <div className="border rounded-lg overflow-hidden">
+                  {auditLogs.map((log) => (
+                    <div key={log.id} className="p-4 border-b last:border-b-0 hover:bg-muted/30">
+                      <div className="flex items-start gap-4">
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-full shrink-0 ${log.action === "CREATE" ? "bg-emerald-100" : log.action === "UPDATE" ? "bg-blue-100" : log.action === "DELETE" ? "bg-red-100" : "bg-gray-100"}`}>
+                          <Shield className={`h-5 w-5 ${log.action === "CREATE" ? "text-emerald-600" : log.action === "UPDATE" ? "text-blue-600" : log.action === "DELETE" ? "text-red-600" : "text-gray-600"}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <Badge variant="outline" className={log.action === "CREATE" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : log.action === "UPDATE" ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-red-50 text-red-700 border-red-200"}>{log.action}</Badge>
+                              <div className="mt-1 font-medium text-sm">{log.details || `${log.table_name} record ${log.record_id}`}</div>
+                            </div>
+                            <div className="text-right text-xs text-muted-foreground shrink-0">{new Date(log.created_at).toLocaleString()}</div>
+                          </div>
+                          <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                            <span>Admin: {log.admin_profile?.name || log.admin_email || log.performed_by?.slice(0, 8) || "System"}</span>
+                            {log.ip_address && <span>IP: {log.ip_address}</span>}
+                            <span>Record ID: {log.record_id.slice(0, 8)}...</span>
+                          </div>
+                          {log.new_values && Object.keys(log.new_values).length > 0 && (
+                            <details className="mt-2">
+                              <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">View Details</summary>
+                              <div className="mt-2 p-3 bg-muted/50 rounded text-xs font-mono overflow-x-auto">
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div className="font-semibold text-muted-foreground col-span-2">New Values:</div>
+                                  {Object.entries(log.new_values).map(([key, value]) => (
+                                    <div key={key} className="col-span-1">
+                                      <span className="text-muted-foreground">{key}:</span>{" "}
+                                      <span className="break-all">{typeof value === "number" && key.includes("amount") ? formatCurrency(value) : typeof value === "number" ? value.toLocaleString() : String(value ?? "null")}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </details>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="py-12 text-center text-muted-foreground"><Shield className="h-12 w-12 mx-auto mb-3 opacity-50" /><div>No audit records found</div><div className="text-sm mt-1">Audit logs will appear here once deposits are recorded</div></div>
+            )}
+          </div>
+          <DialogFooter><Button variant="outline" onClick={() => setShowAuditLog(false)}>Close</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </Layout>
