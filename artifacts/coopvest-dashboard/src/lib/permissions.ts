@@ -25,10 +25,12 @@ export const PAGES = {
   FINANCIAL_DASHBOARD: 'financial_dashboard',
   WALLET_MANAGEMENT: 'wallet_management',
   DEPOSIT_VERIFICATION: 'deposit_verification',
+  MANUAL_DEPOSITS: 'manual_deposits',
   WITHDRAWAL_MANAGEMENT: 'withdrawal_management',
   GUARANTOR_SYSTEM: 'guarantor_system',
   INTEREST_RATES: 'interest_rates',
   RECONCILIATION: 'reconciliation',
+  ACCOUNTING_SPREADSHEET: 'accounting_spreadsheet',
   
   // Operations
   SYSTEM_SETTINGS: 'system_settings',
@@ -97,10 +99,12 @@ export const ROLE_PERMISSIONS: Record<Role, PageKey[]> = {
     PAGES.FINANCIAL_DASHBOARD,
     PAGES.WALLET_MANAGEMENT,
     PAGES.DEPOSIT_VERIFICATION,
+    PAGES.MANUAL_DEPOSITS,
     PAGES.WITHDRAWAL_MANAGEMENT,
     PAGES.GUARANTOR_SYSTEM,
     PAGES.INTEREST_RATES,
     PAGES.RECONCILIATION,
+    PAGES.ACCOUNTING_SPREADSHEET,
     
     // Operations
     PAGES.REPORTS,
@@ -188,10 +192,12 @@ export const ROUTE_TO_PAGE: Record<string, PageKey> = {
   '/financial-dashboard': PAGES.FINANCIAL_DASHBOARD,
   '/wallet-management': PAGES.WALLET_MANAGEMENT,
   '/deposit-verification': PAGES.DEPOSIT_VERIFICATION,
+  '/manual-deposits': PAGES.MANUAL_DEPOSITS,
   '/withdrawal-management': PAGES.WITHDRAWAL_MANAGEMENT,
   '/guarantor-system': PAGES.GUARANTOR_SYSTEM,
   '/interest-rates': PAGES.INTEREST_RATES,
   '/reconciliation': PAGES.RECONCILIATION,
+  '/accounting-spreadsheet': PAGES.ACCOUNTING_SPREADSHEET,
   
   '/system-settings': PAGES.SYSTEM_SETTINGS,
   '/reports': PAGES.REPORTS,

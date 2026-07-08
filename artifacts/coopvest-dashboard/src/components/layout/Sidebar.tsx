@@ -39,6 +39,8 @@ import {
   X,
   BadgeDollarSign,
   Receipt,
+  Calculator,
+  Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -70,11 +72,13 @@ const sidebarGroupsBase = [
       { title: "Financial Dashboard", icon: DollarSign, href: "/financial-dashboard", page: PAGES.FINANCIAL_DASHBOARD },
       { title: "Wallet Management", icon: WalletCards, href: "/wallet-management", page: PAGES.WALLET_MANAGEMENT },
       { title: "Deposit Verification", icon: BadgeDollarSign, href: "/deposit-verification", page: PAGES.DEPOSIT_VERIFICATION },
+      { title: "Manual Deposits", icon: Pencil, href: "/manual-deposits", page: PAGES.MANUAL_DEPOSITS },
       { title: "Withdrawal Approvals", icon: ArrowDownToLine, href: "/withdrawal-management", page: PAGES.WITHDRAWAL_MANAGEMENT },
       { title: "Guarantor System", icon: HandshakeIcon, href: "/guarantor-system", page: PAGES.GUARANTOR_SYSTEM },
       { title: "Loan Rollovers", icon: RefreshCw, href: "/rollover-management", page: PAGES.LOANS },
       { title: "Interest Rates", icon: Percent, href: "/interest-rates", page: PAGES.INTEREST_RATES },
       { title: "Reconciliation", icon: RefreshCw, href: "/reconciliation", page: PAGES.RECONCILIATION },
+      { title: "Accounting Spreadsheet", icon: Calculator, href: "/accounting-spreadsheet", page: PAGES.ACCOUNTING_SPREADSHEET },
     ],
   },
   {
