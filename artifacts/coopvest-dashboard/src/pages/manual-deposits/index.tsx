@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,13 +35,33 @@ import {
   Calendar,
   CheckCircle2,
   AlertTriangle,
-  ArrowUpRight,
-  ArrowDownRight,
   RefreshCw,
   Download,
   Shield,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   LucideIcon,
+  Loader2,
 } from "lucide-react";
+
+// Debounce hook for search optimization
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 // Types
 interface Member {
@@ -171,24 +191,30 @@ export default function ManualDeposits() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  
+  // Debounced search for performance
+  const debouncedSearch = useDebounce(searchQuery, 300);
 
   const { toast } = useToast();
   const qc = useQueryClient();
 
-  // Search members
+  // Search members (debounced for performance)
   const { data: searchResults, isLoading: searching } = useQuery({
-    queryKey: ["member-search", searchQuery],
+    queryKey: ["member-search", debouncedSearch],
     queryFn: async () => {
-      if (!searchQuery || searchQuery.length < 2) return [];
+      if (!debouncedSearch || debouncedSearch.length < 2) return [];
       const { data, error } = await supabase
         .from("profiles")
         .select("id, user_id, name, email, phone, created_at")
-        .or(`name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`)
+        .or(`name.ilike.%${debouncedSearch}%,email.ilike.%${debouncedSearch}%,phone.ilike.%${debouncedSearch}%`)
         .limit(10);
       if (error) throw error;
       return data as Member[];
     },
-    enabled: searchQuery.length >= 2,
+    enabled: debouncedSearch.length >= 2,
+    staleTime: 30000, // Cache for 30 seconds
   });
 
   // Fetch wallet balance for selected member
@@ -240,27 +266,33 @@ export default function ManualDeposits() {
     enabled: !!selectedMember,
   });
 
-  // Fetch all manual deposits with admin info
+  // Fetch all manual deposits with admin info (paginated)
   const { data: allDeposits, isLoading: loadingAll, refetch: refetchAll } = useQuery({
-    queryKey: ["all-manual-deposits", dateFrom, dateTo, filterType],
+    queryKey: ["all-manual-deposits", dateFrom, dateTo, filterType, page, pageSize],
     queryFn: async () => {
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      
       let query = supabase
         .from("deposits")
         .select(`
           *,
           profiles!deposits_profile_id_fkey(name, email),
           admin_profile:collected_by_profiles(name, email)
-        `)
+        `, { count: "exact" })
         .order("created_at", { ascending: false })
-        .limit(100);
+        .range(from, to);
       
       if (dateFrom) query = query.gte("created_at", dateFrom);
       if (dateTo) query = query.lte("created_at", dateTo + "T23:59:59");
       if (filterType !== "all") query = query.eq("deposit_type", filterType);
       
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return (data || []) as (DepositRecord & { profiles?: { name: string }; admin_profile?: { name: string } })[];
+      return { 
+        data: data || [], 
+        total: count || 0 
+      };
     },
   });
 
@@ -469,20 +501,18 @@ export default function ManualDeposits() {
 
   // Calculate totals
   const totals = useMemo(() => {
-    if (!allDeposits) return { count: 0, amount: 0, today: 0 };
+    if (!allDeposits?.data) return { count: 0, amount: 0, today: 0, total: 0 };
+    const deposits = allDeposits.data;
     const today = new Date().toISOString().split("T")[0];
     return {
-      count: allDeposits.length,
-      amount: allDeposits.reduce((sum, d) => sum + d.amount, 0),
-      today: allDeposits.filter(d => d.created_at.startsWith(today)).reduce((sum, d) => sum + d.amount, 0),
+      count: deposits.length,
+      amount: deposits.reduce((sum, d) => sum + d.amount, 0),
+      today: deposits.filter(d => d.created_at.startsWith(today)).reduce((sum, d) => sum + d.amount, 0),
+      total: allDeposits.total,
     };
   }, [allDeposits]);
 
-  const clearFilters = () => {
-    setDateFrom("");
-    setDateTo("");
-    setFilterType("all");
-  };
+  const totalPages = Math.ceil(totals.total / pageSize);
 
   return (
     <Layout>
@@ -699,37 +729,77 @@ export default function ManualDeposits() {
             {loadingAll ? (
               <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-muted-foreground">
-                      <th className="pb-3 text-left font-medium">Date & Time</th>
-                      <th className="pb-3 text-left font-medium">Member</th>
-                      <th className="pb-3 text-left font-medium">Type</th>
-                      <th className="pb-3 text-left font-medium">Reference</th>
-                      <th className="pb-3 text-right font-medium">Amount</th>
-                      <th className="pb-3 text-left font-medium">Method</th>
-                      <th className="pb-3 text-left font-medium">Recorded By</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {allDeposits && allDeposits.length > 0 ? allDeposits.map((deposit) => (
-                      <tr key={deposit.id} className="hover:bg-muted/50">
-                        <td className="py-3">
-                          <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground" />{new Date(deposit.created_at).toLocaleString()}</div>
-                        </td>
-                        <td className="py-3 font-medium">{deposit.profiles?.name || deposit.member_name || "Unknown"}</td>
-                        <td className="py-3"><Badge className={depositTypeColors[deposit.deposit_type] || "bg-gray-100"}>{depositTypeLabels[deposit.deposit_type] || deposit.deposit_type}</Badge></td>
-                        <td className="py-3 font-mono text-xs">{deposit.reference || "—"}</td>
-                        <td className="py-3 text-right font-semibold text-emerald-600">+{formatCurrency(deposit.amount)}</td>
-                        <td className="py-3 text-muted-foreground capitalize">{deposit.payment_method?.replace("_", " ") || "—"}</td>
-                        <td className="py-3 text-muted-foreground text-xs">{deposit.admin_profile?.name || deposit.collected_by?.slice(0, 8) || "System"}</td>
+              <div className="space-y-4">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-muted-foreground">
+                        <th className="pb-3 text-left font-medium">Date & Time</th>
+                        <th className="pb-3 text-left font-medium">Member</th>
+                        <th className="pb-3 text-left font-medium">Type</th>
+                        <th className="pb-3 text-left font-medium">Reference</th>
+                        <th className="pb-3 text-right font-medium">Amount</th>
+                        <th className="pb-3 text-left font-medium">Method</th>
+                        <th className="pb-3 text-left font-medium">Recorded By</th>
                       </tr>
-                    )) : (
-                      <tr><td colSpan={7} className="py-12 text-center text-muted-foreground">No deposits found with current filters</td></tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y">
+                      {allDeposits?.data && allDeposits.data.length > 0 ? allDeposits.data.map((deposit) => (
+                        <tr key={deposit.id} className="hover:bg-muted/50">
+                          <td className="py-3">
+                            <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground" />{new Date(deposit.created_at).toLocaleString()}</div>
+                          </td>
+                          <td className="py-3 font-medium">{deposit.profiles?.name || deposit.member_name || "Unknown"}</td>
+                          <td className="py-3"><Badge className={depositTypeColors[deposit.deposit_type] || "bg-gray-100"}>{depositTypeLabels[deposit.deposit_type] || deposit.deposit_type}</Badge></td>
+                          <td className="py-3 font-mono text-xs">{deposit.reference || "—"}</td>
+                          <td className="py-3 text-right font-semibold text-emerald-600">+{formatCurrency(deposit.amount)}</td>
+                          <td className="py-3 text-muted-foreground capitalize">{deposit.payment_method?.replace("_", " ") || "—"}</td>
+                          <td className="py-3 text-muted-foreground text-xs">{deposit.admin_profile?.name || deposit.collected_by?.slice(0, 8) || "System"}</td>
+                        </tr>
+                      )) : (
+                        <tr><td colSpan={7} className="py-12 text-center text-muted-foreground">No deposits found with current filters</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    Showing {allDeposits?.data?.length || 0} of {totals.total} deposits
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
+                      <SelectTrigger className="w-20">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-muted-foreground">per page</span>
+                    <div className="flex items-center gap-1 ml-4">
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={page === 1} onClick={() => setPage(1)}>
+                        <ChevronsLeft className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="px-3 text-sm">
+                        Page {page} of {totalPages || 1}
+                      </span>
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={page >= totalPages} onClick={() => setPage(totalPages)}>
+                        <ChevronsRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>

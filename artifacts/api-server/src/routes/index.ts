@@ -45,6 +45,8 @@ import depositsRouter from "./deposits";
 import statisticsRouter from "./statistics";
 // KYC routes for mobile app
 import kycRouter from "./kyc";
+// Accounting routes for financial operations
+import accountingRouter from "./accounting";
 
 const router: IRouter = Router();
 
@@ -104,5 +106,7 @@ router.use(reconciliationRouter);
 router.use(loginHistoryRouter);
 router.use(excelUploadsRouter);
 router.use(depositsRouter);
+// Accounting routes for financial operations
+router.use(accountingRouter);
 
 export default router;
