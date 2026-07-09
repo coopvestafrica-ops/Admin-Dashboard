@@ -73,3 +73,4 @@ This monorepo is fully configured for continuous deployment on **Render** using 
 2. `coopvest-admin-dashboard` (Web Service running Docker container)
 # Trigger
 
+# Trigger new deployment
