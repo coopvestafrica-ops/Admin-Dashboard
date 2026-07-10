@@ -1,5 +1,4 @@
 {
-  "version": 2,
   "builds": [
     {
       "src": "artifacts/api-server/dist/index.mjs",
@@ -8,14 +7,6 @@
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/artifacts/api-server/dist/index.mjs" },
-    { "src": "/sw\\.(.*)", "dest": "/artifacts/coopvest-dashboard/dist/public/sw.$1" },
-    { "src": "/workbox-(.*)", "dest": "/artifacts/coopvest-dashboard/dist/public/workbox-$1" },
-    { "src": "/assets/(.*)", "dest": "/artifacts/coopvest-dashboard/dist/public/assets/$1" },
-    { "src": "/favicon\\.ico", "dest": "/artifacts/coopvest-dashboard/dist/public/favicon.ico" },
-    { "src": "/favicon\\.svg", "dest": "/artifacts/coopvest-dashboard/dist/public/favicon.svg" },
-    { "src": "/opengraph\\.svg", "dest": "/artifacts/coopvest-dashboard/dist/public/opengraph.svg" },
-    { "src": "/opengraph\\.jpg", "dest": "/artifacts/coopvest-dashboard/dist/public/opengraph.jpg" },
-    { "src": "/manifest\\.json", "dest": "/artifacts/coopvest-dashboard/dist/public/manifest.json" },
     { "src": "/(.*)", "dest": "/artifacts/coopvest-dashboard/dist/public/index.html", "status": 200 }
   ]
 }
