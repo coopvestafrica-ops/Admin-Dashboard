@@ -12,6 +12,6 @@
     { "src": "/workbox-(.*)", "dest": "/artifacts/coopvest-dashboard/dist/public/workbox-$1" },
     { "src": "/assets/(.*)", "dest": "/artifacts/coopvest-dashboard/dist/public/assets/$1" },
     { "src": "/favicon\\.ico", "dest": "/artifacts/coopvest-dashboard/dist/public/favicon.ico" },
-    { "src": "/(.*)", "dest": "/artifacts/coopvest-dashboard/dist/public/index.html" }
+    { "src": "/(.*)", "dest": "/artifacts/coopvest-dashboard/dist/public/index.html", "status": 200 }
   ]
 }
