@@ -1,9 +1,1 @@
-{
-  "version": 2,
-  "buildCommand": "npx vite build --config vite.config.ts",
-  "outputDirectory": "dist/public",
-  "framework": "vite",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
-  ]
-}
+{"rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]}

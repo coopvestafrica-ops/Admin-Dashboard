@@ -1,6 +1,0 @@
-{
-  "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
