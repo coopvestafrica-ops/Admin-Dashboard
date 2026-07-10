@@ -4,14 +4,18 @@
     {
       "src": "artifacts/api-server/dist/index.mjs",
       "use": "@vercel/node"
+    },
+    {
+      "src": "artifacts/coopvest-dashboard/dist",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/artifacts/api-server/dist/index.mjs" },
-    { "src": "/sw\\.(.*)", "dest": "/artifacts/coopvest-dashboard/dist/public/sw.$1" },
-    { "src": "/workbox-(.*)", "dest": "/artifacts/coopvest-dashboard/dist/public/workbox-$1" },
-    { "src": "/assets/(.*)", "dest": "/artifacts/coopvest-dashboard/dist/public/assets/$1" },
-    { "src": "/favicon\\.ico", "dest": "/artifacts/coopvest-dashboard/dist/public/favicon.ico" },
-    { "src": "/(.*)", "dest": "/artifacts/coopvest-dashboard/dist/public/index.html", "status": 200 }
+    { "src": "/sw\\.(.*)", "dest": "/sw.$1" },
+    { "src": "/workbox-(.*)", "dest": "/workbox-$1" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/favicon\\.ico", "dest": "/favicon.ico" },
+    { "src": "/(.*)", "dest": "/index.html", "status": 200 }
   ]
 }
