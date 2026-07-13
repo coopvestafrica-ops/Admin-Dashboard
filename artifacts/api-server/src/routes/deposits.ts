@@ -226,6 +226,20 @@ router.patch("/deposits/:id/verify", requireRole("operator", "admin", "super_adm
       .eq("id", wallet.id);
   }
 
+  // Notify the member — insert into notifications table (picked up by Supabase Realtime in Flutter)
+  const amountFmt = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
+  await supabase.from('notifications').insert({
+    profile_id: memberProfileId,
+    title: 'Deposit Verified ✓',
+    body: `Your deposit of ${amountFmt} has been verified and your wallet has been credited.`,
+    type: 'wallet_credited',
+    category: 'wallet',
+    priority: 'high',
+    is_read: false,
+  }).then(({ error: ne }) => {
+    if (ne) console.error('[notify] deposit verified insert failed:', ne.message);
+  });
+
   res.json({
     success: true,
     message: "Deposit verified successfully",
@@ -268,6 +282,30 @@ router.patch("/deposits/:id/reject", requireRole("operator", "admin", "super_adm
   if (updateError) {
     res.status(500).json({ error: updateError.message });
     return;
+  }
+
+  // Notify the member about rejection
+  if (updated?.profile_id) {
+    const { data: dep } = await supabase
+      .from('deposit_requests')
+      .select('amount')
+      .eq('id', id)
+      .maybeSingle();
+    const rejAmt = dep?.amount
+      ? new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(Number(dep.amount))
+      : 'your deposit';
+    const rejReason = adminNotes ? ` Reason: ${adminNotes}` : '';
+    await supabase.from('notifications').insert({
+      profile_id: updated.profile_id,
+      title: 'Deposit Not Approved',
+      body: `Unfortunately, ${rejAmt} could not be verified.${rejReason} Please contact support.`,
+      type: 'deposit_rejected',
+      category: 'wallet',
+      priority: 'high',
+      is_read: false,
+    }).then(({ error: ne }) => {
+      if (ne) console.error('[notify] deposit rejected insert failed:', ne.message);
+    });
   }
 
   res.json({
