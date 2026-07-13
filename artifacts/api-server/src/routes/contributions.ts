@@ -200,7 +200,7 @@ router.post("/contributions", requireRole("operator", "admin", "super_admin"), a
     });
   }
 
-  const { data: profile } = await supabase.from("profiles").select("name, first_name, last_name, email").eq("id", memberId).single();
+  const { data: profile } = await supabase.from("profiles").select("name, email").eq("id", memberId).single();
 
   res.status(201).json({
     id: contribution.id,

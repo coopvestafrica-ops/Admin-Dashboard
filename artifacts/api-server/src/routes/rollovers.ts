@@ -85,7 +85,7 @@ router.post("/rollovers/request", async (req, res): Promise<void> => {
 
 router.get("/rollovers/:rolloverId", async (req, res): Promise<void> => {
   const rolloverId = req.params.rolloverId;
-  const { data: rollover } = await supabase.from("rollovers").select("*, profiles!rollovers_profile_id_fkey(id, first_name, last_name, name, email)").eq("rollover_id", rolloverId).single();
+  const { data: rollover } = await supabase.from("rollovers").select("*, profiles!rollovers_profile_id_fkey(id, name, email)").eq("rollover_id", rolloverId).single();
   if (!rollover) { res.status(404).json({ success: false, message: "Rollover not found" }); return; }
 
   const profile = rollover.profiles as unknown as { name?: string; first_name?: string; last_name?: string; email?: string } | null;
@@ -353,7 +353,7 @@ router.get("/rollovers", async (req, res): Promise<void> => {
   const offset = (page - 1) * limit;
   const status = req.query.status as string | undefined;
 
-  let query = supabase.from("rollovers").select("*, profiles!rollovers_profile_id_fkey(id, first_name, last_name, name, email)", { count: "exact" });
+  let query = supabase.from("rollovers").select("*, profiles!rollovers_profile_id_fkey(id, name, email)", { count: "exact" });
   if (status) query = query.eq("status", status);
 
   const { data: rollovers, count, error } = await query

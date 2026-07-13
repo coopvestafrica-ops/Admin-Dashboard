@@ -35,7 +35,7 @@ router.get("/compliance", requireRole("viewer", "operator", "admin", "super_admi
   const status = req.query.status as string | undefined;
 
   const statusMap: Record<string, string> = { pending: "pending", approved: "verified", flagged: "in_review", rejected: "rejected" };
-  let query = supabase.from("kyc").select("*, profiles!kyc_profile_id_fkey(id, first_name, last_name, name, email, user_id)", { count: "exact" });
+  let query = supabase.from("kyc").select("*, profiles!kyc_profile_id_fkey(id, name, email, user_id)", { count: "exact" });
   if (status && statusMap[status]) query = query.eq("status", statusMap[status]);
 
   const { data: kycItems, count, error } = await query

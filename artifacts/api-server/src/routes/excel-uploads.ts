@@ -113,7 +113,7 @@ router.post("/excel-uploads", requireAuth, async (req, res): Promise<void> => {
     if (userId) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("first_name, last_name")
+        .select("name")
         .eq("id", userId)
         .single();
       if (profile) {

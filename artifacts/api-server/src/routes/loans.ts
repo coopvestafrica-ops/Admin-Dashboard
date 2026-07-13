@@ -41,7 +41,7 @@ router.get("/loans", async (req, res): Promise<void> => {
   const status = req.query.status as string | undefined;
   const memberId = req.query.memberId as string | undefined;
 
-  let query = supabase.from("loans").select("*, profiles!loans_profile_id_fkey(id, first_name, last_name, name, email, phone)", { count: "exact" });
+  let query = supabase.from("loans").select("*, profiles!loans_profile_id_fkey(id, name, email, phone)", { count: "exact" });
   if (status) query = query.eq("status", status === "repaid" ? "completed" : status);
   if (memberId) query = query.eq("profile_id", memberId);
 
@@ -58,7 +58,7 @@ router.get("/loans", async (req, res): Promise<void> => {
   if (loanIds.length > 0) {
     const { data: guarantors } = await supabase
       .from("loan_guarantors")
-      .select("*, guarantor_profile:profiles!loan_guarantors_guarantor_id_fkey(id, name, first_name, last_name, email, phone)")
+      .select("*, guarantor_profile:profiles!loan_guarantors_guarantor_id_fkey(id, name, email, phone)")
       .in("loan_id", loanIds);
     
     if (guarantors) {
@@ -67,7 +67,7 @@ router.get("/loans", async (req, res): Promise<void> => {
         const guarantorProfile = g.guarantor_profile as unknown as { name?: string; first_name?: string; last_name?: string; email?: string; phone?: string } | null;
         let guarantorName = guarantorProfile?.name ?? "";
         if (!guarantorName && guarantorProfile) {
-          guarantorName = [guarantorProfile.first_name, guarantorProfile.last_name].filter(Boolean).join(" ") || guarantorProfile.email || "Unknown";
+          guarantorName = guarantorProfile.name || guarantorProfile.email || "Unknown";
         }
         guarantorsMap[g.loan_id].push({
           id: g.id,
@@ -146,10 +146,10 @@ router.post("/loans/apply", async (req, res): Promise<void> => {
       await supabase.from("loan_guarantors").insert(guarantorRecords);
     }
 
-    const { data: profile } = await supabase.from("profiles").select("name, first_name, last_name, email").eq("id", memberId).single();
+    const { data: profile } = await supabase.from("profiles").select("name, email").eq("id", memberId).single();
     let memberName = profile?.name ?? "";
     if (!memberName && profile) {
-      memberName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email || `Member ${memberId?.slice(0, 8)}`;
+      memberName = profile.name || profile.email || `Member ${memberId?.slice(0, 8)}`;
     }
 
     res.status(201).json({
@@ -192,10 +192,10 @@ router.post("/loans", async (req, res): Promise<void> => {
 
   if (error) { res.status(500).json({ error: error.message }); return; }
 
-  const { data: profile } = await supabase.from("profiles").select("name, first_name, last_name, email").eq("id", memberId).single();
+  const { data: profile } = await supabase.from("profiles").select("name, email").eq("id", memberId).single();
   let memberName = profile?.name ?? "";
   if (!memberName && profile) {
-    memberName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email || `Member ${memberId?.slice(0, 8)}`;
+    memberName = profile.name || profile.email || `Member ${memberId?.slice(0, 8)}`;
   }
 
   res.status(201).json({
@@ -210,20 +210,20 @@ router.post("/loans", async (req, res): Promise<void> => {
 router.get("/loans/:id", async (req, res): Promise<void> => {
   const id = req.params.id;
   const { data: loan, error } = await supabase.from("loans")
-    .select("*, profiles!loans_profile_id_fkey(id, first_name, last_name, name, email, phone)").eq("id", id).single();
+    .select("*, profiles!loans_profile_id_fkey(id, name, email, phone)").eq("id", id).single();
   if (error || !loan) { res.status(404).json({ error: "Loan not found" }); return; }
 
   // Fetch guarantors for this loan
   const { data: guarantors } = await supabase
     .from("loan_guarantors")
-    .select("*, guarantor_profile:profiles!loan_guarantors_guarantor_id_fkey(id, name, first_name, last_name, email, phone)")
+    .select("*, guarantor_profile:profiles!loan_guarantors_guarantor_id_fkey(id, name, email, phone)")
     .eq("loan_id", id);
   
   const guarantorsList = (guarantors ?? []).map((g: any) => {
     const guarantorProfile = g.guarantor_profile as unknown as { name?: string; first_name?: string; last_name?: string; email?: string; phone?: string } | null;
     let guarantorName = guarantorProfile?.name ?? "";
     if (!guarantorName && guarantorProfile) {
-      guarantorName = [guarantorProfile.first_name, guarantorProfile.last_name].filter(Boolean).join(" ") || guarantorProfile.email || "Unknown";
+      guarantorName = guarantorProfile.name || guarantorProfile.email || "Unknown";
     }
     return {
       id: g.id,
@@ -239,7 +239,7 @@ router.get("/loans/:id", async (req, res): Promise<void> => {
   const profile = loan.profiles as unknown as { name?: string; first_name?: string; last_name?: string; email?: string; phone?: string } | null;
   let memberName = profile?.name ?? "";
   if (!memberName && profile) {
-    memberName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email || `Member ${loan.profile_id?.slice(0, 8)}`;
+    memberName = profile.name || profile.email || `Member ${loan.profile_id?.slice(0, 8)}`;
   }
   res.json({
     id: loan.id, loanId: loan.loan_id, memberId: loan.profile_id,
@@ -289,10 +289,10 @@ router.post("/loans/:id/approve", requireRole("operator"), async (req, res): Pro
     notes: `Loan approved by ${adminName}`,
   });
 
-  const { data: profile } = await supabase.from("profiles").select("name, first_name, last_name, email").eq("id", loan.profile_id).single();
+  const { data: profile } = await supabase.from("profiles").select("name, email").eq("id", loan.profile_id).single();
   let memberName = profile?.name ?? "";
   if (!memberName && profile) {
-    memberName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email || `Member ${loan.profile_id?.slice(0, 8)}`;
+    memberName = profile.name || profile.email || `Member ${loan.profile_id?.slice(0, 8)}`;
   }
   res.json({
     id: loan.id, loanId: loan.loan_id, memberId: loan.profile_id,
@@ -335,10 +335,10 @@ router.post("/loans/:id/reject", requireRole("operator"), async (req, res): Prom
     notes: reason.trim(),
   });
 
-  const { data: profile } = await supabase.from("profiles").select("name, first_name, last_name, email").eq("id", loan.profile_id).single();
+  const { data: profile } = await supabase.from("profiles").select("name, email").eq("id", loan.profile_id).single();
   let memberName = profile?.name ?? "";
   if (!memberName && profile) {
-    memberName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email || `Member ${loan.profile_id?.slice(0, 8)}`;
+    memberName = profile.name || profile.email || `Member ${loan.profile_id?.slice(0, 8)}`;
   }
   res.json({
     id: loan.id, loanId: loan.loan_id, memberId: loan.profile_id,

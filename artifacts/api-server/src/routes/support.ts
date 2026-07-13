@@ -185,7 +185,7 @@ router.get("/support-tickets", async (req, res): Promise<void> => {
   const status = req.query.status as string | undefined;
   const priority = req.query.priority as string | undefined;
 
-  let query = supabase.from("tickets").select("*, profiles!tickets_profile_id_fkey(id, first_name, last_name, name, email, user_id)", { count: "exact" });
+  let query = supabase.from("tickets").select("*, profiles!tickets_profile_id_fkey(id, name, email, user_id)", { count: "exact" });
   if (status) query = query.eq("status", status);
   if (priority) query = query.eq("priority", priority);
 
@@ -221,7 +221,7 @@ router.get("/support-tickets", async (req, res): Promise<void> => {
 
 router.get("/support-tickets/:id", async (req, res): Promise<void> => {
   const id = req.params.id;
-  const { data: ticket, error } = await supabase.from("tickets").select("*, profiles!tickets_profile_id_fkey(id, first_name, last_name, name, email)").eq("id", id).single();
+  const { data: ticket, error } = await supabase.from("tickets").select("*, profiles!tickets_profile_id_fkey(id, name, email)").eq("id", id).single();
   if (error || !ticket) { res.status(404).json({ error: "Ticket not found" }); return; }
 
   const { data: messages } = await supabase.from("ticket_messages").select("*").eq("ticket_id", ticket.id).order("created_at", { ascending: true });

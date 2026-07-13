@@ -32,7 +32,7 @@ router.get("/deposits", requireRole("viewer", "operator", "admin", "super_admin"
       verified_at,
       created_at,
       updated_at,
-      profiles!deposit_requests_profile_id_fkey(name, first_name, last_name, email, phone)
+      profiles!deposit_requests_profile_id_fkey(name, email, phone)
     `, { count: "exact" });
 
   if (status) query = query.eq("status", status);

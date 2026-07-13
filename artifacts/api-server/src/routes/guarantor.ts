@@ -37,7 +37,7 @@ router.get("/guarantor/pending-requests", async (req, res): Promise<void> => {
       .from("loan_guarantors")
       .select(`
         *,
-        loans:loan_id(id, loan_id, amount, tenure_months, status, created_at, profiles!loans_profile_id_fkey(name, email, phone, first_name, last_name))
+        loans:loan_id(id, loan_id, amount, tenure_months, status, created_at, profiles!loans_profile_id_fkey(name, email, phone))
       `)
       .eq("guarantor_id", profile.id)
       .in("status", ["pending", "requested", "scanned"]);
@@ -53,7 +53,7 @@ router.get("/guarantor/pending-requests", async (req, res): Promise<void> => {
         const borrower = r.loans?.profiles;
         let borrowerName = borrower?.name ?? "";
         if (!borrowerName && borrower) {
-          borrowerName = [borrower.first_name, borrower.last_name].filter(Boolean).join(" ") || borrower.email || "Unknown";
+          borrowerName = borrower.name || borrower.email || "Unknown";
         }
         return {
           id: r.id,
@@ -168,7 +168,7 @@ router.get("/guarantor/requests/:requestId", async (req, res): Promise<void> => 
       .from("loan_guarantors")
       .select(`
         *,
-        loans:loan_id(id, loan_id, amount, tenure_months, status, created_at, profiles!loans_profile_id_fkey(name, email, phone, first_name, last_name))
+        loans:loan_id(id, loan_id, amount, tenure_months, status, created_at, profiles!loans_profile_id_fkey(name, email, phone))
       `)
       .eq("id", requestId)
       .eq("guarantor_id", profile.id)
@@ -182,7 +182,7 @@ router.get("/guarantor/requests/:requestId", async (req, res): Promise<void> => 
     const borrower = request.loans?.profiles;
     let borrowerName = borrower?.name ?? "";
     if (!borrowerName && borrower) {
-      borrowerName = [borrower.first_name, borrower.last_name].filter(Boolean).join(" ") || borrower.email || "Unknown";
+      borrowerName = borrower.name || borrower.email || "Unknown";
     }
 
     res.json({
@@ -404,7 +404,7 @@ router.get("/guarantor/my-guarantees", async (req, res): Promise<void> => {
       .from("loan_guarantors")
       .select(`
         *,
-        loans:loan_id(id, loan_id, amount, tenure_months, status, created_at, profiles!loans_profile_id_fkey(name, email, phone, first_name, last_name))
+        loans:loan_id(id, loan_id, amount, tenure_months, status, created_at, profiles!loans_profile_id_fkey(name, email, phone))
       `)
       .eq("guarantor_id", profile.id)
       .in("status", ["confirmed", "accepted"]);
@@ -420,7 +420,7 @@ router.get("/guarantor/my-guarantees", async (req, res): Promise<void> => {
         const borrower = g.loans?.profiles;
         let borrowerName = borrower?.name ?? "";
         if (!borrowerName && borrower) {
-          borrowerName = [borrower.first_name, borrower.last_name].filter(Boolean).join(" ") || borrower.email || "Unknown";
+          borrowerName = borrower.name || borrower.email || "Unknown";
         }
         return {
           id: g.id,
