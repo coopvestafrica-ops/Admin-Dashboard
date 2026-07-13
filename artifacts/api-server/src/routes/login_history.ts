@@ -90,9 +90,10 @@ router.get("/login-history", requireRole("admin", "super_admin"), async (req, re
   const { page = 1, limit = 50, search, startDate, endDate, status } = req.query;
   const offset = (Number(page) - 1) * Number(limit);
 
+  // email is stored directly on login_history — no profile join needed
   let query = supabase
     .from("login_history")
-    .select("*, profiles!inner(name, email, user_id)", { count: "exact" })
+    .select("*", { count: "exact" })
     .order("created_at", { ascending: false })
     .range(offset, offset + Number(limit) - 1);
 
@@ -101,6 +102,9 @@ router.get("/login-history", requireRole("admin", "super_admin"), async (req, re
   if (status === "success") query = query.eq("success", true);
   else if (status === "failed") query = query.eq("success", false);
 
+  // Apply server-side search on email when possible
+  if (search) query = query.ilike("email", `%${search}%`);
+
   const { data: history, count, error } = await query;
 
   if (error) {
@@ -108,17 +112,7 @@ router.get("/login-history", requireRole("admin", "super_admin"), async (req, re
     return;
   }
 
-  // Filter by search if provided (client-side for simplicity)
-  let filtered = history || [];
-  if (search) {
-    const searchLower = (search as string).toLowerCase();
-    filtered = filtered.filter(h =>
-      h.profiles?.name?.toLowerCase().includes(searchLower) ||
-      h.profiles?.email?.toLowerCase().includes(searchLower)
-    );
-  }
-
-  res.json({ data: filtered, total: count || 0, page: Number(page), limit: Number(limit) });
+  res.json({ data: history || [], total: count || 0, page: Number(page), limit: Number(limit) });
 });
 
 // Get suspicious login attempts
@@ -126,10 +120,10 @@ router.get("/login-history/suspicious", requireRole("admin", "super_admin"), asy
   const { hours = 24 } = req.query;
   const since = new Date(Date.now() - Number(hours) * 60 * 60 * 1000).toISOString();
 
-  // Get failed logins grouped by IP and profile
+  // Get failed logins grouped by IP and profile — email is stored directly, no profile join needed
   const { data: failedLogins, error } = await supabase
     .from("login_history")
-    .select("*, profiles!inner(name, email, user_id)")
+    .select("*")
     .eq("success", false)
     .gte("created_at", since)
     .order("created_at", { ascending: false });
@@ -153,13 +147,13 @@ router.get("/login-history/suspicious", requireRole("admin", "super_admin"), asy
       suspiciousByIP[login.ip_address].attempts.push(login);
     }
 
-    // By profile
+    // By profile (use profile_id as key; email is already stored on the row)
     if (login.profile_id) {
       const key = login.profile_id;
       if (!suspiciousByProfile[key]) {
         suspiciousByProfile[key] = {
           profileId: login.profile_id,
-          name: login.profiles?.name || "Unknown",
+          name: login.email || "Unknown",
           count: 0,
           attempts: [],
         };
