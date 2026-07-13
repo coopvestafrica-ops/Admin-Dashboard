@@ -310,6 +310,7 @@ export default function DepositVerification() {
                       <th className="pb-3 text-right font-medium">Amount</th>
                       <th className="pb-3 text-left font-medium">Bank Details</th>
                       <th className="pb-3 text-left font-medium">Reference</th>
+                      <th className="pb-3 text-center font-medium">Proof</th>
                       <th className="pb-3 text-left font-medium">Date</th>
                       <th className="pb-3 text-left font-medium">Status</th>
                       <th className="pb-3 text-center font-medium">Actions</th>
@@ -338,6 +339,15 @@ export default function DepositVerification() {
                           </td>
                           <td className="py-3 text-xs font-mono text-muted-foreground">
                             {deposit.payment_reference || "—"}
+                          </td>
+                          <td className="py-3 text-center">
+                            {deposit.payment_proof_url ? (
+                              <span title="Proof attached" className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-blue-100">
+                                <ImageIcon className="h-3.5 w-3.5 text-blue-600" />
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">—</span>
+                            )}
                           </td>
                           <td className="py-3 text-xs text-muted-foreground">
                             {formatDateTime(deposit.created_at)}
@@ -388,7 +398,7 @@ export default function DepositVerification() {
                     })}
                     {deposits.length === 0 && (
                       <tr>
-                        <td colSpan={8} className="py-12 text-center text-muted-foreground">
+                        <td colSpan={9} className="py-12 text-center text-muted-foreground">
                           No deposits found
                         </td>
                       </tr>
@@ -462,15 +472,32 @@ export default function DepositVerification() {
 
               {viewDeposit.payment_proof_url && (
                 <div className="space-y-2">
-                  <Label>Payment Proof</Label>
+                  <Label className="flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-blue-600" />
+                    Payment Proof
+                  </Label>
+                  <div className="relative rounded-lg overflow-hidden border">
+                    <img
+                      src={viewDeposit.payment_proof_url}
+                      alt="Payment proof screenshot"
+                      className="w-full max-h-64 object-contain bg-muted"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                        (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                    <div className="hidden p-4 text-center text-sm text-muted-foreground">
+                      Could not load image.
+                    </div>
+                  </div>
                   <a
                     href={viewDeposit.payment_proof_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                    className="flex items-center gap-2 text-xs text-blue-600 hover:underline"
                   >
-                    <ImageIcon className="h-5 w-5 text-blue-600" />
-                    <span className="text-sm text-blue-600 underline">View Payment Screenshot</span>
+                    <ImageIcon className="h-3 w-3" />
+                    Open full-size in new tab
                   </a>
                 </div>
               )}
