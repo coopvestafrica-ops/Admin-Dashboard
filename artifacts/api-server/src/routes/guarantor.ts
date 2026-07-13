@@ -237,10 +237,12 @@ router.post("/guarantor/requests/:id/accept", async (req, res): Promise<void> =>
       return;
     }
 
+    // requestId is the loan_id (the Flutter app passes loanId in the URL path)
+    // We resolve the specific loan_guarantors record via loan_id + the authenticated guarantor's profile id
     const { data: guarantorRequest, error: findError } = await supabase
       .from("loan_guarantors")
       .select("*")
-      .eq("id", requestId)
+      .eq("loan_id", requestId)
       .eq("guarantor_id", profile.id)
       .single();
 
@@ -262,7 +264,7 @@ router.post("/guarantor/requests/:id/accept", async (req, res): Promise<void> =>
         consented_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
-      .eq("id", requestId)
+      .eq("id", guarantorRequest.id)
       .select()
       .single();
 
@@ -326,10 +328,12 @@ router.post("/guarantor/requests/:id/decline", async (req, res): Promise<void> =
       return;
     }
 
+    // requestId is the loan_id (the Flutter app passes loanId in the URL path)
+    // We resolve the specific loan_guarantors record via loan_id + the authenticated guarantor's profile id
     const { data: guarantorRequest, error: findError } = await supabase
       .from("loan_guarantors")
       .select("*")
-      .eq("id", requestId)
+      .eq("loan_id", requestId)
       .eq("guarantor_id", profile.id)
       .single();
 
@@ -345,7 +349,7 @@ router.post("/guarantor/requests/:id/decline", async (req, res): Promise<void> =
         updated_at: new Date().toISOString(),
         consent_reason: reason || null,
       })
-      .eq("id", requestId)
+      .eq("id", guarantorRequest.id)
       .select()
       .single();
 
