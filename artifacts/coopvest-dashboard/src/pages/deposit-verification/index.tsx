@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,9 @@ import {
   Calendar,
   Banknote,
   Building,
+  Bell,
+  BellRing,
+  X as XIcon,
 } from "lucide-react";
 
 type DepositStatus = "pending" | "verified" | "rejected" | "cancelled";
@@ -136,10 +140,47 @@ export default function DepositVerification() {
   const [rejectTarget, setRejectTarget] = useState<DepositRequest | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [verifyNotes, setVerifyNotes] = useState("");
+  const [newDepositCount, setNewDepositCount] = useState(0);
+  const [showBanner, setShowBanner] = useState(false);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const { toast } = useToast();
   const qc = useQueryClient();
 
-  const queryKey = ["deposits", statusFilter, search, page];
+  // Supabase Realtime — subscribe to new deposit_requests inserts
+  useEffect(() => {
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel('deposit-requests-inserts')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'deposit_requests' },
+        (payload) => {
+          setNewDepositCount((c) => c + 1);
+          setShowBanner(true);
+          qc.invalidateQueries({ queryKey: ['deposits'] });
+          const amount = payload.new?.amount
+            ? new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(Number(payload.new.amount))
+            : 'New deposit';
+          toast({
+            title: '💰 New Deposit Request',
+            description: `${amount} pending verification.`,
+            duration: 8000,
+          });
+        }
+      )
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      channel.unsubscribe();
+      channelRef.current = null;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const queryKey = ['deposits', statusFilter, search, page];
   const { data, isLoading, refetch } = useQuery<DepositsResponse>({
     queryKey,
     queryFn: () =>
@@ -202,11 +243,47 @@ export default function DepositVerification() {
             <h1 className="text-2xl font-bold">Deposit Verification</h1>
             <p className="text-muted-foreground">Review and verify user deposit requests</p>
           </div>
-          <Button variant="outline" onClick={() => refetch()}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-3">
+            {supabase && (
+              <div className="flex items-center gap-1.5 text-xs text-emerald-600">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                Live
+              </div>
+            )}
+            {newDepositCount > 0 && (
+              <div className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
+                <Bell className="h-3 w-3" />
+                {newDepositCount} new
+              </div>
+            )}
+            <Button variant="outline" onClick={() => refetch()}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         </div>
+
+        {/* New Deposit Notification Banner */}
+        {showBanner && newDepositCount > 0 && (
+          <div className="flex items-center gap-3 p-3 pr-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800">
+            <BellRing className="h-5 w-5 flex-shrink-0 text-amber-500 animate-bounce" />
+            <p className="flex-1 text-sm font-medium">
+              {newDepositCount === 1
+                ? '1 new deposit request arrived — list has been refreshed.'
+                : `${newDepositCount} new deposit requests arrived — list has been refreshed.`}
+            </p>
+            <button
+              onClick={() => { setShowBanner(false); setNewDepositCount(0); }}
+              className="p-1 rounded hover:bg-amber-100 transition-colors"
+              aria-label="Dismiss"
+            >
+              <XIcon className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
