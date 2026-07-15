@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = 'https://coopvest-api-v3.onrender.com';
+// Backend API URL - points to the Express API on Render
+const API_BASE_URL = 'https://coopvest-api.onrender.com';
 
 export const runtime = 'edge';
 
