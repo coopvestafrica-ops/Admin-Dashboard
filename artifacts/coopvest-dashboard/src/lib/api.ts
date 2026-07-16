@@ -1,13 +1,13 @@
 /**
  * Shared API utilities for the admin dashboard
  * All API calls should use these helpers to ensure consistent URLs
- * FIXED: API URL properly configured for production build
- * Build: 2026-07-06 - Updated to use Render API directly
+ * FIXED: API URL configured to use same origin for combined deployment
+ * Build: 2026-07-16 - Updated to use same origin for combined API+frontend deployment
  */
 
 import { supabase } from './supabase';
 
-// Get the base API URL - use environment variable or default to Render API
+// Get the base API URL - use environment variable or same origin (default)
 export function getApiBaseUrl(): string {
   const envUrl = import.meta.env.VITE_API_BASE_URL;
   if (envUrl) {
@@ -15,9 +15,8 @@ export function getApiBaseUrl(): string {
     let normalized = envUrl.replace(/\/+$/, '');
     return normalized;
   }
-  // Default to Render API server (production) - this is the primary backend
-  // IMPORTANT: The frontend now calls the Render API directly to avoid Vercel routing issues
-  return 'https://coopvest-api-v3.onrender.com';
+  // Default to same origin (for combined API+frontend deployment)
+  return '';
 }
 
 // Get the admin API URL - used by the API client for all admin endpoints

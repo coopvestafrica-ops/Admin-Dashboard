@@ -87,7 +87,7 @@ const statusConfig: Record<DepositStatus, { label: string; className: string; ic
   cancelled: { label: "Cancelled", className: "bg-gray-100 text-gray-600 border-gray-200", icon: XCircle },
 };
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://coopvest-api-v3.onrender.com";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
 async function fetchDeposits(params: Record<string, string>): Promise<DepositsResponse> {
   const qs = new URLSearchParams(params).toString();

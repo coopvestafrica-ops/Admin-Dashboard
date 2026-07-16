@@ -137,7 +137,7 @@ export default function MemberProfile() {
   const refreshMemberData = async () => {
     if (!memberIdFromUrl || !memberData?.id) return;
     
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token || '';
     
@@ -168,7 +168,7 @@ export default function MemberProfile() {
     }
     setSavingContribution(true);
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token || '';
       const response = await fetch(`${baseUrl}/api/contributions`, {

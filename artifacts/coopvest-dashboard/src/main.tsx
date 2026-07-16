@@ -10,10 +10,10 @@ console.log("[DEBUG] VITE_SUPABASE_ANON_KEY:", import.meta.env.VITE_SUPABASE_ANO
 console.log("[DEBUG] VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
 
 // Initialize API client with the correct backend URL
-// Use VITE_API_BASE_URL if defined, otherwise fallback to Render API server
-const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://coopvest-api-v3.onrender.com';
+// Use VITE_API_BASE_URL if defined, otherwise use same origin (for combined API+frontend deployment)
+const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
 setBaseUrl(baseUrl);
-console.log("[DEBUG] API Base URL set to:", baseUrl);
+console.log("[DEBUG] API Base URL set to:", baseUrl || '(same origin)');
 
 // Set up auth token getter for API calls
 // Use SERVICE_ROLE_KEY for admin API calls (service-to-service auth)
