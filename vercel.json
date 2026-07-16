@@ -1,9 +1,22 @@
 {
-  "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+  "version": 2,
+  "builds": [
+    {
+      "src": "artifacts/coopvest-dashboard/dist/public/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "artifacts/coopvest-dashboard/dist/public/index.html",
+      "use": "@vercel/static"
+    }
   ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/artifacts/coopvest-dashboard/dist/public/index.html"
+    }
+  ],
+  "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
   "installCommand": "cd artifacts/coopvest-dashboard && npm ci",
   "buildCommand": "cd artifacts/coopvest-dashboard && npm run build"
 }
