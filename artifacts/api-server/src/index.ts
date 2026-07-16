@@ -1,23 +1,6 @@
 import app from "./app.js";
 import { logger } from "./lib/logger.js";
-
-// Vercel types - inline since @vercel/node types may not be available
-interface VercelRequest {
-  headers: { [key: string]: string | string[] | undefined };
-  method?: string;
-  body?: unknown;
-  query?: { [key: string]: string };
-  url?: string;
-  path?: string;
-}
-
-interface VercelResponse {
-  statusCode?: number;
-  setHeader(key: string, value: string): VercelResponse;
-  json(obj: unknown): VercelResponse;
-  send(data: unknown): VercelResponse;
-  end(): VercelResponse;
-}
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 // Unhandled rejection & uncaught exception handlers
 process.on("unhandledRejection", (err) => {
@@ -32,7 +15,7 @@ process.on("uncaughtException", (err) => {
 
 // Vercel serverless handler
 export default function handler(req: VercelRequest, res: VercelResponse) {
-  app(req, res);
+  app(req as any, res as any);
 }
 
 // Standalone server (used when running locally or on traditional hosting)
