@@ -1,19 +1,9 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "artifacts/coopvest-dashboard/dist/public/**",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "artifacts/coopvest-dashboard/dist/public/index.html",
-      "use": "@vercel/static"
-    }
-  ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/artifacts/coopvest-dashboard/dist/public/index.html"
+      "dest": "/index.html"
     }
   ],
   "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
