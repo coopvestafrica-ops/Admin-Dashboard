@@ -1,2 +1,8 @@
-# Exclude api folder (Next.js routes - not needed for Vite build)
+# Exclude Next.js API routes (not needed - frontend uses Vite)
 api
+
+# Exclude Next.js public folder (not used)
+/public
+
+# Exclude Next.js shared libraries
+/lib
