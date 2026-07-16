@@ -3,5 +3,6 @@
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
-  "installCommand": "echo no-deps-needed"
+  "installCommand": "cd artifacts/coopvest-dashboard && npm ci",
+  "buildCommand": "cd artifacts/coopvest-dashboard && npm run build"
 }
