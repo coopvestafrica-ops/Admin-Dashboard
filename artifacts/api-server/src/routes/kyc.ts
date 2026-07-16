@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
-import { supabase, splitName } from "../lib/supabase";
-import { logger } from "../lib/logger";
+import { supabase, splitName } from "../lib/supabase.js";
+import { logger } from "../lib/logger.js";
 import multer from "multer";
 
 const router = Router();

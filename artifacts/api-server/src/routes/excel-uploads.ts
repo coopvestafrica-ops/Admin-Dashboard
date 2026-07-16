@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabase.js";
 import { z } from "zod";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth } from "../middleware/auth.js";
 
 const router: IRouter = Router();
 

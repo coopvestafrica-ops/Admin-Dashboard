@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
-import { supabase } from "../lib/supabase";
-import { logger } from "../lib/logger";
+import { supabase } from "../lib/supabase.js";
+import { logger } from "../lib/logger.js";
 
 const router = Router();
 

@@ -5,8 +5,8 @@ import rateLimit from "express-rate-limit";
 import pinoHttp from "pino-http";
 import multer from "multer";
 import path from "path";
-import router from "./routes";
-import { logger } from "./lib/logger";
+import router from "./routes/index.js";
+import { logger } from "./lib/logger.js";
 
 // CORS configuration
 const allowedOrigin = process.env.ALLOWED_ORIGIN || "*";

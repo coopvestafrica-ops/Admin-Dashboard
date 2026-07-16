@@ -1,6 +1,23 @@
-import app from "./app";
-import { logger } from "./lib/logger";
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import app from "./app.js";
+import { logger } from "./lib/logger.js";
+
+// Vercel types - inline since @vercel/node types may not be available
+interface VercelRequest {
+  headers: { [key: string]: string | string[] | undefined };
+  method?: string;
+  body?: unknown;
+  query?: { [key: string]: string };
+  url?: string;
+  path?: string;
+}
+
+interface VercelResponse {
+  statusCode?: number;
+  setHeader(key: string, value: string): VercelResponse;
+  json(obj: unknown): VercelResponse;
+  send(data: unknown): VercelResponse;
+  end(): VercelResponse;
+}
 
 // Unhandled rejection & uncaught exception handlers
 process.on("unhandledRejection", (err) => {

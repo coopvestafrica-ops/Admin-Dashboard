@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { readData, writeData } from "../lib/store";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabase.js";
 
 const router: IRouter = Router();
 

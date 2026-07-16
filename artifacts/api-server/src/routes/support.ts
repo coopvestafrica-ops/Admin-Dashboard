@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabase.js";
 // Fix #4: Role-protected endpoints
-import { requireAuth, requireRole } from "../middleware/auth";
+import { requireAuth, requireRole } from "../middleware/auth.js";
 
 const router: IRouter = Router();
 router.use(requireAuth);

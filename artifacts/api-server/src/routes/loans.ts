@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
-import { supabase, splitName } from "../lib/supabase";
+import { supabase, splitName } from "../lib/supabase.js";
 // Fix #2: Import generated Zod schemas for input validation
-import { CreateLoanBody } from "../lib/types";
-import { requireAuth, requireRole } from "../middleware/auth";
+import { CreateLoanBody } from "../lib/types.js";
+import { requireAuth, requireRole } from "../middleware/auth.js";
 
 const router: IRouter = Router();
 

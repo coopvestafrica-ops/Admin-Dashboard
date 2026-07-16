@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
-import { supabase } from "../lib/supabase";
-import { logger } from "../lib/logger";
+import { supabase } from "../lib/supabase.js";
+import { logger } from "../lib/logger.js";
 
 // In-memory store for rate limiting and login attempts
 // In production, use Redis for distributed rate limiting

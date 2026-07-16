@@ -1,52 +1,52 @@
 import { Router, type IRouter } from "express";
-import { requireAuth } from "../middleware/auth";
-import { rateLimiter, trackLoginAttempt } from "../middleware/security";
-import healthRouter from "./health";
-import setupRouter from "./setup";
-import authRouter from "./auth";
-import passwordResetRouter from "./password_reset";
-import dashboardRouter from "./dashboard";
-import membersRouter from "./members";
-import loansRouter from "./loans";
-import contributionsRouter from "./contributions";
-import investmentsRouter from "./investments";
-import complianceRouter from "./compliance";
-import notificationsRouter from "./notifications";
-import auditLogsRouter from "./audit_logs";
-import supportRouter from "./support";
-import riskScoringRouter from "./risk_scoring";
-import interestRatesRouter from "./interest_rates";
-import rolloversRouter from "./rollovers";
-import payrollRouter from "./payroll";
+import { requireAuth } from "../middleware/auth.js";
+import { rateLimiter, trackLoginAttempt } from "../middleware/security.js";
+import healthRouter from "./health.js";
+import setupRouter from "./setup.js";
+import authRouter from "./auth.js";
+import passwordResetRouter from "./password_reset.js";
+import dashboardRouter from "./dashboard.js";
+import membersRouter from "./members.js";
+import loansRouter from "./loans.js";
+import contributionsRouter from "./contributions.js";
+import investmentsRouter from "./investments.js";
+import complianceRouter from "./compliance.js";
+import notificationsRouter from "./notifications.js";
+import auditLogsRouter from "./audit_logs.js";
+import supportRouter from "./support.js";
+import riskScoringRouter from "./risk_scoring.js";
+import interestRatesRouter from "./interest_rates.js";
+import rolloversRouter from "./rollovers.js";
+import payrollRouter from "./payroll.js";
 // New command-center routes
-import mobileFeaturesRouter from "./mobile_features";
-import rolesRouter from "./roles";
-import fraudDetectionRouter from "./fraud_detection";
-import organizationsRouter from "./organizations";
-import analyticsRouter from "./analytics";
-import securityRouter from "./security";
-import walletsRouter from "./wallets";
-import withdrawalsRouter from "./withdrawals";
-import verificationRouter from "./verification";
-import referralsRouter from "./referrals";
-import guarantorsRouter from "./guarantors";
+import mobileFeaturesRouter from "./mobile_features.js";
+import rolesRouter from "./roles.js";
+import fraudDetectionRouter from "./fraud_detection.js";
+import organizationsRouter from "./organizations.js";
+import analyticsRouter from "./analytics.js";
+import securityRouter from "./security.js";
+import walletsRouter from "./wallets.js";
+import withdrawalsRouter from "./withdrawals.js";
+import verificationRouter from "./verification.js";
+import referralsRouter from "./referrals.js";
+import guarantorsRouter from "./guarantors.js";
 // Mobile app guarantor routes (at root level for mobile app compatibility)
-import guarantorRouter from "./guarantor";
+import guarantorRouter from "./guarantor.js";
 // New feature routes
-import systemRouter from "./system";
-import reportsRouter from "./reports";
-import sessionsRouter from "./sessions";
-import bulkRouter from "./bulk";
-import reconciliationRouter from "./reconciliation";
-import loginHistoryRouter from "./login_history";
-import excelUploadsRouter from "./excel-uploads";
-import depositsRouter from "./deposits";
+import systemRouter from "./system.js";
+import reportsRouter from "./reports.js";
+import sessionsRouter from "./sessions.js";
+import bulkRouter from "./bulk.js";
+import reconciliationRouter from "./reconciliation.js";
+import loginHistoryRouter from "./login_history.js";
+import excelUploadsRouter from "./excel-uploads.js";
+import depositsRouter from "./deposits.js";
 // Statistics routes for frontend dashboard
-import statisticsRouter from "./statistics";
+import statisticsRouter from "./statistics.js";
 // KYC routes for mobile app
-import kycRouter from "./kyc";
+import kycRouter from "./kyc.js";
 // Accounting routes for financial operations
-import accountingRouter from "./accounting";
+import accountingRouter from "./accounting.js";
 
 const router: IRouter = Router();
 

@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { createClient } from "../lib/supabase";
+import { createClient } from "../lib/supabase.js";
 
 const router = Router();
 
