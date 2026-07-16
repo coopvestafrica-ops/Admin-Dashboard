@@ -1,17 +1,5 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "artifacts/api-server/src/index.ts",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "artifacts/api-server/src/index.ts"
-    }
-  ],
-  "installCommand": "cd artifacts/api-server && npm install --legacy-peer-deps",
-  "buildCommand": "cd artifacts/api-server && npm run build"
+  "buildCommand": "cd artifacts/api-server && npm run build && cd ../coopvest-dashboard && npm run build",
+  "installCommand": "cd artifacts/api-server && npm install --legacy-peer-deps && cd ../coopvest-dashboard && npm install"
 }
