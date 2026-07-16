@@ -1,5 +1,13 @@
 {
   "version": 2,
-  "buildCommand": "cd artifacts/api-server && npm run build && cd ../coopvest-dashboard && npm run build",
-  "installCommand": "cd artifacts/api-server && npm install --legacy-peer-deps && cd ../coopvest-dashboard && npm install"
+  "builds": [
+    {
+      "src": "artifacts/coopvest-dashboard/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "artifacts/coopvest-dashboard/dist/public" }
+    }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/artifacts/coopvest-dashboard/dist/public/$1" }
+  ]
 }
