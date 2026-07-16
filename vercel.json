@@ -4,6 +4,11 @@
     {
       "src": "artifacts/api-server/src/index.ts",
       "use": "@vercel/node"
+    },
+    {
+      "src": "artifacts/coopvest-dashboard/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist/public" }
     }
   ],
   "routes": [
