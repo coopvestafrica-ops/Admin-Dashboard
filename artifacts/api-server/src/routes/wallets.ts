@@ -160,4 +160,291 @@ router.post("/wallets/:id/adjust", async (req, res): Promise<void> => {
   res.json({ wallet: updated, message: "Balance adjusted successfully" });
 });
 
+// POST /wallet/contribute — Mobile app deposit/contribution endpoint
+// Creates a pending deposit request that needs admin verification
+router.post("/wallet/contribute", async (req, res): Promise<void> => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({ error: "Authorization required" });
+      return;
+    }
+
+    const token = authHeader.slice(7);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      res.status(401).json({ error: "Invalid token" });
+      return;
+    }
+
+    const { amount, payment_method, description, proof_url } = req.body as {
+      amount?: number;
+      payment_method?: string;
+      description?: string;
+      proof_url?: string;
+    };
+
+    if (!amount || amount <= 0) {
+      res.status(400).json({ error: "Valid positive amount is required" });
+      return;
+    }
+
+    // Get user profile
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, name, email")
+      .eq("user_id", user.id)
+      .single();
+
+    if (profileError || !profile) {
+      res.status(404).json({ error: "Profile not found" });
+      return;
+    }
+
+    // Create deposit request
+    const depositRef = "DEP-" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
+    const { data: depositRequest, error: depositError } = await supabase
+      .from("deposit_requests")
+      .insert({
+        profile_id: profile.id,
+        amount: amount,
+        currency: "NGN",
+        status: "pending",
+        payment_proof_url: proof_url || null,
+        payment_reference: depositRef,
+        bank_name: payment_method || "Wallet",
+        description: description || "Mobile app contribution",
+      })
+      .select()
+      .single();
+
+    if (depositError) {
+      console.error("Deposit request error:", depositError);
+      res.status(500).json({ error: "Failed to create deposit request: " + depositError.message });
+      return;
+    }
+
+    // Create a transaction record
+    await supabase.from("transactions").insert({
+      transaction_id: depositRef,
+      reference: depositRef,
+      profile_id: profile.id,
+      type: "deposit",
+      category: "credit",
+      amount: amount,
+      status: "pending",
+      payment_method: payment_method || "wallet",
+      description: description || "Wallet contribution - pending verification",
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Your deposit is pending verification.",
+      deposit_request: {
+        id: depositRequest.id,
+        amount: amount,
+        status: "pending",
+        reference: depositRef,
+        created_at: depositRequest.created_at,
+      },
+    });
+  } catch (err) {
+    console.error("Contribute error:", err);
+    res.status(500).json({ error: "Failed to process contribution" });
+  }
+});
+
+// GET /wallet/balance — Get current user's wallet balance
+router.get("/wallet/balance", async (req, res): Promise<void> => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({ error: "Authorization required" });
+      return;
+    }
+
+    const token = authHeader.slice(7);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      res.status(401).json({ error: "Invalid token" });
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!profile) {
+      res.status(404).json({ error: "Profile not found" });
+      return;
+    }
+
+    const { data: wallet } = await supabase
+      .from("wallets")
+      .select("id, balance, last_updated")
+      .eq("profile_id", profile.id)
+      .maybeSingle();
+
+    const { data: savings } = await supabase
+      .from("savings")
+      .select("total_saved, monthly_savings, last_savings_date")
+      .eq("profile_id", profile.id)
+      .maybeSingle();
+
+    res.json({
+      success: true,
+      balance: wallet ? Number(wallet.balance || 0) : 0,
+      lastUpdated: wallet?.last_updated || null,
+      total_savings: savings ? Number(savings.total_saved || 0) : 0,
+      monthly_savings: savings ? Number(savings.monthly_savings || 0) : 0,
+      last_savings_date: savings?.last_savings_date || null,
+    });
+  } catch (err) {
+    console.error("Balance error:", err);
+    res.status(500).json({ error: "Failed to fetch wallet balance" });
+  }
+});
+
+// GET /wallet/transactions — Get current user's transactions
+router.get("/wallet/transactions", async (req, res): Promise<void> => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({ error: "Authorization required" });
+      return;
+    }
+
+    const token = authHeader.slice(7);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      res.status(401).json({ error: "Invalid token" });
+      return;
+    }
+
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Number(req.query.limit) || 20);
+    const offset = (page - 1) * limit;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!profile) {
+      res.status(404).json({ error: "Profile not found" });
+      return;
+    }
+
+    const { data: transactions, count, error } = await supabase
+      .from("transactions")
+      .select("*", { count: "exact" })
+      .eq("profile_id", profile.id)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+
+    res.json({
+      success: true,
+      transactions: (transactions ?? []).map(t => ({
+        id: t.id,
+        transactionId: t.transaction_id,
+        reference: t.reference,
+        type: t.type,
+        category: t.category,
+        amount: Number(t.amount),
+        status: t.status,
+        paymentMethod: t.payment_method,
+        description: t.description,
+        balanceBefore: t.balance_before,
+        balanceAfter: t.balance_after,
+        createdAt: t.created_at,
+      })),
+      total: count ?? 0,
+      page,
+      limit,
+    });
+  } catch (err) {
+    console.error("Transactions error:", err);
+    res.status(500).json({ error: "Failed to fetch transactions" });
+  }
+});
+
+// GET /wallet/deposit-requests — Get current user's deposit requests
+router.get("/wallet/deposit-requests", async (req, res): Promise<void> => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({ error: "Authorization required" });
+      return;
+    }
+
+    const token = authHeader.slice(7);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      res.status(401).json({ error: "Invalid token" });
+      return;
+    }
+
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Number(req.query.limit) || 20);
+    const offset = (page - 1) * limit;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!profile) {
+      res.status(404).json({ error: "Profile not found" });
+      return;
+    }
+
+    const { data: requests, count, error } = await supabase
+      .from("deposit_requests")
+      .select("*", { count: "exact" })
+      .eq("profile_id", profile.id)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+
+    res.json({
+      success: true,
+      deposit_requests: (requests ?? []).map(r => ({
+        id: r.id,
+        amount: Number(r.amount),
+        currency: r.currency || "NGN",
+        status: r.status,
+        paymentProofUrl: r.payment_proof_url,
+        paymentReference: r.payment_reference,
+        bankName: r.bank_name,
+        adminNotes: r.admin_notes,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+      })),
+      total: count ?? 0,
+      page,
+      limit,
+    });
+  } catch (err) {
+    console.error("Deposit requests error:", err);
+    res.status(500).json({ error: "Failed to fetch deposit requests" });
+  }
+});
+
 export default router;

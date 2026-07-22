@@ -566,4 +566,152 @@ router.post("/guarantor/withdraw/:guaranteeId", async (req, res): Promise<void> 
   }
 });
 
+// POST /guarantor/:loanId/confirm — QR scan flow: guarantor confirms their guarantee
+// Uses loanId as path param, resolves record by loan_id + guarantor_id (from JWT)
+router.post("/guarantor/:loanId/confirm", async (req, res): Promise<void> => {
+  const { loanId } = req.params;
+  const { guarantorName, guarantorPhone, savingsBalance } = req.body as {
+    guarantorName?: string;
+    guarantorPhone?: string;
+    savingsBalance?: number;
+  };
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    res.status(401).json({ error: "Authorization required" });
+    return;
+  }
+
+  try {
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      res.status(401).json({ error: "Invalid token" });
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, name, email")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!profile) {
+      res.status(404).json({ error: "Profile not found" });
+      return;
+    }
+
+    // Find the loan by ID (loanId can be either the UUID or the loan_id string)
+    const { data: loan } = await supabase
+      .from("loans")
+      .select("id")
+      .or(`id.eq.${loanId},loan_id.eq.${loanId}`)
+      .single();
+
+    if (!loan) {
+      res.status(404).json({ error: "Loan not found" });
+      return;
+    }
+
+    // Check if a guarantor record already exists
+    const { data: existingGuarantor, error: findError } = await supabase
+      .from("loan_guarantors")
+      .select("*")
+      .eq("loan_id", loan.id)
+      .eq("guarantor_id", profile.id)
+      .maybeSingle();
+
+    if (findError) {
+      console.error("Error finding guarantor record:", findError);
+      res.status(500).json({ error: "Failed to confirm guarantee: " + findError.message });
+      return;
+    }
+
+    let guarantorStatus = "confirmed";
+    let data;
+
+    if (existingGuarantor) {
+      // Check if already confirmed/accepted
+      if (existingGuarantor.status === "confirmed" || existingGuarantor.status === "accepted") {
+        res.status(400).json({ error: "You have already confirmed this guarantee." });
+        return;
+      }
+
+      // Update existing record
+      const { data: updated, error: updateError } = await supabase
+        .from("loan_guarantors")
+        .update({
+          status: "confirmed",
+          consented_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          // Store additional guarantor info if provided
+          ...(guarantorName && { guarantor_name: guarantorName }),
+          ...(guarantorPhone && { guarantor_phone: guarantorPhone }),
+          ...(savingsBalance !== undefined && { savings_balance: savingsBalance }),
+        })
+        .eq("id", existingGuarantor.id)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error("Error confirming guarantee:", updateError);
+        res.status(500).json({ error: "Failed to confirm guarantee: " + updateError.message });
+        return;
+      }
+
+      data = updated;
+    } else {
+      // Create new guarantor record (upsert behavior)
+      const { data: inserted, error: insertError } = await supabase
+        .from("loan_guarantors")
+        .insert({
+          loan_id: loan.id,
+          guarantor_id: profile.id,
+          status: "confirmed",
+          consented_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          // Store additional guarantor info if provided
+          ...(guarantorName && { guarantor_name: guarantorName }),
+          ...(guarantorPhone && { guarantor_phone: guarantorPhone }),
+          ...(savingsBalance !== undefined && { savings_balance: savingsBalance }),
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("Error creating guarantor record:", insertError);
+        res.status(500).json({ error: "Failed to confirm guarantee: " + insertError.message });
+        return;
+      }
+
+      data = inserted;
+    }
+
+    // Count how many guarantors are now confirmed for this loan
+    const { count: guarantorsNowConfirmed } = await supabase
+      .from("loan_guarantors")
+      .select("id", { count: "exact", head: true })
+      .eq("loan_id", loan.id)
+      .in("status", ["confirmed", "accepted"]);
+
+    res.json({
+      success: true,
+      message: "Guarantee confirmed successfully",
+      guarantor_status: guarantorStatus,
+      guarantors_now_confirmed: guarantorsNowConfirmed ?? 0,
+      guarantee: {
+        id: data.id,
+        loanId: loan.id,
+        status: data.status,
+        confirmedAt: data.consented_at,
+      },
+    });
+  } catch (err) {
+    console.error("Error confirming guarantee:", err);
+    res.status(500).json({ error: "Failed to confirm guarantee" });
+  }
+});
+
 export default router;
