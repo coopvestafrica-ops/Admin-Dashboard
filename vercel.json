@@ -13,7 +13,7 @@
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/artifacts/api-server/src/index.ts" },
-    { "src": "/(.*)", "dest": "/artifacts/coopvest-dashboard/dist/public/$1" }
+    { "src": "/(.*)", "dest": "/artifacts/coopvest-dashboard/dist/public/$1", "status": 200 }
   ],
   "buildCommand": "cd artifacts/coopvest-dashboard && npm ci && npm run build"
 }
