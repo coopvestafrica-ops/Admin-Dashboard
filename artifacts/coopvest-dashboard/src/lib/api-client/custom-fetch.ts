@@ -17,6 +17,7 @@ const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
 
 let _baseUrl: string | null = null;
 let _authTokenGetter: AuthTokenGetter | null = null;
+let _serviceToken: string | null = null;
 
 /**
  * Set a base URL that is prepended to every relative request URL
@@ -42,6 +43,15 @@ export function setBaseUrl(url: string | null): void {
  */
 export function setAuthTokenGetter(getter: AuthTokenGetter | null): void {
   _authTokenGetter = getter;
+}
+
+/**
+ * Set the service token for backend API authentication.
+ * This token is used for admin API endpoints that require service-level auth.
+ * The token is sent as 'X-Service-Token' header.
+ */
+export function setServiceToken(token: string | null): void {
+  _serviceToken = token;
 }
 
 function isRequest(input: RequestInfo | URL): input is Request {
@@ -358,6 +368,11 @@ export async function customFetch<T = unknown>(
     if (token) {
       headers.set("authorization", `Bearer ${token}`);
     }
+  }
+
+  // Attach service token for admin API endpoints
+  if (_serviceToken && !headers.has("x-service-token")) {
+    headers.set("x-service-token", _serviceToken);
   }
 
   const requestInfo = { method, url: resolveUrl(input) };
