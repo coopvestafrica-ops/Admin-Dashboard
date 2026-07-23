@@ -1,0 +1,4 @@
+{
+  "buildCommand": "pnpm --filter @workspace/coopvest-dashboard run build",
+  "outputDirectory": "artifacts/coopvest-dashboard/dist/public"
+}
