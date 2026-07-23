@@ -4,7 +4,7 @@
     {
       "src": "artifacts/coopvest-dashboard/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "artifacts/coopvest-dashboard/dist/public" }
+      "config": { "distDir": "dist/public" }
     },
     {
       "src": "artifacts/api-server/src/index.ts",
