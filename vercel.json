@@ -1,4 +1,7 @@
 {
   "buildCommand": "pnpm --filter @workspace/coopvest-dashboard run build",
-  "outputDirectory": "artifacts/coopvest-dashboard/dist/public"
+  "outputDirectory": "artifacts/coopvest-dashboard/dist/public",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
