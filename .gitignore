@@ -5,3 +5,4 @@ dist/
 .env.local
 .env.production
 artifacts/*/node_modules/
+.env*
