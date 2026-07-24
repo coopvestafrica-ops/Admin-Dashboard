@@ -1,24 +1,23 @@
 /**
  * Shared API utilities for the admin dashboard
  * All API calls should use these helpers to ensure consistent URLs
- * Updated: Using Render backend for API calls
- * Build: 2026-07-22 - Updated to use Render backend directly
+ * Updated: Using Latest-Coopvest backend at coopvest-api.onrender.com/api/v2/admin
+ * Build: 2026-07-24 - Fixed to use correct backend endpoints (/api/v2/admin/*)
  */
 
 import { supabase } from './supabase';
 
-// Get the base API URL - uses Render backend for all deployments
+// Get the base API URL - uses Latest-Coopvest backend for all deployments
+// The admin API routes are mounted at /api/v2/admin on the backend
 export function getApiBaseUrl(): string {
-  // Use Render backend for API calls - this is the production API server
-  return 'https://coopvest-api.onrender.com';
+  // Use Latest-Coopvest backend admin API - this is the production API server
+  return 'https://coopvest-api.onrender.com/api/v2/admin';
 }
 
-// Get the admin API URL - used by the API client for all admin endpoints
-// Note: The generated API client endpoints already include full paths like /api/members/stats
+// Get the admin API URL prefix - used by the API client for admin endpoints
+// The Latest-Coopvest backend mounts admin routes at /api/v2/admin
 export function getAdminApiUrl(): string {
-  const base = getApiBaseUrl();
-  // Don't add /api since the generated API client URLs already include it
-  return base;
+  return getApiBaseUrl();
 }
 
 // Get auth token from Supabase session
