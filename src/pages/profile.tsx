@@ -1,0 +1,328 @@
+import { useState, useEffect } from "react";
+import { Layout } from "@/components/layout/Layout";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Camera, User, Mail, Phone, Building2, Shield, Bell, Save, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+
+function formatRole(role?: string | null): string {
+  if (!role) return "Member";
+  return role
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+export default function Profile() {
+  const [saving, setSaving] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [profile, setProfile] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    role: "Admin",
+    department: "",
+    avatar: "",
+  });
+
+  const [notifications, setNotifications] = useState({
+    emailAlerts: true,
+    smsAlerts: false,
+    weeklyReport: true,
+    securityAlerts: true,
+  });
+
+  // Load user data from Supabase
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session?.user) return;
+      setUser(session.user);
+
+      const meta = session.user.user_metadata || {};
+      const email = session.user.email || "";
+
+      // Prefer the canonical profile row (real name, phone, role, department).
+      const { data: row } = await supabase
+        .from("profiles")
+        .select("name, phone, role, department")
+        .eq("email", email)
+        .single();
+
+      const fullName: string = row?.name || meta.name || meta.full_name || "";
+      const firstName = meta.first_name || fullName.split(" ")[0] || "";
+      const lastName =
+        meta.last_name || fullName.split(" ").slice(1).join(" ") || "";
+
+      setProfile({
+        firstName,
+        lastName,
+        email,
+        phone: row?.phone || meta.phone || "",
+        role: formatRole(row?.role),
+        department: row?.department || meta.department || "",
+        avatar: meta.avatar_url || "",
+      });
+    });
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+
+    const fullName = `${profile.firstName} ${profile.lastName}`.trim();
+
+    try {
+      // Persist to the profiles table (source of truth shown across the app).
+      if (user?.email) {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update({
+            name: fullName,
+            phone: profile.phone,
+            department: profile.department || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("email", user.email);
+        if (profileError) throw profileError;
+      }
+
+      // Keep auth metadata in sync so it survives if the profile row is absent.
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          name: fullName,
+          first_name: profile.firstName,
+          last_name: profile.lastName,
+          phone: profile.phone,
+          department: profile.department,
+        },
+      });
+      if (error) throw error;
+
+      toast.success("Profile updated successfully");
+    } catch (err) {
+      toast.error("Failed to update profile");
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Get initials for avatar
+  const getInitials = () => {
+    if (profile.firstName && profile.lastName) {
+      return (profile.firstName[0] + profile.lastName[0]).toUpperCase();
+    }
+    if (profile.email) {
+      return profile.email.slice(0, 2).toUpperCase();
+    }
+    return "??";
+  };
+
+  return (
+    <Layout>
+      <div className="space-y-6 max-w-3xl">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Profile Settings</h1>
+          <p className="text-muted-foreground mt-1">Manage your account information and preferences</p>
+        </div>
+
+        {/* Avatar Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Profile Photo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                <Avatar className="h-24 w-24 border-2 border-primary/20">
+                  <AvatarImage src={profile.avatar} />
+                  <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+                    {getInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full"
+                  aria-label="Change avatar"
+                >
+                  <Camera className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">{profile.firstName} {profile.lastName}</p>
+                <p className="text-sm text-muted-foreground">{profile.email}</p>
+                <Badge variant="secondary" className="mt-1">{profile.role}</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Personal Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Personal Information
+            </CardTitle>
+            <CardDescription>Update your personal details</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="firstName" className="text-xs text-muted-foreground">First Name</Label>
+                <Input
+                  id="firstName"
+                  value={profile.firstName}
+                  onChange={(e) => setProfile((p) => ({ ...p, firstName: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName" className="text-xs text-muted-foreground">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={profile.lastName}
+                  onChange={(e) => setProfile((p) => ({ ...p, lastName: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-xs text-muted-foreground">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={profile.email}
+                  onChange={(e) => setProfile((p) => ({ ...p, email: e.target.value }))}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-xs text-muted-foreground">Phone Number</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={profile.phone}
+                  onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="department" className="text-xs text-muted-foreground">Department</Label>
+              <div className="relative">
+                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="department"
+                  value={profile.department}
+                  onChange={(e) => setProfile((p) => ({ ...p, department: e.target.value }))}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Security Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Security
+            </CardTitle>
+            <CardDescription>Manage your account security settings</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <p className="text-sm font-medium">Two-Factor Authentication</p>
+                <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
+              </div>
+              <Button variant="outline" size="sm">Enable</Button>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <p className="text-sm font-medium">Change Password</p>
+                <p className="text-sm text-muted-foreground">Update your account password</p>
+              </div>
+              <Button variant="outline" size="sm">Update</Button>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <p className="text-sm font-medium">Active Sessions</p>
+                <p className="text-sm text-muted-foreground">Manage devices where you're logged in</p>
+              </div>
+              <Button variant="outline" size="sm">View All</Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Notification Preferences */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              Notification Preferences
+            </CardTitle>
+            <CardDescription>Choose how you want to be notified</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {[
+              { key: "emailAlerts", label: "Email Alerts", desc: "Receive important updates via email" },
+              { key: "smsAlerts", label: "SMS Alerts", desc: "Get urgent notifications via SMS" },
+              { key: "weeklyReport", label: "Weekly Report", desc: "Receive weekly summary reports" },
+              { key: "securityAlerts", label: "Security Alerts", desc: "Get notified about security events" },
+            ].map((item) => (
+              <div key={item.key} className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium">{item.label}</p>
+                  <p className="text-sm text-muted-foreground">{item.desc}</p>
+                </div>
+                <Switch
+                  checked={notifications[item.key as keyof typeof notifications]}
+                  onCheckedChange={(checked) =>
+                    setNotifications((n) => ({ ...n, [item.key]: checked }))
+                  }
+                />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Save Button */}
+        <div className="flex justify-end">
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    </Layout>
+  );
+}

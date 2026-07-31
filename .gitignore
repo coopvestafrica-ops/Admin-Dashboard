@@ -1,0 +1,8 @@
+dist/
+.vercel
+# Keep .env for Vercel deployment
+!.env
+.env.local
+.env.production
+artifacts/*/node_modules/
+.env*
