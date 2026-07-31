@@ -1,0 +1,21 @@
+{
+  "name": "Coopvest Africa Admin Dashboard",
+  "short_name": "Coopvest Admin",
+  "description": "Professional admin dashboard for managing cooperative savings, loans, compliance, and platform operations.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2d6a4f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "en",
+  "dir": "ltr"
+}
