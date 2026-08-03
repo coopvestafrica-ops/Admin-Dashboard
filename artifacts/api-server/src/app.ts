@@ -76,8 +76,8 @@ const upload = multer({
 app.set('upload', upload);
 
 app.use("/api", router);
-// Also mount at /api/admin for frontend compatibility - FIX for members page
 app.use("/api/admin", router);
+app.use("/api/v2/admin", router);
 
 // Global Express error handler
 app.use((err: any, req: any, res: any, next: any) => {
