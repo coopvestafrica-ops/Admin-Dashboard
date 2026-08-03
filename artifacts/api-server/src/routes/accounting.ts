@@ -1,1 +1,1 @@
-export { default, router } from './accounting/index.js';
+export { default } from './accounting/index.js';
