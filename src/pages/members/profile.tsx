@@ -71,12 +71,28 @@ export default function MemberProfile() {
   function mapMember(raw: any): any {
     if (!raw) return null;
     const m = raw.member || raw;
+    // kyc may be a nested object returned by the backend
+    const kyc = m.kyc || {};
     const nameParts = (m.name || '').split(' ').filter(Boolean);
     const firstName = m.firstName || nameParts[0] || '';
     const lastName = m.lastName || nameParts.slice(1).join(' ') || '';
-    const status = m.status || (m.is_active ? 'active' : 'inactive');
+    // Derive status from flags when no explicit status field
+    const status = m.status || (
+      m.is_flagged ? 'suspended'
+        : m.is_active ? (m.kyc_verified ? 'active' : 'pending')
+          : 'inactive'
+    );
     const walletBalance = m.walletBalance ?? m.wallet?.balance ?? 0;
-    const totalContributions = m.totalContributions ?? m.savings?.total_saved ?? 0;
+    const totalContributions = m.totalContributions ?? m.savings?.total_saved ?? m.savings?.balance ?? 0;
+    // Effective KYC status
+    const kycStatus = m.kycStatus || m.kyc_status || kyc.status || null;
+    // Build documents array from all available sources
+    const idDocUrl = m.id_document_url || kyc.id_document_url || null;
+    const selfieUrl = m.selfie_url || kyc.selfie_url || kyc.selfie || null;
+    const documents = m.documents || (Array.isArray(kyc.documents) ? kyc.documents : null) || (idDocUrl || selfieUrl ? [
+      ...(idDocUrl ? [{ type: 'id_document', front_image_url: idDocUrl, status: kycStatus || 'pending' }] : []),
+      ...(selfieUrl ? [{ type: 'selfie', front_image_url: selfieUrl, status: kycStatus || 'pending' }] : []),
+    ] : []);
     return {
       ...m,
       id: m.id,
@@ -89,8 +105,8 @@ export default function MemberProfile() {
       role: m.role,
       status,
       is_active: m.is_active,
-      kycVerified: m.kycVerified ?? m.kyc_verified ?? (m.kyc_status === 'approved' || m.kyc_status === 'verified'),
-      kycStatus: m.kycStatus || m.kyc_status,
+      kycVerified: m.kycVerified ?? m.kyc_verified ?? (kycStatus === 'approved' || kycStatus === 'verified'),
+      kycStatus,
       emailVerified: m.emailVerified ?? m.email_verified ?? false,
       createdAt: m.createdAt || m.created_at,
       updatedAt: m.updatedAt || m.updated_at,
@@ -99,22 +115,23 @@ export default function MemberProfile() {
       walletBalance,
       totalContributions,
       activeLoan: m.activeLoan ?? m.active_loan ?? 0,
-      gender: m.gender,
-      dateOfBirth: m.dateOfBirth || m.date_of_birth,
-      address: m.address,
-      state: m.state,
-      lga: m.lga,
-      idType: m.idType || m.id_type,
-      idNumber: m.idNumber || m.id_number,
-      bvn: m.bvn,
-      nin: m.nin,
-      occupation: m.occupation,
-      employer: m.employer || m.employer_name,
-      employerName: m.employerName || m.employer_name,
-      employmentType: m.employmentType || m.employment_type,
-      yearsOfEmployment: m.yearsOfEmployment || m.years_of_employment,
-      staffId: m.staffId || m.staff_id || m.employer_staff_id,
-      workAddress: m.workAddress || m.work_address,
+      gender: m.gender || kyc.gender,
+      dateOfBirth: m.dateOfBirth || m.date_of_birth || kyc.date_of_birth,
+      address: m.address || kyc.address,
+      state: m.state || kyc.state,
+      lga: m.lga || kyc.lga,
+      // KYC identity fields — check nested kyc object when not present at top-level
+      idType: m.idType || m.id_type || kyc.id_type,
+      idNumber: m.idNumber || m.id_number || kyc.id_number,
+      bvn: m.bvn || kyc.bvn || null,
+      nin: m.nin || kyc.nin || null,
+      occupation: m.occupation || kyc.occupation,
+      employer: m.employer || m.employer_name || kyc.employer_name,
+      employerName: m.employerName || m.employer_name || kyc.employer_name,
+      employmentType: m.employmentType || m.employment_type || kyc.employment_type,
+      yearsOfEmployment: m.yearsOfEmployment || m.years_of_employment || kyc.years_of_employment,
+      staffId: m.staffId || m.staff_id || m.employer_staff_id || kyc.employer_staff_id,
+      workAddress: m.workAddress || m.work_address || kyc.work_address,
       monthlyAmount: m.monthlyAmount || m.monthly_amount,
       contributionMethod: m.contributionMethod || m.contribution_method,
       preferredPaymentDay: m.preferredPaymentDay || m.preferred_payment_day,
@@ -127,13 +144,10 @@ export default function MemberProfile() {
       } : null),
       bankAccounts: m.bankAccounts || m.bank_accounts || [],
       bankInfo: m.bankInfo || m.bank_info || null,
-      registration: m.registration || null,
-      registrationSubmittedAt: m.registrationSubmittedAt || m.completed_at || null,
-      documents: m.documents || (m.id_document_url || m.selfie_url ? [
-        ...(m.id_document_url ? [{ type: 'id_document', front_image_url: m.id_document_url, status: m.kyc_status || 'pending' }] : []),
-        ...(m.selfie_url ? [{ type: 'selfie', front_image_url: m.selfie_url, status: m.kyc_status || 'pending' }] : []),
-      ] : []),
-      profilePicture: m.profilePicture || m.selfie_url || m.avatar_url || null,
+      registration: m.registration || kyc.personal_info || null,
+      registrationSubmittedAt: m.registrationSubmittedAt || m.completed_at || kyc.submitted_at || null,
+      documents,
+      profilePicture: m.profilePicture || selfieUrl || m.avatar_url || null,
       avatarInitials: (firstName[0] || '') + (lastName[0] || ''),
       organization: m.organization || m.organization_id || null,
       wallet: m.wallet,
@@ -176,30 +190,32 @@ export default function MemberProfile() {
   // Fetch loans, contributions, investments, and transactions for this member
   const fetchRelatedData = async (profileId: string) => {
     try {
-      // loans route expects `memberId` param (not profileId)
-      const loansJson = await api.get<any>(`/loans?memberId=${profileId}&limit=50`);
-      setLoansData(loansJson.data || []);
+      // Backend accepts both memberId and profileId; use profileId (canonical)
+      const loansJson = await api.get<any>(`/loans?profileId=${profileId}&limit=50`);
+      // Backend returns { data, loans, ... } — normalise to array
+      setLoansData(loansJson.data || loansJson.loans || []);
     } catch (e) {
       console.log('Loans fetch error:', e);
     }
 
     try {
       const contribJson = await api.get<any>(`/contributions?profileId=${profileId}&limit=50`);
-      setContributionsData(contribJson.data || []);
+      setContributionsData(contribJson.data || contribJson.contributions || []);
     } catch (e) {
-      console.log('Contributions fetch error:', e);
+      console.log('Contributions fetch error (may not exist):', e);
     }
 
     try {
       const investJson = await api.get<any>(`/investments?profile_id=${profileId}&limit=50`);
-      setInvestmentsData(investJson.data || []);
+      setInvestmentsData(investJson.data || investJson.pools || investJson.investments || []);
     } catch (e) {
       console.log('Investments fetch error:', e);
     }
 
     try {
+      // New route: GET /members/:id/transactions
       const txJson = await api.get<any>(`/members/${profileId}/transactions?limit=50`);
-      setTransactionsData(txJson.data || []);
+      setTransactionsData(txJson.data || txJson.transactions || []);
     } catch (e) {
       console.log('Transactions fetch error:', e);
     }
