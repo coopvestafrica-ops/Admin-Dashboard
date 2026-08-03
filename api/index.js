@@ -64,7 +64,7 @@ module.exports = (req, res) => {
     res.status(502).json({ error: 'Backend API unavailable', message: err.message });
   });
 
-  // Collect and forward the request body for methods that have one
+  // Collect and forward the request body for methods that have one (including DELETE with body)
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     const chunks = [];
     req.on('data', (chunk) => chunks.push(chunk));

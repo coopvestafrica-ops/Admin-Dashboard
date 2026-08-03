@@ -515,7 +515,7 @@ export default function MemberProfile() {
                 <CalendarDays className="h-4 w-4" />
                 <span className="text-xs font-medium">Member Since</span>
               </div>
-              <div className="text-lg font-bold">{new Date(activeMember.createdAt).toLocaleDateString()}</div>
+              <div className="text-lg font-bold">{activeMember.createdAt ? new Date(activeMember.createdAt).toLocaleDateString() : "—"}</div>
             </CardContent>
           </Card>
         </div>
@@ -595,7 +595,7 @@ export default function MemberProfile() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div><span className="text-muted-foreground">Member ID</span><p className="font-mono font-medium">{activeMember.memberId}</p></div>
                     <div><span className="text-muted-foreground">Risk Score</span><p className={`font-medium ${riskColor}`}>{activeMember.riskScore}/100</p></div>
-                    <div><span className="text-muted-foreground">Created</span><p className="font-medium">{new Date(activeMember.createdAt).toLocaleDateString()}</p></div>
+                    <div><span className="text-muted-foreground">Created</span><p className="font-medium">{activeMember.createdAt ? new Date(activeMember.createdAt).toLocaleDateString() : "—"}</p></div>
                     <div><span className="text-muted-foreground">Last Login</span><p className="font-medium">{activeMember.lastLogin ? new Date(activeMember.lastLogin).toLocaleString() : "N/A"}</p></div>
                     <div><span className="text-muted-foreground">Contributions</span><p className="font-medium">{(contributionsData ?? []).length} payments</p></div>
                     <div><span className="text-muted-foreground">Loans</span><p className="font-medium">{(loansData ?? []).length} loans</p></div>
