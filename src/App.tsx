@@ -135,9 +135,10 @@ function ConfigError() {
 }
 
 function App() {
-  // Check for required environment variables at runtime
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  // Check for required environment variables at runtime (build-time or runtime-injected)
+  const runtime = typeof window !== "undefined" ? (window as any) : {};
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || runtime.ENV_VITE_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || runtime.ENV_VITE_SUPABASE_ANON_KEY;
   const hasSupabase = Boolean(supabaseUrl && supabaseKey);
 
   // Show config error if Supabase is not configured

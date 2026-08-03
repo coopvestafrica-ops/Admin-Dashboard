@@ -1,7 +1,13 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env["SUPABASE_URL"] || process.env["VITE_SUPABASE_URL"] || "https://nyoauzqezpxeonmrxxgi.supabase.co";
-const supabaseKey = process.env["SUPABASE_SERVICE_ROLE_KEY"] || process.env["VITE_SUPABASE_SERVICE_ROLE_KEY"] || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55b2F1enFlenB4ZW9ubXJ4eGdpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDI4MjczNSwiZXhwIjoyMDg5ODU4NzM1fQ.zCX5ZMW42kwjszRmT6HREZOCjTs5z7ZlXidK4BM-coM";
+const supabaseKey = process.env["SUPABASE_SERVICE_ROLE_KEY"] || process.env["SUPABASE_SERVICE_KEY"] || process.env["VITE_SUPABASE_SERVICE_ROLE_KEY"];
+
+export let supabase: SupabaseClient;
+
+if (!supabaseUrl) {
+  throw new Error("SUPABASE_URL is not set in environment");
+}
 
 if (!supabaseUrl || !supabaseKey) {
   console.error("Missing Supabase configuration:", { 
@@ -12,10 +18,10 @@ if (!supabaseUrl || !supabaseKey) {
     keyEnv: process.env["SUPABASE_SERVICE_ROLE_KEY"] ? "set" : "not set",
     viteKeyEnv: process.env["VITE_SUPABASE_SERVICE_ROLE_KEY"] ? "set" : "not set"
   });
-  throw new Error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or VITE_SUPABASE_* equivalents) must be set.");
+  throw new Error("SUPABASE_URL is not set in environment or SUPABASE_SERVICE_ROLE_KEY (server-only) is not set in environment. Do NOT commit or expose service role keys.");
 }
 
-export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey);
+supabase = createClient(supabaseUrl, supabaseKey);
 export { createClient };
 
 export function splitName(name: string | null): { firstName: string; lastName: string } {
