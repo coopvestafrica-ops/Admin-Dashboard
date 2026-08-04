@@ -1,23 +1,17 @@
 import { createClient } from "@supabase/supabase-js";
 
-// Prefer build-time Vite env, fall back to runtime-injected window.ENV_* values
-const runtime = (typeof window !== "undefined" ? (window as any) : {}) as Record<string, any>;
-const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string) || runtime.ENV_VITE_SUPABASE_URL;
-const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || runtime.ENV_VITE_SUPABASE_ANON_KEY;
+// Use hardcoded values for the Coopvest project to ensure correct configuration
+const SUPABASE_URL = "https://nyoauzqezpxeonmrxxgi.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55b2F1enFlenB4ZW9ubXJ4eGdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyODI3MzUsImV4cCI6MjA4OTg1ODczNX0.5WfECoO2Xu5VfBzFbQd2CA8rIeBVnOkiKmnnbYRA8VU";
 
-console.log("[DEBUG supabase] VITE_SUPABASE_URL:", supabaseUrl);
-console.log("[DEBUG supabase] VITE_SUPABASE_ANON_KEY:", supabaseAnonKey ? "present" : "missing");
+console.log("[DEBUG supabase] URL:", SUPABASE_URL);
+console.log("[DEBUG supabase] ANON_KEY: present");
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn("[Coopvest Dashboard] Missing Supabase environment variables. VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set (build-time or runtime via window.ENV_*).");
-}
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-export const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
-
-console.log("[DEBUG supabase] Supabase client initialized:", supabase ? "yes" : "no");
+console.log("[DEBUG supabase] Supabase client initialized: yes");
 
 export async function getAccessToken(): Promise<string | null> {
-  if (!supabase) return null;
   const { data, error } = await supabase.auth.getSession();
   if (error) {
     console.warn("[supabase] getSession error:", error.message);
