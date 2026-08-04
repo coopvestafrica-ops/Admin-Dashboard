@@ -1,6 +1,6 @@
 const https = require('https');
 
-const API_URL = process.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
+const API_URL = process.env.VITE_API_URL || process.env.VITE_API_BASE_URL || 'https://coopvest-api.onrender.com';
 
 const FORWARD_HEADERS = [
   'authorization',
