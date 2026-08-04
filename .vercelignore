@@ -1,6 +1,5 @@
 # Exclude Next.js API routes (not needed - frontend uses Vite)
-# Note: Keep /api/index.js for Vercel proxy
-/api/admin
+# Frontend calls Render backend directly via VITE_API_URL
 
 # Exclude Next.js public folder (not used)
 /public
