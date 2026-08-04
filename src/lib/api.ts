@@ -2,6 +2,8 @@
  * Shared API utilities for the admin dashboard
  * All API calls should use these helpers to ensure consistent URLs
  * Uses Latest-Coopvest backend at coopvest-api.onrender.com/api/v2/admin
+ * 
+ * DEPLOYMENT: Frontend calls Render backend directly via VITE_API_URL env var
  */
 
 import { supabase } from './supabase';
