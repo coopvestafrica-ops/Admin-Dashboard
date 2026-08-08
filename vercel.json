@@ -1,7 +1,8 @@
 {
   "version": 2,
-  "routes": [
-    { "src": "/(.*)", "dest": "/dist/public/index.html" }
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "buildCommand": "npm run build",
   "installCommand": "npm install",
