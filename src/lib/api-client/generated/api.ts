@@ -146,10 +146,10 @@ export function useGetMemberStats<TData = MemberStats, TError = Error>(
 // ─── Loans ─────────────────────────────────────────────────────────────────────
 
 export const getLoans = (params?: GetLoansParams) =>
-  customFetch<LoansListResponse>(`/api/loans${buildQs({ ...params })}`, { method: "GET" });
+  customFetch<LoansListResponse>(`/api/admin/loans${buildQs({ ...params })}`, { method: "GET" });
 
 export const getLoanPortfolioSummary = () =>
-  customFetch<LoanPortfolioSummary>("/api/loans/portfolio-summary", { method: "GET" });
+  customFetch<LoanPortfolioSummary>("/api/admin/loans/portfolio-summary", { method: "GET" });
 
 export function useGetLoans<TData = LoansListResponse, TError = Error>(
   params?: GetLoansParams,
@@ -201,10 +201,10 @@ export function useRejectLoan(
 // ─── Contributions ─────────────────────────────────────────────────────────────
 
 export const getContributions = (params?: GetContributionsParams) =>
-  customFetch<ContributionsListResponse>(`/api/contributions${buildQs({ ...params })}`, { method: "GET" });
+  customFetch<ContributionsListResponse>(`/api/admin/contributions${buildQs({ ...params })}`, { method: "GET" });
 
 export const getContributionSummary = () =>
-  customFetch<ContributionSummary>("/api/contributions/summary", { method: "GET" });
+  customFetch<ContributionSummary>("/api/admin/contributions/summary", { method: "GET" });
 
 export const getMonthlyContributions = () =>
   customFetch<MonthlyData[]>("/api/admin/contributions/monthly", { method: "GET" });
@@ -243,10 +243,10 @@ export function useGetMonthlyContributions<TData = MonthlyData[], TError = Error
 // ─── Investments ───────────────────────────────────────────────────────────────
 
 export const getInvestments = (params?: GetInvestmentsParams) =>
-  customFetch<InvestmentsListResponse>(`/api/investments${buildQs({ ...params })}`, { method: "GET" });
+  customFetch<InvestmentsListResponse>(`/api/admin/investments${buildQs({ ...params })}`, { method: "GET" });
 
 export const getInvestmentPortfolio = () =>
-  customFetch<InvestmentPortfolio>("/api/investments/portfolio", { method: "GET" });
+  customFetch<InvestmentPortfolio>("/api/admin/investments/portfolio", { method: "GET" });
 
 export function useGetInvestments<TData = InvestmentsListResponse, TError = Error>(
   params?: GetInvestmentsParams,
@@ -286,10 +286,10 @@ interface ComplianceListResponse {
 }
 
 export const getComplianceItems = (params?: GetComplianceParams) =>
-  customFetch<ComplianceListResponse>(`/api/compliance${buildQs({ ...params })}`, { method: "GET" });
+  customFetch<ComplianceListResponse>(`/api/admin/compliance${buildQs({ ...params })}`, { method: "GET" });
 
 export const getComplianceSummary = () =>
-  customFetch<ComplianceSummary>("/api/compliance/summary", { method: "GET" });
+  customFetch<ComplianceSummary>("/api/admin/compliance/summary", { method: "GET" });
 
 export function useGetComplianceItems<TData = ComplianceListResponse, TError = Error>(
   params?: GetComplianceParams,
@@ -315,7 +315,7 @@ export function useGetComplianceSummary<TData = ComplianceSummary, TError = Erro
 // ─── Notifications ─────────────────────────────────────────────────────────────
 
 export const getNotifications = () =>
-  customFetch<Notification[]>("/api/notifications", { method: "GET" });
+  customFetch<Notification[]>("/api/admin/notifications", { method: "GET" });
 
 export function useGetNotifications<TData = Notification[], TError = Error>(
   options?: { query?: UseQueryOptions<Notification[], TError, TData> }
@@ -330,7 +330,7 @@ export function useGetNotifications<TData = Notification[], TError = Error>(
 // ─── Support ───────────────────────────────────────────────────────────────────
 
 export const getSupportTickets = () =>
-  customFetch<SupportTicket[]>("/api/support", { method: "GET" });
+  customFetch<SupportTicket[]>("/api/admin/support", { method: "GET" });
 
 export function useGetSupportTickets<TData = SupportTicket[], TError = Error>(
   options?: { query?: UseQueryOptions<SupportTicket[], TError, TData> }

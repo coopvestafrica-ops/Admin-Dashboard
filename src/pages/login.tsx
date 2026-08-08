@@ -37,7 +37,7 @@ function getDeviceInfo() {
 async function logLoginAttempt(email: string, success: boolean, failureReason?: string) {
   try {
     const deviceInfo = getDeviceInfo();
-    await fetch('/api/login-history/log', {
+    await fetch('/api/admin/login-history/log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

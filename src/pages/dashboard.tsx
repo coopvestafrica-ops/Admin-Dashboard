@@ -82,9 +82,9 @@ async function fetchAnalyticsData(): Promise<AnalyticsData | null> {
     const headers = { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" };
 
     const [repaymentRes, riskRes, defaulterRes] = await Promise.all([
-      fetch(`${apiUrl}/api/analytics/repayment-trend`, { headers }),
-      fetch(`${apiUrl}/api/analytics/risk-exposure`, { headers }),
-      fetch(`${apiUrl}/api/analytics/defaulter-trend`, { headers }),
+      fetch(`${apiUrl}/api/admin/analytics/repayment-trend`, { headers }),
+      fetch(`${apiUrl}/api/admin/analytics/risk-exposure`, { headers }),
+      fetch(`${apiUrl}/api/admin/analytics/defaulter-trend`, { headers }),
     ]);
 
     if (!repaymentRes.ok || !riskRes.ok || !defaulterRes.ok) return null;
