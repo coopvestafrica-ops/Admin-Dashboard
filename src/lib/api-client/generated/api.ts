@@ -207,7 +207,7 @@ export const getContributionSummary = () =>
   customFetch<ContributionSummary>("/api/contributions/summary", { method: "GET" });
 
 export const getMonthlyContributions = () =>
-  customFetch<MonthlyData[]>("/api/contributions/monthly", { method: "GET" });
+  customFetch<MonthlyData[]>("/api/admin/contributions/monthly", { method: "GET" });
 
 export function useGetContributions<TData = ContributionsListResponse, TError = Error>(
   params?: GetContributionsParams,
@@ -361,13 +361,13 @@ export function useGetAuditLogs<TData = { data: AuditLog[]; total: number }, TEr
 // ─── Dashboard ─────────────────────────────────────────────────────────────────
 
 export const getDashboardSummary = () =>
-  customFetch<DashboardSummary>("/api/dashboard/summary", { method: "GET" });
+  customFetch<DashboardSummary>("/api/admin/dashboard/summary", { method: "GET" });
 
 export const getLoanStatusBreakdown = () =>
-  customFetch<StatusBreakdown[]>("/api/loans/status-breakdown", { method: "GET" });
+  customFetch<StatusBreakdown[]>("/api/admin/loans/status-breakdown", { method: "GET" });
 
 export const getRecentActivity = () =>
-  customFetch<ActivityItem[]>("/api/dashboard/recent-activity", { method: "GET" });
+  customFetch<ActivityItem[]>("/api/admin/dashboard/recent-activity", { method: "GET" });
 
 export function useGetDashboardSummary<TData = DashboardSummary, TError = Error>(
   options?: { query?: UseQueryOptions<DashboardSummary, TError, TData> }
