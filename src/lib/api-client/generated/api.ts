@@ -119,8 +119,10 @@ function buildQs(params: Record<string, string | number | undefined>): string {
 export const getMembers = (params?: GetMembersParams) =>
   customFetch<MembersListResponse>(`/api/admin/members${buildQs({ ...params })}`, { method: "GET" });
 
-export const getMemberStats = () =>
-  customFetch<MemberStats>("/api/admin/members/stats", { method: "GET" });
+export const getMemberStats = async () => {
+  const response = await customFetch<{success: boolean; data: MemberStats}>("/api/admin/members/stats", { method: "GET" });
+  return response.data;
+};
 
 export function useGetMembers<TData = MembersListResponse, TError = Error>(
   params?: GetMembersParams,
@@ -148,8 +150,10 @@ export function useGetMemberStats<TData = MemberStats, TError = Error>(
 export const getLoans = (params?: GetLoansParams) =>
   customFetch<LoansListResponse>(`/api/admin/loans${buildQs({ ...params })}`, { method: "GET" });
 
-export const getLoanPortfolioSummary = () =>
-  customFetch<LoanPortfolioSummary>("/api/admin/loans/portfolio-summary", { method: "GET" });
+export const getLoanPortfolioSummary = async () => {
+  const response = await customFetch<{success: boolean; data: LoanPortfolioSummary}>("/api/admin/loans/portfolio-summary", { method: "GET" });
+  return response.data;
+};
 
 export function useGetLoans<TData = LoansListResponse, TError = Error>(
   params?: GetLoansParams,
@@ -203,11 +207,15 @@ export function useRejectLoan(
 export const getContributions = (params?: GetContributionsParams) =>
   customFetch<ContributionsListResponse>(`/api/admin/contributions${buildQs({ ...params })}`, { method: "GET" });
 
-export const getContributionSummary = () =>
-  customFetch<ContributionSummary>("/api/admin/contributions/summary", { method: "GET" });
+export const getContributionSummary = async () => {
+  const response = await customFetch<{success: boolean; data: ContributionSummary}>("/api/admin/contributions/summary", { method: "GET" });
+  return response.data;
+};
 
-export const getMonthlyContributions = () =>
-  customFetch<MonthlyData[]>("/api/admin/contributions/monthly", { method: "GET" });
+export const getMonthlyContributions = async () => {
+  const response = await customFetch<{success: boolean; data: MonthlyData[]}>("/api/admin/contributions/monthly", { method: "GET" });
+  return response.data || [];
+};
 
 export function useGetContributions<TData = ContributionsListResponse, TError = Error>(
   params?: GetContributionsParams,
@@ -245,8 +253,10 @@ export function useGetMonthlyContributions<TData = MonthlyData[], TError = Error
 export const getInvestments = (params?: GetInvestmentsParams) =>
   customFetch<InvestmentsListResponse>(`/api/admin/investments${buildQs({ ...params })}`, { method: "GET" });
 
-export const getInvestmentPortfolio = () =>
-  customFetch<InvestmentPortfolio>("/api/admin/investments/portfolio", { method: "GET" });
+export const getInvestmentPortfolio = async () => {
+  const response = await customFetch<{success: boolean; data: InvestmentPortfolio}>("/api/admin/investments/portfolio", { method: "GET" });
+  return response.data;
+};
 
 export function useGetInvestments<TData = InvestmentsListResponse, TError = Error>(
   params?: GetInvestmentsParams,
@@ -288,8 +298,10 @@ interface ComplianceListResponse {
 export const getComplianceItems = (params?: GetComplianceParams) =>
   customFetch<ComplianceListResponse>(`/api/admin/compliance${buildQs({ ...params })}`, { method: "GET" });
 
-export const getComplianceSummary = () =>
-  customFetch<ComplianceSummary>("/api/admin/compliance/summary", { method: "GET" });
+export const getComplianceSummary = async () => {
+  const response = await customFetch<{success: boolean; data: ComplianceSummary}>("/api/admin/compliance/summary", { method: "GET" });
+  return response.data;
+};
 
 export function useGetComplianceItems<TData = ComplianceListResponse, TError = Error>(
   params?: GetComplianceParams,
@@ -360,14 +372,20 @@ export function useGetAuditLogs<TData = { data: AuditLog[]; total: number }, TEr
 
 // ─── Dashboard ─────────────────────────────────────────────────────────────────
 
-export const getDashboardSummary = () =>
-  customFetch<DashboardSummary>("/api/admin/dashboard/summary", { method: "GET" });
+export const getDashboardSummary = async () => {
+  const response = await customFetch<{success: boolean; data: DashboardSummary}>("/api/admin/dashboard/summary", { method: "GET" });
+  return response.data;
+};
 
-export const getLoanStatusBreakdown = () =>
-  customFetch<StatusBreakdown[]>("/api/admin/loans/status-breakdown", { method: "GET" });
+export const getLoanStatusBreakdown = async () => {
+  const response = await customFetch<{success: boolean; data: StatusBreakdown[]}>("/api/admin/loans/status-breakdown", { method: "GET" });
+  return response.data || [];
+};
 
-export const getRecentActivity = () =>
-  customFetch<ActivityItem[]>("/api/admin/dashboard/recent-activity", { method: "GET" });
+export const getRecentActivity = async () => {
+  const response = await customFetch<{success: boolean; data: ActivityItem[]}>("/api/admin/dashboard/recent-activity", { method: "GET" });
+  return response.data || [];
+};
 
 export function useGetDashboardSummary<TData = DashboardSummary, TError = Error>(
   options?: { query?: UseQueryOptions<DashboardSummary, TError, TData> }
