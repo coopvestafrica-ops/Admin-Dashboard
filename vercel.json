@@ -6,7 +6,6 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "framework": null,
-  "cacheKey": "coopvest-dashboard-v2",
   "env": {
     "VITE_API_URL": "https://coopvest-api.onrender.com",
     "VITE_API_BASE_URL": "https://coopvest-api.onrender.com",
