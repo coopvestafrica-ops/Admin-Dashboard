@@ -18,8 +18,8 @@ export function getApiBaseUrl(): string {
   const envBaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) as string | undefined;
   if (envBaseUrl) return envBaseUrl + '/api';
   
-  // Default to same origin (Vercel proxy forwards /api/* to the Render backend)
-  return '/api';
+  // Default to the Render backend URL (never fall back to /api which goes through Vercel)
+  return 'https://coopvest-api.onrender.com/api';
 }
 
 // Get the admin API URL prefix - used by the API client for admin endpoints

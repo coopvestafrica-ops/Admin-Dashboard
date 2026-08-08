@@ -8,8 +8,8 @@ import { supabase } from "@/lib/supabase";
 console.log("[DEBUG] main.tsx loaded");
 console.log("[DEBUG] supabase client:", supabase ? "initialized" : "null");
 
-// Hardcoded API URL for the Coopvest backend
-const API_BASE_URL = "https://coopvest-api.onrender.com";
+// Use environment variable with fallback to hardcoded URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://coopvest-api.onrender.com";
 setBaseUrl(API_BASE_URL);
 console.log("[DEBUG] API Base URL set to:", API_BASE_URL);
 
