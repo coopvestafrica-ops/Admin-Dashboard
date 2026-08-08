@@ -166,7 +166,7 @@ export default function MemberProfile() {
       setIsFetching(true);
       setLoadingError(null);
       try {
-        const response = await api.get<any>(`/members/${memberIdFromUrl}`);
+        const response = await api.get<any>(`/admin/members/${memberIdFromUrl}`);
         const member = mapMember(response);
         setMemberData(member);
 
@@ -191,7 +191,7 @@ export default function MemberProfile() {
   const fetchRelatedData = async (profileId: string) => {
     try {
       // Backend accepts both memberId and profileId; use profileId (canonical)
-      const loansJson = await api.get<any>(`/loans?profileId=${profileId}&limit=50`);
+      const loansJson = await api.get<any>(`/admin/loans?profileId=${profileId}&limit=50`);
       // Backend returns { data, loans, ... } — normalise to array
       setLoansData(loansJson.data || loansJson.loans || []);
     } catch (e) {
@@ -199,14 +199,14 @@ export default function MemberProfile() {
     }
 
     try {
-      const contribJson = await api.get<any>(`/contributions?profileId=${profileId}&limit=50`);
+      const contribJson = await api.get<any>(`/admin/contributions?profileId=${profileId}&limit=50`);
       setContributionsData(contribJson.data || contribJson.contributions || []);
     } catch (e) {
       console.log('Contributions fetch error (may not exist):', e);
     }
 
     try {
-      const investJson = await api.get<any>(`/investments?profile_id=${profileId}&limit=50`);
+      const investJson = await api.get<any>(`/admin/investments?profile_id=${profileId}&limit=50`);
       setInvestmentsData(investJson.data || investJson.pools || investJson.investments || []);
     } catch (e) {
       console.log('Investments fetch error:', e);
@@ -214,7 +214,7 @@ export default function MemberProfile() {
 
     try {
       // New route: GET /members/:id/transactions
-      const txJson = await api.get<any>(`/members/${profileId}/transactions?limit=50`);
+      const txJson = await api.get<any>(`/admin/members/${profileId}/transactions?limit=50`);
       setTransactionsData(txJson.data || txJson.transactions || []);
     } catch (e) {
       console.log('Transactions fetch error:', e);
@@ -223,19 +223,19 @@ export default function MemberProfile() {
 
   // Direct API call for member updates
   const updateMemberApi = async (memberId: string, updates: any) => {
-    return api.put<{ success: boolean }>(`/members/${memberId}`, updates);
+    return api.put<{ success: boolean }>(`/admin/members/${memberId}`, updates);
   };
 
   // Direct API call for role management
   const updateMemberRole = async (memberId: string, role: string) => {
-    return api.post<{ success: boolean }>(`/members/${memberId}/role`, { role });
+    return api.post<{ success: boolean }>(`/admin/members/${memberId}/role`, { role });
   };
 
   // Refresh member data
   const refreshMemberData = async () => {
     if (!memberIdFromUrl || !memberData?.id) return;
     try {
-      const response = await api.get<any>(`/members/${memberData.id}`);
+      const response = await api.get<any>(`/admin/members/${memberData.id}`);
       setMemberData(mapMember(response));
     } catch (e) {
       console.log('Refresh error:', e);
