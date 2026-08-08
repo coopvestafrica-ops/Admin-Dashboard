@@ -117,10 +117,10 @@ function buildQs(params: Record<string, string | number | undefined>): string {
 // ─── Members ───────────────────────────────────────────────────────────────────
 
 export const getMembers = (params?: GetMembersParams) =>
-  customFetch<MembersListResponse>(`/api/members${buildQs({ ...params })}`, { method: "GET" });
+  customFetch<MembersListResponse>(`/api/admin/members${buildQs({ ...params })}`, { method: "GET" });
 
 export const getMemberStats = () =>
-  customFetch<MemberStats>("/api/members/stats", { method: "GET" });
+  customFetch<MemberStats>("/api/admin/members/stats", { method: "GET" });
 
 export function useGetMembers<TData = MembersListResponse, TError = Error>(
   params?: GetMembersParams,
