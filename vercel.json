@@ -4,6 +4,9 @@
   "installCommand": "npm install",
   "framework": null,
   "outputDirectory": "dist/public",
+  "rewrites": [
+    { "source": "/(.*)", "dest": "/index.html", "statusCode": 200 }
+  ],
   "env": {
     "VITE_API_URL": "https://coopvest-api.onrender.com",
     "VITE_API_BASE_URL": "https://coopvest-api.onrender.com",
