@@ -22,6 +22,7 @@ export const PAGE_TITLES: Record<string, { title: string; breadcrumb: string[] }
   "/platform-analytics": { title: "Platform Analytics", breadcrumb: ["Dashboard", "Analytics"] },
   "/security-access": { title: "Security & Access", breadcrumb: ["Dashboard", "Security"] },
   "/wallet-management": { title: "Wallet Management", breadcrumb: ["Dashboard", "Wallet"] },
+  "/payment-proofs": { title: "Payment Proofs", breadcrumb: ["Dashboard", "Payment Proofs"] },
   "/withdrawal-management": { title: "Withdrawal Approvals", breadcrumb: ["Dashboard", "Withdrawals"] },
   "/user-verification": { title: "User Verification", breadcrumb: ["Dashboard", "Verification"] },
   "/referral-program": { title: "Referral Program", breadcrumb: ["Dashboard", "Referrals"] },

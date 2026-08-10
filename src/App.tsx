@@ -44,6 +44,7 @@ import Sessions from "@/pages/sessions/index";
 import LoginHistory from "@/pages/login-history/index";
 import FinancialDashboard from "@/pages/financial-dashboard/index";
 import DepositVerification from "@/pages/deposit-verification/index";
+import PaymentProofs from "@/pages/payment-proofs/index";
 import ManualDeposits from "@/pages/manual-deposits/index";
 import AccountingSpreadsheet from "@/pages/accounting-spreadsheet/index";
 import RolloverManagement from "@/pages/rollover-management/index";
@@ -90,6 +91,7 @@ function Router() {
       <Route path="/wallet-management">{() => <ProtectedRoute component={WalletManagement} />}</Route>
       <Route path="/withdrawal-management">{() => <ProtectedRoute component={WithdrawalManagement} />}</Route>
       <Route path="/deposit-verification">{() => <ProtectedRoute component={DepositVerification} />}</Route>
+      <Route path="/payment-proofs">{() => <ProtectedRoute component={PaymentProofs} />}</Route>
       <Route path="/manual-deposits">{() => <ProtectedRoute component={ManualDeposits} />}</Route>
       <Route path="/accounting-spreadsheet">{() => <ProtectedRoute component={AccountingSpreadsheet} />}</Route>
       <Route path="/rollover-management">{() => <ProtectedRoute component={RolloverManagement} />}</Route>
