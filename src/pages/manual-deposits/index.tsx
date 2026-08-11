@@ -118,11 +118,15 @@ interface TransactionRecord {
 interface AuditLog {
   id: string;
   action: string;
-  table_name: string;
-  record_id: string;
-  old_values: Record<string, unknown>;
-  new_values: Record<string, unknown>;
-  performed_by: string;
+  target_model?: string;
+  table_name?: string;
+  target_id?: string;
+  record_id?: string;
+  metadata?: Record<string, unknown>;
+  old_values?: Record<string, unknown>;
+  new_values?: Record<string, unknown>;
+  actor_id?: string;
+  performed_by?: string;
   admin_name?: string;
   admin_email?: string;
   ip_address?: string;
@@ -231,7 +235,7 @@ export default function ManualDeposits() {
     queryFn: async () => {
       if (!selectedMember) return null;
       const { data, error } = await supabase
-        .from("wallet_balances")
+        .from("wallets")
         .select("*")
         .eq("profile_id", selectedMember.id)
         .single();
@@ -282,18 +286,17 @@ export default function ManualDeposits() {
       const to = from + pageSize - 1;
       
       let query = supabase
-        .from("deposits")
+        .from("deposit_requests")
         .select(`
           *,
-          profiles!deposits_profile_id_fkey(name, email),
-          admin_profile:collected_by_profiles(name, email)
+          profiles!deposit_requests_profile_id_fkey(name, email)
         `, { count: "exact" })
         .order("created_at", { ascending: false })
         .range(from, to);
       
       if (dateFrom) query = query.gte("created_at", dateFrom);
       if (dateTo) query = query.lte("created_at", dateTo + "T23:59:59");
-      if (filterType !== "all") query = query.eq("deposit_type", filterType);
+      if (filterType !== "all") query = query.eq("status", filterType);
       
       const { data, error, count } = await query;
       if (error) throw error;
@@ -310,8 +313,8 @@ export default function ManualDeposits() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("audit_logs")
-        .select(`*, admin_profile:performed_by_profiles(name, email)`)
-        .eq("table_name", "deposits")
+        .select(`*, admin_profile:profiles!audit_logs_actor_id_fkey(name, email)`)
+        .eq("target_model", "deposit_requests")
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -371,17 +374,37 @@ export default function ManualDeposits() {
       // Start transaction-like operations
       const timestamp = new Date().toISOString();
       
-      // 1. Create deposit record
+      // 1. Create visible transaction record FIRST (deposit_requests requires transaction_id FK)
+      const { data: txn, error: txnError } = await supabase.from("transactions").insert({
+        profile_id: selectedMember.id,
+        type: "deposit",
+        category: depositData.deposit_type,
+        amount: depositData.amount,
+        status: "completed",
+        payment_method: depositData.payment_method,
+        description: `${depositTypeLabels[depositData.deposit_type]}: ${depositData.description}`,
+        reference: depositData.reference,
+        initiated_at: timestamp,
+        completed_at: timestamp,
+        created_at: timestamp,
+      }).select().single();
+      
+      if (txnError) throw new Error(`Failed to create transaction: ${txnError.message}`);
+      
+      // 2. Create deposit_request record
       const { data: deposit, error: depositError } = await supabase
-        .from("deposits")
+        .from("deposit_requests")
         .insert({
           profile_id: selectedMember.id,
+          transaction_id: txn.id,
           amount: depositData.amount,
-          deposit_type: depositData.deposit_type,
-          payment_method: depositData.payment_method,
-          description: depositData.description,
-          reference: depositData.reference,
-          collected_by: adminId,
+          currency: "NGN",
+          status: "verified",
+          payment_reference: depositData.reference,
+          payment_date: timestamp,
+          admin_notes: depositData.description,
+          verified_by: adminId,
+          verified_at: timestamp,
           created_at: timestamp,
         })
         .select()
@@ -389,60 +412,49 @@ export default function ManualDeposits() {
       
       if (depositError) throw new Error(`Failed to create deposit: ${depositError.message}`);
       
-      // 2. Get current wallet state
+      // 3. Get current wallet state
       const { data: currentWallet } = await supabase
-        .from("wallet_balances")
+        .from("wallets")
         .select("*")
         .eq("profile_id", selectedMember.id)
         .single();
       
       const balanceBefore = currentWallet?.balance || 0;
       const newBalance = balanceBefore + depositData.amount;
-      const newTotalContributions = (currentWallet?.total_contributions || 0) + depositData.amount;
       
-      // 3. Update or create wallet balance
+      // 4. Update or create wallet
       if (currentWallet) {
         await supabase
-          .from("wallet_balances")
+          .from("wallets")
           .update({
             balance: newBalance,
-            total_contributions: newTotalContributions,
             last_updated: timestamp,
           })
           .eq("profile_id", selectedMember.id);
       } else {
         await supabase
-          .from("wallet_balances")
+          .from("wallets")
           .insert({
             profile_id: selectedMember.id,
             balance: depositData.amount,
-            total_contributions: depositData.amount,
-            total_withdrawals: 0,
+            currency: "NGN",
+            is_active: true,
             last_updated: timestamp,
           });
       }
 
-      // 4. Create visible transaction record (user-facing)
-      await supabase.from("transactions").insert({
-        profile_id: selectedMember.id,
-        type: "deposit",
-        amount: depositData.amount,
+      // 5. Update transaction with balance info
+      await supabase.from("transactions").update({
         balance_before: balanceBefore,
         balance_after: newBalance,
-        description: `${depositTypeLabels[depositData.deposit_type]}: ${depositData.description}`,
-        reference: depositData.reference,
-        category: depositData.deposit_type,
-        created_by: adminId,
-        created_at: timestamp,
-      });
+      }).eq("id", txn.id);
 
-      // 5. Create audit log entry
+      // 6. Create audit log entry
       await supabase.from("audit_logs").insert({
         action: "CREATE",
-        table_name: "deposits",
-        record_id: deposit.id,
-        old_values: {},
-        new_values: {
+        target_model: "deposit_requests",
+        target_id: deposit.id,
+        metadata: {
           profile_id: selectedMember.id,
           member_name: selectedMember.name,
           amount: depositData.amount,
@@ -453,7 +465,7 @@ export default function ManualDeposits() {
           balance_before: balanceBefore,
           balance_after: newBalance,
         },
-        performed_by: adminId,
+        actor_id: adminId,
         details: `Manual deposit: ${depositTypeLabels[depositData.deposit_type]} of ${formatCurrency(depositData.amount)} for ${selectedMember.name}`,
         ip_address: "admin-panel",
         created_at: timestamp,
@@ -691,11 +703,11 @@ export default function ManualDeposits() {
                       <div className="text-xs text-muted-foreground">Current Balance</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{formatCurrency(memberWallet?.total_contributions || 0)}</div>
-                      <div className="text-xs text-muted-foreground">Total Contributions</div>
+                      <div className="text-2xl font-bold text-blue-600">{formatCurrency(memberWallet?.balance || 0)}</div>
+                      <div className="text-xs text-muted-foreground">Wallet Balance</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-red-600">{formatCurrency(memberWallet?.total_withdrawals || 0)}</div>
+                      <div className="text-2xl font-bold text-red-600">{formatCurrency(0)}</div>
                       <div className="text-xs text-muted-foreground">Total Withdrawals</div>
                     </div>
                   </div>
@@ -717,15 +729,12 @@ export default function ManualDeposits() {
                 <Input type="date" className="w-auto text-sm" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
                 <Input type="date" className="w-auto text-sm" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
                 <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger className="w-auto text-sm"><SelectValue placeholder="Filter by type" /></SelectTrigger>
+                  <SelectTrigger className="w-auto text-sm"><SelectValue placeholder="Filter by status" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="savings">Savings</SelectItem>
-                    <SelectItem value="levy">Levy</SelectItem>
-                    <SelectItem value="entrance_fee">Entrance Fee</SelectItem>
-                    <SelectItem value="special">Special</SelectItem>
-                    <SelectItem value="adjustment">Adjustment</SelectItem>
-                    <SelectItem value="refund">Refund</SelectItem>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="verified">Verified</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button variant="outline" size="sm" onClick={clearFilters}>Clear</Button>
@@ -744,25 +753,32 @@ export default function ManualDeposits() {
                       <tr className="border-b text-muted-foreground">
                         <th className="pb-3 text-left font-medium">Date & Time</th>
                         <th className="pb-3 text-left font-medium">Member</th>
-                        <th className="pb-3 text-left font-medium">Type</th>
+                        <th className="pb-3 text-left font-medium">Status</th>
                         <th className="pb-3 text-left font-medium">Reference</th>
                         <th className="pb-3 text-right font-medium">Amount</th>
-                        <th className="pb-3 text-left font-medium">Method</th>
-                        <th className="pb-3 text-left font-medium">Recorded By</th>
+                        <th className="pb-3 text-left font-medium">Bank</th>
+                        <th className="pb-3 text-left font-medium">Verified By</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
-                      {allDeposits?.data && allDeposits.data.length > 0 ? allDeposits.data.map((deposit) => (
+                      {allDeposits?.data && allDeposits.data.length > 0 ? allDeposits.data.map((deposit: any) => (
                         <tr key={deposit.id} className="hover:bg-muted/50">
                           <td className="py-3">
                             <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground" />{new Date(deposit.created_at).toLocaleString()}</div>
                           </td>
                           <td className="py-3 font-medium">{deposit.profiles?.name || deposit.member_name || "Unknown"}</td>
-                          <td className="py-3"><Badge className={depositTypeColors[deposit.deposit_type] || "bg-gray-100"}>{depositTypeLabels[deposit.deposit_type] || deposit.deposit_type}</Badge></td>
-                          <td className="py-3 font-mono text-xs">{deposit.reference || "—"}</td>
+                          <td className="py-3">
+                            <Badge className={
+                              deposit.status === "verified" ? "bg-emerald-100 text-emerald-800" :
+                              deposit.status === "pending" ? "bg-amber-100 text-amber-800" :
+                              deposit.status === "rejected" ? "bg-red-100 text-red-800" :
+                              "bg-gray-100"
+                            }>{deposit.status || "pending"}</Badge>
+                          </td>
+                          <td className="py-3 font-mono text-xs">{deposit.payment_reference || deposit.reference || "—"}</td>
                           <td className="py-3 text-right font-semibold text-emerald-600">+{formatCurrency(deposit.amount)}</td>
-                          <td className="py-3 text-muted-foreground capitalize">{deposit.payment_method?.replace("_", " ") || "—"}</td>
-                          <td className="py-3 text-muted-foreground text-xs">{deposit.admin_profile?.name || deposit.collected_by?.slice(0, 8) || "System"}</td>
+                          <td className="py-3 text-muted-foreground capitalize">{deposit.bank_name || deposit.payment_method?.replace("_", " ") || "—"}</td>
+                          <td className="py-3 text-muted-foreground text-xs">{deposit.verifier?.name || deposit.admin_profile?.name || "System"}</td>
                         </tr>
                       )) : (
                         <tr><td colSpan={7} className="py-12 text-center text-muted-foreground">No deposits found with current filters</td></tr>
@@ -972,8 +988,8 @@ export default function ManualDeposits() {
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-3 p-3 bg-muted rounded-lg">
                   <div className="text-center"><div className="text-2xl font-bold">{auditLogs.length}</div><div className="text-xs text-muted-foreground">Total Actions</div></div>
-                  <div className="text-center"><div className="text-2xl font-bold">{[...new Set(auditLogs.map(l => l.performed_by))].length}</div><div className="text-xs text-muted-foreground">Admins</div></div>
-                  <div className="text-center"><div className="text-2xl font-bold">{[...new Set(auditLogs.map(l => l.record_id))].length}</div><div className="text-xs text-muted-foreground">Deposits</div></div>
+                  <div className="text-center"><div className="text-2xl font-bold">{[...new Set(auditLogs.map(l => l.actor_id || l.performed_by))].filter(Boolean).length}</div><div className="text-xs text-muted-foreground">Admins</div></div>
+                  <div className="text-center"><div className="text-2xl font-bold">{[...new Set(auditLogs.map(l => l.target_id || l.record_id))].filter(Boolean).length}</div><div className="text-xs text-muted-foreground">Deposits</div></div>
                 </div>
                 <div className="border rounded-lg overflow-hidden">
                   {auditLogs.map((log) => (
@@ -986,22 +1002,21 @@ export default function ManualDeposits() {
                           <div className="flex items-start justify-between gap-4">
                             <div>
                               <Badge variant="outline" className={log.action === "CREATE" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : log.action === "UPDATE" ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-red-50 text-red-700 border-red-200"}>{log.action}</Badge>
-                              <div className="mt-1 font-medium text-sm">{log.details || `${log.table_name} record ${log.record_id}`}</div>
+                              <div className="mt-1 font-medium text-sm">{log.details || `${log.target_model || log.table_name} record ${log.target_id || log.record_id}`}</div>
                             </div>
                             <div className="text-right text-xs text-muted-foreground shrink-0">{new Date(log.created_at).toLocaleString()}</div>
                           </div>
                           <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                            <span>Admin: {log.admin_profile?.name || log.admin_email || log.performed_by?.slice(0, 8) || "System"}</span>
+                            <span>Admin: {log.admin_profile?.name || log.admin_email || log.actor_id?.slice(0, 8) || log.performed_by?.slice(0, 8) || "System"}</span>
                             {log.ip_address && <span>IP: {log.ip_address}</span>}
-                            <span>Record ID: {log.record_id.slice(0, 8)}...</span>
+                            <span>Record ID: {(log.target_id || log.record_id || "").slice(0, 8)}...</span>
                           </div>
-                          {log.new_values && Object.keys(log.new_values).length > 0 && (
+                          {log.metadata && Object.keys(log.metadata).length > 0 && (
                             <details className="mt-2">
                               <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">View Details</summary>
                               <div className="mt-2 p-3 bg-muted/50 rounded text-xs font-mono overflow-x-auto">
                                 <div className="grid grid-cols-2 gap-2">
-                                  <div className="font-semibold text-muted-foreground col-span-2">New Values:</div>
-                                  {Object.entries(log.new_values).map(([key, value]) => (
+                                  {Object.entries(log.metadata).map(([key, value]) => (
                                     <div key={key} className="col-span-1">
                                       <span className="text-muted-foreground">{key}:</span>{" "}
                                       <span className="break-all">{typeof value === "number" && key.includes("amount") ? formatCurrency(value) : typeof value === "number" ? value.toLocaleString() : String(value ?? "null")}</span>

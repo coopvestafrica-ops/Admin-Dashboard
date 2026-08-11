@@ -96,14 +96,22 @@ async function fetchDeposits(params: Record<string, string>): Promise<DepositsRe
     const json = await res.json().catch(() => ({}));
     throw new Error(json.error || "Failed to fetch deposits");
   }
-  return res.json();
+  const json = await res.json();
+  // Backend returns { success, deposits, pagination } — map to frontend shape
+  const deposits: DepositRequest[] = json.deposits || json.data || [];
+  const total: number = json.pagination?.total ?? json.total ?? deposits.length;
+  return {
+    success: json.success ?? true,
+    data: deposits,
+    total,
+  };
 }
 
 async function verifyDeposit(id: string, adminNotes?: string): Promise<void> {
   const res = await fetch(`${API_BASE}/api/v1/admin/deposits/${id}/verify`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ admin_notes: adminNotes }),
+    body: JSON.stringify({ notes: adminNotes }),
   });
   if (!res.ok) {
     const json = await res.json().catch(() => ({}));
@@ -128,7 +136,9 @@ async function getDepositDetails(id: string): Promise<DepositRequest> {
   if (!res.ok) {
     throw new Error("Failed to fetch deposit details");
   }
-  return res.json();
+  const json = await res.json();
+  // Backend returns { success, deposit } — extract the deposit object
+  return json.deposit || json;
 }
 
 export default function DepositVerification() {
