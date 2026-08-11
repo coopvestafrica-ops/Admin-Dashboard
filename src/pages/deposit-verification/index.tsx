@@ -109,12 +109,27 @@ async function fetchDeposits(params: Record<string, string>): Promise<DepositsRe
   }
   const json = await res.json();
   // Backend returns { success, deposits, pagination } — map to frontend shape
-  const deposits: DepositRequest[] = json.deposits || json.data || [];
-  const total: number = json.pagination?.total ?? json.total ?? deposits.length;
+  const rawDeposits: any[] = json.deposits || json.data || [];
+  const total: number = json.pagination?.total ?? json.total ?? rawDeposits.length;
+  // Map backend profile.name → frontend user_name for display
+  const deposits: DepositRequest[] = rawDeposits.map((d) => ({
+    ...d,
+    user_name: d.user_name || d.profile?.name || d.profiles?.name || "",
+    user_email: d.user_email || d.profile?.email || d.profiles?.email || "",
+  }));
+  // Calculate summary from current page data
+  const pendingCount = params.status === "pending" || !params.status ? total : 0;
+  const totalAmount = deposits.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
   return {
     success: json.success ?? true,
     data: deposits,
     total,
+    summary: {
+      pending: pendingCount,
+      verified_today: params.status === "verified" ? total : 0,
+      total_amount: totalAmount,
+      rejected_today: params.status === "rejected" ? total : 0,
+    },
   };
 }
 
