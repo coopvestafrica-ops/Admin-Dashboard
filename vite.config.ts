@@ -27,8 +27,8 @@ import { defineConfig, loadEnv } from "vite";
 
   const supabaseUrl = env.VITE_SUPABASE_URL || 'https://nyoauzqezpxeonmrxxgi.supabase.co';
   const supabaseKey = env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55b2F1enFlenB4ZW9ubXJ4eGdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyODI3MzUsImV4cCI6MjA4OTg1ODczNX0.5WfECoO2Xu5VfBzFbQd2CA8rIeBVnOkiKmnnbYRA8VU';
-  // Use same origin for API calls when deployed on Vercel - Vercel proxy will forward to Render backend
-  const apiBaseUrl = env.VITE_API_BASE_URL || '';
+  // Use the Render backend URL directly for API calls
+  const apiBaseUrl = env.VITE_API_BASE_URL || env.VITE_API_URL || 'https://coopvest-api.onrender.com';
 
   export default defineConfig({
     base: basePath,
@@ -41,6 +41,7 @@ import { defineConfig, loadEnv } from "vite";
       'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(supabaseUrl),
       'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(supabaseKey),
       'import.meta.env.VITE_API_BASE_URL': JSON.stringify(apiBaseUrl),
+      'import.meta.env.VITE_API_URL': JSON.stringify(apiBaseUrl),
     },
     resolve: {
       alias: {

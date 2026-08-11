@@ -87,10 +87,9 @@ const statusConfig: Record<DepositStatus, { label: string; className: string; ic
   cancelled: { label: "Cancelled", className: "bg-gray-100 text-gray-600 border-gray-200", icon: XCircle },
 };
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://coopvest-api.onrender.com";
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
-  const { supabase } = await import("@/lib/supabase");
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token || "";
   return {
