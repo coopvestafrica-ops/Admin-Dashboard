@@ -45,7 +45,8 @@
     { "source": "/login-history", "destination": "/index.html" },
     { "source": "/financial-dashboard", "destination": "/index.html" },
     { "source": "/member-contributions", "destination": "/index.html" },
-    { "source": "/reset-password", "destination": "/index.html" }
+    { "source": "/reset-password", "destination": "/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "env": {
     "VITE_API_URL": "https://coopvest-api.onrender.com",
