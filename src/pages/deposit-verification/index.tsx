@@ -89,9 +89,21 @@ const statusConfig: Record<DepositStatus, { label: string; className: string; ic
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const { supabase } = await import("@/lib/supabase");
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token || "";
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
 async function fetchDeposits(params: Record<string, string>): Promise<DepositsResponse> {
   const qs = new URLSearchParams(params).toString();
-  const res = await fetch(`${API_BASE}/api/v1/admin/deposits?${qs}`);
+  const res = await fetch(`${API_BASE}/api/v1/admin/deposits?${qs}`, {
+    headers: await getAuthHeaders(),
+  });
   if (!res.ok) {
     const json = await res.json().catch(() => ({}));
     throw new Error(json.error || "Failed to fetch deposits");
@@ -110,7 +122,7 @@ async function fetchDeposits(params: Record<string, string>): Promise<DepositsRe
 async function verifyDeposit(id: string, adminNotes?: string): Promise<void> {
   const res = await fetch(`${API_BASE}/api/v1/admin/deposits/${id}/verify`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await getAuthHeaders(),
     body: JSON.stringify({ notes: adminNotes }),
   });
   if (!res.ok) {
@@ -122,7 +134,7 @@ async function verifyDeposit(id: string, adminNotes?: string): Promise<void> {
 async function rejectDeposit(id: string, reason: string): Promise<void> {
   const res = await fetch(`${API_BASE}/api/v1/admin/deposits/${id}/reject`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await getAuthHeaders(),
     body: JSON.stringify({ reason }),
   });
   if (!res.ok) {
@@ -132,7 +144,9 @@ async function rejectDeposit(id: string, reason: string): Promise<void> {
 }
 
 async function getDepositDetails(id: string): Promise<DepositRequest> {
-  const res = await fetch(`${API_BASE}/api/v1/admin/deposits/${id}`);
+  const res = await fetch(`${API_BASE}/api/v1/admin/deposits/${id}`, {
+    headers: await getAuthHeaders(),
+  });
   if (!res.ok) {
     throw new Error("Failed to fetch deposit details");
   }
