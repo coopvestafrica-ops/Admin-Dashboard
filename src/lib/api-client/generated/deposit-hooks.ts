@@ -68,7 +68,8 @@ export const getDeposits = async (params?: GetDepositsParams): Promise<DepositsL
 };
 
 export const getDepositSummary = async (): Promise<DepositSummary> => {
-  return customFetch<DepositSummary>("/api/admin/deposits/summary", { method: "GET" });
+  const response = await customFetch<{ success: boolean; data: DepositSummary }>("/api/admin/deposits/summary", { method: "GET" });
+  return response.data;
 };
 
 export const verifyDeposit = async (id: string, adminNotes?: string): Promise<{ success: boolean; message: string; deposit: Deposit }> => {
