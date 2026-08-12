@@ -24,7 +24,10 @@ export function getApiBaseUrl(): string {
 
 // Get the admin API URL prefix - used by the API client for admin endpoints
 export function getAdminApiUrl(): string {
-  return getApiBaseUrl();
+  // Admin routes are mounted at /api/admin on the backend (see server.js).
+  // Callers build `${getAdminApiUrl()}/members`, `${getAdminApiUrl()}/contributions/:id`,
+  // etc., so this must include the `/admin` segment or every call 404s.
+  return getApiBaseUrl() + '/admin';
 }
 
 // Get auth token from Supabase session
