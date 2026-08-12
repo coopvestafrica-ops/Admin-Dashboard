@@ -181,8 +181,12 @@ export function useApproveLoan(
 ) {
   const queryClient = useQueryClient();
   return useMutation<unknown, Error, string>({
-    mutationFn: (id) => customFetch(`/api/loans/${id}/approve`, { method: "POST" }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["getLoans"] }),
+    mutationFn: (id) => customFetch(`/api/admin/loans/${id}/approve`, { method: "POST" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["getLoans"] });
+      queryClient.invalidateQueries({ queryKey: ["getDashboardSummary"] });
+      queryClient.invalidateQueries({ queryKey: ["getLoanPortfolioSummary"] });
+    },
     ...options,
   });
 }
@@ -193,11 +197,15 @@ export function useRejectLoan(
   const queryClient = useQueryClient();
   return useMutation<unknown, Error, { id: string; reason: string }>({
     mutationFn: ({ id, reason }) =>
-      customFetch(`/api/loans/${id}/reject`, {
+      customFetch(`/api/admin/loans/${id}/reject`, {
         method: "POST",
         body: JSON.stringify({ reason }),
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["getLoans"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["getLoans"] });
+      queryClient.invalidateQueries({ queryKey: ["getDashboardSummary"] });
+      queryClient.invalidateQueries({ queryKey: ["getLoanPortfolioSummary"] });
+    },
     ...options,
   });
 }
