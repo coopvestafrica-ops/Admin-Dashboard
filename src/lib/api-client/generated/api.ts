@@ -394,16 +394,22 @@ export const getAuditLogs = async (params?: GetAuditLogsParams) => {
     { method: "GET" },
   );
   const rows = response?.logs || [];
-  const data = rows.map((l) => ({
-    id: String(l.id ?? ""),
-    action: String(l.action ?? ""),
-    actor: String(l.actor_name ?? l.actor_id ?? "Administrator"),
-    role: String(l.role ?? "admin"),
-    target: [l.target_model, l.target_id].filter(Boolean).join(" ") || undefined,
-    description: String(l.details ?? l.description ?? ""),
-    timestamp: String(l.created_at ?? l.timestamp ?? ""),
-    severity: String(l.severity ?? "Info"),
-  }));
+  const data = rows.map((l) => {
+    const rawDetails = l.details ?? l.description;
+    const description = rawDetails && typeof rawDetails === "object"
+      ? JSON.stringify(rawDetails)
+      : String(rawDetails ?? "");
+    return {
+      id: String(l.id ?? ""),
+      action: String(l.action ?? ""),
+      actor: String(l.actor_name ?? l.actor_id ?? "Administrator"),
+      role: String(l.role ?? "admin"),
+      target: [l.target_model, l.target_id].filter(Boolean).join(" ") || undefined,
+      description,
+      timestamp: String(l.created_at ?? l.timestamp ?? ""),
+      severity: String(l.severity ?? "Info"),
+    };
+  });
   return { data, total: response?.pagination?.total ?? data.length };
 };
 
