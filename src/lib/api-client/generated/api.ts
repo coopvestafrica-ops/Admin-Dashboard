@@ -395,10 +395,10 @@ export const getAuditLogs = async (params?: GetAuditLogsParams) => {
   );
   const rows = response?.logs || [];
   const data = rows.map((l) => {
-    const rawDetails = l.details ?? l.metadata ?? l.description;
-    const description = rawDetails && typeof rawDetails === "object"
-      ? JSON.stringify(rawDetails)
-      : String(rawDetails ?? "");
+    const candidates = [l.metadata, l.details, l.description];
+    const raw = candidates.find((c) => c && typeof c === "object" && Object.keys(c).length > 0)
+      ?? candidates.find((c) => typeof c === "string" && c);
+    const description = raw && typeof raw === "object" ? JSON.stringify(raw) : String(raw ?? "");
     return {
       id: String(l.id ?? ""),
       action: String(l.action ?? ""),
