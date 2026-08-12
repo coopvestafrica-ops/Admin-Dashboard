@@ -60,10 +60,15 @@ interface ApiLoan {
 const statusCfg: Record<string, { label: string; cls: string }> = {
   pending:  { label: "Pending",  cls: "bg-amber-100 text-amber-800" },
   active:   { label: "Active",   cls: "bg-emerald-100 text-emerald-800" },
+  approved: { label: "Approved", cls: "bg-teal-100 text-teal-800" },
+  disbursed:{ label: "Disbursed",cls: "bg-emerald-100 text-emerald-800" },
   repaid:   { label: "Repaid",   cls: "bg-blue-100 text-blue-800" },
+  completed:{ label: "Completed",cls: "bg-blue-100 text-blue-800" },
   defaulted:{ label: "Defaulted",cls: "bg-red-100 text-red-800" },
+  in_recovery:{ label: "In Recovery", cls: "bg-orange-100 text-orange-800" },
   rejected: { label: "Rejected", cls: "bg-gray-100 text-gray-600" },
   frozen:   { label: "Frozen",   cls: "bg-indigo-100 text-indigo-800" },
+  cancelled:{ label: "Cancelled",cls: "bg-gray-100 text-gray-600" },
 };
 
 const riskColor = (s: number) =>
