@@ -11,8 +11,9 @@ import {
   PiggyBank, Building2, FileText, Download, RefreshCw, ArrowUpRight,
   ArrowRight, Coins, Landmark, Receipt, ArrowRightLeft, Calculator
 } from "lucide-react";
+import { getAccessToken } from "@/lib/supabase";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://coopvest-api.onrender.com";
 
 interface FinancialSummary {
   totalContributions: number;
@@ -55,42 +56,39 @@ export default function FinancialDashboard() {
   const fetchFinancialData = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch contributions
-      const contribRes = await fetch(`${API_BASE}/api/contributions`);
-      const contribData = await contribRes.json();
-      const totalContributions = (contribData.contributions || []).reduce(
-        (sum: number, c: any) => sum + Number(c.amount || 0), 0
-      );
+      const token = await getAccessToken();
+      const headers = token ? { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
 
-      // Fetch loans summary
-      const loansRes = await fetch(`${API_BASE}/api/loans/portfolio-summary`);
-      const loansData = await loansRes.json();
-      const totalDisbursed = loansData.totalDisbursed || 0;
-      const collected = loansData.collected || 0;
+      // Helper: fetch JSON without letting one failing endpoint abort the whole page.
+      const safeGet = async (path: string) => {
+        try {
+          const res = await fetch(`${API_BASE}${path}`, { headers });
+          if (!res.ok) return null;
+          return await res.json();
+        } catch {
+          return null;
+        }
+      };
 
-      // Fetch investments
-      const investRes = await fetch(`${API_BASE}/api/investments`);
-      const investData = await investRes.json();
-      const totalInvestments = (investData.investments || []).reduce(
-        (sum: number, i: any) => sum + Number(i.amount || 0), 0
-      );
+      // Contributions (admin summary) — { data: { totalSaved, monthlyContributions, ... } }
+      const contribData = await safeGet("/api/admin/contributions/summary");
+      const totalContributions = Number(contribData?.data?.totalSaved ?? contribData?.totalSaved ?? 0);
 
-      // Fetch payroll
-      const payrollRes = await fetch(`${API_BASE}/api/payroll`);
-      const payrollData = await payrollRes.json();
-      const totalPayroll = (payrollData.batches || []).reduce(
-        (sum: number, p: any) => sum + Number(p.total_amount || 0), 0
-      );
+      // Loans portfolio (admin) — { data: { totalAmount, activeAmount, ... } }
+      const loansData = await safeGet("/api/admin/loans/portfolio-summary");
+      const totalDisbursed = Number(loansData?.data?.totalAmount ?? loansData?.totalAmount ?? 0);
+      const collected = Number(loansData?.data?.activeAmount ?? loansData?.collected ?? 0);
 
-      // Fetch withdrawals
-      const withdrawRes = await fetch(`${API_BASE}/api/withdrawals`);
-      const withdrawData = await withdrawRes.json();
-      const totalWithdrawals = (withdrawData.withdrawals || []).reduce(
-        (sum: number, w: any) => sum + Number(w.amount || 0), 0
-      );
+      // Investments portfolio (admin) — { data: { totalInvested, pools, ... } }
+      const investData = await safeGet("/api/admin/investments/portfolio");
+      const totalInvestments = Number(investData?.data?.totalInvested ?? investData?.totalInvested ?? 0);
 
-      // Estimate registration fees (we'll add this to transactions later)
-      const registrationFees = 0; // Will be populated from actual data
+      // Payroll / withdrawals have no backend endpoints yet — leave at 0.
+      const totalPayroll = 0;
+      const totalWithdrawals = 0;
+
+      // Registration fees (populated from transactions later)
+      const registrationFees = 0;
 
       // Calculate net flow
       const netFlow = totalContributions + collected - totalDisbursed - totalPayroll - totalWithdrawals;
@@ -106,67 +104,26 @@ export default function FinancialDashboard() {
         netFlow,
       });
 
-      // Build transaction list
-      const allTransactions: Transaction[] = [];
-
-      // Add contributions as transactions
-      (contribData.contributions || []).forEach((c: any) => {
-        allTransactions.push({
-          id: c.id,
-          type: "credit",
-          category: "contribution",
-          amount: Number(c.amount),
-          date: c.created_at,
-          description: `${c.contribution_type || 'Contribution'} - ${c.profile_id?.slice(0,8) || 'Member'}`,
-          reference: c.transaction_reference || c.id,
-          status: c.status || "completed",
-        });
-      });
-
-      // Add investments
-      (investData.investments || []).forEach((i: any) => {
-        allTransactions.push({
-          id: i.id,
-          type: "debit",
-          category: "investment",
-          amount: Number(i.amount || i.total_value || 0),
-          date: i.created_at,
-          description: `${i.investment_type || 'Investment'} - ${i.profile_id?.slice(0,8) || 'Member'}`,
-          reference: i.reference || i.id,
-          status: i.status || "active",
-        });
-      });
-
-      // Add payroll as transactions
-      (payrollData.batches || []).forEach((p: any) => {
-        allTransactions.push({
-          id: p.id,
-          type: "debit",
-          category: "payroll",
-          amount: Number(p.total_amount || 0),
-          date: p.created_at,
-          description: `Payroll - ${p.organization_name || p.employer || 'Organization'}`,
-          reference: p.batch_id || p.id,
-          status: p.status || "processed",
-        });
-      });
-
-      // Add withdrawals
-      (withdrawData.withdrawals || []).forEach((w: any) => {
-        allTransactions.push({
-          id: w.id,
-          type: "debit",
-          category: "withdrawal",
-          amount: Number(w.amount),
-          date: w.created_at,
-          description: `Withdrawal - ${w.profile_id?.slice(0,8) || 'Member'}`,
-          reference: w.reference || w.id,
-          status: w.status || "completed",
-        });
+      // Build transaction list from the admin transactions endpoint.
+      // { transactions: [ { id, amount, type, status, created_at, profile, ... } ] }
+      const txData = await safeGet("/api/admin/transactions?limit=100");
+      const txList: any[] = txData?.transactions || txData?.data || [];
+      const allTransactions: Transaction[] = txList.map((t: any) => {
+        const isCredit = ['deposit', 'savings_deposit', 'transfer_in', 'repayment', 'interest'].includes(t.type);
+        return {
+          id: String(t.id ?? ''),
+          type: isCredit ? "credit" : "debit",
+          category: t.type || "transaction",
+          amount: Number(t.amount || 0),
+          date: t.created_at,
+          description: `${t.type || 'Transaction'} - ${t.profile?.name?.slice(0, 20) || t.profile?.email?.slice(0, 20) || 'Member'}`,
+          reference: t.reference || t.id || '',
+          status: t.status || "completed",
+        };
       });
 
       // Sort by date
-      allTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      allTransactions.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
       setTransactions(allTransactions);
 
     } catch (err) {

@@ -78,7 +78,9 @@ async function fetchAnalyticsData(): Promise<AnalyticsData | null> {
     const token = await getAccessToken();
     if (!token) return null;
 
-    const apiUrl = import.meta.env.VITE_API_BASE_URL || "";
+    // Use the same base URL resolution as the rest of the app so the request
+    // reaches the backend even when VITE_API_BASE_URL is not set at build time.
+    const apiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://coopvest-api.onrender.com";
     const headers = { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" };
 
     const [repaymentRes, riskRes, defaulterRes] = await Promise.all([
@@ -95,11 +97,18 @@ async function fetchAnalyticsData(): Promise<AnalyticsData | null> {
       defaulterRes.json(),
     ]);
 
-    return {
-      repaymentTrend: repaymentData.trends || [],
-      riskExposure: riskData.exposures || [],
-      defaulterTrend: defaulterData.trends || [],
-    };
+    // Backend returns { success, data } — read `.data`, not `.trends`/`.exposures`.
+    const repaymentTrend = Array.isArray(repaymentData.data) ? repaymentData.data : (repaymentData.trends || []);
+    const riskRaw = Array.isArray(riskData.data) ? riskData.data : (riskData.exposures || []);
+    const defaulterTrend = Array.isArray(defaulterData.data) ? defaulterData.data : (defaulterData.trends || []);
+
+    // risk-exposure may be a monthly array or a single summary object; normalize to a
+    // monthly array for the BarChart (which expects { month, exposure }[]).
+    const riskExposure = riskRaw.length > 0 && riskRaw[0].month
+      ? riskRaw.map((r: any) => ({ month: r.month, exposure: Number(r.exposure ?? r.totalExposure ?? 0) }))
+      : riskRaw;
+
+    return { repaymentTrend, riskExposure, defaulterTrend };
   } catch {
     return null;
   }
