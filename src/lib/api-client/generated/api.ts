@@ -340,14 +340,19 @@ export const getNotifications = async () => {
     { method: "GET" }
   );
   const rows = (response?.notifications || []) as Record<string, unknown>[];
-  const data = rows.map((n) => ({
-    id: String(n.id ?? ""),
-    title: String(n.title ?? ""),
-    message: String(n.message ?? n.body ?? ""),
-    type: String(n.type ?? "system"),
-    isRead: Boolean(n.is_read ?? n.isRead ?? false),
-    createdAt: String(n.created_at ?? n.createdAt ?? ""),
-  }));
+  const data = rows.map((n) => {
+    // `category` holds the UI severity (info/warning/success/error); `type` is
+    // the constrained DB type (system/loan/...). Prefer category for display.
+    const displayType = String(n.category || n.type || "info");
+    return {
+      id: String(n.id ?? ""),
+      title: String(n.title ?? ""),
+      message: String(n.message ?? n.body ?? ""),
+      type: displayType,
+      isRead: Boolean(n.is_read ?? n.isRead ?? false),
+      createdAt: String(n.created_at ?? n.createdAt ?? ""),
+    };
+  });
   return { success: true, data };
 };
 
