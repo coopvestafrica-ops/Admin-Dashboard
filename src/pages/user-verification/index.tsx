@@ -32,6 +32,7 @@ import {
   RefreshCw,
   Eye,
 } from "lucide-react";
+import { authedFetch } from "@/lib/authed-fetch";
 
 type KYCStatus = "pending" | "verified" | "rejected" | "resubmission_requested";
 type DocType = "NIN" | "BVN" | "passport" | "drivers_license";
@@ -73,7 +74,7 @@ const docTypeLabels: Record<DocType, string> = {
 
 async function fetchVerifications(params: Record<string, string>): Promise<KYCResponse> {
   const qs = new URLSearchParams(params).toString();
-  const res = await fetch(`/api/verification?${qs}`);
+  const res = await authedFetch(`/api/admin/verification?${qs}`);
   if (!res.ok) {
     const json = await res.json().catch(() => ({}));
     throw new Error(json.error || "Failed to fetch KYC records");
@@ -86,9 +87,8 @@ async function reviewKYC(
   action: "verify" | "reject" | "request_resubmission",
   reason?: string,
 ): Promise<void> {
-  const res = await fetch(`/api/verification/${id}/${action}`, {
+  const res = await authedFetch(`/api/admin/verification/${id}/${action}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ reason }),
   });
   if (!res.ok) {

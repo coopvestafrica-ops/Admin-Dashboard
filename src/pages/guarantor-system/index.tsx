@@ -17,6 +17,7 @@ import {
   Users,
   Clock,
 } from "lucide-react";
+import { authedFetch } from "@/lib/authed-fetch";
 
 interface GuarantorRelationship {
   id: number;
@@ -59,22 +60,21 @@ const relStatusConfig: Record<string, { label: string; className: string }> = {
 };
 
 async function fetchGuarantors(): Promise<GuarantorsResponse> {
-  const res = await fetch("/api/guarantors");
+  const res = await authedFetch("/api/admin/guarantors");
   if (!res.ok) throw new Error("Failed to fetch guarantor data");
   return res.json();
 }
 
 async function saveGuarantorSettings(settings: GuarantorSettings): Promise<void> {
-  const res = await fetch("/api/guarantors/settings", {
+  const res = await authedFetch("/api/admin/guarantors/settings", {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(settings),
   });
   if (!res.ok) throw new Error("Failed to save settings");
 }
 
 async function processRequest(id: number, action: "approve" | "reject"): Promise<void> {
-  const res = await fetch(`/api/guarantors/requests/${id}/${action}`, {
+  const res = await authedFetch(`/api/admin/guarantors/requests/${id}/${action}`, {
     method: "POST",
   });
   if (!res.ok) throw new Error("Action failed");

@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Building2, Plus, ChevronDown, ChevronRight, Users, Search, Briefcase, TrendingUp, CheckCircle, AlertCircle, Clock, Download, RefreshCw, ArrowRightLeft } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
+import { authedFetch } from "@/lib/authed-fetch";
 
 interface ApiOrg {
   id: string;
@@ -56,7 +57,7 @@ export default function Organizations() {
   const { data: orgsData, isLoading: loadingOrgs, refetch: refetchOrgs } = useQuery({
     queryKey: ["organizations"],
     queryFn: async () => {
-      const res = await fetch("/api/organizations");
+      const res = await authedFetch("/api/admin/organizations");
       if (!res.ok) throw new Error("Failed to fetch organizations");
       return res.json() as Promise<{ organizations: ApiOrg[]; total: number }>;
     },

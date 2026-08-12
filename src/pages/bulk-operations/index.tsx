@@ -12,6 +12,7 @@ import {
   Upload, Download, Users, FileSpreadsheet, CheckCircle,
   XCircle, AlertTriangle, History, RefreshCw, FileText
 } from "lucide-react";
+import { authedFetch } from "@/lib/authed-fetch";
 
 export default function BulkOperations() {
   const { toast } = useToast();
@@ -61,12 +62,11 @@ export default function BulkOperations() {
         return obj;
       });
 
-      const endpoint = importType === "members" ? "/api/bulk/import-members" : "/api/bulk/import-contributions";
+      const endpoint = importType === "members" ? "/api/admin/bulk/import-members" : "/api/admin/bulk/import-contributions";
       const payload = importType === "members" ? { members: data } : { contributions: data };
 
-      const res = await fetch(endpoint, {
+      const res = await authedFetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
@@ -87,7 +87,7 @@ export default function BulkOperations() {
 
   const handleExport = async () => {
     try {
-      const res = await fetch(`/api/bulk/export-members?status=${exportStatus}&format=${exportFormat}`);
+      const res = await authedFetch(`/api/admin/bulk/export-members?status=${exportStatus}&format=${exportFormat}`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");

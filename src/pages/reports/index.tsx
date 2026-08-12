@@ -14,6 +14,7 @@ import {
   FileText, Plus, Calendar, Clock, Mail, Play, Trash2,
   Download, CheckCircle, XCircle, RefreshCw, History
 } from "lucide-react";
+import { authedFetch } from "@/lib/authed-fetch";
 
 interface ScheduledReport {
   id: string;
@@ -53,7 +54,7 @@ export default function Reports() {
   const fetchReports = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/reports/scheduled");
+      const res = await authedFetch("/api/admin/reports/scheduled");
       // Check if response is HTML (error page) instead of JSON
       const contentType = res.headers.get("content-type");
       if (!res.ok || !contentType?.includes("application/json")) {
@@ -85,9 +86,8 @@ export default function Reports() {
     }
 
     try {
-      const res = await fetch("/api/reports/scheduled", {
+      const res = await authedFetch("/api/admin/reports/scheduled", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: newReport.name,
           type: newReport.type,
@@ -112,9 +112,8 @@ export default function Reports() {
 
   const toggleReport = async (id: string, enabled: boolean) => {
     try {
-      await fetch(`/api/reports/scheduled/${id}/toggle`, {
+      await authedFetch(`/api/admin/reports/scheduled/${id}/toggle`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled }),
       });
       fetchReports();
@@ -125,7 +124,7 @@ export default function Reports() {
 
   const runReport = async (id: string) => {
     try {
-      const res = await fetch(`/api/reports/scheduled/${id}/run`, { method: "POST" });
+      const res = await authedFetch(`/api/admin/reports/scheduled/${id}/run`, { method: "POST" });
       const data = await res.json();
       if (data.success) {
         toast({ title: "Success", description: `Report generated with ${data.rowCount} rows` });
@@ -138,7 +137,7 @@ export default function Reports() {
   const deleteReport = async (id: string) => {
     if (!confirm("Are you sure you want to delete this report?")) return;
     try {
-      await fetch(`/api/reports/scheduled/${id}`, { method: "DELETE" });
+      await authedFetch(`/api/admin/reports/scheduled/${id}`, { method: "DELETE" });
       toast({ title: "Success", description: "Report deleted" });
       fetchReports();
     } catch {

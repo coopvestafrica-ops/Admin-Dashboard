@@ -15,6 +15,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from "recharts";
+import { authedFetch } from "@/lib/authed-fetch";
 
 interface Analytics {
   kpis: {
@@ -54,7 +55,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 async function fetchAnalytics(): Promise<Analytics> {
   try {
-    const res = await fetch("/api/analytics");
+    const res = await authedFetch("/api/admin/analytics");
     if (!res.ok) return EMPTY_ANALYTICS;
     const json = await res.json();
     // Validate the response has expected structure

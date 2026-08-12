@@ -11,6 +11,7 @@ import {
   DollarSign, TrendingUp, Clock, FileText
 } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
+import { authedFetch } from "@/lib/authed-fetch";
 
 export default function Reconciliation() {
   const { toast } = useToast();
@@ -23,7 +24,7 @@ export default function Reconciliation() {
   const fetchOverview = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/reconciliation/overview?month=${selectedMonth}`);
+      const res = await authedFetch(`/api/admin/reconciliation/overview?month=${selectedMonth}`);
       const data = await res.json();
       setOverview(data);
     } catch {
@@ -36,7 +37,7 @@ export default function Reconciliation() {
   const fetchUnreconciled = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/reconciliation/unreconciled?type=contributions");
+      const res = await authedFetch("/api/admin/reconciliation/unreconciled?type=contributions");
       const json = await res.json();
       const unreconciledData = json && typeof json === 'object' && Array.isArray(json.data) ? json.data : [];
       setUnreconciled(unreconciledData);
@@ -49,9 +50,8 @@ export default function Reconciliation() {
 
   const handleReconcile = async (id: string, action: "approve" | "reject") => {
     try {
-      const res = await fetch("/api/reconciliation/reconcile", {
+      const res = await authedFetch("/api/admin/reconciliation/reconcile", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           transactionId: id,
           transactionType: "contribution",
@@ -75,9 +75,8 @@ export default function Reconciliation() {
   const handleBulkReconcile = async (action: "approve" | "reject") => {
     const ids = unreconciled.slice(0, 10).map((t) => t.id);
     try {
-      const res = await fetch("/api/reconciliation/bulk-reconcile", {
+      const res = await authedFetch("/api/admin/reconciliation/bulk-reconcile", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           transactionIds: ids,
           transactionType: "contribution",

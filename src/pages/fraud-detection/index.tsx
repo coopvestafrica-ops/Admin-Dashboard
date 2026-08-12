@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, Shield, Flame, CheckCircle, XCircle, Flag, Search, TrendingUp } from "lucide-react";
+import { authedFetch } from "@/lib/authed-fetch";
 
 type RiskLevel = "Critical" | "High" | "Medium" | "Low";
 type FlagStatus = "Open" | "Under Review" | "Resolved" | "Escalated";
@@ -42,15 +43,15 @@ const STATUS_CONFIG: Record<FlagStatus, { color: string; bg: string }> = {
 };
 
 async function fetchFraudAlerts(): Promise<FraudAlert[]> {
-  const res = await fetch("/api/fraud-detection");
+  const res = await authedFetch("/api/admin/fraud-detection");
   if (!res.ok) return MOCK_ALERTS;
-  return res.json();
+  const json = await res.json();
+  return Array.isArray(json.alerts) ? json.alerts : (Array.isArray(json) ? json : MOCK_ALERTS);
 }
 
 async function updateAlertStatus(payload: { id: number; action: string }): Promise<void> {
-  const res = await fetch(`/api/fraud-detection/${payload.id}`, {
+  const res = await authedFetch(`/api/admin/fraud-detection/${payload.id}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: payload.action }),
   });
   if (!res.ok) throw new Error("Failed to update alert");

@@ -9,6 +9,7 @@ import {
   Monitor, Smartphone, Globe, Clock, Shield, Users,
   LogOut, RefreshCw, AlertTriangle, CheckCircle, XCircle
 } from "lucide-react";
+import { authedFetch } from "@/lib/authed-fetch";
 
 interface Session {
   id: string;
@@ -36,7 +37,7 @@ export default function Sessions() {
   const fetchSessions = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/sessions");
+      const res = await authedFetch("/api/admin/sessions");
       const json = await res.json();
       const sessionsData = json && typeof json === 'object' && Array.isArray(json.data) ? json.data : [];
       setSessions(sessionsData);
@@ -49,7 +50,7 @@ export default function Sessions() {
 
   const fetchMySessions = async () => {
     try {
-      const res = await fetch("/api/sessions/me");
+      const res = await authedFetch("/api/admin/sessions/me");
       const json = await res.json();
       const mySessionsData = json && typeof json === 'object' && Array.isArray(json.data) ? json.data : [];
       setMySessions(mySessionsData);
@@ -60,7 +61,7 @@ export default function Sessions() {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch("/api/sessions/stats");
+      const res = await authedFetch("/api/admin/sessions/stats");
       const data = await res.json();
       setStats(data);
     } catch {
@@ -72,7 +73,7 @@ export default function Sessions() {
     if (!confirm("Are you sure you want to terminate this session?")) return;
 
     try {
-      const res = await fetch(`/api/sessions/${sessionId}`, { method: "DELETE" });
+      const res = await authedFetch(`/api/admin/sessions/${sessionId}`, { method: "DELETE" });
       if (res.ok) {
         toast({ title: "Success", description: "Session terminated" });
         fetchSessions();
@@ -86,7 +87,7 @@ export default function Sessions() {
     if (!confirm("This will log out the user from all devices. Continue?")) return;
 
     try {
-      const res = await fetch(`/api/sessions/user/${userId}`, { method: "DELETE" });
+      const res = await authedFetch(`/api/admin/sessions/user/${userId}`, { method: "DELETE" });
       if (res.ok) {
         toast({ title: "Success", description: "All user sessions terminated" });
         fetchSessions();
@@ -100,7 +101,7 @@ export default function Sessions() {
     if (!confirm("This will log you out from all other devices. Continue?")) return;
 
     try {
-      const res = await fetch("/api/sessions/terminate-others", { method: "DELETE" });
+      const res = await authedFetch("/api/admin/sessions/terminate-others", { method: "DELETE" });
       if (res.ok) {
         toast({ title: "Success", description: "Logged out from other devices" });
         fetchMySessions();

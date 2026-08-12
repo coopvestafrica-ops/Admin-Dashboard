@@ -17,6 +17,7 @@ import {
   Users,
   TrendingUp,
 } from "lucide-react";
+import { authedFetch } from "@/lib/authed-fetch";
 
 interface PayrollBatch {
   id: string;
@@ -48,7 +49,7 @@ export default function Payroll() {
 
   useEffect(() => {
     setLoadingBatches(true);
-    fetch("/api/payroll/batches")
+    authedFetch("/api/admin/payroll/batches")
       .then(r => r.ok ? r.json() : { batches: [] })
       .then((d: { batches?: PayrollBatch[] }) => setBatches(d.batches ?? []))
       .catch(() => setBatches([]))

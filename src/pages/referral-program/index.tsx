@@ -16,6 +16,7 @@ import {
   Trophy,
   Save,
 } from "lucide-react";
+import { authedFetch } from "@/lib/authed-fetch";
 
 interface ReferralSettings {
   enabled: boolean;
@@ -45,15 +46,14 @@ interface ReferralsResponse {
 }
 
 async function fetchReferrals(): Promise<ReferralsResponse> {
-  const res = await fetch("/api/referrals");
+  const res = await authedFetch("/api/admin/referrals");
   if (!res.ok) throw new Error("Failed to fetch referrals");
   return res.json();
 }
 
 async function saveSettings(settings: ReferralSettings): Promise<void> {
-  const res = await fetch("/api/referrals/settings", {
+  const res = await authedFetch("/api/admin/referrals/settings", {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(settings),
   });
   if (!res.ok) throw new Error("Failed to save settings");

@@ -11,6 +11,7 @@ import {
   LogIn, Monitor, Smartphone, Globe, MapPin, AlertTriangle,
   Shield, Clock, Filter, Search, RefreshCw, Ban, CheckCircle, XCircle
 } from "lucide-react";
+import { authedFetch } from "@/lib/authed-fetch";
 
 interface LoginEntry {
   id: string;
@@ -42,7 +43,7 @@ export default function LoginHistory() {
       if (search) params.append("search", search);
       if (statusFilter !== "all") params.append("status", statusFilter);
 
-      const res = await fetch(`/api/login-history?${params}`);
+      const res = await authedFetch(`/api/admin/login-history?${params}`);
       const json = await res.json();
       const loginsData = json && typeof json === 'object' && Array.isArray(json.data) ? json.data : [];
       setLogins(loginsData);
@@ -55,7 +56,7 @@ export default function LoginHistory() {
 
   const fetchSuspicious = async () => {
     try {
-      const res = await fetch("/api/login-history/suspicious?hours=24");
+      const res = await authedFetch("/api/admin/login-history/suspicious?hours=24");
       const data = await res.json();
       setSuspicious(data);
     } catch {
@@ -67,9 +68,8 @@ export default function LoginHistory() {
     if (!confirm(`Block IP address ${ip}?`)) return;
 
     try {
-      const res = await fetch("/api/security/block", {
+      const res = await authedFetch("/api/admin/security/block", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "ip",
           value: ip,
