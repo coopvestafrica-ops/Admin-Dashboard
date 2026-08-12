@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { useGetNotifications } from "@/lib/api-client";
+import { api } from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Bell, BellOff, Info, AlertTriangle, CheckCircle, AlertCircle,
@@ -17,8 +18,6 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 const typeConfig: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
   info:    { icon: Info,          color: "text-blue-600",    bg: "bg-blue-50"    },
@@ -67,30 +66,17 @@ const TEMPLATES = [
 function useMarkRead() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: number) => {
-      const res = await fetch(`${BASE}/api/notifications/${id}/read`, { method: "POST" });
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json.error || "Failed to mark notification as read");
-      }
-      return res.json();
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/notifications"] }),
+    mutationFn: (id: number | string) =>
+      api.post(`/admin/notifications/${id}/read`, {}),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["getNotifications"] }),
   });
 }
 
 function useMarkAllRead() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
-      const res = await fetch(`${BASE}/api/notifications/read-all`, { method: "POST" });
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json.error || "Failed to mark all notifications as read");
-      }
-      return res.json();
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/notifications"] }),
+    mutationFn: () => api.post(`/admin/notifications/read-all`, {}),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["getNotifications"] }),
   });
 }
 
@@ -100,23 +86,14 @@ function useSendNotification() {
     mutationFn: async (payload: {
       title: string; message: string; type: string; channels: string[]; audience: string;
     }) => {
-      const res = await fetch(`${BASE}/api/notifications`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      // Backend broadcast saves a notification row for every active member.
+      return api.post(`/admin/notifications/broadcast`, {
+        title: payload.title,
+        message: payload.message,
+        type: payload.type,
       });
-      const json = await res.json();
-      // Even if push fails, the notification is saved - consider that success
-      if (!res.ok) {
-        throw new Error(json.error || "Failed to save notification");
-      }
-      // Check if there was a database error
-      if (json.error) {
-        throw new Error(json.error);
-      }
-      return json;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/notifications"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["getNotifications"] }),
   });
 }
 

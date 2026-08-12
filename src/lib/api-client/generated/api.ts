@@ -334,13 +334,27 @@ export function useGetComplianceSummary<TData = ComplianceSummary, TError = Erro
 
 // ─── Notifications ─────────────────────────────────────────────────────────────
 
-export const getNotifications = () =>
-  customFetch<Notification[]>("/api/admin/notifications", { method: "GET" });
+export const getNotifications = async () => {
+  const response = await customFetch<{ success: boolean; notifications?: unknown[] }>(
+    "/api/admin/notifications",
+    { method: "GET" }
+  );
+  const rows = (response?.notifications || []) as Record<string, unknown>[];
+  const data = rows.map((n) => ({
+    id: String(n.id ?? ""),
+    title: String(n.title ?? ""),
+    message: String(n.message ?? n.body ?? ""),
+    type: String(n.type ?? "system"),
+    isRead: Boolean(n.is_read ?? n.isRead ?? false),
+    createdAt: String(n.created_at ?? n.createdAt ?? ""),
+  }));
+  return { success: true, data };
+};
 
-export function useGetNotifications<TData = Notification[], TError = Error>(
-  options?: { query?: UseQueryOptions<Notification[], TError, TData> }
+export function useGetNotifications<TData = { success: boolean; data: Notification[] }, TError = Error>(
+  options?: { query?: UseQueryOptions<{ success: boolean; data: Notification[] }, TError, TData> }
 ) {
-  return useQuery<Notification[], TError, TData>({
+  return useQuery<{ success: boolean; data: Notification[] }, TError, TData>({
     queryKey: ["getNotifications"],
     queryFn: () => getNotifications(),
     ...options?.query,

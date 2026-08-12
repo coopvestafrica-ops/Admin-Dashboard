@@ -450,7 +450,7 @@ export default function AccountingSpreadsheet() {
     includeTypes: ["savings", "levy", "loan_repayment", "entrance_fee", "refund", "special"],
   });
   const [chartData, setChartData] = useState<{ labels: string[]; values: number[] }>({ labels: [], values: [] });
-  inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Fetch financial data for reports

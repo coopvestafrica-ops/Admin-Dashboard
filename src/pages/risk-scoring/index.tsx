@@ -27,9 +27,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { getAccessToken } from "@/lib/supabase";
-
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { api } from "@/lib/api";
 
 interface RiskMember {
   id: string;
@@ -80,17 +78,7 @@ export default function RiskScoring() {
 
   const { data: resp, isLoading, isError } = useQuery<RiskResponse>({
     queryKey: ["risk-scoring"],
-    queryFn: async () => {
-      const token = await getAccessToken();
-      const res = await fetch(`${BASE}/api/risk-scoring?limit=100`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json.error || "Failed to fetch risk scoring data");
-      }
-      return res.json() as Promise<RiskResponse>;
-    },
+    queryFn: () => api.get<RiskResponse>("/admin/risk-scoring?limit=100"),
   });
 
   const members = resp?.data && Array.isArray(resp.data) ? resp.data : [];
