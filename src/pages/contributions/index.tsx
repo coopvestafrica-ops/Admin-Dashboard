@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGetContributions, useGetContributionSummary, useGetMonthlyContributions, useGetDeposits, useGetDepositSummary, useVerifyDeposit, useRejectDeposit } from "@/lib/api-client";
+import { getAdminApiUrl } from "@/lib/api";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import { Search, Wallet, TrendingUp, CheckCircle, AlertCircle, XCircle, Download, Upload, RefreshCw, PlusCircle, FileSpreadsheet, ArrowDownUp, Banknote, Clock, Check, X, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -133,7 +134,7 @@ export default function Contributions() {
         setSearchingMember(true);
         try {
           const token = await getAccessToken();
-          const res = await fetch(`/api/members?search=${encodeURIComponent(singleMemberSearch)}&limit=5`, {
+          const res = await fetch(`${getAdminApiUrl()}/members?search=${encodeURIComponent(singleMemberSearch)}&limit=5`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const json = await res.json();
