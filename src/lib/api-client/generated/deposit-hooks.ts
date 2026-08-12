@@ -62,18 +62,18 @@ export const getDeposits = async (params?: GetDepositsParams): Promise<DepositsL
   
   const queryString = searchParams.toString();
   return customFetch<DepositsListResponse>(
-    `/api/deposits${queryString ? `?${queryString}` : ""}`,
+    `/api/admin/deposits${queryString ? `?${queryString}` : ""}`,
     { method: "GET" }
   );
 };
 
 export const getDepositSummary = async (): Promise<DepositSummary> => {
-  return customFetch<DepositSummary>("/api/deposits/summary", { method: "GET" });
+  return customFetch<DepositSummary>("/api/admin/deposits/summary", { method: "GET" });
 };
 
 export const verifyDeposit = async (id: string, adminNotes?: string): Promise<{ success: boolean; message: string; deposit: Deposit }> => {
   return customFetch<{ success: boolean; message: string; deposit: Deposit }>(
-    `/api/deposits/${id}/verify`,
+    `/api/admin/deposits/${id}/verify`,
     {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -84,7 +84,7 @@ export const verifyDeposit = async (id: string, adminNotes?: string): Promise<{ 
 
 export const rejectDeposit = async (id: string, adminNotes?: string): Promise<{ success: boolean; message: string; deposit: Deposit }> => {
   return customFetch<{ success: boolean; message: string; deposit: Deposit }>(
-    `/api/deposits/${id}/reject`,
+    `/api/admin/deposits/${id}/reject`,
     {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -95,7 +95,7 @@ export const rejectDeposit = async (id: string, adminNotes?: string): Promise<{ 
 
 export const cancelDeposit = async (id: string): Promise<{ success: boolean; message: string; deposit: Deposit }> => {
   return customFetch<{ success: boolean; message: string; deposit: Deposit }>(
-    `/api/deposits/${id}/cancel`,
+    `/api/admin/deposits/${id}/cancel`,
     { method: "PATCH" }
   );
 };
