@@ -10,8 +10,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search, ShieldCheck, ShieldX, Clock, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-
 const statusConfig: Record<string, { label: string; className: string }> = {
   pending: { label: "Pending", className: "bg-amber-100 text-amber-800" },
   approved: { label: "Approved", className: "bg-emerald-100 text-emerald-800" },
@@ -32,7 +30,10 @@ function useUpdateKyc(action: "approve" | "reject") {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: number) => {
-      const res = await fetch(`${BASE}/api/compliance/${id}/${action}`, { method: "POST" });
+      const res = await fetch(`/api/admin/compliance/${id}/${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
         throw new Error(json.error || `Failed to ${action} KYC`);

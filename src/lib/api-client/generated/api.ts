@@ -303,8 +303,13 @@ interface ComplianceListResponse {
   limit: number;
 }
 
-export const getComplianceItems = (params?: GetComplianceParams) =>
-  customFetch<ComplianceListResponse>(`/api/admin/compliance${buildQs({ ...params })}`, { method: "GET" });
+export const getComplianceItems = async (params?: GetComplianceParams) => {
+  const response = await customFetch<{ success: boolean; data?: ComplianceItem[]; total?: number }>(
+    `/api/admin/compliance${buildQs({ ...params })}`,
+    { method: "GET" },
+  );
+  return { data: response?.data || [], total: response?.total ?? (response?.data?.length || 0), page: params?.page ?? 1, limit: params?.limit ?? 20 };
+};
 
 export const getComplianceSummary = async () => {
   const response = await customFetch<{success: boolean; data: ComplianceSummary}>("/api/admin/compliance/summary", { method: "GET" });
@@ -383,8 +388,24 @@ export function useGetSupportTickets<TData = SupportTicket[], TError = Error>(
 
 // ─── Audit Logs ────────────────────────────────────────────────────────────────
 
-export const getAuditLogs = (params?: GetAuditLogsParams) =>
-  customFetch<{ data: AuditLog[]; total: number }>(`/api/audit-logs${buildQs({ ...params })}`, { method: "GET" });
+export const getAuditLogs = async (params?: GetAuditLogsParams) => {
+  const response = await customFetch<{ success: boolean; logs?: Record<string, unknown>[]; pagination?: { total?: number } }>(
+    `/api/admin/audit-logs${buildQs({ ...params })}`,
+    { method: "GET" },
+  );
+  const rows = response?.logs || [];
+  const data = rows.map((l) => ({
+    id: String(l.id ?? ""),
+    action: String(l.action ?? ""),
+    actor: String(l.actor_name ?? l.actor_id ?? "Administrator"),
+    role: String(l.role ?? "admin"),
+    target: [l.target_model, l.target_id].filter(Boolean).join(" ") || undefined,
+    description: String(l.details ?? l.description ?? ""),
+    timestamp: String(l.created_at ?? l.timestamp ?? ""),
+    severity: String(l.severity ?? "Info"),
+  }));
+  return { data, total: response?.pagination?.total ?? data.length };
+};
 
 export function useGetAuditLogs<TData = { data: AuditLog[]; total: number }, TError = Error>(
   params?: GetAuditLogsParams,
