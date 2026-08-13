@@ -207,14 +207,43 @@ export default function MemberProfile() {
       // with snake_case keys (loan_id, loan_type, remaining_balance, tenure_months,
       // created_at); map to the camelCase shape the table expects.
       const rawLoans = loansJson.data || loansJson.loans || [];
-      setLoansData(rawLoans.map((l: any) => ({
-        ...l,
-        loanId: l.loanId || l.loan_id || l.id,
-        loanType: l.loanType || l.loan_type,
-        outstandingBalance: l.outstandingBalance ?? l.remaining_balance ?? 0,
-        tenureMonths: l.tenureMonths || l.tenure || l.tenure_months,
-        createdAt: l.createdAt || l.created_at,
-      })));
+      setLoansData(rawLoans.map((l: any) => {
+        const tenureMonths = l.tenureMonths ?? l.tenure ?? l.tenure_months ?? null;
+        const disbursed = l.disbursedDate ?? l.approved_at ?? l.disbursed_at ?? null;
+        // Repayment end date = disbursement date + tenure months. Only meaningful
+        // when the loan was actually disbursed and has a tenure.
+        let repaymentEndDate: string | null = null;
+        if (disbursed && tenureMonths) {
+          const d = new Date(disbursed);
+          if (!isNaN(d.getTime())) {
+            d.setMonth(d.getMonth() + Number(tenureMonths));
+            repaymentEndDate = d.toISOString();
+          }
+        }
+        const totalRepayment = Number(l.totalRepayment ?? l.total_repayment ?? 0);
+        const remainingBalance = Number(l.outstandingBalance ?? l.remaining_balance ?? l.balance ?? 0);
+        const amount = Number(l.amount ?? 0);
+        // Progress = paid / total repayment (clamped 0-100).
+        const paid = Math.max(0, totalRepayment - remainingBalance);
+        const progressPct = totalRepayment > 0 ? Math.min(100, Math.round((paid / totalRepayment) * 100)) : 0;
+        return {
+          ...l,
+          loanId: l.loanId || l.loan_id || l.id,
+          loanType: l.loanType || l.loan_type || null,
+          amount,
+          outstandingBalance: remainingBalance,
+          remainingBalance,
+          interestRate: Number(l.interestRate ?? l.effective_interest_rate ?? l.base_interest_rate ?? 0),
+          tenureMonths,
+          monthlyPayment: Number(l.monthlyPayment ?? l.monthly_repayment ?? 0),
+          totalRepayment,
+          disbursedDate: disbursed,
+          nextDueDate: l.nextDueDate ?? l.next_due_date ?? null,
+          repaymentEndDate,
+          progressPct,
+          createdAt: l.createdAt || l.created_at,
+        };
+      }));
     } catch (e) {
       console.log('Loans fetch error:', e);
     }
@@ -414,6 +443,11 @@ export default function MemberProfile() {
 
   const totalInvestments = investmentsData.reduce((sum, i) => sum + Number(i.amount), 0);
   const totalLoans = loansData.reduce((sum, l) => sum + Number(l.amount), 0);
+  const totalOutstanding = loansData.reduce((sum, l) => sum + Number(l.remainingBalance ?? l.outstandingBalance ?? 0), 0);
+  const monthlyLoanObligation = loansData
+    .filter((l) => ["active", "approved", "in_recovery", "disbursed"].includes(String(l.status).toLowerCase()))
+    .reduce((sum, l) => sum + Number(l.monthlyPayment ?? 0), 0);
+  const activeLoansCount = loansData.filter((l) => ["active", "approved", "in_recovery", "disbursed"].includes(String(l.status).toLowerCase())).length;
   const netWorth = (activeMember.totalContributions || 0) + (activeMember.walletBalance || 0) + totalInvestments - (activeMember.activeLoan || 0);
 
   return (
@@ -644,6 +678,36 @@ export default function MemberProfile() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Loan Summary at a glance */}
+            {(loansData?.length ?? 0) > 0 && (
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-base flex items-center gap-2"><CreditCard className="h-4 w-4" /> Loan Summary</CardTitle>
+                  <Badge variant="outline">{activeLoansCount} active · {(loansData ?? []).length} total</Badge>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="p-3 bg-amber-50 rounded-lg">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1"><DollarSign className="h-3 w-3" /> Total Borrowed</p>
+                      <p className={`text-lg font-bold text-amber-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(totalLoans)}</p>
+                    </div>
+                    <div className="p-3 bg-rose-50 rounded-lg">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1"><CreditCard className="h-3 w-3" /> Outstanding</p>
+                      <p className={`text-lg font-bold text-rose-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(totalOutstanding)}</p>
+                    </div>
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1"><CalendarDays className="h-3 w-3" /> Monthly Obligation</p>
+                      <p className={`text-lg font-bold text-blue-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(monthlyLoanObligation)}</p>
+                    </div>
+                    <div className="p-3 bg-emerald-50 rounded-lg">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1"><Receipt className="h-3 w-3" /> Total Repayable</p>
+                      <p className={`text-lg font-bold text-emerald-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(loansData.reduce((s, l) => s + Number(l.totalRepayment ?? 0), 0))}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Registration Tab — everything the member submitted at sign-up */}
@@ -853,11 +917,44 @@ export default function MemberProfile() {
           </TabsContent>
 
           {/* Loans Tab */}
-          <TabsContent value="loans">
+          <TabsContent value="loans" className="space-y-4">
+            {/* Summary cards */}
+            {(loansData?.length ?? 0) > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card className="bg-gradient-to-br from-amber-50 to-amber-100/50 border-amber-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 text-amber-700 mb-1"><DollarSign className="h-4 w-4" /><span className="text-xs font-medium">Total Borrowed</span></div>
+                    <p className={`text-xl font-bold text-amber-800 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(totalLoans)}</p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-gradient-to-br from-rose-50 to-rose-100/50 border-rose-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 text-rose-700 mb-1"><CreditCard className="h-4 w-4" /><span className="text-xs font-medium">Outstanding Balance</span></div>
+                    <p className={`text-xl font-bold text-rose-800 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(totalOutstanding)}</p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 text-blue-700 mb-1"><CalendarDays className="h-4 w-4" /><span className="text-xs font-medium">Monthly Obligation</span></div>
+                    <p className={`text-xl font-bold text-blue-800 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(monthlyLoanObligation)}</p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 text-emerald-700 mb-1"><Receipt className="h-4 w-4" /><span className="text-xs font-medium">Total Repayable</span></div>
+                    <p className={`text-xl font-bold text-emerald-800 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(loansData.reduce((s, l) => s + Number(l.totalRepayment ?? 0), 0))}</p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-base flex items-center gap-2"><CreditCard className="h-4 w-4" /> Loan History</CardTitle>
-                <Button size="sm" variant="outline"><Download className="h-4 w-4 mr-1" /> Export</Button>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">{activeLoansCount} active</Badge>
+                  <Badge variant="outline">{(loansData ?? []).length} total</Badge>
+                </div>
               </CardHeader>
               <CardContent>
                 {(loansData?.length ?? 0) === 0 ? (
@@ -866,37 +963,96 @@ export default function MemberProfile() {
                     <p className="text-muted-foreground">No loans found</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b text-muted-foreground text-xs">
-                          <th className="pb-2 text-left">Loan ID</th>
-                          <th className="pb-2 text-left">Type</th>
-                          <th className="pb-2 text-left">Purpose</th>
-                          <th className="pb-2 text-right">Amount</th>
-                          <th className="pb-2 text-right">Balance</th>
-                          <th className="pb-2 text-center">Tenure</th>
-                          <th className="pb-2 text-center">Status</th>
-                          <th className="pb-2 text-left">Applied</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {(loansData ?? []).map((loan) => (
-                          <tr key={loan.id} className="hover:bg-muted/50">
-                            <td className="py-3 font-mono text-xs">{loan.loanId}</td>
-                            <td className="py-3">{loan.loanType || "Standard"}</td>
-                            <td className="py-3">{loan.purpose || "—"}</td>
-                            <td className="py-3 text-right font-semibold">{formatCurrency(loan.amount)}</td>
-                            <td className="py-3 text-right">{formatCurrency(loan.outstandingBalance || 0)}</td>
-                            <td className="py-3 text-center">{loan.tenureMonths || loan.tenure} mo</td>
-                            <td className="py-3 text-center">
-                              <Badge className={loan.status === "active" ? "bg-emerald-100 text-emerald-800" : loan.status === "repaid" ? "bg-blue-100 text-blue-800" : loan.status === "defaulted" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}>{loan.status}</Badge>
-                            </td>
-                            <td className="py-3 text-xs text-muted-foreground">{new Date(loan.createdAt || Date.now()).toLocaleDateString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="space-y-4">
+                    {(loansData ?? []).map((loan) => {
+                      const status = String(loan.status || "pending").toLowerCase();
+                      const statusBadge = status === "active" || status === "approved" || status === "disbursed"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : status === "repaid" ? "bg-blue-100 text-blue-800"
+                        : status === "defaulted" || status === "in_recovery" ? "bg-red-100 text-red-800"
+                        : status === "rejected" ? "bg-rose-100 text-rose-800"
+                        : "bg-amber-100 text-amber-800";
+                      const fmtMonYr = (iso: string | null) => iso
+                        ? new Date(iso).toLocaleDateString("en-US", { month: "short", year: "numeric" })
+                        : "—";
+                      return (
+                        <div key={loan.id || loan.loanId} className="border rounded-lg overflow-hidden">
+                          {/* Header row */}
+                          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-muted/40 border-b">
+                            <div className="flex items-center gap-3">
+                              <div className="h-9 w-9 bg-amber-100 rounded-lg flex items-center justify-center">
+                                <CreditCard className="h-4 w-4 text-amber-600" />
+                              </div>
+                              <div>
+                                <p className="font-semibold text-sm">{loan.loanType || "Personal Loan"}</p>
+                                <p className="text-xs text-muted-foreground font-mono">{loan.loanId}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge className={statusBadge}>{status}</Badge>
+                              {loan.interestRate > 0 && <Badge variant="outline">{loan.interestRate}% p.a.</Badge>}
+                            </div>
+                          </div>
+
+                          {/* Body */}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 px-4 py-4">
+                            <div>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1"><DollarSign className="h-3 w-3" /> Loan Amount</p>
+                              <p className={`font-semibold ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(loan.amount)}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1"><CreditCard className="h-3 w-3" /> Outstanding Balance</p>
+                              <p className={`font-semibold ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(loan.remainingBalance ?? 0)}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1"><TrendingUp className="h-3 w-3" /> Interest Rate</p>
+                              <p className="font-semibold">{loan.interestRate > 0 ? `${loan.interestRate}% p.a.` : "—"}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> Tenure</p>
+                              <p className="font-semibold">{loan.tenureMonths ? `${loan.tenureMonths} months` : "—"}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1"><Receipt className="h-3 w-3" /> Monthly Repayment</p>
+                              <p className={`font-semibold ${!showBalances && "blur-sm select-none"}`}>{loan.monthlyPayment > 0 ? formatCurrency(loan.monthlyPayment) : "—"}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1"><DollarSign className="h-3 w-3" /> Total Repayment</p>
+                              <p className={`font-semibold ${!showBalances && "blur-sm select-none"}`}>{loan.totalRepayment > 0 ? formatCurrency(loan.totalRepayment) : "—"}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1"><CalendarDays className="h-3 w-3" /> Disbursed</p>
+                              <p className="font-semibold">{fmtMonYr(loan.disbursedDate)}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1"><CalendarDays className="h-3 w-3" /> Repayment Ends</p>
+                              <p className="font-semibold">{fmtMonYr(loan.repaymentEndDate)}</p>
+                            </div>
+                          </div>
+
+                          {/* Progress + meta */}
+                          <div className="px-4 pb-4">
+                            {loan.totalRepayment > 0 && (
+                              <div className="mb-3">
+                                <div className="flex justify-between text-xs mb-1">
+                                  <span className="text-muted-foreground">Repayment progress</span>
+                                  <span className="font-medium">{loan.progressPct}%</span>
+                                </div>
+                                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                  <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${loan.progressPct}%` }} />
+                                </div>
+                              </div>
+                            )}
+                            <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-muted-foreground border-t pt-3">
+                              <span><span className="font-medium text-foreground">Purpose:</span> {loan.purpose || "—"}</span>
+                              <span><span className="font-medium text-foreground">Next due:</span> {fmtMonYr(loan.nextDueDate)}</span>
+                              <span><span className="font-medium text-foreground">Applied:</span> {loan.createdAt ? new Date(loan.createdAt).toLocaleDateString() : "—"}</span>
+                              {loan.rejectionReason && <span className="text-rose-600"><span className="font-medium">Rejected:</span> {loan.rejectionReason}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
