@@ -73,6 +73,12 @@ export default function MemberProfile() {
     const m = raw.member || raw;
     // kyc may be a nested object returned by the backend
     const kyc = m.kyc || {};
+    // Registration form data is persisted as JSONB on the kyc row:
+    // personal_info (identity, address, next-of-kin, bank, contribution) and
+    // employment_info (occupation, employer, work address). Top-level profile
+    // columns for these fields are usually NULL, so fall back to the JSONB.
+    const pi = (kyc.personal_info && typeof kyc.personal_info === 'object') ? kyc.personal_info : {};
+    const ei = (kyc.employment_info && typeof kyc.employment_info === 'object') ? kyc.employment_info : {};
     const nameParts = (m.name || '').split(' ').filter(Boolean);
     const firstName = m.firstName || nameParts[0] || '';
     const lastName = m.lastName || nameParts.slice(1).join(' ') || '';
@@ -115,35 +121,40 @@ export default function MemberProfile() {
       walletBalance,
       totalContributions,
       activeLoan: m.activeLoan ?? m.active_loan ?? 0,
-      gender: m.gender || kyc.gender,
-      dateOfBirth: m.dateOfBirth || m.date_of_birth || kyc.date_of_birth,
-      address: m.address || kyc.address,
-      state: m.state || kyc.state,
-      lga: m.lga || kyc.lga,
-      // KYC identity fields — check nested kyc object when not present at top-level
-      idType: m.idType || m.id_type || kyc.id_type,
-      idNumber: m.idNumber || m.id_number || kyc.id_number,
-      bvn: m.bvn || kyc.bvn || null,
-      nin: m.nin || kyc.nin || null,
-      occupation: m.occupation || kyc.occupation,
-      employer: m.employer || m.employer_name || kyc.employer_name,
-      employerName: m.employerName || m.employer_name || kyc.employer_name,
-      employmentType: m.employmentType || m.employment_type || kyc.employment_type,
-      yearsOfEmployment: m.yearsOfEmployment || m.years_of_employment || kyc.years_of_employment,
-      staffId: m.staffId || m.staff_id || m.employer_staff_id || kyc.employer_staff_id,
-      workAddress: m.workAddress || m.work_address || kyc.work_address,
-      monthlyAmount: m.monthlyAmount || m.monthly_amount,
-      contributionMethod: m.contributionMethod || m.contribution_method,
-      preferredPaymentDay: m.preferredPaymentDay || m.preferred_payment_day,
-      contributionType: m.contributionType || m.contribution_type,
-      nextOfKin: m.nextOfKin || (m.nok_name ? {
-        name: m.nok_name,
-        relationship: m.nok_relationship,
-        phone: m.nok_phone,
-        address: m.nok_address,
+      gender: m.gender || pi.gender || kyc.gender,
+      dateOfBirth: m.dateOfBirth || m.date_of_birth || kyc.date_of_birth || pi.date_of_birth,
+      address: m.address || kyc.address || pi.address,
+      state: m.state || pi.state || kyc.state,
+      lga: m.lga || pi.lga || kyc.lga,
+      // KYC identity fields — check nested kyc object + personal_info JSONB when not present at top-level
+      idType: m.idType || m.id_type || pi.id_type || kyc.id_type,
+      idNumber: m.idNumber || m.id_number || kyc.national_id || pi.id_number || kyc.id_number,
+      bvn: m.bvn || pi.bvn || kyc.bvn || null,
+      nin: m.nin || kyc.nin || (pi.id_type === 'NIN' ? (pi.id_number || kyc.national_id) : pi.nin) || null,
+      occupation: m.occupation || ei.occupation || kyc.occupation,
+      employer: m.employer || m.employer_name || ei.employer_name || kyc.employer_name,
+      employerName: m.employerName || m.employer_name || ei.employer_name || kyc.employer_name,
+      employmentType: m.employmentType || m.employment_type || ei.employment_type || kyc.employment_type,
+      yearsOfEmployment: m.yearsOfEmployment || m.years_of_employment || ei.years_of_employment || kyc.years_of_employment,
+      staffId: m.staffId || m.staff_id || m.employer_staff_id || ei.staff_id || ei.employer_staff_id || kyc.employer_staff_id,
+      workAddress: m.workAddress || m.work_address || ei.work_address || kyc.work_address,
+      monthlyAmount: m.monthlyAmount || m.monthly_amount || pi.monthly_amount,
+      contributionMethod: m.contributionMethod || m.contribution_method || pi.contribution_method,
+      preferredPaymentDay: m.preferredPaymentDay || m.preferred_payment_day || pi.preferred_payment_day,
+      contributionType: m.contributionType || m.contribution_type || pi.contribution_type,
+      nextOfKin: m.nextOfKin || (m.nok_name || pi.nok_name ? {
+        name: m.nok_name || pi.nok_name,
+        relationship: m.nok_relationship || pi.nok_relationship,
+        phone: m.nok_phone || pi.nok_phone,
+        address: m.nok_address || pi.nok_address,
       } : null),
       bankAccounts: m.bankAccounts || m.bank_accounts || [],
-      bankInfo: m.bankInfo || m.bank_info || null,
+      bankInfo: m.bankInfo || m.bank_info || (pi.bank_name || pi.account_number ? {
+        bankName: pi.bank_name,
+        accountNumber: pi.account_number,
+        accountName: pi.account_name,
+        accountType: pi.account_type,
+      } : null),
       registration: m.registration || kyc.personal_info || null,
       registrationSubmittedAt: m.registrationSubmittedAt || m.completed_at || kyc.submitted_at || null,
       documents,
@@ -192,8 +203,18 @@ export default function MemberProfile() {
     try {
       // Backend accepts both memberId and profileId; use profileId (canonical)
       const loansJson = await api.get<any>(`/admin/loans?profileId=${profileId}&limit=50`);
-      // Backend returns { data, loans, ... } — normalise to array
-      setLoansData(loansJson.data || loansJson.loans || []);
+      // Backend returns { data, loans, ... } — normalise to array. Loans come back
+      // with snake_case keys (loan_id, loan_type, remaining_balance, tenure_months,
+      // created_at); map to the camelCase shape the table expects.
+      const rawLoans = loansJson.data || loansJson.loans || [];
+      setLoansData(rawLoans.map((l: any) => ({
+        ...l,
+        loanId: l.loanId || l.loan_id || l.id,
+        loanType: l.loanType || l.loan_type,
+        outstandingBalance: l.outstandingBalance ?? l.remaining_balance ?? 0,
+        tenureMonths: l.tenureMonths || l.tenure || l.tenure_months,
+        createdAt: l.createdAt || l.created_at,
+      })));
     } catch (e) {
       console.log('Loans fetch error:', e);
     }
@@ -215,7 +236,15 @@ export default function MemberProfile() {
     try {
       // New route: GET /members/:id/transactions
       const txJson = await api.get<any>(`/admin/members/${profileId}/transactions?limit=50`);
-      setTransactionsData(txJson.data || txJson.transactions || []);
+      // Transactions come back with snake_case keys; `category` ("credit"/"debit")
+      // is the money-direction while `type` is "deposit"/"withdrawal". Normalise so
+      // the UI's `tx.type === "credit"` check and `tx.createdAt`/`tx.date` reads work.
+      const rawTx = txJson.data || txJson.transactions || [];
+      setTransactionsData(rawTx.map((t: any) => ({
+        ...t,
+        type: t.category || t.type,
+        createdAt: t.createdAt || t.created_at || t.date,
+      })));
     } catch (e) {
       console.log('Transactions fetch error:', e);
     }
