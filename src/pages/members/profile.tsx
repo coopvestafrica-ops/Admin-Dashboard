@@ -130,7 +130,7 @@ export default function MemberProfile() {
       idType: m.idType || m.id_type || pi.id_type || kyc.id_type,
       idNumber: m.idNumber || m.id_number || kyc.national_id || pi.id_number || kyc.id_number,
       bvn: m.bvn || pi.bvn || kyc.bvn || null,
-      nin: m.nin || kyc.nin || (pi.id_type === 'NIN' ? (pi.id_number || kyc.national_id) : pi.nin) || null,
+      nin: m.nin || kyc.nin || (pi.id_type === 'NIN' ? (kyc.national_id || pi.id_number) : pi.nin) || null,
       occupation: m.occupation || ei.occupation || kyc.occupation,
       employer: m.employer || m.employer_name || ei.employer_name || kyc.employer_name,
       employerName: m.employerName || m.employer_name || ei.employer_name || kyc.employer_name,
