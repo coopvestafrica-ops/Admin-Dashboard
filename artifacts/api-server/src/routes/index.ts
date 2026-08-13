@@ -49,6 +49,11 @@ import kycRouter from "./kyc.js";
 import accountingRouter from "./accounting.js";
 // Maker-Checker (four-eyes) approval workflow
 import approvalsRouter from "./approvals.js";
+import loanApprovalMatrixRouter from "./loan-approval-matrix.js";
+import emergencyControlsRouter from "./emergency-controls.js";
+import documentsRouter from "./documents.js";
+import searchRouter from "./search.js";
+import systemRulesRouter from "./system-rules.js";
 
 const router: IRouter = Router();
 
@@ -112,5 +117,15 @@ router.use(depositsRouter);
 router.use(accountingRouter);
 // Maker-Checker (four-eyes) approval workflow
 router.use(approvalsRouter);
+// Loan Approval Matrix — tiered approval limits
+router.use(loanApprovalMatrixRouter);
+// Emergency Control Center — kill switches + maintenance mode
+router.use(emergencyControlsRouter);
+// Member Document Vault — permission-controlled, access-logged
+router.use(documentsRouter);
+// System-wide search
+router.use(searchRouter);
+// Contribution rules engine + feature flags
+router.use(systemRulesRouter);
 
 export default router;

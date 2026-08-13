@@ -224,4 +224,66 @@ router.get("/dashboard/recent-activity", async (req, res): Promise<void> => {
   res.json(activities.slice(0, 10));
 });
 
+/**
+ * GET /dashboard/attention-required — Super Admin "Attention Required" panel.
+ * Aggregates everything that needs a human decision right now so the operator
+ * sees it immediately on login:
+ *   - pending loan approvals
+ *   - payment proofs awaiting verification
+ *   - suspicious / flagged accounts
+ *   - unauthorized login attempts
+ *   - pending maker-checker approval requests
+ *   - high-risk transactions
+ *   - overdue loans reaching escalation stage
+ */
+router.get("/dashboard/attention-required", async (req, res): Promise<void> => {
+  const safeCount = (q: PromiseLike<any>): Promise<number> =>
+    Promise.resolve(q).then((r) => Number(r?.count ?? 0)).catch(() => 0);
+
+  const [
+    pendingLoanApprovals,
+    pendingPaymentProofs,
+    suspiciousAccounts,
+    unauthorizedLogins,
+    pendingApprovals,
+    overdueLoans,
+    activeEmergencyControls,
+  ] = await Promise.all([
+    safeCount(supabase.from("loans").select("*", { count: "exact", head: true }).in("status", ["pending", "applied"])),
+    safeCount(supabase.from("payment_proofs").select("*", { count: "exact", head: true }).eq("status", "pending")),
+    safeCount(supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_flagged", true)),
+    safeCount(
+      supabase
+        .from("login_history")
+        .select("*", { count: "exact", head: true })
+        .eq("success", false)
+        .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
+    ),
+    safeCount(supabase.from("approval_requests").select("*", { count: "exact", head: true }).eq("status", "pending")),
+    safeCount(
+      supabase
+        .from("loans")
+        .select("*", { count: "exact", head: true })
+        .in("status", ["overdue", "defaulted"]),
+    ),
+    safeCount(supabase.from("system_emergency_controls").select("*", { count: "exact", head: true }).eq("is_active", true)),
+  ]);
+
+  const items = [
+    { key: "pending_loan_approvals", label: "Pending loan approvals", count: pendingLoanApprovals, severity: "high", link: "/loans" },
+    { key: "pending_payment_proofs", label: "Payment proofs awaiting verification", count: pendingPaymentProofs, severity: "high", link: "/payment-proofs" },
+    { key: "suspicious_accounts", label: "Suspicious / flagged accounts", count: suspiciousAccounts, severity: "high", link: "/fraud-detection" },
+    { key: "unauthorized_logins", label: "Unauthorized login attempts (24h)", count: unauthorizedLogins, severity: "medium", link: "/login-history" },
+    { key: "pending_approvals", label: "Pending approval requests", count: pendingApprovals, severity: "high", link: "/approvals" },
+    { key: "overdue_loans", label: "Overdue loans reaching escalation stage", count: overdueLoans, severity: "high", link: "/loans" },
+    { key: "active_emergency_controls", label: "Active emergency controls", count: activeEmergencyControls, severity: "critical", link: "/emergency-controls" },
+  ].filter((i) => i.count > 0);
+
+  res.json({
+    success: true,
+    totalOpen: items.reduce((s, i) => s + i.count, 0),
+    items,
+  });
+});
+
 export default router;
