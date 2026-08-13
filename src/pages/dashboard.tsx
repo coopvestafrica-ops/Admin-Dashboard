@@ -145,15 +145,56 @@ export default function Dashboard() {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(true);
 
-  // Fetch analytics on mount
+  // Super Admin governance stats (admins online, failed logins, pending approvals, etc.)
+  const [govStats, setGovStats] = useState<{
+    adminsOnline?: number;
+    failedLoginAttemptsToday?: number;
+    pendingApprovalRequests?: number;
+    suspiciousActivitiesDetected?: number;
+    recentFinancialChanges?: number;
+    accountsSuspendedToday?: number;
+    totalAdmins?: number;
+  }>({});
+
+  // Fetch analytics on mount + send a presence heartbeat to the backend so the
+  // Super Admin "live monitoring" view shows this admin as online.
   useEffect(() => {
+    let active = true;
     async function loadAnalytics() {
       setLoadingAnalytics(true);
       const data = await fetchAnalyticsData();
-      setAnalyticsData(data);
-      setLoadingAnalytics(false);
+      if (active) { setAnalyticsData(data); setLoadingAnalytics(false); }
     }
+
+    async function heartbeat() {
+      try {
+        const token = await getAccessToken();
+        if (!token) return;
+        const apiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://coopvest-api.onrender.com";
+        await fetch(`${apiUrl}/api/admin/activity`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ page: window.location.pathname, module: "dashboard", action: "viewed-dashboard" }),
+        });
+      } catch { /* non-fatal */ }
+    }
+
+    async function loadGovStats() {
+      try {
+        const token = await getAccessToken();
+        if (!token) return;
+        const apiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://coopvest-api.onrender.com";
+        const res = await fetch(`${apiUrl}/api/admin/stats`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) { const j = await res.json(); if (active && j?.success) setGovStats(j.data || {}); }
+      } catch { /* non-fatal */ }
+    }
+
     loadAnalytics();
+    loadGovStats();
+    heartbeat();
+    const hb = setInterval(heartbeat, 60_000);   // heartbeat every minute
+    const gs = setInterval(loadGovStats, 30_000); // refresh governance stats
+    return () => { active = false; clearInterval(hb); clearInterval(gs); };
   }, []);
 
   const kpiCards = [
@@ -335,6 +376,46 @@ export default function Dashboard() {
                   <ArrowUpRight className="ml-auto h-4 w-4 text-muted-foreground" />
                 </button>
               ))}
+            </CardContent>
+          </Card>
+
+          {/* ── Super Admin Oversight (live governance stats) ── */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShieldAlert className="h-5 w-5 text-primary" />Super Admin Oversight
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                {[
+                  { label: "Admins Online", value: govStats.adminsOnline ?? 0, icon: Activity, accent: "text-emerald-600" },
+                  { label: "Failed Logins (24h)", value: govStats.failedLoginAttemptsToday ?? 0, icon: ShieldAlert, accent: "text-amber-600" },
+                  { label: "Pending Approvals", value: govStats.pendingApprovalRequests ?? 0, icon: Clock, accent: "text-blue-600" },
+                  { label: "Suspicious Activity", value: govStats.suspiciousActivitiesDetected ?? 0, icon: ShieldAlert, accent: "text-red-600" },
+                  { label: "Financial Changes (24h)", value: govStats.recentFinancialChanges ?? 0, icon: TrendingUp, accent: "text-primary" },
+                  { label: "Suspended (24h)", value: govStats.accountsSuspendedToday ?? 0, icon: UserX, accent: "text-red-600" },
+                  { label: "Total Admins", value: govStats.totalAdmins ?? 0, icon: Users, accent: "text-primary" },
+                ].map((s) => (
+                  <button
+                    key={s.label}
+                    onClick={() => navigate("/security-access")}
+                    className="flex flex-col items-start gap-1 rounded-lg border p-3 text-left hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <s.icon className={`h-4 w-4 ${s.accent}`} />
+                      <span className="text-2xl font-semibold">{s.value}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">{s.label}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                <a href="/audit-logs" className="rounded-md border px-2 py-1 hover:bg-muted">Audit Logs</a>
+                <a href="/login-history" className="rounded-md border px-2 py-1 hover:bg-muted">Login History</a>
+                <a href="/sessions" className="rounded-md border px-2 py-1 hover:bg-muted">Sessions</a>
+                <a href="/role-management" className="rounded-md border px-2 py-1 hover:bg-muted">Staff & Roles</a>
+              </div>
             </CardContent>
           </Card>
 

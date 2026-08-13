@@ -260,7 +260,25 @@ export function Header({ onOpenSearch, onOpenMobileMenu }: HeaderProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive"
-              onClick={() => supabase.auth.signOut().then(() => window.location.href = "/")}
+              onClick={async () => {
+                try {
+                  const { data } = await supabase.auth.getUser();
+                  const id = data?.user?.id;
+                  if (id) {
+                    const apiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://coopvest-api.onrender.com";
+                    const token = (await supabase.auth.getSession()).data.session?.access_token;
+                    if (token) {
+                      await fetch(`${apiUrl}/api/admin/logout-events`, {
+                        method: "POST",
+                        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                        body: JSON.stringify({ profileId: id }),
+                      }).catch(() => {});
+                    }
+                  }
+                } catch { /* non-fatal */ }
+                await supabase.auth.signOut();
+                window.location.href = "/";
+              }}
             >
               Log out
             </DropdownMenuItem>

@@ -33,11 +33,15 @@ function getDeviceInfo() {
   return { deviceType, browser, os };
 }
 
-// Log login attempt to backend
-async function logLoginAttempt(email: string, success: boolean, failureReason?: string) {
+// Log login attempt to backend. This calls a PUBLIC backend endpoint
+// (POST /api/admin/login-history/log) that does not require a JWT, so failed
+// logins (where no session exists yet) can still be recorded. The device info
+// is captured client-side; IP/UA are captured server-side.
+async function logLoginAttempt(email: string, success: boolean, failureReason?: string, profileId?: string) {
   try {
     const deviceInfo = getDeviceInfo();
-    await fetch('/api/admin/login-history/log', {
+    const apiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://coopvest-api.onrender.com";
+    await fetch(`${apiUrl}/api/admin/login-history/log`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -47,6 +51,7 @@ async function logLoginAttempt(email: string, success: boolean, failureReason?: 
         device_type: deviceInfo.deviceType,
         browser: deviceInfo.browser,
         os: deviceInfo.os,
+        profile_id: profileId,
       }),
     });
   } catch (err) {
@@ -116,14 +121,14 @@ export default function Login() {
         // Sign out and show error - only admins, operators, and viewers can access
         await supabase.auth.signOut();
         // Log failed login - not admin
-        logLoginAttempt(email, false, 'Not an admin user');
+        logLoginAttempt(email, false, 'Not an admin user', profile?.id);
         setError("Access denied. Only authorized administrators can access this dashboard.");
         setIsLoading(false);
         return;
       }
       
-      // Log successful login
-      logLoginAttempt(email, true);
+      // Log successful login (include profile id so the record is linked)
+      logLoginAttempt(email, true, undefined, profile?.id);
     }
 
     setLocation("/dashboard");

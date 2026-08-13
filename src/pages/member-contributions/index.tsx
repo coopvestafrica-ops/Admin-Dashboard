@@ -253,7 +253,10 @@ export default function MemberContributions() {
           notify: true,
         }),
       });
-      if (!res.ok) throw new Error("Failed to add contribution");
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.error || `Failed to add contribution (HTTP ${res.status})`);
+      }
       
       toast({ title: "Success", description: "Contribution added. Member will be notified." });
       setAddDialogOpen(false);
@@ -266,8 +269,8 @@ export default function MemberContributions() {
         remarks: "",
       });
       fetchContributions();
-    } catch {
-      toast({ title: "Error", description: "Failed to add contribution", variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Failed to add contribution", variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
