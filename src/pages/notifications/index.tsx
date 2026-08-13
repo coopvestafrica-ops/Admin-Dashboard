@@ -125,11 +125,25 @@ export default function Notifications() {
       toast({ title: "No channel selected", description: "Select at least one delivery channel.", variant: "destructive" }); return;
     }
     sendNotification({ title, message, type: notifType, channels: selectedChannels, audience }, {
-      onSuccess: () => {
-        toast({
-          title: "Notification saved!",
-          description: `Notification has been recorded. Push delivery may require Firebase configuration.`,
-        });
+      onSuccess: (res: any) => {
+        // Build an accurate toast based on what actually happened.
+        const channelsUsed: string[] = res?.channels ?? selectedChannels;
+        const push = res?.push;
+        const wantedPush = channelsUsed.includes("push");
+
+        let desc: string;
+        if (!wantedPush) {
+          desc = `Notification saved and delivered via: ${channelsUsed.join(", ") || "in-app"}.`;
+        } else if (push && typeof push.targeted === "number" && push.targeted > 0) {
+          const failed = typeof push.errors === "number" ? push.errors : 0;
+          desc = failed > 0
+            ? `Push sent to ${push.targeted} device(s) (${failed} failed). Notification saved.`
+            : `Push delivered to ${push.targeted} device(s). Notification saved.`;
+        } else {
+          desc = `Notification saved. Push was not delivered — no registered devices or Firebase is not configured.`;
+        }
+
+        toast({ title: "Notification saved!", description: desc });
         setTitle(""); setMessage("");
       },
       onError: (error: Error) => toast({ 
