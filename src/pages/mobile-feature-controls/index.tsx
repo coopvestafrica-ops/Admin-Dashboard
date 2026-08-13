@@ -73,11 +73,16 @@ const DEFAULT_CONTENT: ContentSection[] = [
 ];
 
 // ── Feature Toggle Hook ────────────────────────────────────────────────────────
+// Backend (Latest-Coopvest) GET /api/mobile-features returns { success, data: MobileFeature[] }
+// (note: `data`, not `features`) and PUT /api/mobile-features takes the featureId in the
+// request body — there is no /:id route. This hook normalizes the response to { features }.
 function useFetchFeatures() {
   return useQuery<{ features: MobileFeature[] }>({
     queryKey: ["/api/mobile-features"],
     queryFn: async () => {
-      return api.get<{ features: MobileFeature[] }>("/mobile-features");
+      const res = await api.get<{ success: boolean; data?: MobileFeature[]; features?: MobileFeature[] }>("/mobile-features");
+      const features = res.features ?? res.data ?? [];
+      return { features };
     },
   });
 }
@@ -85,7 +90,7 @@ function useToggleFeature() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ featureId, enabled }: { featureId: string; enabled: boolean }) => {
-      return api.put<{ success: boolean; message?: string }>("/mobile-features/" + featureId, { enabled });
+      return api.put<{ success: boolean; message?: string }>("/mobile-features", { featureId, enabled });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/mobile-features"] }),
   });
