@@ -1,5 +1,7 @@
 import { Router, type IRouter } from "express";
 import { supabase } from "../lib/supabase.js";
+import { logAudit } from "../lib/audit.js";
+import { executeApprovedAction } from "../lib/approval-executors.js";
 import { requireAuth, requireRole, type AuthenticatedRequest } from "../middleware/auth.js";
 
 const router: IRouter = Router();
@@ -162,6 +164,11 @@ router.post("/approvals", async (req, res): Promise<void> => {
   }
 
   // Create approval request
+  const { data: nameData } = await supabase
+    .from("profiles")
+    .select("name")
+    .eq("id", profileId)
+    .single();
   const { data: approval, error } = await supabase
     .from("approval_requests")
     .insert({
@@ -171,7 +178,7 @@ router.post("/approvals", async (req, res): Promise<void> => {
       status: "pending",
       initiated_by: profileId,
       initiated_by_email: userEmail,
-      initiated_by_name: (await supabase.from("profiles").select("name").eq("id", profileId).single()).data?.name,
+      initiated_by_name: nameData?.name ?? null,
       initiated_by_role: userRole,
       target_type: targetType,
       target_id: targetId,
@@ -192,17 +199,13 @@ router.post("/approvals", async (req, res): Promise<void> => {
     return;
   }
 
-  // Log the action
-  await supabase.from("admin_audit_logs").insert({
-    profile_id: profileId,
+  // Log the maker's initiation.
+  await logAudit({
+    profileId,
     action: "APPROVAL_REQUESTED",
-    resource_type: "approval_request",
-    resource_id: approval.id,
-    details: {
-      request_type: requestType,
-      action: action,
-      reason: reason,
-    },
+    resourceType: "approval_request",
+    resourceId: approval.id,
+    details: { request_type: requestType, action, reason },
   });
 
   res.status(201).json({
@@ -260,6 +263,16 @@ router.post("/approvals/:id/approve", requireRole("super_admin", "admin"), async
     return;
   }
 
+  // Four-eyes principle: the checker must NOT be the same person as the maker.
+  // This is the core maker-checker control — the person who initiates a
+  // sensitive action can never approve it themselves.
+  if (approval.initiated_by && reviewerId === approval.initiated_by) {
+    res.status(403).json({
+      error: "Four-eyes violation: you cannot approve a request that you initiated. Another authorized approver must review it.",
+    });
+    return;
+  }
+
   // Update approval request
   const { error: updateError } = await supabase
     .from("approval_requests")
@@ -270,19 +283,20 @@ router.post("/approvals/:id/approve", requireRole("super_admin", "admin"), async
       reviewed_at: new Date().toISOString(),
       review_notes: reviewNotes,
     })
-    .eq("id", approvalId);
+    .eq("id", approvalId)
+    .eq("status", "pending"); // optimistic lock: only if still pending
 
   if (updateError) {
     res.status(500).json({ error: updateError.message });
     return;
   }
 
-  // Log the approval
-  await supabase.from("admin_audit_logs").insert({
-    profile_id: reviewerId,
+  // Log the checker's approval.
+  await logAudit({
+    profileId: reviewerId,
     action: "APPROVAL_APPROVED",
-    resource_type: "approval_request",
-    resource_id: approvalId,
+    resourceType: "approval_request",
+    resourceId: approvalId,
     details: {
       request_type: approval.request_type,
       action: approval.action,
@@ -291,9 +305,40 @@ router.post("/approvals/:id/approve", requireRole("super_admin", "admin"), async
     },
   });
 
+  // Apply the approved action now that a different user has signed off.
+  const payload = (approval.new_value as Record<string, unknown> | null) ?? {};
+  const execution = await executeApprovedAction(
+    approval.request_type,
+    payload,
+    reviewerId,
+    approvalId,
+  );
+
+  const finalStatus = execution.ok ? "executed" : "failed";
+  await supabase
+    .from("approval_requests")
+    .update({
+      status: finalStatus,
+      executed_at: new Date().toISOString(),
+      execution_error: execution.ok ? null : execution.error ?? "Execution failed",
+    })
+    .eq("id", approvalId);
+
+  if (!execution.ok) {
+    res.status(500).json({
+      success: false,
+      approved: true,
+      executed: false,
+      error: `Approval recorded, but execution failed: ${execution.error}`,
+    });
+    return;
+  }
+
   res.json({
     success: true,
-    message: "Approval request approved",
+    approved: true,
+    executed: true,
+    message: "Approval request approved and executed",
   });
 });
 
@@ -344,11 +389,11 @@ router.post("/approvals/:id/reject", requireRole("super_admin", "admin"), async 
   }
 
   // Log the rejection
-  await supabase.from("admin_audit_logs").insert({
-    profile_id: reviewerId,
+  await logAudit({
+    profileId: reviewerId,
     action: "APPROVAL_REJECTED",
-    resource_type: "approval_request",
-    resource_id: approvalId,
+    resourceType: "approval_request",
+    resourceId: approvalId,
     details: {
       request_type: approval.request_type,
       action: approval.action,
@@ -408,11 +453,11 @@ router.post("/approvals/:id/cancel", async (req, res): Promise<void> => {
   }
 
   // Log the cancellation
-  await supabase.from("admin_audit_logs").insert({
-    profile_id: profileId,
+  await logAudit({
+    profileId,
     action: "APPROVAL_CANCELLED",
-    resource_type: "approval_request",
-    resource_id: approvalId,
+    resourceType: "approval_request",
+    resourceId: approvalId,
   });
 
   res.json({

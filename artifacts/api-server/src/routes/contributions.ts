@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { supabase } from "../lib/supabase.js";
-import { requireAuth, requireRole } from "../middleware/auth.js";
+import { logAudit } from "../lib/audit.js";
+import { requireAuth, requireRole, type AuthenticatedRequest } from "../middleware/auth.js";
 
 const router: IRouter = Router();
 router.use(requireAuth);
@@ -117,6 +118,80 @@ router.post("/contributions", requireRole("operator", "admin", "super_admin"), a
     res.status(400).json({ error: "Validation failed", details: fieldErrors });
     return;
   }
+
+  // ── Maker-Checker gate ───────────────────────────────────────────────────
+  // A contribution adjustment is a sensitive financial action. If the Super
+  // Admin has enabled approval for "contributions.adjust", we do NOT apply it
+  // here. Instead we record it as a pending approval request. A *different*
+  // authorized approver must then approve it before it is applied (see the
+  // executor in lib/approval-executors.ts). This enforces the four-eyes
+  // principle: the operator who records the adjustment cannot approve it.
+  const { data: config } = await supabase
+    .from("sensitive_actions_config")
+    .select("requires_approval, approval_role, approval_level")
+    .eq("action_key", "contributions.adjust")
+    .eq("is_active", true)
+    .single();
+
+  if (config?.requires_approval) {
+    const profileId = (req as AuthenticatedRequest).user?.profileId;
+    const userEmail = (req as AuthenticatedRequest).user?.email;
+    const userRole = (req as AuthenticatedRequest).user?.role;
+    if (!profileId) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    const { data: nameData } = await supabase
+      .from("profiles")
+      .select("name")
+      .eq("id", profileId)
+      .single();
+
+    const { data: approval, error: approvalErr } = await supabase
+      .from("approval_requests")
+      .insert({
+        request_type: "contributions.adjust",
+        category: "contributions",
+        priority: "normal",
+        status: "pending",
+        initiated_by: profileId,
+        initiated_by_email: userEmail,
+        initiated_by_name: nameData?.name ?? null,
+        initiated_by_role: userRole,
+        target_type: "member",
+        target_id: memberId,
+        action: "create_contribution",
+        new_value: { memberId, amount, month, paymentMethod },
+        reason: `Contribution of ${amount} for ${month}`,
+        required_approvers: config.approval_role ? [config.approval_role] : [],
+        approval_level: config.approval_level || 1,
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      })
+      .select()
+      .single();
+
+    if (approvalErr) {
+      res.status(500).json({ error: approvalErr.message });
+      return;
+    }
+
+    await logAudit({
+      profileId,
+      action: "APPROVAL_REQUESTED",
+      resourceType: "approval_request",
+      resourceId: approval.id,
+      details: { request_type: "contributions.adjust", memberId, amount, month },
+    });
+
+    res.status(202).json({
+      requiresApproval: true,
+      approvalId: approval.id,
+      message: "Contribution adjustment submitted for approval. A different authorized approver must approve it before it is applied.",
+    });
+    return;
+  }
+  // ── End Maker-Checker gate ────────────────────────────────────────────────
 
   const ref = "TXN-" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
   const txnId = "TX-" + crypto.randomUUID().slice(0, 8);

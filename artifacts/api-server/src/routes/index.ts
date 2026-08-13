@@ -47,6 +47,8 @@ import statisticsRouter from "./statistics.js";
 import kycRouter from "./kyc.js";
 // Accounting routes for financial operations
 import accountingRouter from "./accounting.js";
+// Maker-Checker (four-eyes) approval workflow
+import approvalsRouter from "./approvals.js";
 
 const router: IRouter = Router();
 
@@ -108,5 +110,7 @@ router.use(excelUploadsRouter);
 router.use(depositsRouter);
 // Accounting routes for financial operations
 router.use(accountingRouter);
+// Maker-Checker (four-eyes) approval workflow
+router.use(approvalsRouter);
 
 export default router;
