@@ -41,18 +41,24 @@ interface ApiLoan {
   memberName: string;
   memberPhone: string | null;
   memberEmail: string | null;
+  loanType: string | null;
   amount: number;
   balance: number;
+  baseInterestRate: number | null;
   interestRate: number;
+  referralBonusPercent: number | null;
   tenure: number | null;
   status: string;
   purpose: string | null;
   disbursedDate: string | null;
   dueDate: string | null;
   monthlyPayment?: number;
+  totalRepayment?: number;
   nextPaymentDate: string | null;
   rejectionReason: string | null;
   createdAt: string;
+  approvedBy: string | null;
+  approvedAt: string | null;
   guarantors: Guarantor[];
 }
 
@@ -236,6 +242,7 @@ export default function Loans() {
                     <thead>
                       <tr className="border-b bg-muted/40 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         <th className="px-4 py-3 text-left">Member</th>
+                        <th className="px-4 py-3 text-left">Loan Type</th>
                         <th className="px-4 py-3 text-right">Amount</th>
                         <th className="px-4 py-3 text-right">Balance</th>
                         <th className="px-4 py-3 text-center">Status</th>
@@ -265,6 +272,11 @@ export default function Loans() {
                                 <div className="text-xs text-muted-foreground">{loan.memberId ?? loan.loanId ?? "—"}</div>
                               </div>
                             </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge variant="outline" className="bg-primary/5 text-primary">
+                              {loan.loanType ?? "—"}
+                            </Badge>
                           </td>
                           <td className="px-4 py-3 text-right font-semibold">{formatCurrency(loan.amount)}</td>
                           <td className="px-4 py-3 text-right text-muted-foreground">{formatCurrency(loan.balance)}</td>
@@ -326,10 +338,10 @@ export default function Loans() {
                         </tr>
                       ))}
                       {isLoading && (
-                        <tr><td colSpan={8} className="py-12 text-center text-muted-foreground">Loading loans…</td></tr>
+                        <tr><td colSpan={9} className="py-12 text-center text-muted-foreground">Loading loans…</td></tr>
                       )}
                       {!isLoading && filtered.length === 0 && (
-                        <tr><td colSpan={8} className="py-12 text-center text-muted-foreground">No loans found.</td></tr>
+                        <tr><td colSpan={9} className="py-12 text-center text-muted-foreground">No loans found.</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -362,20 +374,79 @@ export default function Loans() {
             {/* Key info grid */}
             <div className="grid grid-cols-2 gap-3 text-sm">
               {[
-                { label: "Loan Amount",    value: formatCurrency(selectedLoan.amount) },
-                { label: "Outstanding",    value: formatCurrency(selectedLoan.balance) },
-                { label: "Term",           value: selectedLoan.tenure ? `${selectedLoan.tenure} months` : "—" },
-                { label: "Interest Rate",  value: `${selectedLoan.interestRate ?? "—"}% p.a.` },
-                { label: "Purpose",        value: selectedLoan.purpose ?? "—" },
-                { label: "Status",         value: <Badge className={statusCfg[selectedLoan.status]?.cls} variant="outline">{statusCfg[selectedLoan.status]?.label}</Badge> },
-                { label: "Monthly Payment",value: selectedLoan.monthlyPayment ? formatCurrency(selectedLoan.monthlyPayment) : "—" },
-                { label: "Due Date",       value: formatDateTime(selectedLoan.dueDate) },
+                { label: "Loan Type",        value: <Badge variant="outline" className="bg-primary/5 text-primary">{selectedLoan.loanType ?? "—"}</Badge> },
+                { label: "Loan Amount",      value: formatCurrency(selectedLoan.amount) },
+                { label: "Outstanding",      value: formatCurrency(selectedLoan.balance) },
+                { label: "Term",             value: selectedLoan.tenure ? `${selectedLoan.tenure} months` : "—" },
+                { label: "Monthly Payment",  value: selectedLoan.monthlyPayment ? formatCurrency(selectedLoan.monthlyPayment) : "—" },
+                { label: "Total Repayment",  value: selectedLoan.totalRepayment ? formatCurrency(selectedLoan.totalRepayment) : "—" },
+                { label: "Purpose",          value: selectedLoan.purpose ?? "—" },
+                { label: "Status",           value: <Badge className={statusCfg[selectedLoan.status]?.cls} variant="outline">{statusCfg[selectedLoan.status]?.label}</Badge> },
+                { label: "Applied Date",     value: formatDateTime(selectedLoan.createdAt) },
+                { label: "Due Date",          value: formatDateTime(selectedLoan.dueDate) },
               ].map(item => (
                 <div key={item.label} className="rounded-lg border p-3">
                   <div className="text-xs text-muted-foreground">{item.label}</div>
                   <div className="font-semibold mt-0.5">{item.value}</div>
                 </div>
               ))}
+            </div>
+
+            {/* Interest Breakdown Section */}
+            <div className="border-t pt-4 mt-4">
+              <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" /> Interest Breakdown
+              </h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-lg border p-3">
+                  <div className="text-xs text-muted-foreground">Base Interest Rate</div>
+                  <div className="font-semibold mt-0.5">
+                    {selectedLoan.baseInterestRate != null ? `${selectedLoan.baseInterestRate}% p.a.` : "—"}
+                  </div>
+                </div>
+                <div className="rounded-lg border p-3 bg-emerald-50/50">
+                  <div className="text-xs text-muted-foreground">Effective Interest Rate</div>
+                  <div className="font-semibold mt-0.5 text-emerald-700">
+                    {selectedLoan.interestRate ?? "—"}% p.a.
+                  </div>
+                </div>
+                {selectedLoan.referralBonusPercent != null && selectedLoan.referralBonusPercent > 0 && (
+                  <div className="rounded-lg border p-3 col-span-2 bg-amber-50/50">
+                    <div className="text-xs text-muted-foreground">Referral Bonus Applied</div>
+                    <div className="font-semibold mt-0.5 text-amber-700">
+                      −{selectedLoan.referralBonusPercent}% (reduces base rate)
+                    </div>
+                  </div>
+                )}
+              </div>
+              {selectedLoan.referralBonusPercent != null && selectedLoan.referralBonusPercent > 0 ? (
+                <p className="text-xs text-muted-foreground mt-2">
+                  The member received a {selectedLoan.referralBonusPercent}% referral discount on the base
+                  interest rate, lowering the effective rate from
+                  {" "}{selectedLoan.baseInterestRate ?? "—"}% to {selectedLoan.interestRate ?? "—"}% p.a.
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground mt-2">
+                  No referral bonus was applied. The effective interest rate equals the base rate.
+                </p>
+              )}
+            </div>
+
+            {/* Approving Admin Section */}
+            <div className="border-t pt-4 mt-4">
+              <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" /> Approval Information
+              </h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-lg border p-3">
+                  <div className="text-xs text-muted-foreground">Approved By (Admin)</div>
+                  <div className="font-medium">{selectedLoan.approvedBy ?? "Not yet approved"}</div>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <div className="text-xs text-muted-foreground">Approved At</div>
+                  <div className="font-medium">{selectedLoan.approvedAt ? formatDateTime(selectedLoan.approvedAt) : "—"}</div>
+                </div>
+              </div>
             </div>
 
             {/* Borrower Contact Information */}

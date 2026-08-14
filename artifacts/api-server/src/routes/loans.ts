@@ -54,13 +54,13 @@ router.get("/loans", async (req, res): Promise<void> => {
   // Fetch guarantors for all loans
   const loanIds = (loans ?? []).map((l: any) => l.id);
   let guarantorsMap: Record<string, any[]> = {};
-  
+
   if (loanIds.length > 0) {
     const { data: guarantors } = await supabase
       .from("loan_guarantors")
       .select("*, guarantor_profile:profiles!loan_guarantors_guarantor_id_fkey(id, name, email, phone)")
       .in("loan_id", loanIds);
-    
+
     if (guarantors) {
       for (const g of guarantors) {
         if (!guarantorsMap[g.loan_id]) guarantorsMap[g.loan_id] = [];
@@ -82,6 +82,23 @@ router.get("/loans", async (req, res): Promise<void> => {
     }
   }
 
+  // Resolve the admin who approved each loan (approved_by -> profiles.name).
+  const approverIds = [...new Set(
+    (loans ?? [])
+      .map((l: any) => l.approved_by)
+      .filter((id: any): id is string => Boolean(id))
+  )];
+  let approverMap: Record<string, string> = {};
+  if (approverIds.length > 0) {
+    const { data: approvers } = await supabase
+      .from("profiles")
+      .select("id, name, email")
+      .in("id", approverIds);
+    for (const a of approvers ?? []) {
+      approverMap[a.id] = a.name || a.email || "Unknown Admin";
+    }
+  }
+
   res.json({
     data: (loans ?? []).map(l => {
       const profile = l.profiles as unknown as { name?: string; first_name?: string; last_name?: string; email?: string; phone?: string } | null;
@@ -90,19 +107,27 @@ router.get("/loans", async (req, res): Promise<void> => {
       if (!memberName && profile) {
         memberName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile?.email || `Member ${l.profile_id?.slice(0, 8)}`;
       }
+      const approvedBy = l.approved_by ? (approverMap[l.approved_by] ?? "Unknown Admin") : null;
       return {
         id: l.id, loanId: l.loan_id, memberId: l.profile_id,
         memberName,
         memberPhone: profile?.phone ?? null,
         memberEmail: profile?.email ?? null,
+        loanType: l.loan_type ?? null,
         amount: Number(l.amount), balance: Number(l.remaining_balance ?? l.amount),
-        interestRate: Number(l.effective_interest_rate), tenure: l.tenure_months,
+        baseInterestRate: l.base_interest_rate != null ? Number(l.base_interest_rate) : null,
+        interestRate: Number(l.effective_interest_rate),
+        referralBonusPercent: l.referral_bonus_percent != null ? Number(l.referral_bonus_percent) : null,
+        tenure: l.tenure_months,
         status: l.status === "completed" ? "repaid" : l.status,
         purpose: l.purpose, disbursedDate: l.approved_at?.slice(0, 10) ?? null,
         dueDate: l.next_due_date ?? null,
-        monthlyPayment: l.monthly_repayment ? Number(l.monthly_repayment) : undefined,
+        monthlyPayment: l.monthly_repayment != null ? Number(l.monthly_repayment) : undefined,
+        totalRepayment: l.total_repayment != null ? Number(l.total_repayment) : undefined,
         nextPaymentDate: l.next_due_date ?? null,
         rejectionReason: l.rejected_reason ?? null, createdAt: l.created_at,
+        approvedBy,
+        approvedAt: l.approved_at ?? null,
         guarantors: guarantorsMap[l.id] ?? [],
       };
     }),
@@ -241,20 +266,38 @@ router.get("/loans/:id", async (req, res): Promise<void> => {
   if (!memberName && profile) {
     memberName = profile.name || profile.email || `Member ${loan.profile_id?.slice(0, 8)}`;
   }
+
+  // Resolve the admin who approved this loan (approved_by -> profiles.name).
+  let approvedBy: string | null = null;
+  if (loan.approved_by) {
+    const { data: approver } = await supabase
+      .from("profiles")
+      .select("name, email")
+      .eq("id", loan.approved_by)
+      .maybeSingle();
+    if (approver) approvedBy = approver.name || approver.email || "Unknown Admin";
+  }
+
   res.json({
     id: loan.id, loanId: loan.loan_id, memberId: loan.profile_id,
     memberName,
     memberPhone: profile?.phone ?? null,
     memberEmail: profile?.email ?? null,
+    loanType: loan.loan_type ?? null,
     amount: Number(loan.amount),
     balance: Number(loan.remaining_balance ?? loan.amount),
+    baseInterestRate: loan.base_interest_rate != null ? Number(loan.base_interest_rate) : null,
     interestRate: Number(loan.effective_interest_rate), tenure: loan.tenure_months,
+    referralBonusPercent: loan.referral_bonus_percent != null ? Number(loan.referral_bonus_percent) : null,
     status: loan.status === "completed" ? "repaid" : loan.status,
     purpose: loan.purpose, disbursedDate: loan.approved_at?.slice(0, 10) ?? null,
     dueDate: loan.next_due_date ?? null,
-    monthlyPayment: loan.monthly_repayment ? Number(loan.monthly_repayment) : undefined,
+    monthlyPayment: loan.monthly_repayment != null ? Number(loan.monthly_repayment) : undefined,
+    totalRepayment: loan.total_repayment != null ? Number(loan.total_repayment) : undefined,
     nextPaymentDate: loan.next_due_date ?? null,
     rejectionReason: loan.rejected_reason ?? null, createdAt: loan.created_at,
+    approvedBy,
+    approvedAt: loan.approved_at ?? null,
     guarantors: guarantorsList,
   });
 });
