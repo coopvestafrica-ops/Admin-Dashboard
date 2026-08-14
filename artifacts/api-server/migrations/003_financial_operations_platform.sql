@@ -119,7 +119,7 @@ comment on table public.member_documents is
 --    A unified view that unions searchable entities for one search bar.
 -- ============================================================================
 create or replace view public.system_search_index as
-  select p.id as entity_id, 'member'::text as entity_type,
+  select p.id::text as entity_id, 'member'::text as entity_type,
          p.name as title, p.email as subtitle, p.phone as extra
     from public.profiles p
   union all
@@ -136,12 +136,12 @@ create or replace view public.system_search_index as
     from public.loans l
   union all
   select tk.id::text, 'ticket',
-         ('Ticket ' || coalesce(tk.ticket_number, tk.id::text)),
-         tk.subject,
+         ('Ticket ' || coalesce(tk.ticket_id, tk.id::text)),
+         tk.title,
          tk.status
     from public.tickets tk
   union all
-  select o.id::text, 'organization', o.name, o.status, null
+  select o.id::text, 'organization', o.name, o.status, null::text
     from public.organizations o;
 
 comment on view public.system_search_index is
