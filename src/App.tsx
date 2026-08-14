@@ -49,6 +49,14 @@ import ManualDeposits from "@/pages/manual-deposits/index";
 import AccountingSpreadsheet from "@/pages/accounting-spreadsheet/index";
 import RolloverManagement from "@/pages/rollover-management/index";
 import MemberContributions from "@/pages/member-contributions/index";
+// Platform operations pages
+import EmergencyControls from "@/pages/emergency-controls/index";
+import ApprovalCenter from "@/pages/approval-center/index";
+import FinancialLedger from "@/pages/financial-ledger/index";
+import NotificationTemplates from "@/pages/notification-templates/index";
+import LoanApprovalMatrix from "@/pages/loan-approval-matrix/index";
+import Documents from "@/pages/documents/index";
+import Backups from "@/pages/backups/index";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -106,6 +114,13 @@ function Router() {
       <Route path="/sessions">{() => <ProtectedRoute component={Sessions} />}</Route>
       <Route path="/login-history">{() => <ProtectedRoute component={LoginHistory} />}</Route>
       <Route path="/financial-dashboard">{() => <ProtectedRoute component={FinancialDashboard} />}</Route>
+      <Route path="/approval-center">{() => <ProtectedRoute component={ApprovalCenter} />}</Route>
+      <Route path="/emergency-controls">{() => <ProtectedRoute component={EmergencyControls} />}</Route>
+      <Route path="/financial-ledger">{() => <ProtectedRoute component={FinancialLedger} />}</Route>
+      <Route path="/notification-templates">{() => <ProtectedRoute component={NotificationTemplates} />}</Route>
+      <Route path="/loan-approval-matrix">{() => <ProtectedRoute component={LoanApprovalMatrix} />}</Route>
+      <Route path="/documents">{() => <ProtectedRoute component={Documents} />}</Route>
+      <Route path="/backups">{() => <ProtectedRoute component={Backups} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

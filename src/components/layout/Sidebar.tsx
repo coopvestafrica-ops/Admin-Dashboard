@@ -42,6 +42,13 @@ import {
   Receipt,
   Calculator,
   Pencil,
+  ShieldAlert,
+  Shield,
+  ClipboardCheck,
+  BookOpen,
+  Mail,
+  FolderLock,
+  DatabaseBackup,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -80,6 +87,7 @@ const sidebarGroupsBase = [
       { title: "Loan Rollovers", icon: RefreshCw, href: "/rollover-management", page: PAGES.LOANS },
       { title: "Interest Rates", icon: Percent, href: "/interest-rates", page: PAGES.INTEREST_RATES },
       { title: "Reconciliation", icon: RefreshCw, href: "/reconciliation", page: PAGES.RECONCILIATION },
+      { title: "Financial Ledger", icon: BookOpen, href: "/financial-ledger", page: PAGES.FINANCIAL_LEDGER },
       { title: "Accounting Spreadsheet", icon: Calculator, href: "/accounting-spreadsheet", page: PAGES.ACCOUNTING_SPREADSHEET },
     ],
   },
@@ -92,6 +100,8 @@ const sidebarGroupsBase = [
       { title: "Bulk Operations", icon: Upload, href: "/bulk-operations", page: PAGES.BULK_OPERATIONS },
       { title: "Session Management", icon: Monitor, href: "/sessions", page: PAGES.SESSION_MANAGEMENT },
       { title: "Login History", icon: History, href: "/login-history", page: PAGES.LOGIN_HISTORY },
+      { title: "Documents", icon: FolderLock, href: "/documents", page: PAGES.DOCUMENTS },
+      { title: "Backups", icon: DatabaseBackup, href: "/backups", page: PAGES.BACKUPS },
     ],
   },
   {
@@ -103,6 +113,9 @@ const sidebarGroupsBase = [
       { title: "Security & Access", icon: Lock, href: "/security-access", page: PAGES.SECURITY_ACCESS },
       { title: "Organizations", icon: Building2, href: "/organizations", page: PAGES.ORGANIZATIONS },
       { title: "Referral Program", icon: Gift, href: "/referral-program", page: PAGES.REFERRAL_PROGRAM },
+      { title: "Loan Approval Matrix", icon: Shield, href: "/loan-approval-matrix", page: PAGES.LOAN_APPROVAL_MATRIX },
+      { title: "Notification Templates", icon: Mail, href: "/notification-templates", page: PAGES.NOTIFICATION_TEMPLATES },
+      { title: "Emergency Controls", icon: ShieldAlert, href: "/emergency-controls", page: PAGES.EMERGENCY_CONTROLS },
     ],
   },
   {
@@ -120,6 +133,7 @@ const sidebarGroupsBase = [
     key: "governance",
     items: [
       { title: "Compliance", icon: ShieldCheck, href: "/compliance", page: PAGES.COMPLIANCE },
+      { title: "Approval Center", icon: ClipboardCheck, href: "/approval-center", page: PAGES.APPROVAL_CENTER },
       { title: "Audit Logs", icon: FileText, href: "/audit-logs", page: PAGES.AUDIT_LOGS },
     ],
   },

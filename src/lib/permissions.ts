@@ -57,6 +57,15 @@ export const PAGES = {
   COMPLIANCE: 'compliance',
   AUDIT_LOGS: 'audit_logs',
   
+  // Platform Operations (new)
+  APPROVAL_CENTER: 'approval_center',
+  EMERGENCY_CONTROLS: 'emergency_controls',
+  FINANCIAL_LEDGER: 'financial_ledger',
+  NOTIFICATION_TEMPLATES: 'notification_templates',
+  LOAN_APPROVAL_MATRIX: 'loan_approval_matrix',
+  DOCUMENTS: 'documents',
+  BACKUPS: 'backups',
+  
   // Support
   NOTIFICATIONS: 'notifications',
   SUPPORT_TICKETS: 'support_tickets',
@@ -127,6 +136,10 @@ export const ROLE_PERMISSIONS: Record<Role, PageKey[]> = {
     // Governance
     PAGES.COMPLIANCE,
     PAGES.AUDIT_LOGS,
+    // Platform Operations (new) — admin can view; super_admin-only writes enforced server-side
+    PAGES.APPROVAL_CENTER,
+    PAGES.FINANCIAL_LEDGER,
+    PAGES.DOCUMENTS,
     
     // Support
     PAGES.NOTIFICATIONS,
@@ -222,7 +235,15 @@ export const ROUTE_TO_PAGE: Record<string, PageKey> = {
   
   '/compliance': PAGES.COMPLIANCE,
   '/audit-logs': PAGES.AUDIT_LOGS,
-  
+
+  '/approval-center': PAGES.APPROVAL_CENTER,
+  '/emergency-controls': PAGES.EMERGENCY_CONTROLS,
+  '/financial-ledger': PAGES.FINANCIAL_LEDGER,
+  '/notification-templates': PAGES.NOTIFICATION_TEMPLATES,
+  '/loan-approval-matrix': PAGES.LOAN_APPROVAL_MATRIX,
+  '/documents': PAGES.DOCUMENTS,
+  '/backups': PAGES.BACKUPS,
+
   '/notifications': PAGES.NOTIFICATIONS,
   '/support': PAGES.SUPPORT_TICKETS,
   

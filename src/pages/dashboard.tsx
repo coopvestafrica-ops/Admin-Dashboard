@@ -18,6 +18,7 @@ import {
   ShieldAlert, Clock, UserX, Building2, Activity, Percent, RefreshCw,
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { Link } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -112,6 +113,58 @@ async function fetchAnalyticsData(): Promise<AnalyticsData | null> {
   } catch {
     return null;
   }
+}
+
+interface AttentionItem { key: string; label: string; count: number; severity: string; href: string }
+
+function AttentionRequired() {
+  const [items, setItems] = useState<AttentionItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const token = await getAccessToken();
+        const res = await fetch("https://coopvest-api.onrender.com/api/admin/attention", {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (active) setItems(json.items || []);
+      } catch {
+        /* non-fatal */
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
+
+  if (loading) return <Skeleton className="h-24 w-full" />;
+  if (!items.length) return null;
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <ShieldAlert className="h-5 w-5 text-red-600" /> Attention Required
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {items.map((it) => (
+            <Link key={it.key} href={it.href}>
+              <div className={`rounded-lg border p-3 hover:bg-accent transition-colors cursor-pointer ${it.severity === "high" ? "border-red-300 bg-red-50" : it.severity === "medium" ? "border-amber-300 bg-amber-50" : "border-slate-200 bg-slate-50"}`}>
+                <div className="text-2xl font-bold">{it.count}</div>
+                <div className="text-xs text-muted-foreground">{it.label}</div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function Dashboard() {
@@ -229,6 +282,9 @@ export default function Dashboard() {
             <RefreshCw className="h-4 w-4 mr-2" />Refresh
           </Button>
         </div>
+
+        {/* ── Attention Required ── */}
+        <AttentionRequired />
 
         {/* ── KPI Grid ── */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
