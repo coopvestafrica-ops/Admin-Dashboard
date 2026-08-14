@@ -122,8 +122,11 @@ export default function RoleManagement() {
   // Fetch admins from API
   const fetchAdmins = useCallback(async () => {
     try {
-      const data = await api.get<{ success: boolean; admins: AdminAccount[] }>('/admins');
-      const adminsData: AdminAccount[] = Array.isArray(data.admins) ? data.admins : [];
+      // Admin staff/role routes live under /api/admin (see backend server.js
+      // mount of adminApiRoutes). Calling /admins directly hits the features
+      // catch-all and returns "Feature not found".
+      const data = await api.get<{ success: boolean; admins: AdminAccount[]; data?: AdminAccount[] }>('/admin/admins');
+      const adminsData: AdminAccount[] = Array.isArray(data.admins) ? data.admins : (Array.isArray(data.data) ? data.data : []);
       setAdmins(adminsData);
     } catch (err: any) {
       console.error('Failed to fetch admins:', err);
@@ -136,7 +139,7 @@ export default function RoleManagement() {
 
   const fetchPermissions = useCallback(async () => {
     try {
-      const data = await api.get<{ success: boolean; roles: Role[] }>('/roles');
+      const data = await api.get<{ success: boolean; roles: Role[] }>('/admin/roles');
       const rolesData: Role[] = Array.isArray(data.roles) ? data.roles : [];
       setRoles(rolesData);
     } catch (err: any) {
@@ -167,15 +170,18 @@ export default function RoleManagement() {
     a.role.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Get role label
+  // Get role label. Normalises the super_admin / superadmin spelling
+  // difference between the dashboard defaults and the backend's /roles list.
   const getRoleLabel = (roleKey: string) => {
-    const role = roles.find(r => r.role_key === roleKey);
+    const key = roleKey === 'super_admin' ? 'superadmin' : roleKey;
+    const role = roles.find(r => (r.role_key === 'super_admin' ? 'superadmin' : r.role_key) === key);
     return role?.label ?? roleKey;
   };
 
   // Get role color
   const getRoleColor = (roleKey: string) => {
-    const role = roles.find(r => r.role_key === roleKey);
+    const key = roleKey === 'super_admin' ? 'superadmin' : roleKey;
+    const role = roles.find(r => (r.role_key === 'super_admin' ? 'superadmin' : r.role_key) === key);
     return role?.color ?? "#6b7280";
   };
 
@@ -206,7 +212,7 @@ export default function RoleManagement() {
     if (!editAdmin) return;
     setSaving(true);
     try {
-      await api.patch(`/admins/${editAdmin.id}/role`, {
+      await api.patch(`/admin/admins/${editAdmin.id}/role`, {
         role: formRole,
         is_active: formStatus,
       });
@@ -240,7 +246,7 @@ export default function RoleManagement() {
     }
     setSaving(true);
     try {
-      await api.post('/admins', { email: formEmail, role: formRole });
+      await api.post('/admin/admins', { email: formEmail, role: formRole });
       
       toast({ title: "Success", description: `Role '${formRole}' assigned successfully` });
       setShowCreateDialog(false);
@@ -263,7 +269,7 @@ export default function RoleManagement() {
     if (!confirm("Are you sure you want to revoke this admin's access?")) return;
     setSaving(true);
     try {
-      await api.delete(`/admins/${adminId}`);
+      await api.delete(`/admin/admins/${adminId}`);
       toast({ title: "Success", description: "Admin access revoked" });
       fetchAdmins();
     } catch (err: any) {
@@ -539,7 +545,7 @@ export default function RoleManagement() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {sortedRoles.filter(r => r.role_key !== "super_admin").map((role) => (
+                  {sortedRoles.filter(r => r.role_key !== "super_admin" && r.role_key !== "superadmin").map((role) => (
                     <SelectItem key={role.id} value={role.role_key}>
                       {role.label}
                     </SelectItem>
@@ -590,7 +596,7 @@ export default function RoleManagement() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {sortedRoles.filter(r => r.role_key !== "super_admin").map((role) => (
+                  {sortedRoles.filter(r => r.role_key !== "super_admin" && r.role_key !== "superadmin").map((role) => (
                     <SelectItem key={role.id} value={role.role_key}>
                       {role.label}
                     </SelectItem>
