@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,12 @@ export default function Sessions() {
   const [mySessions, setMySessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<any>(null);
+
+  useEffect(() => {
+    fetchSessions();
+    fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchSessions = async () => {
     setLoading(true);
@@ -147,8 +153,8 @@ export default function Sessions() {
                   <Users className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Active Sessions</p>
-                  <p className="text-2xl font-bold">{stats?.totalActive || 0}</p>
+                  <p className="text-sm text-muted-foreground">Total Sessions</p>
+                  <p className="text-2xl font-bold">{stats?.totalSessions ?? 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -161,8 +167,8 @@ export default function Sessions() {
                   <Clock className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Last Hour</p>
-                  <p className="text-2xl font-bold">{stats?.activeLastHour || 0}</p>
+                  <p className="text-sm text-muted-foreground">Active (24h)</p>
+                  <p className="text-2xl font-bold">{stats?.todayLogins ?? 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -175,8 +181,8 @@ export default function Sessions() {
                   <Shield className="h-6 w-6 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Roles</p>
-                  <p className="text-2xl font-bold">{Object.keys(stats?.byRole || {}).length}</p>
+                  <p className="text-sm text-muted-foreground">Successful Logins</p>
+                  <p className="text-2xl font-bold">{stats?.activeSessions ?? 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -189,8 +195,8 @@ export default function Sessions() {
                   <AlertTriangle className="h-6 w-6 text-amber-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Failed Logins (24h)</p>
-                  <p className="text-2xl font-bold">—</p>
+                  <p className="text-sm text-muted-foreground">Failed Logins</p>
+                  <p className="text-2xl font-bold">{stats?.failedLogins ?? 0}</p>
                 </div>
               </div>
             </CardContent>
