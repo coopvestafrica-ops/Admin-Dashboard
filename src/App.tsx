@@ -1,73 +1,94 @@
+import { lazy, Suspense } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
+import { toast } from "@/hooks/use-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SessionTimeoutProvider } from "@/components/SessionTimeoutProvider";
+import { ConnectionStatus } from "@/components/ConnectionStatus";
+import { PageLoader } from "@/components/PageLoader";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
-import Dashboard from "@/pages/dashboard";
-import Members from "@/pages/members/index";
-import MemberProfile from "@/pages/members/profile";
-import Loans from "@/pages/loans/index";
-import Contributions from "@/pages/contributions/index";
-import Investments from "@/pages/investments/index";
-import Compliance from "@/pages/compliance/index";
-import Notifications from "@/pages/notifications/index";
-import Support from "@/pages/support/index";
-import RiskScoring from "@/pages/risk-scoring/index";
-import InterestRates from "@/pages/interest-rates/index";
-import AuditLogs from "@/pages/audit-logs/index";
-import Settings from "@/pages/settings";
-import Profile from "@/pages/profile";
-import Payroll from "@/pages/payroll/index";
-import MobileFeatureControls from "@/pages/mobile-feature-controls/index";
-import RoleManagement from "@/pages/role-management/index";
-import FraudDetection from "@/pages/fraud-detection/index";
-import Organizations from "@/pages/organizations/index";
-import PlatformAnalytics from "@/pages/platform-analytics/index";
-import SecurityAccess from "@/pages/security-access/index";
-import WalletManagement from "@/pages/wallet-management/index";
-import WithdrawalManagement from "@/pages/withdrawal-management/index";
-import UserVerification from "@/pages/user-verification/index";
-import ReferralProgram from "@/pages/referral-program/index";
-import GuarantorSystem from "@/pages/guarantor-system/index";
-import ExcelManager from "@/pages/excel-manager/index";
 import ResetPassword from "@/pages/reset-password";
-// New feature pages
-import SystemSettings from "@/pages/system-settings/index";
-import Reports from "@/pages/reports/index";
-import BulkOperations from "@/pages/bulk-operations/index";
-import Reconciliation from "@/pages/reconciliation/index";
-import Sessions from "@/pages/sessions/index";
-import LoginHistory from "@/pages/login-history/index";
-import FinancialDashboard from "@/pages/financial-dashboard/index";
-import DepositVerification from "@/pages/deposit-verification/index";
-import PaymentProofs from "@/pages/payment-proofs/index";
-import ManualDeposits from "@/pages/manual-deposits/index";
-import AccountingSpreadsheet from "@/pages/accounting-spreadsheet/index";
-import RolloverManagement from "@/pages/rollover-management/index";
-import MemberContributions from "@/pages/member-contributions/index";
-// Platform operations pages
-import EmergencyControls from "@/pages/emergency-controls/index";
-import ApprovalCenter from "@/pages/approval-center/index";
-import FinancialLedger from "@/pages/financial-ledger/index";
-import NotificationTemplates from "@/pages/notification-templates/index";
-import LoanApprovalMatrix from "@/pages/loan-approval-matrix/index";
-import Documents from "@/pages/documents/index";
-import Backups from "@/pages/backups/index";
+import Dashboard from "@/pages/dashboard";
+const Members = lazy(() => import("@/pages/members/index"));
+const MemberProfile = lazy(() => import("@/pages/members/profile"));
+const Loans = lazy(() => import("@/pages/loans/index"));
+const Contributions = lazy(() => import("@/pages/contributions/index"));
+const Investments = lazy(() => import("@/pages/investments/index"));
+const Compliance = lazy(() => import("@/pages/compliance/index"));
+const Notifications = lazy(() => import("@/pages/notifications/index"));
+const Support = lazy(() => import("@/pages/support/index"));
+const RiskScoring = lazy(() => import("@/pages/risk-scoring/index"));
+const InterestRates = lazy(() => import("@/pages/interest-rates/index"));
+const AuditLogs = lazy(() => import("@/pages/audit-logs/index"));
+const Settings = lazy(() => import("@/pages/settings"));
+const Profile = lazy(() => import("@/pages/profile"));
+const Payroll = lazy(() => import("@/pages/payroll/index"));
+const MobileFeatureControls = lazy(() => import("@/pages/mobile-feature-controls/index"));
+const RoleManagement = lazy(() => import("@/pages/role-management/index"));
+const FraudDetection = lazy(() => import("@/pages/fraud-detection/index"));
+const Organizations = lazy(() => import("@/pages/organizations/index"));
+const PlatformAnalytics = lazy(() => import("@/pages/platform-analytics/index"));
+const SecurityAccess = lazy(() => import("@/pages/security-access/index"));
+const WalletManagement = lazy(() => import("@/pages/wallet-management/index"));
+const WithdrawalManagement = lazy(() => import("@/pages/withdrawal-management/index"));
+const UserVerification = lazy(() => import("@/pages/user-verification/index"));
+const ReferralProgram = lazy(() => import("@/pages/referral-program/index"));
+const GuarantorSystem = lazy(() => import("@/pages/guarantor-system/index"));
+const ExcelManager = lazy(() => import("@/pages/excel-manager/index"));
+const SystemSettings = lazy(() => import("@/pages/system-settings/index"));
+const Reports = lazy(() => import("@/pages/reports/index"));
+const BulkOperations = lazy(() => import("@/pages/bulk-operations/index"));
+const Reconciliation = lazy(() => import("@/pages/reconciliation/index"));
+const Sessions = lazy(() => import("@/pages/sessions/index"));
+const LoginHistory = lazy(() => import("@/pages/login-history/index"));
+const FinancialDashboard = lazy(() => import("@/pages/financial-dashboard/index"));
+const DepositVerification = lazy(() => import("@/pages/deposit-verification/index"));
+const PaymentProofs = lazy(() => import("@/pages/payment-proofs/index"));
+const ManualDeposits = lazy(() => import("@/pages/manual-deposits/index"));
+const AccountingSpreadsheet = lazy(() => import("@/pages/accounting-spreadsheet/index"));
+const RolloverManagement = lazy(() => import("@/pages/rollover-management/index"));
+const MemberContributions = lazy(() => import("@/pages/member-contributions/index"));
+const EmergencyControls = lazy(() => import("@/pages/emergency-controls/index"));
+const ApprovalCenter = lazy(() => import("@/pages/approval-center/index"));
+const FinancialLedger = lazy(() => import("@/pages/financial-ledger/index"));
+const NotificationTemplates = lazy(() => import("@/pages/notification-templates/index"));
+const LoanApprovalMatrix = lazy(() => import("@/pages/loan-approval-matrix/index"));
+const Documents = lazy(() => import("@/pages/documents/index"));
+const Backups = lazy(() => import("@/pages/backups/index"));
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 30_000,
-      refetchInterval: 60_000,
-      refetchOnWindowFocus: true,
-      retry: 1,
+// Global error handler for TanStack Query: surface failures as a toast so
+// admins always know when a request failed (instead of silent empty states).
+function buildQueryClient() {
+  const onError = (error: Error) => {
+    const status = (error as { status?: number }).status;
+    // Auth/permission errors are handled by route guards — don't spam toasts.
+    if (status === 401 || status === 403) return;
+    toast({
+      variant: "destructive",
+      title: "Request failed",
+      description: error.message || "Something went wrong. Please try again.",
+    });
+  };
+
+  return new QueryClient({
+    queryCache: new QueryCache({ onError }),
+    mutationCache: new MutationCache({ onError }),
+    defaultOptions: {
+      queries: {
+        staleTime: 30_000,
+        refetchInterval: 60_000,
+        refetchOnWindowFocus: true,
+        retry: 1,
+      },
     },
-  },
-});
+  });
+}
+
+const queryClient = buildQueryClient();
 
 function Router() {
   return (
@@ -128,6 +149,7 @@ function Router() {
 
 // Fallback UI when environment is misconfigured
 function ConfigError() {
+  const env = typeof window !== "undefined" ? (window as unknown as Record<string, string | undefined>) : {};
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-8 text-center">
@@ -141,8 +163,8 @@ function ConfigError() {
         <div className="bg-muted rounded-lg p-4 text-left text-sm space-y-2">
           <p className="font-semibold">Required Environment Variables:</p>
           <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-            <li>VITE_SUPABASE_URL{!window.ENV_VITE_SUPABASE_URL && <span className="text-red-500 ml-2">- MISSING</span>}</li>
-            <li>VITE_SUPABASE_ANON_KEY{!window.ENV_VITE_SUPABASE_ANON_KEY && <span className="text-red-500 ml-2">- MISSING</span>}</li>
+            <li>VITE_SUPABASE_URL{!env.ENV_VITE_SUPABASE_URL && <span className="text-red-500 ml-2">- MISSING</span>}</li>
+            <li>VITE_SUPABASE_ANON_KEY{!env.ENV_VITE_SUPABASE_ANON_KEY && <span className="text-red-500 ml-2">- MISSING</span>}</li>
           </ul>
           <p className="pt-2 text-xs">Set these in your Vercel project settings or .env file.</p>
         </div>
@@ -153,7 +175,7 @@ function ConfigError() {
 
 function App() {
   // Check for required environment variables at runtime (build-time or runtime-injected)
-  const runtime = typeof window !== "undefined" ? (window as any) : {};
+  const runtime = typeof window !== "undefined" ? (window as unknown as Record<string, string | undefined>) : {};
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || runtime.ENV_VITE_SUPABASE_URL;
   const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || runtime.ENV_VITE_SUPABASE_ANON_KEY;
   const hasSupabase = Boolean(supabaseUrl && supabaseKey);
@@ -168,9 +190,12 @@ function App() {
       <SessionTimeoutProvider timeoutMinutes={30} warningMinutes={5}>
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
+            <ConnectionStatus />
             <WouterRouter base={import.meta.env.BASE_URL?.replace(/\/$/, "") || ""}>
               <ErrorBoundary>
-                <Router />
+                <Suspense fallback={<PageLoader />}>
+                  <Router />
+                </Suspense>
               </ErrorBoundary>
             </WouterRouter>
             <Toaster />

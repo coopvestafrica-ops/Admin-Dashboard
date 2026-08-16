@@ -172,13 +172,13 @@ function AttentionRequired() {
 export default function Dashboard() {
   const [, navigate] = useLocation();
   // Normalize data - handle both direct arrays and wrapped objects
-  const normalizeData = <T,>(data: T | { data?: T[] } | null | undefined, key = "data"): T[] => {
+  const normalizeData = <T,>(data: unknown, key = "data"): T[] => {
     if (!data) return [];
-    if (Array.isArray(data)) return data;
+    if (Array.isArray(data)) return data as T[];
     if (typeof data === "object" && "data" in data && Array.isArray((data as { data: unknown }).data)) {
       return (data as { data: T[] }).data;
     }
-    if (typeof data === "object" && key in data) {
+    if (typeof data === "object" && data && key in data) {
       const val = (data as Record<string, unknown>)[key];
       return Array.isArray(val) ? val as T[] : [];
     }

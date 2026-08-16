@@ -16,6 +16,7 @@ import type {
   InvestmentsListResponse,
   InvestmentPortfolio,
   ComplianceItemStatus,
+  ComplianceItem,
   MonthlyData,
   DashboardSummary,
   StatusBreakdown,
@@ -70,7 +71,7 @@ export interface Notification {
   title: string;
   message: string;
   type: string;
-  read: boolean;
+  isRead: boolean;
   createdAt: string;
 }
 
@@ -87,10 +88,15 @@ export interface SupportTicket {
 export interface AuditLog {
   id: string;
   action: string;
-  userId: string;
+  actor: string;
+  role?: string;
+  target?: string;
   description: string;
+  timestamp: string;
+  severity?: string;
+  userId?: string;
   ipAddress?: string;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export interface InterestRate {

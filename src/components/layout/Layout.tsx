@@ -3,6 +3,7 @@ import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { CommandPalette } from "./CommandPalette";
 import { AnnouncementBanner } from "./AnnouncementBanner";
+import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -67,6 +68,7 @@ export function Layout({ children }: LayoutProps) {
         </main>
       </div>
       <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />
+      <KeyboardShortcuts />
     </div>
   );
 }

@@ -18,9 +18,9 @@ import { Link, useLocation } from "wouter";
 import { getPageInfo, formatPageTitle } from "@/lib/page-titles";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { authedFetch } from "@/lib/authed-fetch";
 import { useQueryClient } from "@tanstack/react-query";
 import type { User } from "@supabase/supabase-js";
-import type { Notification } from "@/lib/api-client/generated/api.schemas";
 import { formatDistanceToNow } from "date-fns";
 
 // ── Notification type config ────────────────────────────────────────────────
@@ -40,10 +40,9 @@ interface HeaderProps {
 
 export function Header({ onOpenSearch, onOpenMobileMenu }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
-  const { data: notifications } = useGetNotifications(
-    { page: 1, limit: 10 },
-    { query: { queryKey: ["/api/notifications", { page: 1, limit: 10 }] as const, refetchInterval: 30_000 } },
-  );
+  const { data: notifications } = useGetNotifications({
+    query: { queryKey: ["getNotifications"], refetchInterval: 30_000 },
+  });
   const [location, navigate] = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -60,13 +59,13 @@ export function Header({ onOpenSearch, onOpenMobileMenu }: HeaderProps) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const unreadCount = notifications?.unreadCount || 0;
   const items = notifications?.data ?? [];
+  const unreadCount = items.filter((n) => !n.isRead).length;
 
   const getInitials = (email: string | undefined) => {
-    if (!email) return "??";
+    if (!email) return "AD";
     const namePart = email.split("@")[0];
-    const parts = namePart.split(/[._-]/);
+    const parts = namePart.split(/[._-]/).filter(Boolean);
     if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
     return namePart.slice(0, 2).toUpperCase();
   };
@@ -74,20 +73,18 @@ export function Header({ onOpenSearch, onOpenMobileMenu }: HeaderProps) {
   useEffect(() => { document.title = formatPageTitle(pageInfo.title); }, [pageInfo.title]);
 
   // Mark single notification as read
-  const markRead = useCallback(async (id: number) => {
-    const apiUrl = import.meta.env.VITE_API_BASE_URL || "";
+  const markRead = useCallback(async (id: number | string) => {
     try {
-      await fetch(`${apiUrl}/api/notifications/${id}/read`, { method: "POST" });
-      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      await authedFetch(`/api/admin/notifications/${id}/read`, { method: "POST" });
+      queryClient.invalidateQueries({ queryKey: ["getNotifications"] });
     } catch { /* ignore */ }
   }, [queryClient]);
 
   // Mark all as read
   const markAllRead = useCallback(async () => {
-    const apiUrl = import.meta.env.VITE_API_BASE_URL || "";
     try {
-      await fetch(`${apiUrl}/api/notifications/read-all`, { method: "POST" });
-      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      await authedFetch(`/api/admin/notifications/read-all`, { method: "POST" });
+      queryClient.invalidateQueries({ queryKey: ["getNotifications"] });
     } catch { /* ignore */ }
   }, [queryClient]);
 
@@ -177,7 +174,7 @@ export function Header({ onOpenSearch, onOpenMobileMenu }: HeaderProps) {
                 </div>
               ) : (
                 <div className="divide-y">
-                  {items.slice(0, 8).map((n: Notification) => {
+                  {items.slice(0, 8).map((n) => {
                     const cfg = typeConfig[n.type as string] ?? defaultType;
                     const Icon = cfg.icon;
                     return (
@@ -265,15 +262,10 @@ export function Header({ onOpenSearch, onOpenMobileMenu }: HeaderProps) {
                   const { data } = await supabase.auth.getUser();
                   const id = data?.user?.id;
                   if (id) {
-                    const apiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://coopvest-api.onrender.com";
-                    const token = (await supabase.auth.getSession()).data.session?.access_token;
-                    if (token) {
-                      await fetch(`${apiUrl}/api/admin/logout-events`, {
-                        method: "POST",
-                        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-                        body: JSON.stringify({ profileId: id }),
-                      }).catch(() => {});
-                    }
+                    await authedFetch(`/api/admin/logout-events`, {
+                      method: "POST",
+                      body: JSON.stringify({ profileId: id }),
+                    }).catch(() => {});
                   }
                 } catch { /* non-fatal */ }
                 await supabase.auth.signOut();

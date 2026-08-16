@@ -336,8 +336,6 @@ export async function customFetch<T = unknown>(
   input: RequestInfo | URL,
   options: CustomFetchOptions = {},
 ): Promise<T> {
-  const resolvedUrl = resolveUrl(input);
-  console.log('[API] Request:', resolvedUrl, options.method || 'GET');
   input = applyBaseUrl(input);
   const { responseType = "auto", headers: headersInit, ...init } = options;
 
@@ -365,12 +363,8 @@ export async function customFetch<T = unknown>(
   // Authorization header has been explicitly provided.
   if (_authTokenGetter && !headers.has("authorization")) {
     const token = await _authTokenGetter();
-    console.log("[DEBUG customFetch] Token from getter:", token ? `present (${token.length} chars)` : "null");
     if (token) {
       headers.set("authorization", `Bearer ${token}`);
-      console.log("[DEBUG customFetch] Authorization header set");
-    } else {
-      console.log("[DEBUG customFetch] No token available from auth getter");
     }
   }
 
@@ -381,23 +375,13 @@ export async function customFetch<T = unknown>(
 
   const requestInfo = { method, url: resolveUrl(input) };
   
-  console.log('[API] Fetching:', requestInfo.url, 'Base URL:', _baseUrl);
 
-  try {
-    const response = await fetch(input, { ...init, method, headers });
+  const response = await fetch(input, { ...init, method, headers });
 
-    if (!response.ok) {
-      const errorData = await parseErrorBody(response, method);
-      console.error('[API] Error response:', resolvedUrl, response.status, errorData);
-      throw new ApiError(response, errorData, requestInfo);
-    }
-
-    console.log('[API] Success:', resolvedUrl);
-    return (await parseSuccessBody(response, responseType, requestInfo)) as T;
-  } catch (err) {
-    if (err instanceof TypeError && err.message.includes('fetch')) {
-      console.error('[API] Network error:', err.message, 'URL:', requestInfo.url);
-    }
-    throw err;
+  if (!response.ok) {
+    const errorData = await parseErrorBody(response, method);
+    throw new ApiError(response, errorData, requestInfo);
   }
+
+  return (await parseSuccessBody(response, responseType, requestInfo)) as T;
 }

@@ -54,6 +54,25 @@ import { defineConfig, loadEnv } from "vite";
     build: {
       outDir: path.resolve(import.meta.dirname, "dist/public"),
       emptyOutDir: true,
+      chunkSizeWarningLimit: 700,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            "react-vendor": ["react", "react-dom", "react/jsx-runtime"],
+            "query-vendor": ["@tanstack/react-query"],
+            "supabase-vendor": ["@supabase/supabase-js"],
+            "charts": ["recharts"],
+            "radix-ui": [
+              "@radix-ui/react-dialog",
+              "@radix-ui/react-dropdown-menu",
+              "@radix-ui/react-popover",
+              "@radix-ui/react-select",
+              "@radix-ui/react-tabs",
+              "@radix-ui/react-tooltip",
+            ],
+          },
+        },
+      },
     },
     server: {
       port,
