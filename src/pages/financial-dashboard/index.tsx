@@ -1,30 +1,24 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DollarSign, TrendingUp, TrendingDown, Users, CreditCard, Wallet,
   PiggyBank, Building2, FileText, Download, RefreshCw, ArrowUpRight,
   ArrowRight, Coins, Landmark, Receipt, ArrowRightLeft, Calculator
 } from "lucide-react";
-import { getAccessToken } from "@/lib/supabase";
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://coopvest-api.onrender.com";
-
-interface FinancialSummary {
-  totalContributions: number;
-  totalLoanDisbursements: number;
-  totalLoanRepayments: number;
-  totalInvestments: number;
-  totalPayroll: number;
-  totalWithdrawals: number;
-  registrationFees: number;
-  netFlow: number;
-}
+import { authedFetch } from "@/lib/authed-fetch";
+import {
+  useGetContributionSummary,
+  useGetLoanPortfolioSummary,
+  useGetInvestmentPortfolio,
+  useGetDashboardSummary,
+} from "@/lib/api-client";
 
 interface Transaction {
   id: string;
@@ -37,106 +31,79 @@ interface Transaction {
   status: string;
 }
 
-export default function FinancialDashboard() {
-  const [loading, setLoading] = useState(true);
-  const [summary, setSummary] = useState<FinancialSummary>({
-    totalContributions: 0,
-    totalLoanDisbursements: 0,
-    totalLoanRepayments: 0,
-    totalInvestments: 0,
-    totalPayroll: 0,
-    totalWithdrawals: 0,
-    registrationFees: 0,
-    netFlow: 0,
+interface TxResponse {
+  success: boolean;
+  transactions: Array<{
+    id: string | number;
+    amount: number;
+    type: string;
+    status: string;
+    created_at: string;
+    reference?: string;
+    profile?: { name?: string; email?: string };
+  }>;
+}
+
+async function fetchTransactions(): Promise<Transaction[]> {
+  const res = await authedFetch("/api/admin/transactions?limit=100");
+  if (!res.ok) throw new Error("Failed to load transactions");
+  const data: TxResponse = await res.json();
+  const txList = data?.transactions || [];
+  const allTransactions: Transaction[] = txList.map((t) => {
+    const isCredit = ['deposit', 'savings_deposit', 'transfer_in', 'repayment', 'interest'].includes(t.type);
+    return {
+      id: String(t.id ?? ''),
+      type: isCredit ? "credit" : "debit",
+      category: t.type || "transaction",
+      amount: Number(t.amount || 0),
+      date: t.created_at,
+      description: `${t.type || 'Transaction'} - ${t.profile?.name?.slice(0, 20) || t.profile?.email?.slice(0, 20) || 'Member'}`,
+      reference: String(t.reference || t.id || ''),
+      status: t.status || "completed",
+    };
   });
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  allTransactions.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+  return allTransactions;
+}
+
+export default function FinancialDashboard() {
   const [period, setPeriod] = useState("30d");
-  const { toast } = useToast();
 
-  const fetchFinancialData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const token = await getAccessToken();
-      const headers = token ? { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+  const { data: contribSummary, isLoading: loadingContrib } = useGetContributionSummary();
+  const { data: loanPortfolio, isLoading: loadingLoans } = useGetLoanPortfolioSummary();
+  const { data: investPortfolio, isLoading: loadingInvest } = useGetInvestmentPortfolio();
+  const { data: dashSummary, isLoading: loadingDash } = useGetDashboardSummary();
+  const { data: transactions, isLoading: loadingTx, refetch: refetchTx } = useQuery({
+    queryKey: ["financial-transactions"],
+    queryFn: fetchTransactions,
+  });
 
-      // Helper: fetch JSON without letting one failing endpoint abort the whole page.
-      const safeGet = async (path: string) => {
-        try {
-          const res = await fetch(`${API_BASE}${path}`, { headers });
-          if (!res.ok) return null;
-          return await res.json();
-        } catch {
-          return null;
-        }
-      };
+  const txList = transactions ?? [];
+  const loading = loadingContrib || loadingLoans || loadingInvest || loadingDash;
 
-      // Contributions (admin summary) — { data: { totalSaved, monthlyContributions, ... } }
-      const contribData = await safeGet("/api/admin/contributions/summary");
-      const totalContributions = Number(contribData?.data?.totalSaved ?? contribData?.totalSaved ?? 0);
+  const totalContributions = Number(contribSummary?.totalCollected ?? contribSummary?.thisMonth ?? 0);
+  const totalDisbursed = Number(loanPortfolio?.totalDisbursed ?? 0);
+  const collected = Number(loanPortfolio?.collected ?? 0);
+  const totalInvestments = Number(investPortfolio?.totalInvested ?? 0);
+  const totalPayroll = 0;
+  const totalWithdrawals = txList
+    .filter((t) => t.category === "withdrawal" && t.status === "completed")
+    .reduce((s, t) => s + Number(t.amount || 0), 0);
+  const registrationFees = 0;
+  const netFlow = totalContributions + collected - totalDisbursed - totalPayroll - totalWithdrawals;
 
-      // Loans portfolio (admin) — { data: { totalAmount, activeAmount, ... } }
-      const loansData = await safeGet("/api/admin/loans/portfolio-summary");
-      const totalDisbursed = Number(loansData?.data?.totalAmount ?? loansData?.totalAmount ?? 0);
-      const collected = Number(loansData?.data?.activeAmount ?? loansData?.collected ?? 0);
+  const summary = {
+    totalContributions,
+    totalLoanDisbursements: totalDisbursed,
+    totalLoanRepayments: collected,
+    totalInvestments,
+    totalPayroll,
+    totalWithdrawals,
+    registrationFees,
+    netFlow,
+  };
 
-      // Investments portfolio (admin) — { data: { totalInvested, pools, ... } }
-      const investData = await safeGet("/api/admin/investments/portfolio");
-      const totalInvestments = Number(investData?.data?.totalInvested ?? investData?.totalInvested ?? 0);
-
-      // Payroll / withdrawals have no backend endpoints yet — leave at 0.
-      const totalPayroll = 0;
-      const totalWithdrawals = 0;
-
-      // Registration fees (populated from transactions later)
-      const registrationFees = 0;
-
-      // Calculate net flow
-      const netFlow = totalContributions + collected - totalDisbursed - totalPayroll - totalWithdrawals;
-
-      setSummary({
-        totalContributions,
-        totalLoanDisbursements: totalDisbursed,
-        totalLoanRepayments: collected,
-        totalInvestments,
-        totalPayroll,
-        totalWithdrawals,
-        registrationFees,
-        netFlow,
-      });
-
-      // Build transaction list from the admin transactions endpoint.
-      // { transactions: [ { id, amount, type, status, created_at, profile, ... } ] }
-      const txData = await safeGet("/api/admin/transactions?limit=100");
-      const txList: any[] = txData?.transactions || txData?.data || [];
-      const allTransactions: Transaction[] = txList.map((t: any) => {
-        const isCredit = ['deposit', 'savings_deposit', 'transfer_in', 'repayment', 'interest'].includes(t.type);
-        return {
-          id: String(t.id ?? ''),
-          type: isCredit ? "credit" : "debit",
-          category: t.type || "transaction",
-          amount: Number(t.amount || 0),
-          date: t.created_at,
-          description: `${t.type || 'Transaction'} - ${t.profile?.name?.slice(0, 20) || t.profile?.email?.slice(0, 20) || 'Member'}`,
-          reference: t.reference || t.id || '',
-          status: t.status || "completed",
-        };
-      });
-
-      // Sort by date
-      allTransactions.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
-      setTransactions(allTransactions);
-
-    } catch (err) {
-      console.error("Failed to fetch financial data:", err);
-      toast({ title: "Error", description: "Failed to load financial data", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-
-  useEffect(() => {
-    fetchFinancialData();
-  }, [fetchFinancialData]);
+  const refresh = () => { refetchTx(); };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-NG", {
@@ -147,19 +114,21 @@ export default function FinancialDashboard() {
     }).format(amount);
   };
 
-  const StatCard = ({ title, value, icon: Icon, trend, color = "text-blue-600" }: any) => (
+  const StatCard = ({ title, value, icon: Icon, trend, color = "text-blue-600", isLoading }: any) => (
     <Card>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-500">{title}</p>
-            <p className={`text-2xl font-bold mt-1 ${color}`}>{formatCurrency(value)}</p>
+            {isLoading
+              ? <Skeleton className="h-8 w-28 mt-1" />
+              : <p className={`text-2xl font-bold mt-1 ${color}`}>{formatCurrency(value)}</p>}
           </div>
           <div className="p-3 bg-gray-100 rounded-lg">
             <Icon className="w-6 h-6 text-gray-600" />
           </div>
         </div>
-        {trend !== undefined && (
+        {trend !== undefined && !isLoading && (
           <div className={`flex items-center mt-3 text-sm ${trend >= 0 ? "text-green-600" : "text-red-600"}`}>
             {trend >= 0 ? <ArrowUpRight className="w-4 h-4 mr-1" /> : <ArrowRight className="w-4 h-4 mr-1" />}
             <span>{Math.abs(trend)}% from last period</span>
@@ -199,7 +168,7 @@ export default function FinancialDashboard() {
                 <SelectItem value="1y">Last year</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" onClick={fetchFinancialData}>
+            <Button variant="outline" onClick={refresh}>
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </Button>
@@ -217,24 +186,28 @@ export default function FinancialDashboard() {
             value={summary.totalContributions}
             icon={PiggyBank}
             color="text-green-600"
+            isLoading={loadingContrib}
           />
           <StatCard
             title="Loan Disbursements"
             value={summary.totalLoanDisbursements}
             icon={CreditCard}
             color="text-blue-600"
+            isLoading={loadingLoans}
           />
           <StatCard
             title="Loan Repayments"
             value={summary.totalLoanRepayments}
             icon={TrendingUp}
             color="text-emerald-600"
+            isLoading={loadingLoans}
           />
           <StatCard
             title="Net Cash Flow"
             value={summary.netFlow}
             icon={DollarSign}
             color={summary.netFlow >= 0 ? "text-green-600" : "text-red-600"}
+            isLoading={loading}
           />
         </div>
 
@@ -244,24 +217,28 @@ export default function FinancialDashboard() {
             value={summary.totalInvestments}
             icon={Landmark}
             color="text-purple-600"
+            isLoading={loadingInvest}
           />
           <StatCard
             title="Payroll Processed"
             value={summary.totalPayroll}
             icon={Users}
             color="text-orange-600"
+            isLoading={false}
           />
           <StatCard
             title="Withdrawals"
             value={summary.totalWithdrawals}
             icon={ArrowRight}
             color="text-red-600"
+            isLoading={loadingTx}
           />
           <StatCard
             title="Registration Fees"
             value={summary.registrationFees}
             icon={Receipt}
             color="text-gray-600"
+            isLoading={false}
           />
         </div>
 
@@ -287,20 +264,20 @@ export default function FinancialDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {loading ? (
+                      {loadingTx ? (
                         <tr>
                           <td colSpan={5} className="py-8 text-center text-gray-500">
                             Loading transactions...
                           </td>
                         </tr>
-                      ) : transactions.length === 0 ? (
+                      ) : txList.length === 0 ? (
                         <tr>
                           <td colSpan={5} className="py-8 text-center text-gray-500">
                             No transactions found
                           </td>
                         </tr>
                       ) : (
-                        transactions.slice(0, 20).map((tx) => (
+                        txList.slice(0, 20).map((tx) => (
                           <tr key={tx.id} className="border-b hover:bg-gray-50">
                             <td className="py-3 px-4 text-sm">
                               {new Date(tx.date).toLocaleDateString("en-NG", {
@@ -377,24 +354,21 @@ export default function FinancialDashboard() {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Active Loans</span>
-                  <span className="text-sm font-medium">{Math.round(summary.totalLoanDisbursements / 100000)}</span>
+                  <span className="text-sm font-medium">{loadingLoans ? "—" : (loanPortfolio?.activeCount ?? 0)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Total Members</span>
-                  <span className="text-sm font-medium">--</span>
+                  <span className="text-sm font-medium">{loadingDash ? "—" : (dashSummary?.totalMembers ?? contribSummary?.totalMembers ?? 0)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Avg Contribution</span>
                   <span className="text-sm font-medium">
-                    {transactions.length > 0 
-                      ? formatCurrency(summary.totalContributions / Math.max(transactions.filter(t => t.category === "contribution").length, 1))
-                      : "₦0"
-                    }
+                    {loadingTx ? "—" : (txList.length > 0 ? formatCurrency(summary.totalContributions / Math.max(txList.filter(t => t.category === "contribution").length, 1)) : "₦0")}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Repayment Rate</span>
-                  <span className="text-sm font-medium text-green-600">--</span>
+                  <span className="text-sm font-medium text-green-600">{loadingLoans ? "—" : `${Number(loanPortfolio?.repaymentRate ?? 0).toFixed(1)}%`}</span>
                 </div>
               </CardContent>
             </Card>
@@ -406,7 +380,7 @@ export default function FinancialDashboard() {
               <CardContent>
                 <div className="space-y-3">
                   {Object.entries(categoryColors).map(([cat, color]) => {
-                    const count = transactions.filter(t => t.category === cat).length;
+                    const count = txList.filter(t => t.category === cat).length;
                     return (
                       <div key={cat} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">

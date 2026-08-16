@@ -51,12 +51,14 @@ function KPICard({
           <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${accentClass}`}>
             <Icon className="h-6 w-6" />
           </div>
-          {growth !== undefined && (
-            <div className={`flex items-center gap-1 text-sm font-medium ${growth >= 0 ? "text-emerald-600" : "text-red-500"}`}>
-              {growth >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-              {Math.abs(growth)}%
-            </div>
-          )}
+          {loading
+            ? <Skeleton className="h-5 w-12" />
+            : growth !== undefined && (
+              <div className={`flex items-center gap-1 text-sm font-medium ${growth >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                {growth >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                {Math.abs(growth)}%
+              </div>
+            )}
         </div>
         <div className="mt-4">
           {loading ? <Skeleton className="h-8 w-24" /> : <p className="text-2xl font-bold">{formatted}</p>}

@@ -260,14 +260,15 @@ export default function Loans() {
                               <Avatar className="h-8 w-8">
                                 <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
                                   {(() => {
-                                    const name = String(loan.memberName ?? '');
-                                    return name.split(' ').filter(Boolean).map(n => n[0] || '').join('').slice(0, 2) || '??';
+                                    const name = String(loan.memberName ?? '').trim();
+                                    const initials = name.split(' ').filter(Boolean).map(n => n[0] || '').join('').slice(0, 2);
+                                    return initials || '—';
                                   })()}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
                                 <button className="font-medium hover:text-primary hover:underline text-left" onClick={() => setSelectedLoan(loan)}>
-                                  {loan.memberName}
+                                  {loan.memberName || "Unknown member"}
                                 </button>
                                 <div className="text-xs text-muted-foreground">{loan.memberId ?? loan.loanId ?? "—"}</div>
                               </div>
