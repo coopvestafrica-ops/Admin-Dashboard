@@ -248,6 +248,7 @@ export default function Loans() {
                         <th className="px-4 py-3 text-right">Amount</th>
                         <th className="px-4 py-3 text-right">Balance</th>
                         <th className="px-4 py-3 text-center">Status</th>
+                        <th className="px-4 py-3 text-center">Guarantors</th>
                         <th className="px-4 py-3 text-center">Rate</th>
                         <th className="px-4 py-3 text-left">Purpose</th>
                         <th className="px-4 py-3 text-center">Applied</th>
@@ -287,6 +288,32 @@ export default function Loans() {
                             <Badge className={statusCfg[loan.status]?.cls ?? ""} variant="outline">
                               {statusCfg[loan.status]?.label}
                             </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            {(() => {
+                              const g = loan.guarantors ?? [];
+                              const total = g.length;
+                              const consented = g.filter((x: Guarantor) =>
+                                x.status === "confirmed" || x.status === "consented" || x.status === "active"
+                              ).length;
+                              if (total === 0) {
+                                return <span className="text-xs text-muted-foreground">—</span>;
+                              }
+                              const complete = consented >= total;
+                              return (
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    complete
+                                      ? "bg-emerald-100 text-emerald-800"
+                                      : "bg-amber-100 text-amber-800"
+                                  }
+                                  title={`${consented} of ${total} guarantors consented`}
+                                >
+                                  {consented}/{total}
+                                </Badge>
+                              );
+                            })()}
                           </td>
                           <td className="px-4 py-3 text-center text-sm font-semibold text-muted-foreground">
                             {loan.interestRate ?? "—"}%
@@ -341,10 +368,10 @@ export default function Loans() {
                         </tr>
                       ))}
                       {isLoading && (
-                        <tr><td colSpan={9} className="py-12 text-center text-muted-foreground">Loading loans…</td></tr>
+                        <tr><td colSpan={10} className="py-12 text-center text-muted-foreground">Loading loans…</td></tr>
                       )}
                       {!isLoading && filtered.length === 0 && (
-                        <tr><td colSpan={9} className="py-12 text-center text-muted-foreground">No loans found.</td></tr>
+                        <tr><td colSpan={10} className="py-12 text-center text-muted-foreground">No loans found.</td></tr>
                       )}
                     </tbody>
                   </table>
