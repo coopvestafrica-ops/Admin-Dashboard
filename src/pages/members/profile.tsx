@@ -377,6 +377,8 @@ export default function MemberProfile() {
         await updateMemberRole(memberData.id, "admin");
       } else if (action === "remove_admin") {
         await updateMemberRole(memberData.id, "member");
+      } else if (action === "reset_password") {
+        await api.post(`/admin/members/${memberData.id}/reset-password`, {});
       } else {
         const updates = statusMap[action];
         if (updates) {
