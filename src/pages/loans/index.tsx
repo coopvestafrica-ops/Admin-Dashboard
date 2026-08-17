@@ -65,6 +65,7 @@ interface ApiLoan {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const statusCfg: Record<string, { label: string; cls: string }> = {
   pending:  { label: "Pending",  cls: "bg-amber-100 text-amber-800" },
+  under_review: { label: "Pending Review", cls: "bg-amber-100 text-amber-800" },
   active:   { label: "Active",   cls: "bg-emerald-100 text-emerald-800" },
   approved: { label: "Approved", cls: "bg-teal-100 text-teal-800" },
   disbursed:{ label: "Disbursed",cls: "bg-emerald-100 text-emerald-800" },
@@ -104,14 +105,14 @@ export default function Loans() {
   const { toast } = useToast();
 
   const tabFilter: Record<string, string> = {
-    all: "all", pending: "pending", active: "active", defaulted: "defaulted", repaid: "repaid",
+    all: "all", pending: "under_review", active: "active", defaulted: "defaulted", repaid: "repaid",
   };
   const effectiveStatus = activeTab !== "all" ? tabFilter[activeTab] : statusFilter;
 
   const { data: apiData, isLoading } = useGetLoans({
     page,
     limit: 20,
-    status: effectiveStatus !== "all" ? (effectiveStatus as "pending" | "active" | "defaulted" | "repaid") : undefined,
+    status: effectiveStatus !== "all" ? (effectiveStatus as "pending" | "under_review" | "active" | "defaulted" | "repaid") : undefined,
     search: search || undefined,
   });
   const { data: portfolio } = useGetLoanPortfolioSummary();
@@ -223,6 +224,7 @@ export default function Loans() {
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="under_review">Pending Review</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="defaulted">Defaulted</SelectItem>
                     <SelectItem value="repaid">Repaid</SelectItem>
@@ -307,7 +309,7 @@ export default function Loans() {
                                   View Details & Repayments
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                {loan.status === "pending" && (
+                                {(loan.status === "pending" || loan.status === "under_review") && (
                                   <>
                                     <DropdownMenuItem className="text-emerald-700" onClick={() => openAction(loan, "approve")}>
                                       <CheckCircle className="mr-2 h-4 w-4" /> Approve Loan
@@ -525,7 +527,7 @@ export default function Loans() {
 
             {/* Quick actions */}
             <div className="flex flex-wrap gap-2 pt-2 border-t">
-              {selectedLoan.status === "pending" && (
+              {(selectedLoan.status === "pending" || selectedLoan.status === "under_review") && (
                 <>
                   <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => { setSelectedLoan(null); openAction(selectedLoan, "approve"); }}>
                     <CheckCircle className="mr-1 h-3.5 w-3.5" /> Approve
