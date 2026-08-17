@@ -1,12 +1,13 @@
-// Reset Password Page — handles custom API password-reset tokens
+// Reset Password Page — handles Supabase recovery (password-reset) links
 import { useState, useEffect } from "react";
 import { useLocation, useSearchParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShieldCheck, AlertCircle, CheckCircle } from "lucide-react";
+import { ShieldCheck, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 export default function ResetPassword() {
   const [, setLocation] = useLocation();
@@ -20,63 +21,63 @@ export default function ResetPassword() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const token = searchParams.get("token");
+  // The legacy client-side demo flow stores a token in sessionStorage and passes
+  // it via ?token=. Supabase's real recovery flow puts the session in the URL
+  // hash (#access_token=...&type=recovery). We support both.
+  const demoToken = searchParams.get("token");
 
-  // Verify token on mount
   useEffect(() => {
-    const verifyToken = async () => {
-      if (!token) {
+    const verify = async () => {
+      // 1) Legacy client-side demo token (set by the login page's fallback)
+      if (demoToken) {
+        const storedEmail = sessionStorage.getItem(`reset_token_${demoToken}`);
+        const storedExpiry = sessionStorage.getItem(`reset_expires_${demoToken}`);
+        if (storedEmail && storedExpiry && Date.now() < parseInt(storedExpiry, 10)) {
+          setEmail(storedEmail);
+          setIsValidToken(true);
+        } else {
+          setError("Invalid or expired reset link. Please request a new password reset link.");
+          setIsValidToken(false);
+        }
         setIsVerifying(false);
-        setError("No reset token provided. Please request a new password reset link.");
         return;
       }
 
-      // First try custom API verification
-      try {
-        const apiUrl = import.meta.env.VITE_API_BASE_URL || "";
-        const response = await fetch(`${apiUrl}/api/password-reset/verify`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.valid) {
-          setEmail(data.email || "");
-          setIsValidToken(true);
-          setIsVerifying(false);
-          return;
-        }
-      } catch {
-        // API not available, continue to sessionStorage check
+      // 2) Supabase recovery link — the hash fragment is parsed by the client
+      //    automatically and exposed via getSession(). On a recovery callback the
+      //    user has a valid (short-lived) session we can update the password on.
+      if (!supabase) {
+        setError("Authentication service not configured. Please contact support.");
+        setIsVerifying(false);
+        return;
       }
 
-      // Fall back to sessionStorage verification (demo mode)
-      const storedEmail = sessionStorage.getItem(`reset_token_${token}`);
-      const storedExpiry = sessionStorage.getItem(`reset_expires_${token}`);
-
-      if (storedEmail && storedExpiry && Date.now() < parseInt(storedExpiry)) {
-        setEmail(storedEmail);
-        setIsValidToken(true);
-      } else {
-        setError("Invalid or expired reset token. Please request a new password reset link.");
+      try {
+        // Supabase v2 reads the hash on init; detect the recovery session.
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          setError("Invalid or expired reset link. Please request a new password reset link.");
+          setIsValidToken(false);
+        } else if (sessionData?.session) {
+          setEmail(sessionData.session.user?.email || "");
+          setIsValidToken(true);
+        } else {
+          setError("No reset session found. Please request a new password reset link.");
+          setIsValidToken(false);
+        }
+      } catch {
+        setError("Invalid or expired reset link. Please request a new password reset link.");
         setIsValidToken(false);
       }
       setIsVerifying(false);
     };
 
-    verifyToken();
-  }, [token]);
+    verify();
+  }, [demoToken]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-
-    if (!token) {
-      setError("No reset token provided.");
-      return;
-    }
 
     if (password.length < 8) {
       setError("Password must be at least 8 characters.");
@@ -89,43 +90,35 @@ export default function ResetPassword() {
 
     setIsLoading(true);
 
-    // First try custom API
     try {
-      const apiUrl = import.meta.env.VITE_API_BASE_URL || "";
-      const response = await fetch(`${apiUrl}/api/password-reset/reset`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, newPassword: password }),
-      });
-
-      if (response.ok) {
-        // Clear session storage
-        sessionStorage.removeItem(`reset_token_${token}`);
-        sessionStorage.removeItem(`reset_expires_${token}`);
-        
+      // Legacy demo-token path: no real session, so we cannot set a password
+      // server-side. Clear the demo token and prompt to use the email flow.
+      if (demoToken) {
+        sessionStorage.removeItem(`reset_token_${demoToken}`);
+        sessionStorage.removeItem(`reset_expires_${demoToken}`);
         toast({
-          title: "Password updated",
-          description: "Your password has been changed. Please sign in.",
+          title: "Demo link is not secure",
+          description: "Demo reset links cannot set a real password. Use the password reset email flow instead.",
+          variant: "destructive",
         });
         setLocation("/");
-        setIsLoading(false);
         return;
       }
-    } catch {
-      // API not available, continue to Supabase
-    }
 
-    // Fall back to Supabase
-    try {
+      if (!supabase) {
+        setError("Authentication service not configured.");
+        return;
+      }
+
+      // The recovery link established a session; updateUser sets the new password
+      // against that session.
       const { error: updateError } = await supabase.auth.updateUser({ password });
-      
+
       if (updateError) {
         setError(updateError.message);
       } else {
-        // Clear session storage
-        sessionStorage.removeItem(`reset_token_${token}`);
-        sessionStorage.removeItem(`reset_expires_${token}`);
-        
+        // Sign out the recovery session so the user must sign in fresh.
+        await supabase.auth.signOut();
         toast({
           title: "Password updated",
           description: "Your password has been changed. Please sign in.",
