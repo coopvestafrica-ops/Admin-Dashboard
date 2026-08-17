@@ -279,14 +279,11 @@ export default function MemberProfile() {
     }
   };
 
-  // Direct API call for member updates
-  const updateMemberApi = async (memberId: string, updates: any) => {
-    return api.put<{ success: boolean }>(`/admin/members/${memberId}`, updates);
-  };
-
-  // Direct API call for role management
-  const updateMemberRole = async (memberId: string, role: string) => {
-    return api.post<{ success: boolean }>(`/admin/members/${memberId}/role`, { role });
+  // Direct API call for member updates — backend PATCH /admin/members/:id accepts
+  // { isActive, isFlagged, role } (camelCase booleans). The old PUT + semantic
+  // { status } payload 404'd/was ignored by the backend.
+  const updateMemberApi = async (memberId: string, updates: Record<string, unknown>) => {
+    return api.patch<{ success: boolean }>(`/admin/members/${memberId}`, updates);
   };
 
   // Refresh member data
@@ -347,17 +344,21 @@ export default function MemberProfile() {
 
   async function executeAction() {
     if (!actionDialog.action || !memberData?.id) return;
-    
+
     setIsProcessing(true);
     const { action } = actionDialog;
-    
-    const statusMap: Record<string, any> = {
-      suspend: { status: "suspended" },
-      freeze: { status: "frozen" },
-      activate: { status: "active" },
-      verify: { status: "active", kyc_verified: true },
+
+    // Backend contract (adminApi.js):
+    //   PATCH /admin/members/:id  -> { isActive, isFlagged, role }  (camelCase booleans)
+    //   POST  /admin/compliance/:id/approve -> marks KYC verified/approved
+    // The previous code used PUT + a semantic { status, kyc_verified } payload and a
+    // non-existent POST /members/:id/role, so every status/role action 404'd or no-op'd.
+    const patches: Record<string, Record<string, unknown>> = {
+      suspend: { isFlagged: true, isActive: false },
+      freeze: { isActive: false },
+      activate: { isFlagged: false, isActive: true },
     };
-    
+
     const messages: Record<string, string> = {
       suspend: "Account suspended.",
       freeze: "Account frozen.",
@@ -371,21 +372,24 @@ export default function MemberProfile() {
       make_admin: "Member granted admin privileges.",
       remove_admin: "Admin privileges removed.",
     };
-    
+
     try {
       if (action === "make_admin") {
-        await updateMemberRole(memberData.id, "admin");
+        await updateMemberApi(memberData.id, { role: "admin" });
       } else if (action === "remove_admin") {
-        await updateMemberRole(memberData.id, "member");
+        await updateMemberApi(memberData.id, { role: "member" });
       } else if (action === "reset_password") {
         await api.post(`/admin/members/${memberData.id}/reset-password`, {});
+      } else if (action === "verify") {
+        // Verify = mark KYC approved via the compliance approve endpoint.
+        await api.post(`/admin/compliance/${memberData.id}/approve`, {});
       } else {
-        const updates = statusMap[action];
+        const updates = patches[action];
         if (updates) {
           await updateMemberApi(memberData.id, updates);
         }
       }
-      
+
       toast({ title: "Success", description: messages[action] || "Action completed." });
       await refreshMemberData();
       queryClient.invalidateQueries({ queryKey: ["getMembers"] });

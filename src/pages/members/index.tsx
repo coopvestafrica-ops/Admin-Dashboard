@@ -96,24 +96,22 @@ export default function Members() {
     error: "",
   });
 
-  // Direct API call for member updates
-  const updateMemberApi = async (memberId: string, updates: any) => {
-    return api.put<{ success: boolean }>(`/members/${memberId}`, updates);
+  // Direct API call for member updates — backend PATCH /admin/members/:id accepts
+  // { isActive, isFlagged, role } (camelCase booleans). The old code used PUT and
+  // the wrong path (/members/:id, missing /admin) plus a non-existent POST
+  // /members/:id/role, so every status/role action failed.
+  const updateMemberApi = async (memberId: string, updates: Record<string, unknown>) => {
+    return api.patch<{ success: boolean }>(`/admin/members/${memberId}`, updates);
   };
 
   // Create new member
   const createMember = async (memberData: { firstName: string; lastName: string; email: string; phone: string }) => {
-    return api.post<{ success: boolean; member: any }>('/members', memberData);
-  };
-
-  // Direct API call for role management (only super_admin can do this)
-  const updateMemberRole = async (memberId: string, role: string) => {
-    return api.post<{ success: boolean }>(`/members/${memberId}/role`, { role });
+    return api.post<{ success: boolean; member: any }>('/admin/members', memberData);
   };
 
   // Direct API call for deleting members (only super_admin can do this)
   const deleteMember = async (memberId: string) => {
-    return api.delete<{ success: boolean }>(`/members/${memberId}`);
+    return api.delete<{ success: boolean }>(`/admin/members/${memberId}`);
   };
 
   // Map tabs to filter params
@@ -269,18 +267,22 @@ export default function Members() {
 
   async function executeAction() {
     if (!actionDialog.memberId || !actionDialog.action) return;
-    
+
     // Skip delete action - handled by separate confirmation flow
     if (actionDialog.action === "delete") return;
-    
+
     setIsProcessing(true);
     const { action, memberId, memberName } = actionDialog;
 
-    const statusMap: Record<string, any> = {
-      suspend: { status: "suspended" },
-      freeze: { status: "frozen" },
-      activate: { status: "active" },
-      verify: { status: "active", kyc_verified: true },
+    // Backend contract (adminApi.js):
+    //   PATCH /admin/members/:id  -> { isActive, isFlagged, role }  (camelCase booleans)
+    //   POST  /admin/compliance/:id/approve -> marks KYC verified/approved
+    // The previous code used PUT + a semantic { status, kyc_verified } payload and a
+    // non-existent POST /members/:id/role, so every status/role action failed.
+    const patches: Record<string, Record<string, unknown>> = {
+      suspend: { isFlagged: true, isActive: false },
+      freeze: { isActive: false },
+      activate: { isFlagged: false, isActive: true },
     };
 
     const messages: Record<string, string> = {
@@ -298,20 +300,20 @@ export default function Members() {
     };
 
     try {
-      // Special handling for role changes - use dedicated endpoint
       if (action === "make_admin") {
-        await updateMemberRole(memberId, "admin");
-        toast({ title: "Success", description: messages[action] || "Action completed." });
+        await updateMemberApi(memberId, { role: "admin" });
       } else if (action === "remove_admin") {
-        await updateMemberRole(memberId, "member");
-        toast({ title: "Success", description: messages[action] || "Action completed." });
+        await updateMemberApi(memberId, { role: "member" });
+      } else if (action === "verify") {
+        // Verify = mark KYC approved via the compliance approve endpoint.
+        await api.post(`/admin/compliance/${memberId}/approve`, {});
       } else {
-        const updates = statusMap[action];
+        const updates = patches[action];
         if (updates) {
           await updateMemberApi(memberId, updates);
         }
-        toast({ title: "Success", description: messages[action] || "Action completed." });
       }
+      toast({ title: "Success", description: messages[action] || "Action completed." });
       queryClient.invalidateQueries({ queryKey: ["getMembers"] });
       queryClient.invalidateQueries({ queryKey: ["getMemberStats"] });
       closeAction();
