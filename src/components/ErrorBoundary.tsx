@@ -21,7 +21,44 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
+  /**
+   * Detects errors caused by a stale cached index.html referencing chunk
+   * files that no longer exist after a redeploy ("Failed to fetch dynamically
+   * imported module", "Loading chunk ... failed", etc.). In that case the only
+   * reliable recovery is to reload the page so the browser fetches the fresh
+   * index.html with the current chunk hashes. We guard with sessionStorage so
+   * a genuinely broken deploy can't loop the reload forever.
+   */
+  private isChunkLoadError(error: Error): boolean {
+    const msg = error?.message ?? "";
+    return /Failed to fetch dynamically imported module|Importing a module script failed|Loading chunk|Loading CSS chunk|error loading chunk|Unable to preload CSS/i.test(
+      msg,
+    );
+  }
+
+  private handleStaleChunkReload() {
+    const KEY = "__chunk_reload_attempted";
+    try {
+      if (sessionStorage.getItem(KEY)) {
+        // Already reloaded once and it still failed — stop the loop and let
+        // the normal error fallback render so the user can act manually.
+        sessionStorage.removeItem(KEY);
+        return;
+      }
+      sessionStorage.setItem(KEY, "1");
+      console.warn("[ErrorBoundary] Stale chunk detected, reloading to fetch fresh assets…");
+      window.location.reload();
+    } catch {
+      // sessionStorage unavailable (e.g. private mode) — skip auto-reload.
+    }
+  }
+
   componentDidCatch(error: Error, info: ErrorInfo) {
+    if (this.isChunkLoadError(error)) {
+      this.handleStaleChunkReload();
+      return;
+    }
+
     // Log to console (useful for development)
     console.error("[ErrorBoundary] Uncaught error:", error, info.componentStack);
 
