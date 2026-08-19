@@ -8,7 +8,8 @@ import {
   PieChart, 
   ShieldCheck, 
   Bell, 
-  LifeBuoy, 
+  LifeBuoy,
+  UserX, 
   Activity, 
   Percent, 
   Settings, 
@@ -143,6 +144,7 @@ const sidebarGroupsBase = [
     items: [
       { title: "Notifications", icon: Bell, href: "/notifications", page: PAGES.NOTIFICATIONS },
       { title: "Support Tickets", icon: LifeBuoy, href: "/support", page: PAGES.SUPPORT_TICKETS },
+      { title: "Terminations", icon: UserX, href: "/terminations", page: PAGES.TERMINATIONS },
     ],
   },
   {

@@ -57,7 +57,7 @@ router.post("/support-tickets", async (req, res): Promise<void> => {
       .insert({
         ticket_id: ticketId,
         profile_id: profile.id,
-        subject: title,
+        title: title,
         description: description,
         category: category,
         priority: priority || "medium",
@@ -78,7 +78,7 @@ router.post("/support-tickets", async (req, res): Promise<void> => {
       ticket: {
         id: ticket.id,
         ticketId: ticket.ticket_id,
-        subject: ticket.subject,
+        subject: ticket.title,
         description: ticket.description,
         category: ticket.category,
         priority: ticket.priority,
@@ -144,7 +144,7 @@ router.get("/support-tickets/my", async (req, res): Promise<void> => {
       data: (tickets ?? []).map(t => ({
         id: t.id,
         ticketId: t.ticket_id,
-        subject: t.subject,
+        subject: t.title,
         description: t.description,
         category: t.category,
         priority: t.priority,
@@ -204,11 +204,11 @@ router.get("/support-tickets", async (req, res): Promise<void> => {
         ticketId: t.ticket_id,
         memberId: t.profile_id,
         memberName,
-        subject: t.subject,
+        subject: t.title,
         description: t.description,
         status: t.status,
         priority: t.priority ?? "medium",
-        assignedTo: t.assigned_to ?? null,
+        assignedTo: t.assigned_staff_id ?? null,
         createdAt: t.created_at,
         updatedAt: t.updated_at ?? t.created_at,
       };
@@ -233,18 +233,18 @@ router.get("/support-tickets/:id", async (req, res): Promise<void> => {
     ticketId: ticket.ticket_id,
     memberId: ticket.profile_id,
     memberName,
-    subject: ticket.subject,
+    subject: ticket.title,
     description: ticket.description,
     status: ticket.status,
     priority: ticket.priority ?? "medium",
-    assignedTo: ticket.assigned_to ?? null,
+    assignedTo: ticket.assigned_staff_id ?? null,
     createdAt: ticket.created_at,
     updatedAt: ticket.updated_at ?? ticket.created_at,
     messages: (messages ?? []).map(m => ({
       id: m.id,
-      senderId: m.sender_id,
-      senderType: m.sender_type,
-      message: m.message,
+      senderId: m.author_id,
+      senderType: m.author_role === 'member' ? 'user' : 'admin',
+      message: m.body,
       createdAt: m.created_at,
     })),
   });
@@ -257,8 +257,8 @@ router.post("/support-tickets/:id/reply", async (req, res): Promise<void> => {
 
   const { data: msg, error } = await supabase.from("ticket_messages").insert({
     ticket_id: id,
-    sender_type: "admin",
-    message,
+    author_role: "staff",
+    body: message,
   }).select().single();
 
   if (error) { res.status(500).json({ error: error.message }); return; }
@@ -267,9 +267,9 @@ router.post("/support-tickets/:id/reply", async (req, res): Promise<void> => {
 
   res.status(201).json({
     id: msg.id,
-    senderId: msg.sender_id,
-    senderType: msg.sender_type,
-    message: msg.message,
+    senderId: msg.author_id,
+    senderType: "admin",
+    message: msg.body,
     createdAt: msg.created_at,
   });
 });
@@ -279,7 +279,6 @@ router.post("/support-tickets/:id/close", requireRole("operator"), async (req, r
   const id = req.params.id;
   const { data: ticket, error } = await supabase.from("tickets").update({
     status: "closed",
-    closed_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }).eq("id", id).select().single();
 

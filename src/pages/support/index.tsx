@@ -7,7 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useGetSupportTickets } from "@/lib/api-client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { authedFetch } from "@/lib/authed-fetch";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, LifeBuoy, CheckCircle, Clock, AlertTriangle, MessageSquare, Eye, Send, User, Calendar, ChevronRight, Volume2, VolumeX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
@@ -44,11 +45,11 @@ function useResolveTicket() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: number) => {
-      const res = await fetch(`${BASE}/api/support/${id}/resolve`, { method: "POST" });
+      const res = await authedFetch(`${BASE}/api/admin/support/${id}/resolve`, { method: "POST" });
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/support"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["getSupportTickets"] }),
   });
 }
 
@@ -56,15 +57,14 @@ function useUpdateTicketStatus() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      const res = await fetch(`${BASE}/api/support/${id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+      const res = await authedFetch(`${BASE}/api/admin/support/${id}/status`, {
+        method: "POST",
         body: JSON.stringify({ status }),
       });
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/support"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["getSupportTickets"] }),
   });
 }
 
@@ -72,16 +72,55 @@ function useReplyToTicket() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, message }: { id: number; message: string }) => {
-      const res = await fetch(`${BASE}/api/support/${id}/reply`, {
+      const res = await authedFetch(`${BASE}/api/admin/support/${id}/reply`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       });
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/support"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["getSupportTickets"] });
+      qc.invalidateQueries({ queryKey: ["supportTicketThread"] });
+    },
   });
+}
+
+/** Conversation thread for a ticket — polls so live-chat messages appear. */
+function TicketThread({ ticketId }: { ticketId: string }) {
+  const { data } = useQuery({
+    queryKey: ["supportTicketThread", ticketId],
+    queryFn: async () => {
+      const res = await authedFetch(`${BASE}/api/admin/support/${ticketId}`);
+      if (!res.ok) throw new Error("Failed to load thread");
+      return res.json();
+    },
+    refetchInterval: 5000,
+  });
+
+  const messages: any[] = data?.data?.messages ?? [];
+  if (messages.length === 0) {
+    return <p className="text-xs text-muted-foreground">No messages yet.</p>;
+  }
+
+  return (
+    <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+      {messages.map((m) => (
+        <div key={m.id} className={`flex ${m.senderType === "admin" ? "justify-end" : "justify-start"}`}>
+          <div
+            className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+              m.senderType === "admin" ? "bg-primary text-primary-foreground" : "bg-muted"
+            }`}
+          >
+            <p>{m.message}</p>
+            <p className={`text-[10px] mt-1 ${m.senderType === "admin" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+              {m.senderType === "admin" ? "You" : "Member"} · {m.createdAt ? new Date(m.createdAt).toLocaleString() : ""}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function Support() {
@@ -392,6 +431,15 @@ export default function Support() {
                         </p>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Conversation thread */}
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      Conversation
+                    </h4>
+                    <TicketThread ticketId={selectedTicket.id} />
                   </div>
 
                   {/* Reply Section */}

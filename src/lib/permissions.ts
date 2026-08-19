@@ -69,6 +69,7 @@ export const PAGES = {
   // Support
   NOTIFICATIONS: 'notifications',
   SUPPORT_TICKETS: 'support_tickets',
+  TERMINATIONS: 'terminations',
   
   // Settings
   SETTINGS: 'settings',
@@ -144,6 +145,7 @@ export const ROLE_PERMISSIONS: Record<Role, PageKey[]> = {
     // Support
     PAGES.NOTIFICATIONS,
     PAGES.SUPPORT_TICKETS,
+    PAGES.TERMINATIONS,
     
     // Settings
     PAGES.SETTINGS,
@@ -174,6 +176,7 @@ export const ROLE_PERMISSIONS: Record<Role, PageKey[]> = {
     
     // Support
     PAGES.SUPPORT_TICKETS,
+    PAGES.TERMINATIONS,
     PAGES.NOTIFICATIONS,
     
     // Settings
@@ -246,6 +249,7 @@ export const ROUTE_TO_PAGE: Record<string, PageKey> = {
 
   '/notifications': PAGES.NOTIFICATIONS,
   '/support': PAGES.SUPPORT_TICKETS,
+  '/terminations': PAGES.TERMINATIONS,
   
   '/settings': PAGES.SETTINGS,
   '/settings/profile': PAGES.PROFILE,

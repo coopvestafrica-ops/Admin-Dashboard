@@ -10,6 +10,7 @@ export const PAGE_TITLES: Record<string, { title: string; breadcrumb: string[] }
   "/compliance": { title: "Compliance & KYC", breadcrumb: ["Dashboard", "Compliance"] },
   "/notifications": { title: "Notifications", breadcrumb: ["Dashboard", "Notifications"] },
   "/support": { title: "Support Tickets", breadcrumb: ["Dashboard", "Support"] },
+  "/terminations": { title: "Membership Terminations", breadcrumb: ["Dashboard", "Terminations"] },
   "/risk-scoring": { title: "Risk Scoring", breadcrumb: ["Dashboard", "Risk Scoring"] },
   "/interest-rates": { title: "Interest Rates", breadcrumb: ["Dashboard", "Interest Rates"] },
   "/audit-logs": { title: "Audit Logs", breadcrumb: ["Dashboard", "Audit Logs"] },
