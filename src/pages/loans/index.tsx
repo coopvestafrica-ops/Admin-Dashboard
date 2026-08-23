@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useGetLoans, useApproveLoan, useRejectLoan, useGetLoanPortfolioSummary } from "@/lib/api-client";
+import { useQueryClient } from "@tanstack/react-query";
+import { authedFetch } from "@/lib/authed-fetch";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import {
   Search, CheckCircle, XCircle, Clock, AlertTriangle, CreditCard,
@@ -22,7 +24,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useToast } from "@/hooks/use-toast";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type LoanAction = "approve" | "reject" | "freeze" | "penalty" | "guarantor" | "restructure";
+type LoanAction = "approve" | "reject" | "freeze" | "penalty" | "guarantor" | "restructure" | "requestInfo";
+
+interface BorrowerRisk {
+  score: number;
+  riskLevel: string;
+  factors?: Record<string, unknown>;
+}
 
 interface Guarantor {
   id: string;
@@ -60,12 +68,15 @@ interface ApiLoan {
   approvedBy: string | null;
   approvedAt: string | null;
   guarantors: Guarantor[];
+  borrowerRisk?: BorrowerRisk | null;
+  infoRequestedReason?: string | null;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const statusCfg: Record<string, { label: string; cls: string }> = {
   pending:  { label: "Pending",  cls: "bg-amber-100 text-amber-800" },
   under_review: { label: "Pending Review", cls: "bg-amber-100 text-amber-800" },
+  info_requested: { label: "Info Requested", cls: "bg-sky-100 text-sky-800" },
   active:   { label: "Active",   cls: "bg-emerald-100 text-emerald-800" },
   approved: { label: "Approved", cls: "bg-teal-100 text-teal-800" },
   disbursed:{ label: "Disbursed",cls: "bg-emerald-100 text-emerald-800" },
@@ -103,6 +114,7 @@ export default function Loans() {
   const [restructurePlan, setRestructurePlan] = useState({ months: "", rate: "" });
   const [page, setPage] = useState(1);
   const { toast } = useToast();
+  const qc = useQueryClient();
 
   const tabFilter: Record<string, string> = {
     all: "all", pending: "under_review", active: "active", defaulted: "defaulted", repaid: "repaid",
@@ -143,7 +155,14 @@ export default function Loans() {
     const { loan, action } = actionDialog;
     if (action === "approve") {
       apiApprove(loan.id, {
-        onSuccess: () => toast({ title: "Loan Approved", description: `Loan for ${loan.memberName || loan.loanId} approved.` }),
+        onSuccess: (res) => {
+          const body = res as { pendingApproval?: boolean; message?: string } | undefined;
+          if (body?.pendingApproval) {
+            toast({ title: "Sent to Approval Center", description: body.message || "This loan requires Super Admin approval." });
+          } else {
+            toast({ title: "Loan Approved", description: `Loan for ${loan.memberName || loan.loanId} approved.` });
+          }
+        },
         onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
       });
     } else if (action === "reject") {
@@ -151,6 +170,24 @@ export default function Loans() {
         onSuccess: () => toast({ title: "Loan Rejected", description: `Loan for ${loan.memberName || loan.loanId} rejected.` }),
         onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
       });
+    } else if (action === "requestInfo") {
+      if (!actionNote.trim() || actionNote.trim().length < 3) {
+        toast({ title: "Message required", description: "Describe the additional information you need from the borrower.", variant: "destructive" });
+        return;
+      }
+      authedFetch(`/api/admin/loans/${loan.id}/request-info`, {
+        method: "POST",
+        body: JSON.stringify({ message: actionNote.trim() }),
+      })
+        .then(async (r) => {
+          if (!r.ok) {
+            const j = await r.json().catch(() => ({}));
+            throw new Error(j.error || "Request failed");
+          }
+          toast({ title: "Information Requested", description: `The borrower of loan ${loan.loanId || loan.id} has been notified.` });
+          qc.invalidateQueries({ queryKey: ["getLoans"] });
+        })
+        .catch((e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }));
     } else {
       const msgs: Partial<Record<LoanAction, string>> = {
         freeze: `Loan for ${loan.memberName} frozen.`,
@@ -344,6 +381,9 @@ export default function Loans() {
                                     <DropdownMenuItem className="text-red-600" onClick={() => openAction(loan, "reject")}>
                                       <XCircle className="mr-2 h-4 w-4" /> Reject Loan
                                     </DropdownMenuItem>
+                                    <DropdownMenuItem className="text-sky-700" onClick={() => openAction(loan, "requestInfo")}>
+                                      <AlertTriangle className="mr-2 h-4 w-4" /> Request More Information
+                                    </DropdownMenuItem>
                                   </>
                                 )}
                                 {(loan.status === "active" || loan.status === "defaulted") && (
@@ -461,6 +501,39 @@ export default function Loans() {
                 </p>
               )}
             </div>
+
+            {/* Borrower Risk Assessment */}
+            {selectedLoan.borrowerRisk && (
+              <div className="border-t pt-4 mt-4">
+                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <ShieldAlert className="h-4 w-4" /> Borrower Risk Assessment
+                </h4>
+                <div className="grid grid-cols-3 gap-3 text-sm">
+                  <div className={`rounded-lg p-3 ${riskColor(selectedLoan.borrowerRisk.score)}`}>
+                    <div className="text-xs opacity-70">Risk Score</div>
+                    <div className="font-bold text-lg">{selectedLoan.borrowerRisk.score}/100</div>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <div className="text-xs text-muted-foreground">Risk Level</div>
+                    <div className="font-medium capitalize">{selectedLoan.borrowerRisk.riskLevel}</div>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <div className="text-xs text-muted-foreground">Outstanding Balance</div>
+                    <div className="font-medium">{formatCurrency(Number(selectedLoan.borrowerRisk.factors?.outstandingBalance ?? 0))}</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground mt-3">
+                  <span>Active loans: <strong className="text-foreground">{String(selectedLoan.borrowerRisk.factors?.activeLoans ?? 0)}</strong></span>
+                  <span>Overdue/defaulted: <strong className="text-foreground">{String(selectedLoan.borrowerRisk.factors?.overdueLoans ?? 0)}</strong></span>
+                  <span>Completed loans: <strong className="text-foreground">{String(selectedLoan.borrowerRisk.factors?.completedLoans ?? 0)}</strong></span>
+                  <span>Penalized loans: <strong className="text-foreground">{String(selectedLoan.borrowerRisk.factors?.penalizedLoans ?? 0)}</strong></span>
+                  <span>Contribution consistency (6 mo): <strong className="text-foreground">{String(selectedLoan.borrowerRisk.factors?.contributionConsistency ?? 0)}%</strong></span>
+                  <span>KYC verified: <strong className="text-foreground">{selectedLoan.borrowerRisk.factors?.kycVerified ? "Yes" : "No"}</strong></span>
+                  <span>Account flagged: <strong className="text-foreground">{selectedLoan.borrowerRisk.factors?.isFlagged ? "Yes" : "No"}</strong></span>
+                  <span>Problem loans guaranteed: <strong className="text-foreground">{String(selectedLoan.borrowerRisk.factors?.guaranteedProblemLoans ?? 0)}</strong></span>
+                </div>
+              </div>
+            )}
 
             {/* Approving Admin Section */}
             <div className="border-t pt-4 mt-4">
@@ -600,6 +673,7 @@ export default function Loans() {
               {actionDialog.action === "penalty"    && "Add Penalty"}
               {actionDialog.action === "guarantor"  && "Trigger Guarantor Recovery"}
               {actionDialog.action === "restructure"&& "Restructure Repayment Plan"}
+              {actionDialog.action === "requestInfo" && "Request More Information"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -630,6 +704,12 @@ export default function Loans() {
             {actionDialog.action === "guarantor" && (
               <div className="rounded-lg bg-purple-50 border border-purple-200 p-3 text-sm text-purple-800">
                 This will initiate the guarantor recovery process for <strong>{actionDialog.loan?.memberName}</strong>. A formal demand notice will be generated.
+              </div>
+            )}
+
+            {actionDialog.action === "requestInfo" && (
+              <div className="rounded-lg bg-sky-50 border border-sky-200 p-3 text-sm text-sky-800">
+                The loan will move to <strong>Info Requested</strong> and the borrower will be notified with your message below.
               </div>
             )}
 
