@@ -87,6 +87,7 @@ const sidebarGroupsBase = [
       { title: "Guarantor System", icon: HandshakeIcon, href: "/guarantor-system", page: PAGES.GUARANTOR_SYSTEM },
       { title: "Loan Rollovers", icon: RefreshCw, href: "/rollover-management", page: PAGES.LOANS },
       { title: "Interest Rates", icon: Percent, href: "/interest-rates", page: PAGES.INTEREST_RATES },
+      { title: "Fee Management", icon: Receipt, href: "/fee-management", page: PAGES.FEE_MANAGEMENT },
       { title: "Reconciliation", icon: RefreshCw, href: "/reconciliation", page: PAGES.RECONCILIATION },
       { title: "Financial Ledger", icon: BookOpen, href: "/financial-ledger", page: PAGES.FINANCIAL_LEDGER },
       { title: "Accounting Spreadsheet", icon: Calculator, href: "/accounting-spreadsheet", page: PAGES.ACCOUNTING_SPREADSHEET },

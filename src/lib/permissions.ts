@@ -30,6 +30,7 @@ export const PAGES = {
   WITHDRAWAL_MANAGEMENT: 'withdrawal_management',
   GUARANTOR_SYSTEM: 'guarantor_system',
   INTEREST_RATES: 'interest_rates',
+  FEE_MANAGEMENT: 'fee_management',
   RECONCILIATION: 'reconciliation',
   ACCOUNTING_SPREADSHEET: 'accounting_spreadsheet',
   
@@ -115,6 +116,7 @@ export const ROLE_PERMISSIONS: Record<Role, PageKey[]> = {
     PAGES.WITHDRAWAL_MANAGEMENT,
     PAGES.GUARANTOR_SYSTEM,
     PAGES.INTEREST_RATES,
+    PAGES.FEE_MANAGEMENT,
     PAGES.RECONCILIATION,
     PAGES.ACCOUNTING_SPREADSHEET,
     
@@ -220,6 +222,7 @@ export const ROUTE_TO_PAGE: Record<string, PageKey> = {
   '/accounting-spreadsheet': PAGES.ACCOUNTING_SPREADSHEET,
   
   '/system-settings': PAGES.SYSTEM_SETTINGS,
+  '/fee-management': PAGES.FEE_MANAGEMENT,
   '/reports': PAGES.REPORTS,
   '/bulk-operations': PAGES.BULK_OPERATIONS,
   '/sessions': PAGES.SESSION_MANAGEMENT,

@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,6 +67,7 @@ export default function MemberProfile() {
   const [contributionsData, setContributionsData] = useState<any[]>([]);
   const [investmentsData, setInvestmentsData] = useState<any[]>([]);
   const [transactionsData, setTransactionsData] = useState<any[]>([]);
+  const [obligations, setObligations] = useState<any>(null);
 
   // Map backend member fields (snake_case) to frontend-expected shape (camelCase)
   function mapMember(raw: any): any {
@@ -201,6 +203,14 @@ export default function MemberProfile() {
   // Fetch loans, contributions, investments, and transactions for this member
   const fetchRelatedData = async (profileId: string) => {
     try {
+      // Obligations breakdown (savings base / loans / fines / fees / total_due)
+      try {
+        const obJson = await api.get<any>(`/admin/members/${profileId}/obligations`);
+        setObligations(obJson?.obligations || null);
+      } catch (obErr) {
+        console.debug('Obligations fetch skipped:', obErr);
+      }
+
       // Backend accepts both memberId and profileId; use profileId (canonical)
       const loansJson = await api.get<any>(`/admin/loans?profileId=${profileId}&limit=50`);
       // Backend returns { data, loans, ... } — normalise to array. Loans come back
@@ -595,8 +605,9 @@ export default function MemberProfile() {
         </Button>
 
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid grid-cols-7 w-full">
+          <TabsList className="grid grid-cols-8 w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="obligations">Obligations</TabsTrigger>
             <TabsTrigger value="registration">Registration</TabsTrigger>
             <TabsTrigger value="contributions">Contributions</TabsTrigger>
             <TabsTrigger value="loans">Loans</TabsTrigger>
@@ -717,6 +728,74 @@ export default function MemberProfile() {
           </TabsContent>
 
           {/* Registration Tab — everything the member submitted at sign-up */}
+          {/* Obligations Tab */}
+          <TabsContent value="obligations" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Receipt className="h-4 w-4" /> Member Obligations
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {!obligations ? (
+                  <p className="text-muted-foreground text-sm">No obligations data available.</p>
+                ) : (
+                  <>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Obligation</TableHead>
+                          <TableHead className="text-right">Amount</TableHead>
+                          <TableHead>Goes To</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        <TableRow>
+                          <TableCell>Monthly Savings</TableCell>
+                          <TableCell className="text-right font-medium">{formatCurrency(Number(obligations.monthly_savings ?? 0))}</TableCell>
+                          <TableCell>Member's savings</TableCell>
+                        </TableRow>
+                        {(obligations.loans || []).map((l: any, i: number) => (
+                          <TableRow key={`loan-${i}`}>
+                            <TableCell>Loan Repayment ({l.loan_id})</TableCell>
+                            <TableCell className="text-right font-medium">
+                              {formatCurrency(Number(l.monthly_repayment ?? 0))}
+                              <span className="text-xs text-muted-foreground block">remaining {formatCurrency(Number(l.remaining_balance ?? 0))}</span>
+                            </TableCell>
+                            <TableCell>Loan balance</TableCell>
+                          </TableRow>
+                        ))}
+                        {(obligations.fines || []).map((f: any) => (
+                          <TableRow key={f.id}>
+                            <TableCell>Penalty — {f.label || 'Fine'}</TableCell>
+                            <TableCell className="text-right font-medium text-red-600">{formatCurrency(Number(f.amount ?? 0))}</TableCell>
+                            <TableCell>Fines account</TableCell>
+                          </TableRow>
+                        ))}
+                        {(obligations.fees || []).map((f: any) => (
+                          <TableRow key={f.id}>
+                            <TableCell>Fee — {f.label || 'Other'}</TableCell>
+                            <TableCell className="text-right font-medium">{formatCurrency(Number(f.amount ?? 0))}</TableCell>
+                            <TableCell>Platform / service fees</TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow className="border-t-2 font-bold">
+                          <TableCell>Total amount due</TableCell>
+                          <TableCell className="text-right">{formatCurrency(Number(obligations.total_due ?? 0))}</TableCell>
+                          <TableCell></TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                    <p className="text-xs text-muted-foreground">
+                      Savings, loan repayment, fines and fees are always tracked (and paid) as
+                      separate obligations—never merged with the member's wallet balance.
+                    </p>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="registration" className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Profile Photo */}

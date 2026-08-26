@@ -25,6 +25,7 @@ const Support = lazyRetry(() => import("@/pages/support/index"));
 const Terminations = lazyRetry(() => import("@/pages/terminations/index"));
 const RiskScoring = lazyRetry(() => import("@/pages/risk-scoring/index"));
 const InterestRates = lazyRetry(() => import("@/pages/interest-rates/index"));
+const FeeManagement = lazyRetry(() => import("@/pages/fee-management/index"));
 const AuditLogs = lazyRetry(() => import("@/pages/audit-logs/index"));
 const Settings = lazyRetry(() => import("@/pages/settings"));
 const Profile = lazyRetry(() => import("@/pages/profile"));
@@ -110,6 +111,7 @@ function Router() {
       <Route path="/terminations">{() => <ProtectedRoute component={Terminations} />}</Route>
       <Route path="/risk-scoring">{() => <ProtectedRoute component={RiskScoring} />}</Route>
       <Route path="/interest-rates">{() => <ProtectedRoute component={InterestRates} />}</Route>
+      <Route path="/fee-management">{() => <ProtectedRoute component={FeeManagement} />}</Route>
       <Route path="/audit-logs">{() => <ProtectedRoute component={AuditLogs} />}</Route>
       <Route path="/settings">{() => <ProtectedRoute component={Settings} />}</Route>
       <Route path="/settings/profile">{() => <ProtectedRoute component={Profile} />}</Route>
