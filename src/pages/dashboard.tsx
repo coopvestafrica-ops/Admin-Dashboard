@@ -267,7 +267,7 @@ export default function Dashboard() {
     name: b.status.charAt(0).toUpperCase() + b.status.slice(1), value: b.count,
   }));
   const areaData = (monthlyData ?? []).map((d) => ({
-    month: d.month, contributions: d.value,
+    month: d.month, contributions: d.value ?? d.amount,
   }));
 
   return (
