@@ -41,6 +41,7 @@ export default function FeeManagement() {
   const [feeTypes, setFeeTypes] = useState<FeeType[]>([]);
   const [memberFees, setMemberFees] = useState<MemberFee[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState<FeeType | null>(null);
   const [saving, setSaving] = useState(false);
@@ -54,6 +55,7 @@ export default function FeeManagement() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const [ft, mf] = await Promise.all([
         api.get<any>("/admin/fee-types"),
@@ -62,7 +64,9 @@ export default function FeeManagement() {
       setFeeTypes(ft?.fee_types || []);
       setMemberFees(mf?.member_fees || []);
     } catch (e: any) {
-      toast({ title: "Failed to load fees", description: e?.message, variant: "destructive" });
+      const msg = e?.message || "Failed to load fees";
+      setLoadError(msg);
+      toast({ title: "Failed to load fees", description: msg, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -152,6 +156,12 @@ export default function FeeManagement() {
             <Plus className="h-4 w-4 mr-2" /> New Fee Type
           </Button>
         </div>
+
+        {loadError && (
+          <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <strong>Failed to load fees:</strong> {loadError}
+          </div>
+        )}
 
         <Tabs defaultValue="types">
           <TabsList>
