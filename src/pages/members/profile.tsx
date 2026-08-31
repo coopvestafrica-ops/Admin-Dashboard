@@ -94,10 +94,18 @@ export default function MemberProfile() {
     const totalContributions = m.totalContributions ?? m.savings?.total_saved ?? m.savings?.balance ?? 0;
     // Effective KYC status
     const kycStatus = m.kycStatus || m.kyc_status || kyc.status || null;
-    // Build documents array from all available sources
-    const idDocUrl = m.id_document_url || kyc.id_document_url || null;
-    const selfieUrl = m.selfie_url || kyc.selfie_url || kyc.selfie || null;
-    const documents = m.documents || (Array.isArray(kyc.documents) ? kyc.documents : null) || (idDocUrl || selfieUrl ? [
+    // Build documents array from all available sources.
+    // URLs can live on the profile row, the kyc row, the personal_info JSONB,
+    // or as kyc_documents rows — check all of them.
+    const docRows: any[] = Array.isArray(m.documents) ? m.documents
+      : (Array.isArray(kyc.documents) ? kyc.documents : []);
+    const docType = (d: any) => (d?.type || '').toString().toLowerCase();
+    const selfieDoc = docRows.find((d: any) => docType(d) === 'selfie');
+    const idDoc = docRows.find((d: any) => ['id_document', 'national_id', 'passport', 'drivers_license', 'voters_card'].includes(docType(d)));
+    const idDocUrl = m.id_document_url || kyc.id_document_url || pi.id_document_url || pi.id_photo_url || idDoc?.front_image_url || null;
+    const idDocBackUrl = idDoc?.back_image_url || null;
+    const selfieUrl = m.selfie_url || kyc.selfie_url || kyc.selfie || pi.selfie_url || pi.selfie || selfieDoc?.front_image_url || null;
+    const documents = docRows.length > 0 ? docRows : (idDocUrl || selfieUrl ? [
       ...(idDocUrl ? [{ type: 'id_document', front_image_url: idDocUrl, status: kycStatus || 'pending' }] : []),
       ...(selfieUrl ? [{ type: 'selfie', front_image_url: selfieUrl, status: kycStatus || 'pending' }] : []),
     ] : []);
@@ -160,7 +168,10 @@ export default function MemberProfile() {
       registration: m.registration || kyc.personal_info || null,
       registrationSubmittedAt: m.registrationSubmittedAt || m.completed_at || kyc.submitted_at || null,
       documents,
-      profilePicture: m.profilePicture || selfieUrl || m.avatar_url || null,
+      idDocumentUrl: idDocUrl,
+      idDocumentBackUrl: idDocBackUrl,
+      selfieUrl,
+      profilePicture: m.profilePicture || m.avatar_url || selfieUrl || null,
       avatarInitials: (firstName[0] || '') + (lastName[0] || ''),
       organization: m.organization || m.organization_id || null,
       wallet: m.wallet,
@@ -847,6 +858,43 @@ export default function MemberProfile() {
                 </CardContent>
               </Card>
 
+              {/* ID & Selfie Photos */}
+              <Card className="lg:col-span-2">
+                <CardHeader><CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4" /> ID &amp; Selfie Photos</CardTitle></CardHeader>
+                <CardContent>
+                  {activeMember.idDocumentUrl || activeMember.selfieUrl ? (
+                    <div className="flex gap-6 flex-wrap">
+                      {activeMember.idDocumentUrl && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-2">ID Document</p>
+                          <a href={activeMember.idDocumentUrl} target="_blank" rel="noreferrer">
+                            <img src={activeMember.idDocumentUrl} alt="ID Document" className="h-44 w-auto rounded-lg border object-cover" loading="lazy" />
+                          </a>
+                        </div>
+                      )}
+                      {activeMember.idDocumentBackUrl && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-2">ID Document (Back)</p>
+                          <a href={activeMember.idDocumentBackUrl} target="_blank" rel="noreferrer">
+                            <img src={activeMember.idDocumentBackUrl} alt="ID Document back" className="h-44 w-auto rounded-lg border object-cover" loading="lazy" />
+                          </a>
+                        </div>
+                      )}
+                      {activeMember.selfieUrl && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-2">Selfie</p>
+                          <a href={activeMember.selfieUrl} target="_blank" rel="noreferrer">
+                            <img src={activeMember.selfieUrl} alt="Selfie" className="h-44 w-auto rounded-lg border object-cover" loading="lazy" />
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No ID or selfie images on file.</p>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Employment */}
               <Card>
                 <CardHeader><CardTitle className="text-base flex items-center gap-2"><Building2 className="h-4 w-4" /> Employment</CardTitle></CardHeader>
@@ -944,12 +992,24 @@ export default function MemberProfile() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                    {Object.entries(activeMember.registration).map(([k, v]) => (
-                      <div key={k}>
-                        <span className="text-muted-foreground capitalize">{k.replace(/_/g, " ")}</span>
-                        <p className="font-medium break-words">{v === null || v === undefined || String(v) === "" ? "—" : String(v)}</p>
-                      </div>
-                    ))}
+                    {Object.entries(activeMember.registration)
+                      .filter(([k]) => !['id_document_url', 'id_photo_url', 'selfie_url', 'selfie'].includes(k))
+                      .map(([k, v]) => {
+                        const val = v === null || v === undefined ? "" : String(v);
+                        const isImageUrl = /^https?:\/\/\S+?\.(jpe?g|png|webp|gif)(\?\S*)?$/i.test(val);
+                        return (
+                          <div key={k}>
+                            <span className="text-muted-foreground capitalize">{k.replace(/_/g, " ")}</span>
+                            {isImageUrl ? (
+                              <a href={val} target="_blank" rel="noreferrer">
+                                <img src={val} alt={k} className="mt-1 h-24 w-auto rounded border object-cover" loading="lazy" />
+                              </a>
+                            ) : (
+                              <p className="font-medium break-words">{val === "" ? "—" : val}</p>
+                            )}
+                          </div>
+                        );
+                      })}
                   </div>
                 </CardContent>
               </Card>
