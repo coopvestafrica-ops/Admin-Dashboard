@@ -62,6 +62,7 @@ export const PAGES = {
   APPROVAL_CENTER: 'approval_center',
   EMERGENCY_CONTROLS: 'emergency_controls',
   FINANCIAL_LEDGER: 'financial_ledger',
+  ACCOUNTING: 'accounting',
   NOTIFICATION_TEMPLATES: 'notification_templates',
   LOAN_APPROVAL_MATRIX: 'loan_approval_matrix',
   DOCUMENTS: 'documents',
@@ -142,6 +143,7 @@ export const ROLE_PERMISSIONS: Record<Role, PageKey[]> = {
     // Platform Operations (new) — admin can view; super_admin-only writes enforced server-side
     PAGES.APPROVAL_CENTER,
     PAGES.FINANCIAL_LEDGER,
+    PAGES.ACCOUNTING,
     PAGES.DOCUMENTS,
     
     // Support
@@ -245,6 +247,7 @@ export const ROUTE_TO_PAGE: Record<string, PageKey> = {
   '/approval-center': PAGES.APPROVAL_CENTER,
   '/emergency-controls': PAGES.EMERGENCY_CONTROLS,
   '/financial-ledger': PAGES.FINANCIAL_LEDGER,
+  '/accounting': PAGES.ACCOUNTING,
   '/notification-templates': PAGES.NOTIFICATION_TEMPLATES,
   '/loan-approval-matrix': PAGES.LOAN_APPROVAL_MATRIX,
   '/documents': PAGES.DOCUMENTS,

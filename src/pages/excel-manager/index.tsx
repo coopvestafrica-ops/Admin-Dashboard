@@ -14,7 +14,7 @@ import {
   RefreshCw, Eye, Plus, Users, Wallet, Briefcase, ArrowDownToLine, Clock, Loader2
 } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
-import { getAccessToken } from "@/lib/supabase";
+import { authedFetch } from "@/lib/authed-fetch";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface UploadRecord {
@@ -76,13 +76,10 @@ export default function ExcelManager() {
   const fetchUploads = async () => {
     setLoading(true);
     try {
-      const token = await getAccessToken();
-      const apiUrl = import.meta.env.VITE_API_BASE_URL || '';
-      const response = await fetch(`${apiUrl}/api/excel-uploads?limit=100`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      const data = await response.json();
-      
+      const res = await authedFetch("/api/admin/excel-uploads?limit=100");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to fetch uploads");
+
       // Handle various response formats
       let uploadsArray = [];
       if (Array.isArray(data)) {
@@ -94,7 +91,7 @@ export default function ExcelManager() {
           uploadsArray = data.uploads;
         }
       }
-      
+
       setUploads(uploadsArray);
     } catch (e) {
       console.error('Failed to fetch uploads:', e);
@@ -124,31 +121,24 @@ export default function ExcelManager() {
     if (!uploadFile) return;
     setUploading(true);
     try {
-      const token = await getAccessToken();
-      const apiUrl = import.meta.env.VITE_API_BASE_URL || '';
-      
       // Count rows in the file (approximate for CSV)
       let rowCount = 0;
       const text = await uploadFile.text();
       const lines = text.split('\n').filter(l => l.trim());
       rowCount = Math.max(0, lines.length - 1); // Subtract header row
 
-      const response = await fetch(`${apiUrl}/api/excel-uploads`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+      const res = await authedFetch("/api/admin/excel-uploads", {
+        method: "POST",
         body: JSON.stringify({
           filename: uploadFile.name,
           type: uploadType,
           record_count: rowCount,
-          status: 'reviewing',
+          status: "reviewing",
         }),
       });
 
-      if (response.ok) {
-        const newRecord = await response.json();
+      if (res.ok) {
+        const newRecord = await res.json();
         setUploads(prev => [newRecord, ...prev]);
         toast({ title: "File Uploaded", description: `${uploadFile.name} is now under review.` });
         setUploadFile(null);

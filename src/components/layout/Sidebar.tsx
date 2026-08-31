@@ -90,6 +90,7 @@ const sidebarGroupsBase = [
       { title: "Fee Management", icon: Receipt, href: "/fee-management", page: PAGES.FEE_MANAGEMENT },
       { title: "Reconciliation", icon: RefreshCw, href: "/reconciliation", page: PAGES.RECONCILIATION },
       { title: "Financial Ledger", icon: BookOpen, href: "/financial-ledger", page: PAGES.FINANCIAL_LEDGER },
+      { title: "Accounting", icon: BarChart3, href: "/accounting", page: PAGES.ACCOUNTING },
       { title: "Accounting Spreadsheet", icon: Calculator, href: "/accounting-spreadsheet", page: PAGES.ACCOUNTING_SPREADSHEET },
     ],
   },
