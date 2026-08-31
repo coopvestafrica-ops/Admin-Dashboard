@@ -36,6 +36,21 @@ export const PAGE_TITLES: Record<string, { title: string; breadcrumb: string[] }
   "/sessions": { title: "Session Management", breadcrumb: ["Dashboard", "Sessions"] },
   "/login-history": { title: "Login History", breadcrumb: ["Dashboard", "Login History"] },
   "/settings/profile": { title: "Profile", breadcrumb: ["Dashboard", "Settings", "Profile"] },
+  "/accounting": { title: "Accounting & Reports", breadcrumb: ["Dashboard", "Accounting"] },
+  "/accounting-spreadsheet": { title: "Accounting Spreadsheet", breadcrumb: ["Dashboard", "Accounting Spreadsheet"] },
+  "/approval-center": { title: "Approval Center", breadcrumb: ["Dashboard", "Approval Center"] },
+  "/backups": { title: "Backups", breadcrumb: ["Dashboard", "Backups"] },
+  "/deposit-verification": { title: "Deposit Verification", breadcrumb: ["Dashboard", "Deposit Verification"] },
+  "/documents": { title: "Documents", breadcrumb: ["Dashboard", "Documents"] },
+  "/emergency-controls": { title: "Emergency Controls", breadcrumb: ["Dashboard", "Emergency Controls"] },
+  "/fee-management": { title: "Fee Management", breadcrumb: ["Dashboard", "Fee Management"] },
+  "/financial-dashboard": { title: "Financial Dashboard", breadcrumb: ["Dashboard", "Financial Dashboard"] },
+  "/financial-ledger": { title: "Financial Ledger", breadcrumb: ["Dashboard", "Financial Ledger"] },
+  "/loan-approval-matrix": { title: "Loan Approval Matrix", breadcrumb: ["Dashboard", "Loan Approval Matrix"] },
+  "/manual-deposits": { title: "Manual Deposits", breadcrumb: ["Dashboard", "Manual Deposits"] },
+  "/member-contributions": { title: "Member Contributions", breadcrumb: ["Dashboard", "Member Contributions"] },
+  "/notification-templates": { title: "Notification Templates", breadcrumb: ["Dashboard", "Notification Templates"] },
+  "/rollover-management": { title: "Loan Rollover Management", breadcrumb: ["Dashboard", "Rollover Management"] },
 };
 
 export function getPageInfo(path: string): { title: string; breadcrumb: string[] } {

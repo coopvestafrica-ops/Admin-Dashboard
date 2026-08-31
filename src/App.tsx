@@ -62,6 +62,7 @@ const NotificationTemplates = lazyRetry(() => import("@/pages/notification-templ
 const LoanApprovalMatrix = lazyRetry(() => import("@/pages/loan-approval-matrix/index"));
 const Documents = lazyRetry(() => import("@/pages/documents/index"));
 const Backups = lazyRetry(() => import("@/pages/backups/index"));
+const Accounting = lazyRetry(() => import("@/pages/accounting/index"));
 
 // Global error handler for TanStack Query: surface failures as a toast so
 // admins always know when a request failed (instead of silent empty states).
@@ -147,6 +148,7 @@ function Router() {
       <Route path="/loan-approval-matrix">{() => <ProtectedRoute component={LoanApprovalMatrix} />}</Route>
       <Route path="/documents">{() => <ProtectedRoute component={Documents} />}</Route>
       <Route path="/backups">{() => <ProtectedRoute component={Backups} />}</Route>
+      <Route path="/accounting">{() => <ProtectedRoute component={Accounting} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );
