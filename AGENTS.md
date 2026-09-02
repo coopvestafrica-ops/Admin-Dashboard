@@ -1,8 +1,11 @@
 # Admin-Dashboard (Coopvest)
 
 ## Architecture
-- Vite React SPA deployed on **Vercel** (project `coopvest-admin-fixed`, aliases:
-  `admin-dashboard-api-server.vercel.app`, `coopvest-admin-fixed.vercel.app`).
+- Vite React SPA deployed on **Vercel**. Production live site:
+  `admin-dashboard-api-server.vercel.app` → project `admin-dashboard-api-server`,
+  ID `prj_qHLemFjZCGlZKjidz9vIPMNeRQ76` (linked in `.vercel/repo.json`; the old
+  committed `.vercel/project.json` pointing at `coopvest-admin-fixed` is gone —
+  newer Vercel CLI uses `repo.json` with `git vercel check` style linkage).
 - API base: Render backend `https://coopvest-api.onrender.com/api` (see `getApiBaseUrl()` in `src/lib/api.ts`).
 - `src/lib/authed-fetch.ts` (`authedFetch`) resolves relative `/api/...` paths
   against `getApiBaseUrl()` directly to Render — **never** through the Vercel origin.
@@ -10,18 +13,25 @@
   `members`, `dashboard` substrings inside URLs) falls through to the SPA
   `index.html` catch-all and returns HTML instead of JSON. Keep using `authedFetch`
   or the `api` client for data fetches; do not add raw `fetch("/api/...")` calls.
+- Admin API convention: frontend `api.*` helpers must prepend `/admin` to endpoint
+  paths (`api.post('/admin/members/...')`). Backend mounts these under
+  `/api/admin`. A missing prefix falls through to the backend 404 handler with
+  `"Endpoint not found"` (was the members delete wizard bug, fixed in commit
+  `e4dee6f8`).
 
 ## Deploy
-- Production auto-deploys from git pushes to `main` (git-based deployment). A
-  local `vercel deploy --prod` does a **remote build from committed source** —
-  uncommitted working-tree changes do NOT get deployed. Always commit + push
-  first, then wait for the git-triggered deployment to be READY.
-- Vercel project ID: `prj_NRhMjp4XrXHWY2vSa612Fjs9GK5w`. Deployment protection
-  (SSO) is ON for preview URLs; `vercel curl` can generate a bypass token.
+- Production deploy via `vercel deploy --prod --yes --token <Vercel token>` (uploads
+  the working tree; with `--prebuilt` it uploads the local build). Alias moves to
+  production URL on completion. Commit the change to git as well so redeploys
+  stay reproducible.
+- Deployment protection (SSO) is ON for preview URLs; `vercel curl` can generate
+  a bypass token.
+- `.env.local` created by `vercel link` contains an OIDC token — keep it out of
+  version control (already gitignored).
 
 ## Backend (Latest-Coopvest)
 - Render service `coopvest-api`, repo root `backend/` (Express), mounts admin
-  routes at `/api/admin` + `/api/v2/admin`.
+  routes at `/api/admin`, `/api/v2/admin`, and `/api/v1/admin` (IP whitelist on v1).
 - Supabase project ref: `nyoauzqezpxeonmrxxgi` (in service-role JWT and
   `SUPABASE_URL`). PostgREST schema cache must be refreshed (`NOTIFY pgrst,
   'reload schema'`) after adding tables.
