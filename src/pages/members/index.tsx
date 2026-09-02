@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { api, getAdminApiUrl } from "@/lib/api";
+import { useUserRole } from "@/hooks/useUserRole";
 
 // Type for stats cards
 interface StatCard {
@@ -47,10 +48,12 @@ const statusColors: Record<string, string> = {
   frozen: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
 };
 
-type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verify" | "restrict_loans" | "upgrade" | "downgrade" | "change_contribution" | "make_admin" | "remove_admin" | "delete";
+type AdminAction = "suspend" | "freeze" | "activate" | "reset_password" | "verify" | "restrict_loans" | "upgrade" | "downgrade" | "change_contribution" | "make_admin" | "remove_admin" | "make_super_admin" | "remove_super_admin" | "delete";
 
 export default function Members() {
   const [, setLocation] = useLocation();
+  const { role: currentAdminRole } = useUserRole();
+  const isSuperAdmin = currentAdminRole === "super_admin";
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("");
   const [riskFilter, setRiskFilter] = useState<string>("");
@@ -297,6 +300,8 @@ export default function Members() {
       change_contribution: `Contribution method updated for ${memberName}.`,
       make_admin: `${memberName} has been granted admin privileges.`,
       remove_admin: `Admin privileges removed from ${memberName}.`,
+      make_super_admin: `${memberName} is now a Super Admin.`,
+      remove_super_admin: `Super Admin access removed from ${memberName}.`,
     };
 
     try {
@@ -304,6 +309,10 @@ export default function Members() {
         await updateMemberApi(memberId, { role: "admin" });
       } else if (action === "remove_admin") {
         await updateMemberApi(memberId, { role: "member" });
+      } else if (action === "make_super_admin") {
+        await updateMemberApi(memberId, { role: "super_admin" });
+      } else if (action === "remove_super_admin") {
+        await updateMemberApi(memberId, { role: "admin" });
       } else if (action === "verify") {
         // Verify = mark KYC approved via the compliance approve endpoint.
         await api.post(`/admin/compliance/${memberId}/approve`, {});
@@ -651,9 +660,19 @@ export default function Members() {
                                     <DropdownMenuItem onClick={() => openAction(member.id, "remove_admin", `${member.firstName} ${member.lastName}`)} className="text-amber-600">
                                       <Shield className="mr-2 h-4 w-4" /> Remove Admin
                                     </DropdownMenuItem>
-                                  ) : (
+                                  ) : member.role !== 'super_admin' ? (
                                     <DropdownMenuItem onClick={() => openAction(member.id, "make_admin", `${member.firstName} ${member.lastName}`)} className="text-amber-600">
                                       <Crown className="mr-2 h-4 w-4" /> Make Admin
+                                    </DropdownMenuItem>
+                                  ) : null}
+                                  {isSuperAdmin && member.role === 'admin' && (
+                                    <DropdownMenuItem onClick={() => openAction(member.id, "make_super_admin", `${member.firstName} ${member.lastName}`)} className="text-purple-600">
+                                      <ShieldCheck className="mr-2 h-4 w-4" /> Make Super Admin
+                                    </DropdownMenuItem>
+                                  )}
+                                  {isSuperAdmin && member.role === 'super_admin' && (
+                                    <DropdownMenuItem onClick={() => openAction(member.id, "remove_super_admin", `${member.firstName} ${member.lastName}`)} className="text-purple-600">
+                                      <ShieldCheck className="mr-2 h-4 w-4" /> Remove Super Admin
                                     </DropdownMenuItem>
                                   )}
                                   <DropdownMenuSeparator />
@@ -706,6 +725,8 @@ export default function Members() {
               {actionDialog.action === "change_contribution" && "Change Contribution Method"}
               {actionDialog.action === "make_admin" && "Make Admin"}
               {actionDialog.action === "remove_admin" && "Remove Admin"}
+              {actionDialog.action === "make_super_admin" && "Make Super Admin"}
+              {actionDialog.action === "remove_super_admin" && "Remove Super Admin"}
               {actionDialog.action === "delete" && "Delete Member"}
             </DialogTitle>
           </DialogHeader>
@@ -745,7 +766,7 @@ export default function Members() {
             <Button
               onClick={executeAction}
               disabled={isProcessing}
-              variant={["suspend", "freeze", "restrict_loans", "downgrade", "remove_admin"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
+              variant={["suspend", "freeze", "restrict_loans", "downgrade", "remove_admin", "remove_super_admin"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
             >
               {isProcessing ? "Processing…" : "Confirm"}
             </Button>
