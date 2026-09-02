@@ -349,7 +349,7 @@ export default function Members() {
         memberEmail: string;
         expiresAt: string;
         message: string;
-      }>(`/members/${deleteConfirmDialog.memberId}/confirm-delete`, {});
+      }>(`/admin/members/${deleteConfirmDialog.memberId}/confirm-delete`, {});
       
       if (response.success) {
         setDeleteConfirmDialog(prev => ({
@@ -411,7 +411,7 @@ export default function Members() {
         success: boolean;
         message: string;
         deletedAt: string;
-      }>(`/members/${deleteConfirmDialog.memberId}`, {
+      }>(`/admin/members/${deleteConfirmDialog.memberId}`, {
         confirmationCode: deleteConfirmDialog.confirmationCode.toUpperCase(),
         password: deleteConfirmDialog.password,
         confirmPhrase: deleteConfirmDialog.confirmPhrase.toUpperCase(),
