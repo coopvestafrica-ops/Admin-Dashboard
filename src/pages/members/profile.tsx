@@ -123,6 +123,8 @@ export default function MemberProfile() {
       is_active: m.is_active,
       kycVerified: m.kycVerified ?? m.kyc_verified ?? (kycStatus === 'approved' || kycStatus === 'verified'),
       registrationFeePaid: m.registrationFeePaid ?? m.registration_fee_paid ?? false,
+      contributionType: m.contributionType ?? m.contribution_type ?? null,
+      contributionTypeUpdatedAt: m.contributionTypeUpdatedAt ?? m.contribution_type_updated_at ?? null,
       kycStatus,
       emailVerified: m.emailVerified ?? m.email_verified ?? false,
       createdAt: m.createdAt || m.created_at,
@@ -651,6 +653,15 @@ export default function MemberProfile() {
                     <div><span className="text-muted-foreground">Status</span><Badge className={statusColors[activeMember.status]}>{activeMember.status}</Badge></div>
                     <div><span className="text-muted-foreground">KYC Verified</span><p className="font-medium">{activeMember.kycVerified ? "Yes" : "No"}</p></div>
                     <div><span className="text-muted-foreground">Registration Fee</span><p className="font-medium">{activeMember.registrationFeePaid ? "Paid" : "Unpaid"}</p></div>
+                    <div>
+                      <span className="text-muted-foreground">Contribution Method</span>
+                      <p className="font-medium flex items-center gap-2">
+                        {activeMember.contributionType === 'salary_deduction' ? "Salary Deduction" : "Direct Deposit"}
+                        {activeMember.contributionTypeUpdatedAt && ["submitted", "pending"].includes(String(activeMember.kycStatus).toLowerCase()) && (
+                          <Badge className="bg-amber-100 text-amber-800">Recently switched — review</Badge>
+                        )}
+                      </p>
+                    </div>
                     <div><span className="text-muted-foreground">Email Verified</span><p className="font-medium">{activeMember.emailVerified ? "Yes" : "Pending"}</p></div>
                     {activeMember.occupation && <div><span className="text-muted-foreground">Occupation</span><p className="font-medium">{activeMember.occupation}</p></div>}
                     {activeMember.organization && <div><span className="text-muted-foreground">Organization</span><p className="font-medium">{activeMember.organization}</p></div>}
