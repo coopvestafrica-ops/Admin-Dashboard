@@ -10,15 +10,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { authedFetch } from "@/lib/authed-fetch";
+import { asArray } from "@/lib/normalize";
 import { Shield, Plus, Trash2 } from "lucide-react";
 
 interface Level { level: number; maxAmount: number; role: string }
 interface Thresholds { levels: Level[] }
 
+/** The API returns raw DB rows ({ approval_level, max_amount, required_roles });
+ * normalize them into the UI's Level shape, accepting any envelope. */
+function toLevels(body: unknown): Level[] {
+  return asArray<Record<string, unknown>>(body, "thresholds", "levels").map((r, i) => ({
+    level: Number(r.level ?? r.approval_level ?? i + 1),
+    maxAmount: Number(r.maxAmount ?? r.max_amount ?? 0),
+    role: Array.isArray(r.required_roles) ? String(r.required_roles[0] ?? "staff") : String(r.role ?? "staff"),
+  }));
+}
+
 async function fetchMatrix(): Promise<Thresholds> {
   const res = await authedFetch("/api/admin/loan-approval-matrix");
   if (!res.ok) throw new Error("Failed to load matrix");
-  return (await res.json()).thresholds;
+  return { levels: toLevels(await res.json()) };
 }
 async function saveMatrix(t: Thresholds) {
   const res = await authedFetch("/api/admin/loan-approval-matrix", {
@@ -40,8 +51,8 @@ export default function LoanApprovalMatrix() {
   const { toast } = useToast();
   const [levels, setLevels] = useState<Level[] | null>(null);
 
-  const { data, isLoading } = useQuery({ queryKey: ["loan-approval-matrix"], queryFn: fetchMatrix });
-  const current = levels ?? data;
+  const { data, isLoading, isError, error, refetch } = useQuery({ queryKey: ["loan-approval-matrix"], queryFn: fetchMatrix });
+  const current = levels ?? data?.levels ?? [];
 
   const saveMut = useMutation({
     mutationFn: () => saveMatrix({ levels: current! }),
@@ -54,7 +65,7 @@ export default function LoanApprovalMatrix() {
   });
 
   const update = (i: number, patch: Partial<Level>) =>
-    setLevels((current ? [...current] : (data ? [...data] : [])).map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
+    setLevels([...current].map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
 
   const addLevel = () => setLevels([...(current || []), { level: (current?.length || 0) + 1, maxAmount: 100000, role: "staff" }]);
   const removeLevel = (i: number) => setLevels((current || []).filter((_, idx) => idx !== i));
@@ -78,9 +89,17 @@ export default function LoanApprovalMatrix() {
           <CardContent className="space-y-4">
             {isLoading ? (
               <Skeleton className="h-40 w-full" />
+            ) : isError ? (
+              <div className="flex flex-col items-center gap-3 py-8 text-center">
+                <p className="text-sm text-muted-foreground">Could not load the approval matrix. {(error as Error)?.message}</p>
+                <Button variant="outline" onClick={() => refetch()}>Retry</Button>
+              </div>
             ) : (
               <>
-                {(current || []).map((l, i) => (
+                {current.length === 0 && (
+                  <p className="text-sm text-muted-foreground py-2">No approval levels configured yet. Add the first level below.</p>
+                )}
+                {current.map((l, i) => (
                   <div key={i} className="flex items-end gap-3">
                     <div>
                       <Label>Level</Label>
@@ -113,7 +132,7 @@ export default function LoanApprovalMatrix() {
         <Card>
           <CardHeader><CardTitle>Preview</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm">
-            {(current || []).sort((a, b) => a.level - b.level).map((l) => (
+            {[...current].sort((a, b) => a.level - b.level).map((l) => (
               <div key={l.level} className="flex justify-between border-b pb-1">
                 <span>Level {l.level} · <Badge variant="secondary">{l.role}</Badge></span>
                 <span className="font-medium">{fmtMoney(l.maxAmount)}</span>
