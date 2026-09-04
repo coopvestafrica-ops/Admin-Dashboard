@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/format";
-import { supabase } from "@/lib/supabase";
+import { authedFetch } from "@/lib/authed-fetch";
 import {
   Calculator,
   FileSpreadsheet,
@@ -115,25 +115,36 @@ const createRow = (columns: string[], rowNum: number): SpreadsheetRow => ({
   }, {} as Record<string, Cell>),
 });
 
-// Enhanced formula parser
+// Enhanced formula parser. Recursively evaluates formulas stored in other
+// cells (e.g. a SUM over a column of per-row formulas) with a depth guard
+// against circular references.
+const MAX_FORMULA_DEPTH = 100;
+
 const evaluateFormula = (
   formula: string,
   rows: SpreadsheetRow[],
-  columns: string[]
+  columns: string[],
+  depth = 0
 ): string => {
   if (!formula.startsWith("=")) return formula;
+  if (depth > MAX_FORMULA_DEPTH) return formula;
 
   const expr = formula.slice(1).toUpperCase().replace(/\s/g, "");
-  
-  // Get cell value helper
+
+  // Get cell value helper — evaluates nested formulas instead of reading raw
+  // "=..." text (previously parseFloat of a formula string yielded 0, so any
+  // aggregate over formula cells always summed to zero).
   const getCellValue = (ref: string): number => {
     const col = ref.match(/[A-Z]+/)?.[0] || "";
     const row = ref.match(/\d+/)?.[0] || "";
     const rowData = rows.find((r) => r.id === `row-${row}`);
     const cell = rowData?.cells[col];
-    if (!cell) return 0;
-    const val = parseFloat(cell.value) || 0;
-    return val;
+    if (!cell || cell.value === "") return 0;
+    if (cell.value.startsWith("=")) {
+      const evaluated = evaluateFormula(cell.value, rows, columns, depth + 1);
+      return parseFloat(evaluated) || 0;
+    }
+    return parseFloat(cell.value) || 0;
   };
 
   try {
@@ -162,9 +173,13 @@ const evaluateFormula = (
       let count = 0;
       for (let row = parseInt(startRow); row <= parseInt(endRow); row++) {
         for (let col = startColIdx; col <= endColIdx; col++) {
-          const val = getCellValue(`${columns[col]}${row}`);
-          if (val !== 0 || rows.find((r) => r.id === `row-${row}`)?.cells[columns[col]]) {
-            sum += val;
+          // Only count cells that actually hold a value — every cell object
+          // exists in the grid, so existence alone counted empty cells and
+          // diluted the average.
+          const rowData = rows.find((r) => r.id === `row-${row}`);
+          const cell = rowData?.cells[columns[col]];
+          if (cell && cell.value !== "") {
+            sum += getCellValue(`${columns[col]}${row}`);
             count++;
           }
         }
@@ -276,15 +291,18 @@ const TEMPLATES = [
           },
         })),
         {
-          id: "row-totals",
+          // Data rows are 2–32, so the totals row is position 33. The row id
+          // and cell ids must match that position or the grid can't find/edit
+          // these cells and SUM ranges would include the totals row itself.
+          id: "row-33",
           cells: {
-            A: createCell("A", 34, "TOTALS", { type: "text", bold: true, backgroundColor: "#1f2937", color: "#ffffff" }),
-            B: createCell("B", 34, ""),
-            C: createCell("C", 34, "=SUM(C2:C33)", { type: "currency", bold: true, backgroundColor: "#dcfce7" }),
-            D: createCell("D", 34, "=SUM(D2:D33)", { type: "currency", bold: true, backgroundColor: "#dbeafe" }),
-            E: createCell("E", 34, "=SUM(E2:E33)", { type: "currency", bold: true, backgroundColor: "#fef3c7" }),
-            F: createCell("F", 34, "=SUM(F2:F33)", { type: "currency", bold: true, backgroundColor: "#f3e8ff" }),
-            G: createCell("G", 34, "=SUM(G2:G33)", { type: "currency", bold: true, backgroundColor: "#e5e7eb" }),
+            A: createCell("A", 33, "TOTALS", { type: "text", bold: true, backgroundColor: "#1f2937", color: "#ffffff" }),
+            B: createCell("B", 33, ""),
+            C: createCell("C", 33, "=SUM(C2:C32)", { type: "currency", bold: true, backgroundColor: "#dcfce7" }),
+            D: createCell("D", 33, "=SUM(D2:D32)", { type: "currency", bold: true, backgroundColor: "#dbeafe" }),
+            E: createCell("E", 33, "=SUM(E2:E32)", { type: "currency", bold: true, backgroundColor: "#fef3c7" }),
+            F: createCell("F", 33, "=SUM(F2:F32)", { type: "currency", bold: true, backgroundColor: "#f3e8ff" }),
+            G: createCell("G", 33, "=SUM(G2:G32)", { type: "currency", bold: true, backgroundColor: "#e5e7eb" }),
           },
         },
       ];
@@ -315,11 +333,11 @@ const TEMPLATES = [
           },
         })),
         {
-          id: "row-totals",
+          id: "row-22",
           cells: {
-            A: createCell("A", 23, "TOTAL", { type: "text", bold: true, backgroundColor: "#1f2937", color: "#ffffff" }),
-            B: createCell("B", 23, "=SUM(B2:B22)", { type: "currency", bold: true, backgroundColor: "#dcfce7" }),
-            C: createCell("C", 23, "=SUM(C2:C22)", { type: "currency", bold: true, backgroundColor: "#fee2e2" }),
+            A: createCell("A", 22, "TOTAL", { type: "text", bold: true, backgroundColor: "#1f2937", color: "#ffffff" }),
+            B: createCell("B", 22, "=SUM(B2:B21)", { type: "currency", bold: true, backgroundColor: "#dcfce7" }),
+            C: createCell("C", 22, "=SUM(C2:C21)", { type: "currency", bold: true, backgroundColor: "#fee2e2" }),
           },
         },
       ];
@@ -358,15 +376,15 @@ const TEMPLATES = [
           },
         })),
         {
-          id: "row-totals",
+          id: "row-26",
           cells: {
-            A: createCell("A", 27, "TOTALS", { type: "text", bold: true, backgroundColor: "#1f2937", color: "#ffffff" }),
-            B: createCell("B", 27, ""),
-            C: createCell("C", 27, ""),
-            D: createCell("D", 27, "=SUM(D2:D26)", { type: "currency", bold: true, backgroundColor: "#dcfce7" }),
-            E: createCell("E", 27, "=SUM(E2:E26)", { type: "currency", bold: true, backgroundColor: "#dcfce7" }),
-            F: createCell("F", 27, "=SUM(F2:F26)", { type: "currency", bold: true, backgroundColor: "#dbeafe" }),
-            G: createCell("G", 27, ""),
+            A: createCell("A", 26, "TOTALS", { type: "text", bold: true, backgroundColor: "#1f2937", color: "#ffffff" }),
+            B: createCell("B", 26, ""),
+            C: createCell("C", 26, ""),
+            D: createCell("D", 26, "=SUM(D2:D25)", { type: "currency", bold: true, backgroundColor: "#dcfce7" }),
+            E: createCell("E", 26, "=SUM(E2:E25)", { type: "currency", bold: true, backgroundColor: "#dcfce7" }),
+            F: createCell("F", 26, "=SUM(F2:F25)", { type: "currency", bold: true, backgroundColor: "#dbeafe" }),
+            G: createCell("G", 26, ""),
           },
         },
       ];
@@ -403,14 +421,14 @@ const TEMPLATES = [
           },
         })),
         {
-          id: "row-totals",
+          id: "row-17",
           cells: {
-            A: createCell("A", 18, "TOTALS", { type: "text", bold: true, backgroundColor: "#1f2937", color: "#ffffff" }),
-            B: createCell("B", 18, "=SUM(B2:B17)", { type: "currency", bold: true, backgroundColor: "#dcfce7" }),
-            C: createCell("C", 18, ""),
-            D: createCell("D", 18, ""),
-            E: createCell("E", 18, "=SUM(E2:E17)", { type: "currency", bold: true, backgroundColor: "#dcfce7" }),
-            F: createCell("F", 18, "=SUM(F2:F17)", { type: "currency", bold: true, backgroundColor: "#dcfce7" }),
+            A: createCell("A", 17, "TOTALS", { type: "text", bold: true, backgroundColor: "#1f2937", color: "#ffffff" }),
+            B: createCell("B", 17, "=SUM(B2:B16)", { type: "currency", bold: true, backgroundColor: "#dcfce7" }),
+            C: createCell("C", 17, ""),
+            D: createCell("D", 17, ""),
+            E: createCell("E", 17, "=SUM(E2:E16)", { type: "currency", bold: true, backgroundColor: "#dcfce7" }),
+            F: createCell("F", 17, "=SUM(F2:F16)", { type: "currency", bold: true, backgroundColor: "#dcfce7" }),
           },
         },
       ];
@@ -447,53 +465,41 @@ export default function AccountingSpreadsheet() {
     dateFrom: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0],
     dateTo: new Date().toISOString().split("T")[0],
     groupBy: "day",
-    includeTypes: ["savings", "levy", "loan_repayment", "entrance_fee", "refund", "special"],
+    // These match the actual `type` values in the transactions table; the old
+    // list (savings/levy/loan_repayment/...) matched nothing in production.
+    includeTypes: ["deposit", "withdrawal"],
   });
   const [chartData, setChartData] = useState<{ labels: string[]; values: number[] }>({ labels: [], values: [] });
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  // Fetch financial data for reports
-  const { data: financialData } = useQuery({
+  // Fetch financial data for reports. Goes through the authenticated admin
+  // API — the previous version queried `deposits`/`withdrawals` tables via the
+  // anonymous Supabase client, but those tables do not exist (and RLS would
+  // block anonymous reads anyway), so reports could never load.
+  const { data: financialData, isLoading: financialLoading, isError: financialError, refetch: refetchFinancial } = useQuery({
     queryKey: ["financial-data", reportConfig.dateFrom, reportConfig.dateTo],
     queryFn: async () => {
-      const { data: deposits, error: depError } = await supabase
-        .from("deposits")
-        .select("id, amount, created_at, deposit_type, reference, description, profiles(name)")
-        .gte("created_at", reportConfig.dateFrom)
-        .lte("created_at", reportConfig.dateTo + "T23:59:59");
+      const qs = new URLSearchParams({
+        limit: "200",
+        dateFrom: reportConfig.dateFrom,
+        dateTo: reportConfig.dateTo,
+      });
+      const res = await authedFetch(`/api/admin/transactions?${qs}`);
+      if (!res.ok) throw new Error("Failed to fetch transaction data");
+      const body = await res.json();
+      const txns: any[] = Array.isArray(body) ? body : (body.transactions ?? body.data ?? []);
 
-      const { data: withdrawals, error: witError } = await supabase
-        .from("withdrawals")
-        .select("id, amount, created_at, reference, description, profiles(name)")
-        .gte("created_at", reportConfig.dateFrom)
-        .lte("created_at", reportConfig.dateTo + "T23:59:59");
-
-      if (depError || witError) throw new Error("Failed to fetch data");
-
-      const depositsFormatted: FinancialData[] = (deposits || []).map((d: any) => ({
-        id: d.id,
-        type: d.deposit_type || "deposit",
-        amount: d.amount,
-        date: d.created_at,
-        memberName: d.profiles?.name || "Unknown",
-        category: d.deposit_type || "deposit",
-        reference: d.reference || "",
-        description: d.description || "",
+      return txns.map((t): FinancialData => ({
+        id: String(t.id),
+        type: t.type || "deposit",
+        amount: Number(t.amount || 0),
+        date: t.created_at,
+        memberName: t.profile?.name || "Unknown",
+        category: t.type || "deposit",
+        reference: t.reference || "",
+        description: t.description || "",
       }));
-
-      const withdrawalsFormatted: FinancialData[] = (withdrawals || []).map((w: any) => ({
-        id: w.id,
-        type: "withdrawal",
-        amount: w.amount,
-        date: w.created_at,
-        memberName: w.profiles?.name || "Unknown",
-        category: "withdrawal",
-        reference: w.reference || "",
-        description: w.description || "",
-      }));
-
-      return [...depositsFormatted, ...withdrawalsFormatted];
     },
   });
 
@@ -517,10 +523,12 @@ export default function AccountingSpreadsheet() {
         name: template.name,
         rows,
         columns,
-        updatedAt: new Date().toISOString(),
       });
       setShowTemplates(false);
       setSelectedCell(null);
+      // Take the user to the grid — previously the view stayed on the
+      // Templates tab, so picking a template appeared to do nothing.
+      setActiveTab("grid");
     }
   }, [spreadsheet]);
 
@@ -531,13 +539,14 @@ export default function AccountingSpreadsheet() {
         ...row,
         cells: Object.fromEntries(
           Object.entries(row.cells).map(([key, cell]) =>
-            key === cellId
+            // Match on the cell's id ("C3"), not the map key ("C") — comparing
+            // key === cellId never matched, so no edit ever persisted.
+            cell.id === cellId
               ? [key, { ...cell, value, formula: value.startsWith("=") ? value : undefined }]
               : [key, cell]
           )
         ),
       })),
-      updatedAt: new Date().toISOString(),
     }));
   }, []);
 
@@ -612,13 +621,14 @@ export default function AccountingSpreadsheet() {
     }
   }, [spreadsheet.rows, spreadsheet.columns]);
 
-  // Export to CSV
+  // Export to CSV — exports computed/formatted values (same as XLSX) so the
+  // file shows numbers, not raw "=SUM(...)" formula text.
   const exportCSV = useCallback(() => {
     const headers = spreadsheet.columns.join(",");
     const rows = spreadsheet.rows.map((row) =>
       spreadsheet.columns.map((col) => {
         const cell = row.cells[col];
-        const value = cell?.value || "";
+        const value = cell ? formatCellValue(cell) : "";
         return `"${value.replace(/"/g, '""')}"`;
       }).join(",")
     );
@@ -631,7 +641,7 @@ export default function AccountingSpreadsheet() {
     a.click();
     URL.revokeObjectURL(url);
     toast({ title: "Exported", description: "Spreadsheet exported as CSV" });
-  }, [spreadsheet, toast]);
+  }, [spreadsheet, formatCellValue, toast]);
 
   // Export to XLSX (simplified)
   const exportXLSX = useCallback(() => {
@@ -751,7 +761,6 @@ export default function AccountingSpreadsheet() {
       name: reportConfig.title,
       rows: reportRows,
       columns: ["A", "B", "C"],
-      updatedAt: new Date().toISOString(),
     });
 
     // Set chart data
@@ -766,15 +775,18 @@ export default function AccountingSpreadsheet() {
     toast({ title: "Report Generated", description: `${entries.length} rows created` });
   }, [financialData, reportConfig, spreadsheet, toast]);
 
-  // Calculate totals
+  // Calculate totals — formula cells contribute their evaluated result, not
+  // the raw "=..." text (which parseFloat turns into 0).
   const totals = useMemo(() => {
     let numericTotal = 0;
     let currencyCells = 0;
     spreadsheet.rows.forEach((row) => {
       spreadsheet.columns.forEach((col) => {
         const cell = row.cells[col];
-        if (cell && cell.format.type === "currency") {
-          const num = parseFloat(cell.value) || 0;
+        if (cell && cell.format.type === "currency" && cell.value !== "") {
+          const num = cell.value.startsWith("=")
+            ? parseFloat(evaluateFormula(cell.value, spreadsheet.rows, spreadsheet.columns)) || 0
+            : parseFloat(cell.value) || 0;
           numericTotal += num;
           currencyCells++;
         }
@@ -1009,7 +1021,7 @@ export default function AccountingSpreadsheet() {
                   <div className="space-y-2 md:col-span-2">
                     <Label>Include Transaction Types</Label>
                     <div className="flex flex-wrap gap-2">
-                      {["savings", "levy", "loan_repayment", "entrance_fee", "refund", "special", "withdrawal"].map((type) => (
+                      {["deposit", "withdrawal"].map((type) => (
                         <Badge key={type} variant={reportConfig.includeTypes.includes(type) ? "default" : "outline"}
                           className="cursor-pointer" onClick={() => {
                             const types = reportConfig.includeTypes.includes(type)
@@ -1023,14 +1035,31 @@ export default function AccountingSpreadsheet() {
                     </div>
                   </div>
                 </div>
-                <Button onClick={generateReport} className="w-full" disabled={!financialData}>
+                <Button onClick={generateReport} className="w-full" disabled={!financialData || financialData.length === 0}>
                   <BarChart3 className="h-4 w-4 mr-2" />Generate Report
                 </Button>
               </CardContent>
             </Card>
 
+            {/* Explicit request lifecycle so the tab never looks dead */}
+            {financialLoading && (
+              <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Loading transaction data…</CardContent></Card>
+            )}
+            {financialError && (
+              <Card><CardContent className="p-6 flex flex-col items-center gap-3 text-center">
+                <AlertCircle className="h-6 w-6 text-destructive" />
+                <p className="text-sm text-muted-foreground">Could not load transaction data for this period.</p>
+                <Button variant="outline" size="sm" onClick={() => refetchFinancial()}>Retry</Button>
+              </CardContent></Card>
+            )}
+            {financialData && financialData.length === 0 && !financialLoading && (
+              <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">
+                No transactions found between {reportConfig.dateFrom} and {reportConfig.dateTo}. Try widening the date range.
+              </CardContent></Card>
+            )}
+
             {/* Report Preview */}
-            {financialData && (
+            {financialData && financialData.length > 0 && (
               <Card>
                 <CardHeader><CardTitle className="text-base">Data Preview ({financialData.length} records)</CardTitle></CardHeader>
                 <CardContent>
