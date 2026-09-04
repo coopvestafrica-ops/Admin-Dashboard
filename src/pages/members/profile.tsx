@@ -122,6 +122,7 @@ export default function MemberProfile() {
       status,
       is_active: m.is_active,
       kycVerified: m.kycVerified ?? m.kyc_verified ?? (kycStatus === 'approved' || kycStatus === 'verified'),
+      registrationFeePaid: m.registrationFeePaid ?? m.registration_fee_paid ?? false,
       kycStatus,
       emailVerified: m.emailVerified ?? m.email_verified ?? false,
       createdAt: m.createdAt || m.created_at,
@@ -402,8 +403,15 @@ export default function MemberProfile() {
       } else if (action === "reset_password") {
         await api.post(`/admin/members/${memberData.id}/reset-password`, {});
       } else if (action === "verify") {
-        // Verify = mark KYC approved via the compliance approve endpoint.
-        await api.post(`/admin/compliance/${memberData.id}/approve`, {});
+        // Unified verification: approves KYC and confirms a pending
+        // registration-fee payment proof in one step, so the member's
+        // activation gate flips without a second approval elsewhere.
+        const res = await api.post<{ message?: string }>(`/admin/members/${memberData.id}/verify`, {});
+        toast({ title: "Success", description: res?.message || messages[action] });
+        await refreshMemberData();
+        queryClient.invalidateQueries({ queryKey: ["getMembers"] });
+        setActionDialog({ open: false, action: null });
+        return;
       } else {
         const updates = patches[action];
         if (updates) {
@@ -642,6 +650,7 @@ export default function MemberProfile() {
                     <div><span className="text-muted-foreground">Role</span><p className="font-medium capitalize">{activeMember.role || "Member"}</p></div>
                     <div><span className="text-muted-foreground">Status</span><Badge className={statusColors[activeMember.status]}>{activeMember.status}</Badge></div>
                     <div><span className="text-muted-foreground">KYC Verified</span><p className="font-medium">{activeMember.kycVerified ? "Yes" : "No"}</p></div>
+                    <div><span className="text-muted-foreground">Registration Fee</span><p className="font-medium">{activeMember.registrationFeePaid ? "Paid" : "Unpaid"}</p></div>
                     <div><span className="text-muted-foreground">Email Verified</span><p className="font-medium">{activeMember.emailVerified ? "Yes" : "Pending"}</p></div>
                     {activeMember.occupation && <div><span className="text-muted-foreground">Occupation</span><p className="font-medium">{activeMember.occupation}</p></div>}
                     {activeMember.organization && <div><span className="text-muted-foreground">Organization</span><p className="font-medium">{activeMember.organization}</p></div>}
@@ -1300,6 +1309,16 @@ export default function MemberProfile() {
                       </div>
                     </div>
                     <Badge className={activeMember.kycVerified ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}>{activeMember.kycVerified ? "Verified" : "Pending"}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      {activeMember.registrationFeePaid ? <BadgeCheck className="h-5 w-5 text-emerald-600" /> : <Clock className="h-5 w-5 text-amber-600" />}
+                      <div>
+                        <p className="font-medium">Registration Fee (₦5,000)</p>
+                        <p className="text-xs text-muted-foreground">One-time membership activation fee</p>
+                      </div>
+                    </div>
+                    <Badge className={activeMember.registrationFeePaid ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}>{activeMember.registrationFeePaid ? "Paid" : "Unpaid"}</Badge>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                     <div className="flex items-center gap-2">
