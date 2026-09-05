@@ -13,6 +13,7 @@ import { PageLoader } from "@/components/PageLoader";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import ResetPassword from "@/pages/reset-password";
+import VerifyEmail from "@/pages/verify-email";
 import Dashboard from "@/pages/dashboard";
 const Members = lazyRetry(() => import("@/pages/members/index"));
 const MemberProfile = lazyRetry(() => import("@/pages/members/profile"));
@@ -99,6 +100,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Login} />
       <Route path="/reset-password" component={ResetPassword} />
+      <Route path="/verify-email" component={VerifyEmail} />
       <Route path="/dashboard">{() => <ProtectedRoute component={Dashboard} />}</Route>
       <Route path="/members">{() => <ProtectedRoute component={Members} />}</Route>
       <Route path="/members/:id">{() => <ProtectedRoute component={MemberProfile} />}</Route>
