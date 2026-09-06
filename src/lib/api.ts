@@ -37,6 +37,34 @@ export async function getAuthToken(): Promise<string | null> {
   return session?.access_token || null;
 }
 
+/**
+ * Claim the current Supabase session on the backend (single-device login).
+ *
+ * The backend enforces one active session per profile (`profiles.active_session_id`)
+ * via its auth middleware: any request carrying a session_id that does NOT match
+ * the claimed one gets 401 `SESSION_REPLACED`. The Flutter app calls
+ * POST /auth/sync after sign-in to claim its session; the admin dashboard
+ * must do the same immediately after login/session-restore or every admin API
+ * call fails with an empty dashboard.
+ */
+export async function syncSessionWithBackend(): Promise<boolean> {
+  try {
+    const token = await getAuthToken();
+    if (!token) return false;
+    const res = await fetch(`${getApiBaseUrl()}/auth/sync`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({}),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 // Get auth headers for API requests
 export async function getAuthHeaders(): Promise<HeadersInit> {
   const headers: Record<string, string> = {

@@ -8,6 +8,7 @@ import { ShieldCheck, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { isValidAdminRole } from "@/lib/permissions";
+import { syncSessionWithBackend } from "@/lib/api";
 
 // Helper to parse user agent for device info
 function getDeviceInfo() {
@@ -130,6 +131,12 @@ export default function Login() {
       // Log successful login (include profile id so the record is linked)
       logLoginAttempt(email, true, undefined, profile?.id);
     }
+
+    // Claim this session on the backend (single-device login). Without this,
+    // the admin API rejects every request with 401 SESSION_REPLACED since the
+    // profile's active_session_id still points at an older session.
+
+    await syncSessionWithBackend();
 
     setLocation("/dashboard");
   };

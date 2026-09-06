@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getApiBaseUrl } from "@/lib/api";
 
 /**
  * Public email-verification landing page.
@@ -21,13 +22,54 @@ export default function VerifyEmailPage() {
     if (started.current) return;
     started.current = true;
 
+    // Supabase's confirmation email links to its own /auth/v1/verify endpoint,
+    // which after confirming redirects back with EITHER:
+    //   a) query params:  ?token=…&type=signup&email=…   (when the full
+    //      /verify-email path is in the project's Redirect URL allowlist. or
+    //   b) a hash fragment:   #access_token=…&type=signup&refresh_token=…
+    //      (when the redirect falls back to the bare Site URL).
+    // Handle both forms, plus any session Supabase already set.
+
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token") ?? "";
     const type = params.get("type") ?? "signup";
-    // On email signup confirmations the address arrives in `email`.
+    // On email signup confirmations the address arrives in `email` (query form).
     const email = decodeURIComponent(params.get("email") ?? "");
 
     async function verify() {
+      // Form (b): Supabase redirected with a full session in the URL hash fragment —
+      // restore it and claim it on the backend.
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const fragmentToken = hashParams.get("access_token") ?? "";
+      const fragmentRefresh = hashParams.get("refresh_token") ?? "";
+
+      if (fragmentToken) {
+        try {
+          await supabase.auth.setSession({
+            access_token: fragmentToken,
+            refresh_token: fragmentRefresh || "",
+          });
+          // Clear the fragment so the success state isn't re-evaluated on reload.
+
+          window.history.replaceState({}, "", window.location.pathname);
+          const { data: sess } = await supabase.auth.getSession();
+          if (sess?.session) {
+            // Use the absolute backend URL — a relative path would hit the Vercel
+            // origin and fall through to the SPA catch-all (index.html).
+            await fetch(`${getApiBaseUrl()}/auth/sync`, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${sess.session.access_token}` },
+            }).catch(() => {});
+          }
+          setStatus("success");
+          return;
+        } catch (e: any) {
+          // Fragment session may be expired — fall through to query-param path.
+
+          console.warn("verify-email: fragment session restore failed:", (e as any)?.message);
+        }
+      }
+
       if (!token || !email) {
         setStatus("error");
         setError("This verification link is incomplete (missing token or email). Please request a new one from the app.");
@@ -46,7 +88,10 @@ export default function VerifyEmailPage() {
         if (verifyErr) throw verifyErr;
         // Optionally mark the session as confirmed on the backend profile.
         if (data?.session) {
-          await fetch("/api/auth/sync", {
+          // Use the absolute backend URL. A relative path would hit the Vercel
+          // origin and fall through to the SPA catch-all (index.html) instead of
+          // the Render backend, so the session-claim would silently fail.
+          await fetch(`${getApiBaseUrl()}/auth/sync`, {
             method: "POST",
             headers: { Authorization: `Bearer ${data.session.access_token}` },
           }).catch(() => {});

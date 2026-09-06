@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
+import { syncSessionWithBackend } from "@/lib/api";
 import { useUserRole } from "@/hooks/useUserRole";
 import { isValidAdminRole, Role, hasPermission, ROUTE_TO_PAGE, PageKey } from "@/lib/permissions";
 
@@ -25,6 +26,11 @@ export function ProtectedRoute({ component: Component }: ProtectedRouteProps) {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         setAuthenticated(true);
+        // Claim this restored session on the backend. A page refresh keeps
+        // the Supabase session but the profile's active_session_id may be stale
+        // (claimed by an older/another session), causing 401 SESSION_REPLACED
+        // on every admin API call. Syncing here makes refreshes load data.
+        void syncSessionWithBackend();
       } else {
         setLocation("/");
       }
