@@ -62,8 +62,9 @@ export default function VerifyEmailPage() {
         try {
           await supabase.auth.setSession({ access_token: fragmentToken, refresh_token: fragmentRefresh || "" });
           const { data: sess } = await supabase.auth.getSession();
-          if (sess?.session) {
-            syncSession(sess.session.access_token);
+          const { data: userData, error: userErr } = await supabase.auth.getUser();
+          if (sess?.session && userData?.user && !userErr) {
+            syncSession(sess.session.access_token;
             window.history.replaceState({}, "", window.location.pathname);
             setStatus("success");
             return;
@@ -111,7 +112,8 @@ export default function VerifyEmailPage() {
 
       try {
         const { data: existing } = await supabase.auth.getSession();
-        if (existing?.session) {
+        const { data: existingUser, error: existingErr } = await supabase.auth.getUser();
+        if (existing?.session && existingUser?.user && !existingErr) {
           setStatus("success");
           return;
         }
