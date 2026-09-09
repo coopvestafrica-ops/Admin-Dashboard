@@ -97,6 +97,12 @@ export default function VerifyEmailPage() {
           const { data: sess } = await supabase.auth.getSession();
           const { data: userData, error: userErr } = await supabase.auth.getUser();
           if (sess?.session && userData?.user && !userErr) {
+            const rawParams = new URLSearchParams(stashedFragment);
+            const fragAccess = rawParams.get("access_token");
+            if (!fragAccess || sess.session.access_token !== fragAccess) {
+
+              break;
+            }
             syncSession(sess.session.access_token);
             window.history.replaceState({}, "", window.location.pathname);
             setStatus("success");
