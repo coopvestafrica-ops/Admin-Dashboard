@@ -64,7 +64,7 @@ export default function VerifyEmailPage() {
           const { data: sess } = await supabase.auth.getSession();
           const { data: userData, error: userErr } = await supabase.auth.getUser();
           if (sess?.session && userData?.user && !userErr) {
-            syncSession(sess.session.access_token;
+            syncSession(sess.session.access_token);
             window.history.replaceState({}, "", window.location.pathname);
             setStatus("success");
             return;
