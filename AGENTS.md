@@ -46,6 +46,18 @@
   Run SQL fixes via the Supabase dashboard SQL editor.
 
 ## Known issues / gotchas
+- Email verification (`/verify-email`): supabase-js v2 auto-processes the
+  URL fragment on boot (`detectSessionInUrl` can't be disabled in this SDK
+  version). Fixed by stashing the raw hash via an inline script in `index.html`
+  (`window.__COOPVEST_VERIFY_FRAGMENT__`/`coopvest_verify_fragment`),
+  then in `verify-email.tsx` polling `getSession()`/`getUser()` up to ~8s and
+  ONLY treating it as success when the restored session access token exactly
+  matches the fragment token (else expired/invalid recovery form; prevents
+  false success when another session exists). Verified live on prod both
+  success + invalid-link paths. Resend on that page uses
+  `supabase.auth.resend` with prod `VERIFY_REDIRECT` (backend
+  `/resend-verification-email` route is legacy/unused, expects email as
+  query param).
 - Financial Ledger, Reconciliation, Members, Contributions, etc. all consume the
   same Render API and return 401 without a valid Supabase session bearer token.
 - Fee Management page shows a red banner with the backend error when the
