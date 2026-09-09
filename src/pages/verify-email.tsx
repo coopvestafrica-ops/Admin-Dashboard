@@ -20,6 +20,7 @@ async function syncSession(accessToken: string): Promise<void> {
     await fetch(`${getApiBaseUrl()}/auth/sync`, {
       method: "POST",
       headers: { Authorization: `Bearer ${accessToken}` },
+      signal: AbortSignal.timeout(8000),
     });
   } catch { /* best-effort */ }
 }
@@ -62,7 +63,7 @@ export default function VerifyEmailPage() {
           await supabase.auth.setSession({ access_token: fragmentToken, refresh_token: fragmentRefresh || "" });
           const { data: sess } = await supabase.auth.getSession();
           if (sess?.session) {
-            await syncSession(sess.session.access_token);
+            syncSession(sess.session.access_token);
             window.history.replaceState({}, "", window.location.pathname);
             setStatus("success");
             return;
@@ -75,7 +76,7 @@ export default function VerifyEmailPage() {
           try {
             const { data: refreshed, error: refErr } = await supabase.auth.refreshSession({ refresh_token: fragmentRefresh });
             if (!refErr && refreshed?.session) {
-              await syncSession(refreshed.session.access_token);
+              syncSession(refreshed.session.access_token);
               window.history.replaceState({}, "", window.location.pathname);
               setStatus("success");
               return;
@@ -99,8 +100,8 @@ export default function VerifyEmailPage() {
           const otpType = type === "email_change" ? "email_change" : type === "recovery" ? "recovery" : "signup";
           const { data, error: verifyErr } = await supabase.auth.verifyOtp({ email, token, type: otpType as any });
           if (verifyErr) throw verifyErr;
-          if (data?.session) await syncSession(data.session.access_token);
           setStatus("success");
+          if (data?.session) syncSession(data.session.access_token);
         } catch (e: any) {
           setErrorKind("expired");
           setError(e?.message || "We could not verify this email. The link may have expired — request a new one below.");
