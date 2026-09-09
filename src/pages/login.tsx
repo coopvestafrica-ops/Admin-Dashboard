@@ -83,6 +83,17 @@ export default function Login() {
       setError("You don't have permission to access this page.");
       window.history.replaceState({}, '', '/');
     }
+
+    // Supabase confirmation links that fail (e.g. expired OTP, already-used link,
+    // fragment stripped by an email scanner) land on the site root with a hash
+    // fragment like #error=access_denied&error_code=otp_expired=... Route those
+    // members to the public /verify-email page, which explains the failure and offers
+    // a "request a new link" form instead of a confusing login screen..
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const hashErrorCode = hash.get('error_code');
+    if (hashErrorCode === 'otp_expired' || hashErrorCode === 'otp_used' || hashErrorCode === 'email_exists' || hash.get('error')) {
+      setLocation('/verify-email');
+    }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
