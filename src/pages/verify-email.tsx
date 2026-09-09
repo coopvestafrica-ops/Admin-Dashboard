@@ -15,6 +15,16 @@ function decodeEmailFromJwt(token: string): string {
   }
 }
 
+function getStashedFragment(): string {
+  try {
+    const w = window as any;
+    if (w?.__COOPVEST_VERIFY_FRAGMENT__) return w.__COOPVEST_VERIFY_FRAGMENT__;
+    return sessionStorage.getItem("coopvest_verify_fragment") ?? "";
+  } catch {
+    return "";
+  }
+}
+
 async function syncSession(accessToken: string): Promise<void> {
   try {
     await fetch(`${getApiBaseUrl()}/auth/sync`, {
@@ -45,6 +55,8 @@ export default function VerifyEmailPage() {
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
     const fragmentToken = hashParams.get("access_token") ?? "";
     const fragmentRefresh = hashParams.get("refresh_token") ?? "";
+    const stashedFragment = getStashedFragment();
+    const hadFragment = !!stashedFragment || !!fragmentToken;
     const hashError = hashParams.get("error") ?? "";
     const hashErrorCode = hashParams.get("error_code") ?? "";
 
@@ -52,49 +64,11 @@ export default function VerifyEmailPage() {
       if (hashError || hashErrorCode) {
         setErrorKind("expired");
         setError("This verification link has expired or is invalid. Please request a new verification link below.");
-        const decoded = decodeEmailFromJwt(fragmentToken);
+        const decoded = decodeEmailFromJwt(stashedFragment);
         if (decoded) setResendEmail(decoded);
         setStatus("error");
         return;
       }
-
-      if (fragmentToken) {
-        try {
-          await supabase.auth.setSession({ access_token: fragmentToken, refresh_token: fragmentRefresh || "" });
-          const { data: sess } = await supabase.auth.getSession();
-          const { data: userData, error: userErr } = await supabase.auth.getUser();
-          if (sess?.session && userData?.user && !userErr) {
-            syncSession(sess.session.access_token);
-            window.history.replaceState({}, "", window.location.pathname);
-            setStatus("success");
-            return;
-          }
-        } catch (e: any) {
-          console.warn("verify-email: fragment session restore failed:", (e as any)?.message);
-        }
-
-        if (fragmentRefresh) {
-          try {
-            const { data: refreshed, error: refErr } = await supabase.auth.refreshSession({ refresh_token: fragmentRefresh });
-            if (!refErr && refreshed?.session) {
-              syncSession(refreshed.session.access_token);
-              window.history.replaceState({}, "", window.location.pathname);
-              setStatus("success");
-              return;
-            }
-          } catch (e2: any) {
-            console.warn("verify-email: refresh fallback failed:", (e2 as any)?.message);
-          }
-        }
-
-        const decoded = decodeEmailFromJwt(fragmentToken);
-        if (decoded) setResendEmail(decoded);
-        setErrorKind("expired");
-        setError("This verification link has expired or is invalid. Please request a new verification link below.");
-        setStatus("error");
-        return;
-      }
-
       if (token && email) {
         setResendEmail(email);
         try {
@@ -105,8 +79,40 @@ export default function VerifyEmailPage() {
           if (data?.session) syncSession(data.session.access_token);
         } catch (e: any) {
           setErrorKind("expired");
-          setError(e?.message || "We could not verify this email. The link may have expired — request a new one below.");
+          setError(e?.message || "We could not verify this email. The link may have expired. Request a new one below.");
         }
+        return;
+      }
+
+      if (hadFragment) {
+        // supabase-js auto-processes the URL fragment on boot (detectSessionInUrl is
+        // hardcoded-on in this SDK version), so we wait for it to settle and
+        // then validate the restored session server-side via getUser().. No manual
+        // setSession/refreshSession here:that double-processing caused a race that
+        // left the page stuck on the spinner..
+        const deadline = Date.now() + 8000;
+        let polled = false;
+        while (Date.now() < deadline) {
+          polled = true;
+          const { data: sess } = await supabase.auth.getSession();
+          const { data: userData, error: userErr } = await supabase.auth.getUser();
+          if (sess?.session && userData?.user && !userErr) {
+            syncSession(sess.session.access_token);
+            window.history.replaceState({}, "", window.location.pathname);
+            setStatus("success");
+            return;
+          }
+          if (polled && !window.location.hash.includes("access_token")) {
+            break;
+          }
+          await new Promise((r) => setTimeout(r, 350));
+        }
+
+        const decoded = decodeEmailFromJwt(stashedFragment);
+        if (decoded) setResendEmail(decoded);
+        setErrorKind("expired");
+        setError("This verification link has expired or is invalid. Please request a new verification link below.");
+        setStatus("error");
         return;
       }
 
@@ -119,11 +125,11 @@ export default function VerifyEmailPage() {
         }
       } catch { /* ignore */ }
 
-      const decoded = decodeEmailFromJwt(fragmentToken);
+      const decoded = decodeEmailFromJwt(stashedFragment);
       if (decoded) setResendEmail(decoded);
-      setErrorKind(fragmentToken ? "expired" : "incomplete");
+      setErrorKind(hadFragment ? "expired" : "incomplete");
       setStatus("error");
-      setError(fragmentToken
+      setError(hadFragment
         ? "This verification link has expired or is invalid. Please request a new verification link below."
         : "This verification link is incomplete (missing token or email. Please request a new one from the app.");
     }

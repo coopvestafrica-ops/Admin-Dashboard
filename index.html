@@ -2,6 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // stash the raw URL fragment before @supabase/supabase-js's
+      // built-in auto session detection consumes/clears it. verify-email.tsx
+      // reads this to prefill the email in the resend form.
+      (function () {
+        try {
+          var h = window.location.hash;
+          if (h && h.indexOf("access_token") !== -1) {
+            window.__COOPVEST_VERIFY_FRAGMENT__ = h.slice(1);
+            sessionStorage.setItem("coopvest_verify_fragment", h.slice(1));
+          }
+        } catch (e) { /* ignore */ }
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <meta name="description" content="Coopvest Africa Admin Dashboard - Manage savings contributions, loan auditing, compliance (KYC), and platform operations." />
     <meta name="keywords" content="coopvest, admin dashboard, cooperative, savings, loans, kyc, compliance, africa" />
