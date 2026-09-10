@@ -42,6 +42,11 @@ export default function VerifyEmailPage() {
   const [resendEmail, setResendEmail] = useState("");
   const [isResending, setIsResending] = useState(false);
   const [resendMsg, setResendMsg] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpEmail, setOtpEmail] = useState("");
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [otpMsg, setOtpMsg] = useState("");
+  const [showOtpForm, setShowOtpForm] = useState(false);
   const started = useRef(false);
 
   useEffect(() => {
@@ -50,6 +55,7 @@ export default function VerifyEmailPage() {
 
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token") ?? "";
+    const otpCodeParam = params.get("otp") ?? params.get("code") ?? "";
     const type = params.get("type") ?? "signup";
     const email = decodeURIComponent(params.get("email") ?? "");
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
@@ -69,17 +75,27 @@ export default function VerifyEmailPage() {
         setStatus("error");
         return;
       }
-      if (token && email) {
+      if ((token || otpCodeParam) && email) {
         setResendEmail(email);
+        const otpType = type === "email_change" ? "email_change" : type === "recovery" ? "recovery" : "signup";
+        const codeToUse = otpCodeParam || token;
         try {
-          const otpType = type === "email_change" ? "email_change" : type === "recovery" ? "recovery" : "signup";
-          const { data, error: verifyErr } = await supabase.auth.verifyOtp({ email, token, type: otpType as any });
+          const { data, error: verifyErr } = await supabase.auth.verifyOtp({ email, token: codeToUse, type: otpType as any });
           if (verifyErr) throw verifyErr;
           setStatus("success");
           if (data?.session) syncSession(data.session.access_token);
         } catch (e: any) {
-          setErrorKind("expired");
-          setError(e?.message || "We could not verify this email. The link may have expired. Request a new one below.");
+          // The token from {{ .ConfirmationURL }} is a hashed token_hash, which
+          // verifyOtp cannot consume. Show the OTP form so the user can paste
+          // the 6-digit code printed in the email instead of dead-ending.
+
+          setShowOtpForm(true);
+          setResendEmail(email);
+          setOtpEmail(email);
+          setOtpCode(otpCodeParam);
+          setErrorKind("incomplete");
+          setError(
+            "We couldn’t automatically verify this link. Enter the code from the email below.");
         }
         return;
       }
@@ -133,14 +149,44 @@ export default function VerifyEmailPage() {
 
       const decoded = decodeEmailFromJwt(stashedFragment);
       if (decoded) setResendEmail(decoded);
-      setErrorKind(hadFragment ? "expired" : "incomplete");
+      setOtpEmail(decoded);
+      setShowOtpForm(true);
+      setErrorKind("incomplete");
       setStatus("error");
-      setError(hadFragment
-        ? "This verification link has expired or is invalid. Please request a new verification link below."
-        : "This verification link is incomplete (missing token or email. Please request a new one from the app.");
+      setError(
+        "Enter the email address and the code from the confirmation email to verify your account.");
     }
     verify();
   }, []);
+
+  const handleSubmitOtp = async () => {
+    const target = (otpEmail || resendEmail).trim().toLowerCase();
+    const code = otpCode.trim();
+    if (!target) {
+      setOtpMsg("Please enter your email address.");
+      return;
+    }
+    if (code.length < 6 || code.length > 12) {
+      setOtpMsg("Please enter the verification code from the email (6–12 digits).");
+      return;
+    }
+    setIsVerifyingOtp(true);
+    setOtpMsg("");
+    try {
+      const { data, error: verifyErr } = await supabase.auth.verifyOtp({
+        email: target,
+        token: code,
+        type: "signup",
+      });
+      if (verifyErr) throw verifyErr;
+      setStatus("success");
+      if (data?.session) syncSession(data.session.access_token);
+    } catch (e: any) {
+      setOtpMsg(e?.message || "That code didn’t work. Please check the email (including spam) and try again.");
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
 
   const handleResend = async () => {
     const target = resendEmail.trim().toLowerCase();
@@ -197,6 +243,22 @@ export default function VerifyEmailPage() {
           </>
         )}
 
+        {showOtpForm && (
+          <div className="mt-6 rounded-xl bg-slate-50 p-4 text-left">
+            <p className="mb-3 text-sm font-semibold text-slate-800">Enter your verification code</p>
+            <input type="email" value={otpEmail} onChange={(e) => setOtpEmail(e.target.value)} placeholder="Enter your email address" className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600" />
+            <input type="text" inputMode="numeric" autoComplete="one-time-code" value={otpCode}
+              onChange={(e) => { const v = e.target.value.replace(/\D/g, ''); setOtpCode(v.slice(0, 12)); }} placeholder="Code from the email" className="mt-3 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600" />
+            <button type="button" onClick={handleSubmitOtp} disabled={isVerifyingOtp} className="mt-3 w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60">
+              {isVerifyingOtp ? "Verifying..." : "Verify email"}
+            </button>
+            {otpMsg && (
+              <p className="mt-2 text-xs font-medium text-red-600">{otpMsg}</p>
+            )}
+            <p className="mt-3 text-xs text-slate-500">If the link expired or didn't work, use the code shown in the email — or request a new one below.</p>
+          </div>
+        )}
+
         {status === "error" && (
           <>
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
@@ -204,7 +266,7 @@ export default function VerifyEmailPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
-            <h1 className="text-xl font-bold text-slate-900">Couldn't verify</h1>
+            <h1 className="text-xl font-bold text-slate-900">{showOtpForm ? "Verify your email" : "Couldn't verify"}</h1>
             <p className="mt-2 text-sm text-slate-500">{error}</p>
 
             <div className="mt-6 rounded-xl bg-slate-50 p-4 text-left">
