@@ -87,15 +87,14 @@ export default function VerifyEmailPage() {
         } catch (e: any) {
           // The token from {{ .ConfirmationURL }} is a hashed token_hash, which
           // verifyOtp cannot consume. Show the OTP form so the user can paste
-          // the 6-digit code printed in the email instead of dead-ending.
-
+          // the code printed in the email instead of dead-ending.
           setShowOtpForm(true);
           setResendEmail(email);
           setOtpEmail(email);
           setOtpCode(otpCodeParam);
           setErrorKind("incomplete");
           setError(
-            "We couldn’t automatically verify this link. Enter the code from the email below.");
+            "The link could not be verified automatically. Enter the code shown in the email to confirm your account.");
         }
         return;
       }
