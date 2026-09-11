@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { supabase } from "@/lib/supabase";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,9 @@ import {
   Banknote,
   Building,
   ExternalLink,
+  Bell,
+  BellRing,
+  X as XIcon,
 } from "lucide-react";
 
 type ProofStatus = "pending" | "under_review" | "approved" | "rejected" | "cancelled";
@@ -126,6 +130,60 @@ export default function PaymentProofs() {
   const [approveNotes, setApproveNotes] = useState("");
   const [rejectReason, setRejectReason] = useState("");
   const [action, setAction] = useState<"approve" | "reject" | null>(null);
+  const [newProofCount, setNewProofCount] = useState(0);
+  const [showBanner, setShowBanner] = useState(false);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  // Supabase Realtime — auto-refresh whena payment proof arrives or is
+  // auto-approved by the Paystack gateway (or flips status by an admin in
+  // another tab), so the list/summary never go stale until a manual refresh.
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel('payment-proofs-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'payment_proofs' },
+        (payload) => {
+          setNewProofCount((c) => c + 1);
+          setShowBanner(true);
+          queryClient.invalidateQueries({ queryKey: ["payment-proofs"] });
+          const amount = payload.new?.amount
+            ? new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(Number(payload.new.amount))
+            : 'New payment';
+          toast({
+            title: '💳 New Payment Proof',
+            description: `${amount} received — check it out.`,
+            duration: 8000,
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'payment_proofs' },
+        (payload) => {
+          // Paystack instant charges flip the parked proof pending → approved
+          // automatically; reflect that instantly so the admin sees the
+          // confirmation without refreshing. Also refresh wallet-ledger views
+          // that surface the resulting credits.
+
+          queryClient.invalidateQueries({ queryKey: ["payment-proofs"] });
+          queryClient.invalidateQueries({ queryKey: ["wallets"] });
+          queryClient.invalidateQueries({ queryKey: ["ledger"] });
+        }
+      )
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      channel.unsubscribe();
+      channelRef.current = null;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const summaryQuery = useQuery<SummaryResponse>({
     queryKey: ["payment-proofs", "summary"],
@@ -296,13 +354,54 @@ export default function PaymentProofs() {
           <CardHeader className="flex-row items-center justify-between space-y-0">
             <CardTitle className="flex items-center gap-2">
               <FileCheck2 className="h-5 w-5" /> Submitted Payment Proofs
+              {listQuery.data?.pagination && (
+                <span className="text-sm font-normal text-muted-foreground">
+                  {listQuery.data.pagination.total} total
+                </span>
+              )}
             </CardTitle>
-            {listQuery.data?.pagination && (
-              <span className="text-sm text-muted-foreground">
-                {listQuery.data.pagination.total} total
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {supabase && (
+                <div className="flex items-center gap-1.5 text-xs text-emerald-600">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
+                  Live
+                </div>
+              )}
+              {newProofCount > 0 && (
+                <div className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
+                  <Bell className="h-3 w-3" />
+                  {newProofCount} new
+                </div>
+              )}
+              <Button variant="outline" onClick={() => listQuery.refetch()}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
           </CardHeader>
+
+          {/* New Payment Proof Notification Banner */}
+          {showBanner && newProofCount > 0 && (
+            <div className="mx-6 mb-4 flex items-center gap-3 p-3 pr-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800">
+              <BellRing className="h-5 w-5 flex-shrink-0 text-amber-500 animate-bounce" />
+              <p className="flex-1 text-sm font-medium">
+                {newProofCount === 1
+                  ? '1 new payment proof arrived — list has been refreshed.'
+                  : `${newProofCount} new payment proofs arrived — list has been refreshed.`}
+              </p>
+              <button
+                onClick={() => { setShowBanner(false); setNewProofCount(0); }}
+                className="p-1 rounded hover:bg-amber-100 transition-colors"
+                aria-label="Dismiss"
+              >
+                <XIcon className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
           <CardContent>
             {listQuery.isLoading ? (
               <div className="space-y-3">
