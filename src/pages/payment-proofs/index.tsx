@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -114,7 +115,13 @@ const paymentTypeLabels: Record<string, string> = {
 
 const PAGE_SIZE = 20;
 
-export default function PaymentProofs() {
+/**
+ * Payment proof review.
+ *
+ * `embedded` drops the page chrome so Deposit Verification can render it as a
+ * tab; both screens are the "confirm money that arrived" job.
+ */
+export function PaymentProofs({ embedded = false }: { embedded?: boolean } = {}) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [page, setPage] = useState(1);
@@ -173,7 +180,7 @@ export default function PaymentProofs() {
   });
 
   const reviewMutation = useMutation({
-    mutationFn: (id: string) => api.patch(`/v2/admin/payment-proofs/${id}/review`),
+    mutationFn: (id: string) => api.patch(`/v2/admin/payment-proofs/${id}/review`, {}),
     onSuccess: () => {
       toast({ title: "Marked for review" });
       queryClient.invalidateQueries({ queryKey: ["payment-proofs"] });
@@ -197,9 +204,17 @@ export default function PaymentProofs() {
 
   const summary = summaryQuery.data?.summary;
 
-  return (
-    <Layout>
-      <div className="space-y-6">
+  const body = (
+    <>
+      <PageBody>
+        {!embedded && (
+          <PageHeader
+            title="Payment Proofs"
+            description="Review the transfer receipts members upload as evidence of payment."
+            breadcrumbs={[{ label: "Financial Control" }, { label: "Payment Proofs" }]}
+          />
+        )}
+
         {/* Summary cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <SummaryCard
@@ -406,7 +421,7 @@ export default function PaymentProofs() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageBody>
 
       {/* Review dialog */}
       <Dialog open={Boolean(selectedProof)} onOpenChange={(open) => !open && closeDialog()}>
@@ -501,8 +516,12 @@ export default function PaymentProofs() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Layout>
+    </>
   );
+
+  if (embedded) return body;
+
+  return <Layout>{body}</Layout>;
 }
 
 function SummaryCard({
@@ -545,3 +564,5 @@ function DetailRow({ label, value, sub }: { label: string; value: string; sub?: 
     </div>
   );
 }
+
+export default PaymentProofs;

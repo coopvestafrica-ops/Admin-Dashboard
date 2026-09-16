@@ -10,12 +10,16 @@ export function lazyRetry<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
   retries = 3,
 ): ReturnType<typeof lazy<T>> {
-  return lazy(() =>
-    importFn().catch((err: unknown) => {
-      if (retries <= 0) throw err;
-      return new Promise<{ default: T }>((resolve) => {
-        setTimeout(() => resolve(lazyRetry(importFn, retries - 1)()), 500);
-      });
-    }),
-  ) as ReturnType<typeof lazy<T>>;
+  return lazy(async () => {
+    for (let attempt = retries; attempt >= 0; attempt -= 1) {
+      try {
+        return await importFn();
+      } catch (err) {
+        if (attempt === 0) throw err;
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    }
+    // Unreachable: the loop either returns or throws on the final attempt.
+    throw new Error("Dynamic import failed");
+  }) as ReturnType<typeof lazy<T>>;
 }

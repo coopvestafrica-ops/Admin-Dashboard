@@ -194,7 +194,7 @@ export default function Members() {
   
   // Override with API data if available - with proper null checks
   if (statsData && typeof statsData === 'object' && !Array.isArray(statsData)) {
-    const sd = statsData as Record<string, unknown>;
+    const sd = statsData as unknown as Record<string, unknown>;
     if (typeof sd.total === 'number') safeStats[0].value = sd.total;
     if (typeof sd.active === 'number') safeStats[1].value = sd.active;
     if (typeof sd.suspended === 'number') safeStats[2].value = sd.suspended;

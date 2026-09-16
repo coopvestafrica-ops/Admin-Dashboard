@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -132,17 +133,17 @@ export default function Sessions() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Session Management</h1>
-            <p className="text-muted-foreground">Manage active admin sessions and security</p>
-          </div>
-          <Button variant="outline" onClick={() => { fetchSessions(); fetchStats(); }}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Session Management"
+          description="Manage active admin sessions and security"
+          actions={<>
+            <Button variant="outline" onClick={() => { fetchSessions(); fetchStats(); }}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </>}
+        />
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-4">
@@ -377,7 +378,7 @@ export default function Sessions() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

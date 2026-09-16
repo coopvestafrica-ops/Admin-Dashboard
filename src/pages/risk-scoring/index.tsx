@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -128,10 +129,10 @@ export default function RiskScoring() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Contribution Risk Scoring</h1>
-          <p className="text-muted-foreground">Member contribution consistency, payment behaviour, and loan eligibility risk signals</p>
-        </div>
+        <PageHeader
+          title="Contribution Risk Scoring"
+          description="Member contribution consistency, payment behaviour, and loan eligibility risk signals"
+        />
 
         {/* Summary stats */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

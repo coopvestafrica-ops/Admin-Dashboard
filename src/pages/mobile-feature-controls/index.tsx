@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -398,15 +399,12 @@ function SectionCard({ section, isSaving, onSave }: { section: ContentSection; i
 export default function MobileFeatureControls() {
   return (
     <Layout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Smartphone className="h-6 w-6 text-primary" />Mobile App Content Control
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Control app features, banners, announcements, onboarding, and content — without releasing a new app version.
-          </p>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Mobile App Content Control"
+          description="Control app features, banners, announcements, onboarding, and content — without releasing a new app version."
+          breadcrumbs={[{ label: "Platform Control" }, { label: "Mobile App" }]}
+        />
         <Tabs defaultValue="features">
           <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="features"><CheckCircle className="h-4 w-4 mr-1.5" />Feature Toggles</TabsTrigger>
@@ -421,7 +419,7 @@ export default function MobileFeatureControls() {
           <TabsContent value="onboarding"    className="mt-6"><OnboardingSlides /></TabsContent>
           <TabsContent value="content"       className="mt-6"><ContentSections /></TabsContent>
         </Tabs>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

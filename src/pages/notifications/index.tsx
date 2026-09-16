@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -99,7 +100,7 @@ function useSendNotification() {
 
 export default function Notifications() {
   const { toast }  = useToast();
-  const { data, isLoading } = useGetNotifications({ page: 1, limit: 50 });
+  const { data, isLoading } = useGetNotifications();
   const { mutate: markRead    } = useMarkRead();
   const { mutate: markAllRead } = useMarkAllRead();
   const { mutate: sendNotification, isPending: isSending } = useSendNotification();
@@ -158,15 +159,12 @@ export default function Notifications() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Bell className="h-6 w-6 text-primary" />Notification Control Center
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Send push notifications, SMS, and emails to members across the platform
-          </p>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Notification Control Center"
+          description="Send push notifications, SMS, and emails to members across the platform."
+          breadcrumbs={[{ label: "Support" }, { label: "Notifications" }]}
+        />
 
         <Tabs defaultValue="send">
           <TabsList className="mb-4">
@@ -340,7 +338,7 @@ export default function Notifications() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

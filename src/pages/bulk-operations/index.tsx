@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -118,11 +119,11 @@ export default function BulkOperations() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Bulk Operations</h1>
-          <p className="text-muted-foreground">Import, export, and manage members in bulk</p>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Bulk Operations"
+          description="Import, export, and manage members in bulk"
+        />
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
@@ -298,7 +299,7 @@ export default function BulkOperations() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

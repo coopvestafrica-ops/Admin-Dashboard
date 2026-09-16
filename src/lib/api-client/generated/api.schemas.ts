@@ -586,6 +586,10 @@ export type GetSupportTicketsStatus = typeof GetSupportTicketsStatus[keyof typeo
 export const GetSupportTicketsStatus = {
   open: 'open',
   in_progress: 'in_progress',
+  // Set by the backend when an admin replies (routes/adminTickets.js). Omitting
+  // it here meant those tickets could not be filtered for, and a reply made the
+  // ticket vanish from every filtered view.
+  awaiting_user: 'awaiting_user',
   resolved: 'resolved',
   closed: 'closed',
 } as const;

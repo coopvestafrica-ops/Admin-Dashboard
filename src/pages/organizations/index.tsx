@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -94,16 +95,16 @@ export default function Organizations() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Organization Management</h1>
-            <p className="text-muted-foreground">Manage onboarded institutions, deductions & remittances</p>
-          </div>
-          <Button onClick={() => setShowModal(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Onboard Organization
-          </Button>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Organization Management"
+          description="Manage onboarded institutions, deductions & remittances"
+          actions={<>
+            <Button onClick={() => setShowModal(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Onboard Organization
+            </Button>
+          </>}
+        />
 
         {/* Summary Stats */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -222,7 +223,7 @@ export default function Organizations() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </PageBody>
 
       {/* Add Organization Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>

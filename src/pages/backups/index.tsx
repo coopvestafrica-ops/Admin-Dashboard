@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,14 +46,11 @@ export default function Backups() {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6 max-w-4xl mx-auto">
-        <div className="flex items-center gap-3">
-          <DatabaseBackup className="h-7 w-7 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold">Backup & Disaster Recovery</h1>
-            <p className="text-muted-foreground text-sm">Snapshot records. Backups are append-only and cannot be deleted by ordinary admins.</p>
-          </div>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Backup & Disaster Recovery"
+          description="Snapshot records. Backups are append-only and cannot be deleted by ordinary admins."
+        />
 
         <Card>
           <CardHeader>
@@ -93,7 +91,7 @@ export default function Backups() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

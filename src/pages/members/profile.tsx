@@ -123,7 +123,7 @@ export default function MemberProfile() {
       is_active: m.is_active,
       kycVerified: m.kycVerified ?? m.kyc_verified ?? (kycStatus === 'approved' || kycStatus === 'verified'),
       registrationFeePaid: m.registrationFeePaid ?? m.registration_fee_paid ?? false,
-      contributionType: m.contributionType ?? m.contribution_type ?? null,
+      contributionType: m.contributionType ?? m.contribution_type ?? pi.contribution_type ?? null,
       contributionTypeUpdatedAt: m.contributionTypeUpdatedAt ?? m.contribution_type_updated_at ?? null,
       kycStatus,
       emailVerified: m.emailVerified ?? m.email_verified ?? false,
@@ -154,7 +154,6 @@ export default function MemberProfile() {
       monthlyAmount: m.monthlyAmount || m.monthly_amount || pi.monthly_amount,
       contributionMethod: m.contributionMethod || m.contribution_method || pi.contribution_method,
       preferredPaymentDay: m.preferredPaymentDay || m.preferred_payment_day || pi.preferred_payment_day,
-      contributionType: m.contributionType || m.contribution_type || pi.contribution_type,
       nextOfKin: m.nextOfKin || (m.nok_name || pi.nok_name ? {
         name: m.nok_name || pi.nok_name,
         relationship: m.nok_relationship || pi.nok_relationship,

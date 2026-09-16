@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -207,16 +208,16 @@ export default function ExcelManager() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Excel & Spreadsheet Manager</h1>
-            <p className="text-muted-foreground">Upload, edit, and manage bulk data operations</p>
-          </div>
-          <Button onClick={() => setShowUploadDialog(true)}>
-            <Upload className="mr-2 h-4 w-4" /> Upload File
-          </Button>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Excel & Spreadsheet Manager"
+          description="Upload, edit, and manage bulk data operations"
+          actions={<>
+            <Button onClick={() => setShowUploadDialog(true)}>
+              <Upload className="mr-2 h-4 w-4" /> Upload File
+            </Button>
+          </>}
+        />
 
         {/* Quick Download Templates */}
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -476,7 +477,7 @@ export default function ExcelManager() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </PageBody>
 
       {/* Upload Dialog */}
       <Dialog open={showUploadDialog} onOpenChange={(o) => { if (!o) { setShowUploadDialog(false); setUploadFile(null); } }}>

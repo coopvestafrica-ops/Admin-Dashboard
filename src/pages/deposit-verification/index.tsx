@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PaymentProofs } from "@/pages/payment-proofs";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -275,34 +278,41 @@ export default function DepositVerification() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Deposit Verification</h1>
-            <p className="text-muted-foreground">Review and verify user deposit requests</p>
-          </div>
-          <div className="flex items-center gap-3">
+      <PageBody>
+        <PageHeader
+          title="Deposit Verification"
+          description="Verify deposit requests and the payment proofs members upload as evidence."
+          breadcrumbs={[{ label: "Financial Control" }, { label: "Deposit Verification" }]}
+          actions={<>
             {supabase && (
-              <div className="flex items-center gap-1.5 text-xs text-emerald-600">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                </span>
-                Live
-              </div>
+            <div className="flex items-center gap-1.5 text-xs text-emerald-600">
+            <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            Live
+            </div>
             )}
             {newDepositCount > 0 && (
-              <div className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
-                <Bell className="h-3 w-3" />
-                {newDepositCount} new
-              </div>
+            <div className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
+            <Bell className="h-3 w-3" />
+            {newDepositCount} new
+            </div>
             )}
             <Button variant="outline" onClick={() => refetch()}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
             </Button>
-          </div>
-        </div>
+          </>}
+        />
+
+        <Tabs defaultValue="deposits">
+          <TabsList className="flex h-auto flex-wrap gap-1">
+            <TabsTrigger value="deposits">Deposit Requests</TabsTrigger>
+            <TabsTrigger value="proofs">Payment Proofs</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="deposits" className="mt-4 space-y-4">
 
         {/* New Deposit Notification Banner */}
         {showBanner && newDepositCount > 0 && (
@@ -533,7 +543,7 @@ export default function DepositVerification() {
             )}
           </CardContent>
         </Card>
-      </div>
+          </TabsContent>
 
       {/* View Details Dialog */}
       <Dialog open={!!viewDeposit} onOpenChange={() => setViewDeposit(null)}>
@@ -712,6 +722,12 @@ export default function DepositVerification() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+          <TabsContent value="proofs" className="mt-4">
+            <PaymentProofs embedded />
+          </TabsContent>
+        </Tabs>
+      </PageBody>
     </Layout>
   );
 }

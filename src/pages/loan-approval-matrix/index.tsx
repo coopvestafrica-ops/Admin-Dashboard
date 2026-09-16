@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,14 +77,11 @@ export default function LoanApprovalMatrix() {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6 max-w-3xl mx-auto">
-        <div className="flex items-center gap-3">
-          <Shield className="h-7 w-7 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold">Loan Approval Matrix</h1>
-            <p className="text-muted-foreground text-sm">Set the maximum loan amount each role may approve outright. Larger amounts require a Super Admin approval request.</p>
-          </div>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Loan Approval Matrix"
+          description="Set the maximum loan amount each role may approve outright. Larger amounts require a Super Admin approval request."
+        />
 
         <Card>
           <CardHeader>
@@ -144,7 +142,7 @@ export default function LoanApprovalMatrix() {
             ))}
           </CardContent>
         </Card>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

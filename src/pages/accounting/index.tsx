@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
+import { AccountingSpreadsheet } from "@/pages/accounting-spreadsheet";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +15,18 @@ import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { authedFetch } from "@/lib/authed-fetch";
 import {
+  CHART_OF_ACCOUNTS,
+  getTrialBalance,
+  getProfitLoss,
+  getBalanceSheet,
+  getGeneralLedger,
+  type ChartAccount,
+  type TrialBalanceResult,
+  type ProfitLossResult,
+  type BalanceSheetResult,
+  type GeneralLedgerResult,
+} from "@/lib/accounting";
+import {
   BookOpen, BarChart3, FileText, Download, Plus, RefreshCw,
   TrendingUp, TrendingDown, Scale, AlertCircle, CheckCircle2,
   ChevronLeft, ChevronRight, Calculator, Trash2,
@@ -20,69 +34,15 @@ import {
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-interface ChartAccount {
-  code: string;
-  name: string;
-  type: "asset" | "liability" | "equity" | "revenue" | "expense";
-  normal: "debit" | "credit";
-}
-
-interface TrialBalanceRow {
-  account_code: string;
-  account_name: string;
-  account_type?: string;
-  debit: number;
-  credit: number;
-}
-
-interface TrialBalanceResponse {
-  success: boolean;
-  trial_balance: TrialBalanceRow[];
-  totals: { debit: number; credit: number; balanced: boolean };
-  period: { from: string | null; to: string | null };
-}
-
-interface PLAccount {
-  account_code: string;
-  account_name: string;
-  debit: number;
-  credit: number;
-  net: number;
-}
-
-interface ProfitLossResponse {
-  success: boolean;
-  profit_loss: {
-    revenue: PLAccount[];
-    expenses: PLAccount[];
-    total_revenue: number;
-    total_expenses: number;
-    net_income: number;
-  };
-  period: { from: string | null; to: string | null };
-}
-
-interface BSAccount {
-  account_code: string;
-  account_name: string;
-  debit: number;
-  credit: number;
-  net: number;
-}
-
-interface BalanceSheetResponse {
-  success: boolean;
-  balance_sheet: {
-    assets: BSAccount[];
-    liabilities: BSAccount[];
-    equity: BSAccount[];
-    total_assets: number;
-    total_liabilities: number;
-    total_equity: number;
-    balanced: boolean;
-  };
-  as_at: string;
-}
+// Report shapes come from `@/lib/accounting` so the derived and server-side
+// paths cannot drift apart. Aliases keep the JSX below unchanged.
+type TrialBalanceRow = TrialBalanceResult["trial_balance"][number];
+type TrialBalanceResponse = TrialBalanceResult;
+type PLAccount = ProfitLossResult["profit_loss"]["revenue"][number];
+type ProfitLossResponse = ProfitLossResult;
+type BSAccount = BalanceSheetResult["balance_sheet"]["assets"][number];
+type BalanceSheetResponse = BalanceSheetResult;
+type GeneralLedgerResponse = GeneralLedgerResult;
 
 interface JournalLine {
   account_code: string;
@@ -98,37 +58,42 @@ interface JournalEntryPayload {
 }
 
 // ── API calls ────────────────────────────────────────────────────────────────
+//
+// These read through `@/lib/accounting`, which prefers the server-side
+// `/api/admin/accounting/*` endpoints and otherwise derives the same reports
+// from `/api/admin/ledger`. The deployed backend does not yet expose the
+// accounting router, so without this every tab rendered an error even though
+// the underlying ledger data was available.
 
-async function fetchTrialBalance(from: string, to: string): Promise<TrialBalanceResponse> {
-  const qs = new URLSearchParams();
-  if (from) qs.set("from", from);
-  if (to) qs.set("to", to);
-  const res = await authedFetch(`/api/admin/accounting/trial-balance?${qs}`);
-  if (!res.ok) throw new Error("Failed to load trial balance");
-  return res.json();
+async function fetchTrialBalance(from: string, to: string) {
+  return getTrialBalance({ from, to });
 }
 
-async function fetchProfitLoss(from: string, to: string): Promise<ProfitLossResponse> {
-  const qs = new URLSearchParams();
-  if (from) qs.set("from", from);
-  if (to) qs.set("to", to);
-  const res = await authedFetch(`/api/admin/accounting/profit-loss?${qs}`);
-  if (!res.ok) throw new Error("Failed to load profit & loss");
-  return res.json();
+async function fetchProfitLoss(from: string, to: string) {
+  return getProfitLoss({ from, to });
 }
 
-async function fetchBalanceSheet(asAt: string): Promise<BalanceSheetResponse> {
-  const qs = new URLSearchParams();
-  if (asAt) qs.set("as_at", asAt);
-  const res = await authedFetch(`/api/admin/accounting/balance-sheet?${qs}`);
-  if (!res.ok) throw new Error("Failed to load balance sheet");
-  return res.json();
+async function fetchBalanceSheet(asAt: string) {
+  return getBalanceSheet({ asAt });
+}
+
+async function fetchGeneralLedger(from: string, to: string) {
+  return getGeneralLedger({ from, to });
 }
 
 async function fetchChartOfAccounts(): Promise<{ accounts: ChartAccount[] }> {
-  const res = await authedFetch("/api/admin/accounting/chart-of-accounts");
-  if (!res.ok) throw new Error("Failed to load chart of accounts");
-  return res.json();
+  // The chart is a fixed cooperative chart of accounts. When the accounting
+  // router is deployed the endpoint also merges any custom accounts on top.
+  try {
+    const res = await authedFetch("/api/admin/accounting/chart-of-accounts");
+    if (res.ok) {
+      const body = await res.json();
+      if (Array.isArray(body.accounts)) return { accounts: body.accounts as ChartAccount[] };
+    }
+  } catch {
+    // Fall through to the shared chart.
+  }
+  return { accounts: CHART_OF_ACCOUNTS };
 }
 
 async function postJournalEntry(payload: JournalEntryPayload): Promise<{ success: boolean; txn_no: string }> {
@@ -140,16 +105,6 @@ async function postJournalEntry(payload: JournalEntryPayload): Promise<{ success
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || "Failed to post journal entry");
   }
-  return res.json();
-}
-
-async function fetchGeneralLedger(accountCode: string, from: string, to: string) {
-  const qs = new URLSearchParams();
-  if (accountCode) qs.set("account_code", accountCode);
-  if (from) qs.set("from", from);
-  if (to) qs.set("to", to);
-  const res = await authedFetch(`/api/admin/accounting/general-ledger?${qs}`);
-  if (!res.ok) throw new Error("Failed to load general ledger");
   return res.json();
 }
 
@@ -241,8 +196,8 @@ export default function Accounting() {
 
   const [glAccount, setGlAccount] = useState("");
   const { data: glData, isLoading: loadingGL, refetch: refetchGL } = useQuery({
-    queryKey: ["general-ledger", glAccount, fromDate, toDate],
-    queryFn: () => fetchGeneralLedger(glAccount, fromDate, toDate),
+    queryKey: ["general-ledger", fromDate, toDate],
+    queryFn: () => fetchGeneralLedger(fromDate, toDate),
     enabled: activeTab === "general-ledger",
   });
 
@@ -359,28 +314,50 @@ export default function Accounting() {
     downloadCSV(rows, `balance-sheet-${toDate}.csv`);
   };
 
+  // Surface when the numbers are locally derived, so an operator never mistakes
+  // a client-side roll-up for a server-posted ledger total.
+  const anyDerived = Boolean(
+    tbData?.derived || plData?.derived || bsData?.derived || glData?.derived,
+  );
+  const derivedNotice = anyDerived ? (
+    <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/40">
+      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
+      <div className="text-sm">
+        <p className="font-medium text-amber-900 dark:text-amber-200">
+          Reports derived from the transaction ledger
+        </p>
+        <p className="mt-0.5 text-amber-800/80 dark:text-amber-200/70">
+          The accounting service is not deployed on this environment yet, so these
+          statements are computed from posted ledger entries using the standard
+          cooperative chart of accounts. Every entry is balanced against
+          Cash &amp; Bank, so the trial balance reconciles by construction.
+        </p>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <Layout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Accounting & Financial Reports</h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Double-entry bookkeeping, trial balance, P&L, and balance sheet
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => {
-              refetchTB(); refetchPL(); refetchBS(); refetchGL();
-            }}>
-              <RefreshCw className="w-4 h-4 mr-2" /> Refresh
-            </Button>
-            <Button size="sm" onClick={() => setShowJournalDialog(true)}>
-              <Plus className="w-4 h-4 mr-2" /> New Journal Entry
-            </Button>
-          </div>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Accounting"
+          description="Double-entry bookkeeping, trial balance, profit & loss, balance sheet and the general ledger — plus the accounting spreadsheet."
+          breadcrumbs={[{ label: "Financial Control" }, { label: "Accounting" }]}
+          actions={
+            <>
+              <Button variant="outline" size="sm" onClick={() => {
+                refetchTB(); refetchPL(); refetchBS(); refetchGL();
+              }}>
+                <RefreshCw className="w-4 h-4 mr-2" /> Refresh
+              </Button>
+              <Button size="sm" onClick={() => setShowJournalDialog(true)}>
+                <Plus className="w-4 h-4 mr-2" /> New Journal Entry
+              </Button>
+            </>
+          }
+        />
+
+        {derivedNotice}
 
         {/* Date filter */}
         <Card>
@@ -418,7 +395,7 @@ export default function Accounting() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="flex flex-wrap h-auto gap-1">
             <TabsTrigger value="trial-balance">
               <Scale className="w-4 h-4 mr-2" /> Trial Balance
             </TabsTrigger>
@@ -430,6 +407,9 @@ export default function Accounting() {
             </TabsTrigger>
             <TabsTrigger value="general-ledger">
               <BookOpen className="w-4 h-4 mr-2" /> General Ledger
+            </TabsTrigger>
+            <TabsTrigger value="spreadsheet">
+              <Calculator className="w-4 h-4 mr-2" /> Spreadsheet
             </TabsTrigger>
           </TabsList>
 
@@ -800,20 +780,7 @@ export default function Accounting() {
                 </CardContent>
               </Card>
             ) : (
-              glData?.general_ledger.map((account: {
-                account_code: string;
-                account_name: string;
-                balance: number;
-                entries: Array<{
-                  id: string;
-                  txn_date: string;
-                  description: string;
-                  txn_no: string;
-                  debit: number;
-                  credit: number;
-                  running_balance: number;
-                }>;
-              }) => (
+              glData?.general_ledger.map((account) => (
                 <Card key={account.account_code}>
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
@@ -839,15 +806,7 @@ export default function Accounting() {
                         </tr>
                       </thead>
                       <tbody>
-                        {account.entries.map((entry: {
-                          id: string;
-                          txn_date: string;
-                          description: string;
-                          txn_no: string;
-                          debit: number;
-                          credit: number;
-                          running_balance: number;
-                        }) => (
+                        {account.entries.map((entry) => (
                           <tr key={entry.id} className="border-b hover:bg-muted/30">
                             <td className="p-3 text-xs">{formatDate(entry.txn_date)}</td>
                             <td className="p-3 text-xs max-w-xs truncate">{entry.description}</td>
@@ -870,8 +829,13 @@ export default function Accounting() {
               ))
             )}
           </TabsContent>
+
+          {/* ── Spreadsheet ─ */}
+          <TabsContent value="spreadsheet" className="space-y-4">
+            <AccountingSpreadsheet embedded />
+          </TabsContent>
         </Tabs>
-      </div>
+      </PageBody>
 
       {/* ── Journal Entry Dialog ── */}
       <Dialog open={showJournalDialog} onOpenChange={setShowJournalDialog}>

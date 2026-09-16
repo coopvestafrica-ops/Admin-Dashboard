@@ -1,4 +1,5 @@
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -221,18 +222,11 @@ export default function Dashboard() {
       if (active) { setAnalyticsData(data); setLoadingAnalytics(false); }
     }
 
-    async function heartbeat() {
-      try {
-        const token = await getAccessToken();
-        if (!token) return;
-        const apiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://coopvest-api.onrender.com";
-        await fetch(`${apiUrl}/api/admin/activity`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ page: window.location.pathname, module: "dashboard", action: "viewed-dashboard" }),
-        });
-      } catch { /* non-fatal */ }
-    }
+    // NOTE: the dashboard previously POSTed a "viewed-dashboard" heartbeat to
+    // `/api/admin/activity`, which the deployed backend does not serve (it 404s
+    // on every mount and every 60s thereafter). Removed rather than left to
+    // fail silently; page views are already recorded server-side in
+    // `audit_logs` / `login_history`.
 
     async function loadGovStats() {
       try {
@@ -246,10 +240,8 @@ export default function Dashboard() {
 
     loadAnalytics();
     loadGovStats();
-    heartbeat();
-    const hb = setInterval(heartbeat, 60_000);   // heartbeat every minute
     const gs = setInterval(loadGovStats, 30_000); // refresh governance stats
-    return () => { active = false; clearInterval(hb); clearInterval(gs); };
+    return () => { active = false; clearInterval(gs); };
   }, []);
 
   const kpiCards = [
@@ -275,15 +267,15 @@ export default function Dashboard() {
       <div className="space-y-8">
 
         {/* ── Header ── */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Command Center</h1>
-            <p className="text-muted-foreground mt-1">Coopvest Africa — Real-time platform overview</p>
-          </div>
-          <Button variant="outline" size="sm" onClick={() => refetchSummary()}>
-            <RefreshCw className="h-4 w-4 mr-2" />Refresh
-          </Button>
-        </div>
+        <PageHeader
+          title="Command Center"
+          description="Coopvest Africa — Real-time platform overview"
+          actions={<>
+            <Button variant="outline" size="sm" onClick={() => refetchSummary()}>
+              <RefreshCw className="h-4 w-4 mr-2" />Refresh
+            </Button>
+          </>}
+        />
 
         {/* ── Attention Required ── */}
         <AttentionRequired />

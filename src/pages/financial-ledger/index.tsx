@@ -1,6 +1,7 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -269,17 +270,14 @@ export default function FinancialLedger() {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
-        <div className="flex items-center gap-3">
-          <BookOpen className="h-7 w-7 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold">Financial Ledger</h1>
-            <p className="text-muted-foreground text-sm">Append-only double-entry transaction ledger. Every naira is traceable. Reversals are Super Admin only.</p>
-          </div>
-          <div className="ml-auto flex items-center gap-2">
+      <PageBody>
+        <PageHeader
+          title="Financial Ledger"
+          description="Append-only double-entry transaction ledger. Every naira is traceable. Reversals are Super Admin only."
+          actions={<>
             <Button variant="outline" onClick={exportCsv}><Download className="h-4 w-4 mr-2" /> Export CSV</Button>
-          </div>
-        </div>
+          </>}
+        />
 
         {dash?.reconciliation && (
           <div className="flex flex-wrap gap-4">
@@ -467,7 +465,7 @@ export default function FinancialLedger() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageBody>
 
       <Dialog open={!!reverseTarget} onOpenChange={(o) => !o && setReverseTarget(null)}>
         <DialogContent className="max-w-md">

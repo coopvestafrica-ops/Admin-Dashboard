@@ -39,9 +39,7 @@ import {
   DollarSign,
   X,
   BadgeDollarSign,
-  FileCheck2,
   Receipt,
-  Calculator,
   Pencil,
   ShieldAlert,
   Shield,
@@ -67,8 +65,9 @@ const sidebarGroupsBase = [
       { title: "Dashboard", icon: LayoutDashboard, href: "/dashboard", page: PAGES.DASHBOARD },
       { title: "Members", icon: Users, href: "/members", page: PAGES.MEMBERS },
       { title: "Loans", icon: CreditCard, href: "/loans", page: PAGES.LOANS },
+      // Contribution Management hosts the per-member editor as a tab, so the
+      // former standalone "Member Contributions" entry is folded into it.
       { title: "Contributions", icon: Wallet, href: "/contributions", page: PAGES.CONTRIBUTIONS },
-      { title: "Member Contributions", icon: Receipt, href: "/member-contributions", page: PAGES.MEMBER_CONTRIBUTIONS },
       { title: "Payroll", icon: Briefcase, href: "/payroll", page: PAGES.PAYROLL },
       { title: "Excel Manager", icon: FileSpreadsheet, href: "/excel-manager", page: PAGES.EXCEL_MANAGER },
       { title: "Investments", icon: PieChart, href: "/investments", page: PAGES.INVESTMENTS },
@@ -80,8 +79,9 @@ const sidebarGroupsBase = [
     items: [
       { title: "Financial Dashboard", icon: DollarSign, href: "/financial-dashboard", page: PAGES.FINANCIAL_DASHBOARD },
       { title: "Wallet Management", icon: WalletCards, href: "/wallet-management", page: PAGES.WALLET_MANAGEMENT },
+      // Payment Proofs is a tab inside Deposit Verification — both are the
+      // "confirm money that arrived" job.
       { title: "Deposit Verification", icon: BadgeDollarSign, href: "/deposit-verification", page: PAGES.DEPOSIT_VERIFICATION },
-      { title: "Payment Proofs", icon: FileCheck2, href: "/payment-proofs", page: PAGES.PAYMENT_PROOFS },
       { title: "Manual Deposits", icon: Pencil, href: "/manual-deposits", page: PAGES.MANUAL_DEPOSITS },
       { title: "Withdrawal Approvals", icon: ArrowDownToLine, href: "/withdrawal-management", page: PAGES.WITHDRAWAL_MANAGEMENT },
       { title: "Guarantor System", icon: HandshakeIcon, href: "/guarantor-system", page: PAGES.GUARANTOR_SYSTEM },
@@ -90,8 +90,9 @@ const sidebarGroupsBase = [
       { title: "Fee Management", icon: Receipt, href: "/fee-management", page: PAGES.FEE_MANAGEMENT },
       { title: "Reconciliation", icon: RefreshCw, href: "/reconciliation", page: PAGES.RECONCILIATION },
       { title: "Financial Ledger", icon: BookOpen, href: "/financial-ledger", page: PAGES.FINANCIAL_LEDGER },
+      // The spreadsheet is a tab inside Accounting; the route still resolves so
+      // existing bookmarks keep working.
       { title: "Accounting", icon: BarChart3, href: "/accounting", page: PAGES.ACCOUNTING },
-      { title: "Accounting Spreadsheet", icon: Calculator, href: "/accounting-spreadsheet", page: PAGES.ACCOUNTING_SPREADSHEET },
     ],
   },
   {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -151,33 +152,33 @@ export default function FinancialDashboard() {
     <Layout>
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Financial Dashboard</h1>
-            <p className="text-gray-500 mt-1">Overview of all financial activities</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7d">Last 7 days</SelectItem>
-                <SelectItem value="30d">Last 30 days</SelectItem>
-                <SelectItem value="90d">Last 90 days</SelectItem>
-                <SelectItem value="1y">Last year</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={refresh}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </Button>
-            <Button variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              Export Report
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Financial Dashboard"
+          description="Overview of all financial activities"
+          actions={<>
+            <div className="flex items-center gap-3">
+              <Select value={period} onValueChange={setPeriod}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7d">Last 7 days</SelectItem>
+                  <SelectItem value="30d">Last 30 days</SelectItem>
+                  <SelectItem value="90d">Last 90 days</SelectItem>
+                  <SelectItem value="1y">Last year</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" onClick={refresh}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </Button>
+              <Button variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Export Report
+              </Button>
+            </div>
+          </>}
+        />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

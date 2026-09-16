@@ -17,10 +17,13 @@ import type {
   InvestmentPortfolio,
   ComplianceItemStatus,
   ComplianceItem,
+  ComplianceSummary,
+  ComplianceListResponse,
   MonthlyData,
   DashboardSummary,
   StatusBreakdown,
   ActivityItem,
+  GetSupportTicketsParams,
 } from "./api.schemas";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -107,6 +110,21 @@ export interface InterestRate {
   description?: string;
   effectiveDate: string;
   createdAt: string;
+}
+
+/**
+ * A row of the platform interest-rate configuration.
+ *
+ * `GET /api/admin/interest-rates` returns a flat `{ key: value }` map from
+ * `system_settings` — not a list of loan products, which is what the generated
+ * schema assumed. These three keys are the ones the mobile app reads, so the
+ * admin must edit exactly these or the two sides drift.
+ */
+export interface InterestRateConfig {
+  key: string;
+  label: string;
+  rate: number;
+  description: string;
 }
 
 // ─── Fetch helpers ─────────────────────────────────────────────────────────────
@@ -295,19 +313,10 @@ export function useGetInvestmentPortfolio<TData = InvestmentPortfolio, TError = 
 
 // ─── Compliance ────────────────────────────────────────────────────────────────
 
-interface ComplianceSummary {
-  pending: number;
-  approved: number;
-  flagged: number;
-  rejected: number;
-}
-
-interface ComplianceListResponse {
-  data: unknown[];
-  total: number;
-  page: number;
-  limit: number;
-}
+// Sourced from the schema so the page and the hook agree on the row shape.
+// A local `data: unknown[]` override here previously erased every field the
+// compliance table renders.
+export type { ComplianceSummary, ComplianceListResponse } from "./api.schemas";
 
 export const getComplianceItems = async (params?: GetComplianceParams) => {
   const response = await customFetch<{ success: boolean; data?: ComplianceItem[]; total?: number }>(
@@ -345,6 +354,12 @@ export function useGetComplianceSummary<TData = ComplianceSummary, TError = Erro
 
 // ─── Notifications ─────────────────────────────────────────────────────────────
 
+/**
+ * The backend returns a bare `notifications` array plus `pagination` — it
+ * ignores `page`/`limit` and has no `total`. Accepting those params and quietly
+ * dropping them is what made the screen claim a page count it did not have, so
+ * this signature only exposes what the endpoint actually honours.
+ */
 export const getNotifications = async () => {
   const response = await customFetch<{ success: boolean; notifications?: unknown[] }>(
     "/api/admin/notifications",
@@ -364,13 +379,13 @@ export const getNotifications = async () => {
       createdAt: String(n.created_at ?? n.createdAt ?? ""),
     };
   });
-  return { success: true, data };
+  return { success: true, data, total: data.length };
 };
 
-export function useGetNotifications<TData = { success: boolean; data: Notification[] }, TError = Error>(
-  options?: { query?: UseQueryOptions<{ success: boolean; data: Notification[] }, TError, TData> }
+export function useGetNotifications<TData = { success: boolean; data: Notification[]; total: number }, TError = Error>(
+  options?: { query?: UseQueryOptions<{ success: boolean; data: Notification[]; total: number }, TError, TData> }
 ) {
-  return useQuery<{ success: boolean; data: Notification[] }, TError, TData>({
+  return useQuery<{ success: boolean; data: Notification[]; total: number }, TError, TData>({
     queryKey: ["getNotifications"],
     queryFn: () => getNotifications(),
     ...options?.query,
@@ -379,15 +394,53 @@ export function useGetNotifications<TData = { success: boolean; data: Notificati
 
 // ─── Support ───────────────────────────────────────────────────────────────────
 
-export const getSupportTickets = () =>
-  customFetch<SupportTicket[]>("/api/admin/support", { method: "GET" });
+export const SUPPORT_TICKET_PAGE_SIZE = 20;
 
-export function useGetSupportTickets<TData = SupportTicket[], TError = Error>(
-  options?: { query?: UseQueryOptions<SupportTicket[], TError, TData> }
+/**
+ * Ticket list. The endpoint answers `{ success, data: [...], pagination }`, so
+ * this normalises to `{ data, total }` like the other list hooks rather than
+ * handing the raw envelope to the page.
+ *
+ * `status` is passed through as the backend's `GetSupportTicketsStatus` values,
+ * which include `awaiting_user` — the status the backend actually assigns when
+ * an admin replies (see routes/adminTickets.js), and which the page previously
+ * had no way to filter on.
+ */
+export const getSupportTickets = async (params?: GetSupportTicketsParams) => {
+  const response = await customFetch<{
+    success: boolean;
+    data?: unknown[];
+    pagination?: { page?: number; limit?: number; total?: number };
+  }>(`/api/admin/support${buildQs({ ...params })}`, { method: "GET" });
+
+  const rows = Array.isArray(response?.data) ? response.data : [];
+  const data = rows.map((t) => {
+    const row = t as Record<string, unknown>;
+    return {
+      id: String(row.id ?? ""),
+      ticketId: String(row.ticketId ?? ""),
+      memberName: String(row.memberName ?? ""),
+      memberEmail: row.memberEmail ? String(row.memberEmail) : undefined,
+      subject: String(row.subject ?? ""),
+      description: row.description ? String(row.description) : undefined,
+      status: String(row.status ?? "open"),
+      priority: String(row.priority ?? "medium"),
+      category: row.category ? String(row.category) : undefined,
+      createdAt: String(row.createdAt ?? ""),
+      updatedAt: row.updatedAt ? String(row.updatedAt) : undefined,
+    } as unknown as SupportTicket;
+  });
+
+  return { success: true, data, total: response?.pagination?.total ?? data.length };
+};
+
+export function useGetSupportTickets<TData = { success: boolean; data: SupportTicket[]; total: number }, TError = Error>(
+  params?: GetSupportTicketsParams,
+  options?: { query?: UseQueryOptions<{ success: boolean; data: SupportTicket[]; total: number }, TError, TData> }
 ) {
-  return useQuery<SupportTicket[], TError, TData>({
-    queryKey: ["getSupportTickets"],
-    queryFn: () => getSupportTickets(),
+  return useQuery<{ success: boolean; data: SupportTicket[]; total: number }, TError, TData>({
+    queryKey: ["getSupportTickets", params],
+    queryFn: () => getSupportTickets(params),
     ...options?.query,
   });
 }
@@ -479,13 +532,50 @@ export function useGetRecentActivity<TData = ActivityItem[], TError = Error>(
 
 // ─── Interest Rates ────────────────────────────────────────────────────────────
 
-export const getInterestRates = () =>
-  customFetch<InterestRate[]>("/api/interest-rates", { method: "GET" });
+/**
+ * The backend stores these three rates as `system_settings` rows and returns
+ * them as a flat `{ key: value }` map. Order matters here: it is the order the
+ * admin sees, and it mirrors what the mobile app reads.
+ */
+export const INTEREST_RATE_KEYS = [
+  "savings_interest_rate",
+  "loan_interest_rate",
+  "investment_return_rate",
+] as const;
 
-export function useGetInterestRates<TData = InterestRate[], TError = Error>(
-  options?: { query?: UseQueryOptions<InterestRate[], TError, TData> }
+const INTEREST_RATE_META: Record<string, { label: string; description: string }> = {
+  savings_interest_rate: {
+    label: "Savings Interest Rate",
+    description: "Annual rate credited to member savings.",
+  },
+  loan_interest_rate: {
+    label: "Loan Interest Rate",
+    description: "Default annual rate applied to cooperative loans.",
+  },
+  investment_return_rate: {
+    label: "Investment Return Rate",
+    description: "Projected annual return on investment pools.",
+  },
+};
+
+export const getInterestRates = async (): Promise<InterestRateConfig[]> => {
+  const response = await customFetch<{ success: boolean; data?: Record<string, unknown> }>(
+    "/api/admin/interest-rates",
+    { method: "GET" },
+  );
+  const raw = response?.data ?? {};
+  return INTEREST_RATE_KEYS.map((key) => ({
+    key,
+    label: INTEREST_RATE_META[key].label,
+    description: INTEREST_RATE_META[key].description,
+    rate: Number(raw[key] ?? 0),
+  }));
+};
+
+export function useGetInterestRates<TData = InterestRateConfig[], TError = Error>(
+  options?: { query?: UseQueryOptions<InterestRateConfig[], TError, TData> }
 ) {
-  return useQuery<InterestRate[], TError, TData>({
+  return useQuery<InterestRateConfig[], TError, TData>({
     queryKey: ["getInterestRates"],
     queryFn: () => getInterestRates(),
     ...options?.query,

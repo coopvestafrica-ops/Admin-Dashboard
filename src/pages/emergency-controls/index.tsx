@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -93,14 +94,11 @@ export default function EmergencyControls() {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6 max-w-5xl mx-auto">
-        <div className="flex items-center gap-3">
-          <ShieldAlert className="h-7 w-7 text-red-600" />
-          <div>
-            <h1 className="text-2xl font-bold">Emergency Control Center</h1>
-            <p className="text-muted-foreground text-sm">Instant kill switches. Super Admin only. Every action is audit-logged.</p>
-          </div>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Emergency Control Center"
+          description="Instant kill switches. Super Admin only. Every action is audit-logged."
+        />
 
         {data?.readOnly && (
           <div className="flex items-center gap-2 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800">
@@ -183,7 +181,7 @@ export default function EmergencyControls() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

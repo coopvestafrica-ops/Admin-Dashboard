@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,17 +108,17 @@ export default function LoginHistory() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Login History</h1>
-            <p className="text-muted-foreground">Track member login activity and security events</p>
-          </div>
-          <Button variant="outline" onClick={fetchLogins}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Login History"
+          description="Track member login activity and security events"
+          actions={<>
+            <Button variant="outline" onClick={fetchLogins}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </>}
+        />
 
         {/* Quick Stats */}
         <div className="grid gap-4 md:grid-cols-4">
@@ -378,7 +379,7 @@ export default function LoginHistory() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

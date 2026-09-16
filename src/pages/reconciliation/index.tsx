@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -99,35 +100,35 @@ export default function Reconciliation() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Transaction Reconciliation</h1>
-            <p className="text-muted-foreground">Reconcile contributions and withdrawals</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[...Array(6)].map((_, i) => {
-                  const date = new Date();
-                  date.setMonth(date.getMonth() - i);
-                  return (
-                    <SelectItem key={i} value={date.toISOString().slice(0, 7)}>
-                      {date.toLocaleDateString("en-US", { month: "short", year: "numeric" })}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={fetchOverview} disabled={loading}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
-          </div>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Transaction Reconciliation"
+          description="Reconcile contributions and withdrawals"
+          actions={<>
+            <div className="flex items-center gap-2">
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[...Array(6)].map((_, i) => {
+                    const date = new Date();
+                    date.setMonth(date.getMonth() - i);
+                    return (
+                      <SelectItem key={i} value={date.toISOString().slice(0, 7)}>
+                        {date.toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              <Button variant="outline" onClick={fetchOverview} disabled={loading}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+                Refresh
+              </Button>
+            </div>
+          </>}
+        />
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
@@ -320,7 +321,7 @@ export default function Reconciliation() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

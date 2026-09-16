@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -143,19 +144,15 @@ export default function FeeManagement() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Fees, Fines & Registration Charges</h1>
-            <p className="text-muted-foreground text-sm">
-              Super admins create the fee catalogue; assigning a fee type to a member creates a
-              separate obligation (never mixed into savings or loan balance).
-            </p>
-          </div>
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" /> New Fee Type
-          </Button>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Fees, Fines & Registration Charges"
+          actions={<>
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" /> New Fee Type
+            </Button>
+          </>}
+        />
 
         {loadError && (
           <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
@@ -262,7 +259,7 @@ export default function FeeManagement() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </PageBody>
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>

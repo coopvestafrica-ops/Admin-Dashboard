@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -61,14 +62,10 @@ export default function NotificationTemplates() {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6 max-w-4xl mx-auto">
-        <div className="flex items-center gap-3">
-          <Mail className="h-7 w-7 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold">Notification Templates</h1>
-            <p className="text-muted-foreground text-sm">Editable message templates with per-channel routing. Use {"{{name}}, {{amount}}, {{date}}, {{reference}}"} placeholders. Super Admin only.</p>
-          </div>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Notification Templates"
+        />
 
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-40 w-full" />)
@@ -115,7 +112,7 @@ export default function NotificationTemplates() {
                 </Card>
               );
             })}
-      </div>
+      </PageBody>
     </Layout>
   );
 }

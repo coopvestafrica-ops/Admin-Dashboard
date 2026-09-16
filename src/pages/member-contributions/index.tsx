@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -96,7 +97,13 @@ const statusColors: Record<string, string> = {
   failed: "bg-red-100 text-red-800",
 };
 
-export default function MemberContributions() {
+/**
+ * Per-member contribution editor.
+ *
+ * `embedded` drops the page chrome so Contribution Management can render it
+ * inside a tab; standalone use keeps the full page.
+ */
+export function MemberContributions({ embedded = false }: { embedded?: boolean } = {}) {
   const { toast } = useToast();
   
   const [searchQuery, setSearchQuery] = useState("");
@@ -431,15 +438,15 @@ official confirmation of your contribution.`.trim();
     setDeleteDialogOpen(true);
   }
 
-  return (
-    <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Member Contribution Management</h1>
-            <p className="text-muted-foreground mt-1">Record, edit, and manage member contributions with real-time sync</p>
-          </div>
-        </div>
+  const body = (
+    <>
+        {!embedded && (
+        <PageHeader
+          title="Member Contribution Management"
+          description="Record, edit, and manage member contributions with real-time sync"
+          breadcrumbs={[{ label: "Contributions" }]}
+        />
+        )}
 
         {/* Member Search */}
         <Card>
@@ -685,7 +692,6 @@ official confirmation of your contribution.`.trim();
             </CardContent>
           </Card>
         )}
-      </div>
 
       {/* Add Contribution Dialog */}
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
@@ -883,6 +889,16 @@ official confirmation of your contribution.`.trim();
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </>
+  );
+
+  if (embedded) return body;
+
+  return (
+    <Layout>
+      <PageBody>{body}</PageBody>
     </Layout>
   );
 }
+
+export default MemberContributions;

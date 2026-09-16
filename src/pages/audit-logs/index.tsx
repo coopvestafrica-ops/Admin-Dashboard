@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -108,17 +109,17 @@ export default function AuditLogs() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <PageBody>
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Audit Logs</h1>
-            <p className="text-muted-foreground">Every admin action is recorded — immutable trail of all system events</p>
-          </div>
-          <Button variant="outline" size="sm" onClick={exportCSV}>
-            <Download className="mr-2 h-4 w-4" /> Export Logs
-          </Button>
-        </div>
+        <PageHeader
+          title="Audit Logs"
+          description="Every admin action is recorded — immutable trail of all system events"
+          actions={<>
+            <Button variant="outline" size="sm" onClick={exportCSV}>
+              <Download className="mr-2 h-4 w-4" /> Export Logs
+            </Button>
+          </>}
+        />
 
         {/* Stats Row */}
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -270,7 +271,7 @@ export default function AuditLogs() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,11 +129,11 @@ export default function Profile() {
 
   return (
     <Layout>
-      <div className="space-y-6 max-w-3xl">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Profile Settings</h1>
-          <p className="text-muted-foreground mt-1">Manage your account information and preferences</p>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Profile Settings"
+          description="Manage your account information and preferences"
+        />
 
         {/* Avatar Section */}
         <Card>
@@ -322,7 +323,7 @@ export default function Profile() {
             )}
           </Button>
         </div>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

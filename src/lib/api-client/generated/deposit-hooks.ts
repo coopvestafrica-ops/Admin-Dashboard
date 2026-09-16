@@ -102,9 +102,9 @@ export const cancelDeposit = async (id: string): Promise<{ success: boolean; mes
 };
 
 // Query options
-export const getGetDepositsQueryOptions = <TData = Awaited<ReturnType<typeof getDeposits>>,>(
+export const getGetDepositsQueryOptions = <TData = Awaited<ReturnType<typeof getDeposits>>, TError = Error>(
   params?: GetDepositsParams,
-  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getDeposits>>, Error, TData> }
+  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getDeposits>>, TError, TData> }
 ) => {
   const { query: queryOptions } = options ?? {};
   const queryKey = params ? ["deposits", params] : ["deposits"];
@@ -113,14 +113,14 @@ export const getGetDepositsQueryOptions = <TData = Awaited<ReturnType<typeof get
     queryKey,
     queryFn: () => getDeposits(params),
     ...queryOptions,
-  } as UseQueryOptions<Awaited<ReturnType<typeof getDeposits>>, Error, TData>;
+  } as UseQueryOptions<Awaited<ReturnType<typeof getDeposits>>, TError, TData>;
 };
 
-export const getGetDepositSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getDepositSummary>>,>() => {
+export const getGetDepositSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getDepositSummary>>, TError = Error>() => {
   return {
     queryKey: ["deposit-summary"],
     queryFn: () => getDepositSummary(),
-  } as UseQueryOptions<Awaited<ReturnType<typeof getDepositSummary>>, Error, TData>;
+  } as UseQueryOptions<Awaited<ReturnType<typeof getDepositSummary>>, TError, TData>;
 };
 
 // React Query hooks
@@ -128,13 +128,13 @@ export function useGetDeposits<TData = Awaited<ReturnType<typeof getDeposits>>, 
   params?: GetDepositsParams,
   options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getDeposits>>, TError, TData> }
 ) {
-  const queryOptions = getGetDepositsQueryOptions(params, options);
+  const queryOptions = getGetDepositsQueryOptions<TData, TError>(params, options);
   const query = useQuery(queryOptions) as ReturnType<typeof useQuery<TData, TError>>;
   return { ...query, queryKey: queryOptions.queryKey };
 }
 
 export function useGetDepositSummary<TData = Awaited<ReturnType<typeof getDepositSummary>>, TError = Error>() {
-  const queryOptions = getGetDepositSummaryQueryOptions<TData>();
+  const queryOptions = getGetDepositSummaryQueryOptions<TData, TError>();
   const query = useQuery(queryOptions) as ReturnType<typeof useQuery<TData, TError>>;
   return { ...query, queryKey: queryOptions.queryKey };
 }

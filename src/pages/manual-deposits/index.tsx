@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -536,26 +537,23 @@ export default function ManualDeposits() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <PageBody>
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Manual Deposit Management</h1>
-            <p className="text-muted-foreground">
-              Record deposits with full transaction history and audit trail
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => { setShowAuditLog(true); refetchAudit(); }}>
-              <Shield className="h-4 w-4 mr-2" />
-              Audit Trail
-            </Button>
-            <Button variant="outline" onClick={() => refetchAll()}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Manual Deposit Management"
+          actions={<>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => { setShowAuditLog(true); refetchAudit(); }}>
+                <Shield className="h-4 w-4 mr-2" />
+                Audit Trail
+              </Button>
+              <Button variant="outline" onClick={() => refetchAll()}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
+          </>}
+        />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -828,7 +826,7 @@ export default function ManualDeposits() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageBody>
 
       {/* Add Deposit Dialog */}
       <Dialog open={showAddDeposit} onOpenChange={(open) => { setShowAddDeposit(open); if (!open) setValidationErrors([]); }}>

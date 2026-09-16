@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -113,26 +114,26 @@ export default function Payroll() {
   return (
     <Layout>
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Payroll Management</h1>
-            <p className="text-muted-foreground">Upload and process salary deduction sheets from employers</p>
-          </div>
-          <label>
-            <input
-              type="file"
-              accept=".xlsx,.xls,.csv"
-              className="hidden"
-              onChange={(e) => handleUpload(e.target.files?.[0])}
-            />
-            <Button className="cursor-pointer" asChild>
-              <span>
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Payroll Sheet
-              </span>
-            </Button>
-          </label>
-        </div>
+        <PageHeader
+          title="Payroll Management"
+          description="Upload and process salary deduction sheets from employers"
+          actions={<>
+            <label>
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="hidden"
+                onChange={(e) => handleUpload(e.target.files?.[0])}
+              />
+              <Button className="cursor-pointer" asChild>
+                <span>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Payroll Sheet
+                </span>
+              </Button>
+            </label>
+          </>}
+        />
 
         {/* Summary Stats */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

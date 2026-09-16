@@ -447,7 +447,13 @@ const TEMPLATES = [
   },
 ];
 
-export default function AccountingSpreadsheet() {
+/**
+ * The spreadsheet tool.
+ *
+ * `embedded` drops the page chrome (Layout + heading + quick stats) so
+ * Accounting can render it inside a tab. Standalone use keeps the full page.
+ */
+export function AccountingSpreadsheet({ embedded = false }: { embedded?: boolean } = {}) {
   const [spreadsheet, setSpreadsheet] = useState<Spreadsheet>({
     id: "1",
     name: "Untitled Spreadsheet",
@@ -795,6 +801,282 @@ export default function AccountingSpreadsheet() {
     return { total: numericTotal, cells: currencyCells };
   }, [spreadsheet.rows, spreadsheet.columns]);
 
+  const spreadsheetBody = (
+    <div className="space-y-4">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+            <TabsList>
+              <TabsTrigger value="grid"><Grid3X3 className="h-4 w-4 mr-1" />Spreadsheet</TabsTrigger>
+              <TabsTrigger value="templates"><FileSpreadsheet className="h-4 w-4 mr-1" />Templates</TabsTrigger>
+              <TabsTrigger value="reports"><BarChart3 className="h-4 w-4 mr-1" />Reports</TabsTrigger>
+            </TabsList>
+
+            {/* Grid Tab */}
+            <TabsContent value="grid" className="space-y-4">
+              {/* Toolbar */}
+              <Card><CardContent className="p-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button variant="outline" size="sm" onClick={() => setShowTemplates(true)}><FileSpreadsheet className="h-4 w-4 mr-1" />Templates</Button>
+                  <Button variant="outline" size="sm" onClick={addRow}><Plus className="h-4 w-4 mr-1" />Add Row</Button>
+                  <div className="h-6 w-px bg-border" />
+                  <Badge variant="outline" className="text-xs"><Type className="h-3 w-3 mr-1" />Text</Badge>
+                  <Badge variant="outline" className="text-xs"><Hash className="h-3 w-3 mr-1" />Number</Badge>
+                  <Badge variant="outline" className="text-xs"><DollarSign className="h-3 w-3 mr-1" />Currency</Badge>
+                  <Badge variant="outline" className="text-xs"><Percent className="h-3 w-3 mr-1" />Percentage</Badge>
+                  <div className="h-6 w-px bg-border" />
+                  <span className="text-xs text-muted-foreground">Formulas: =SUM() =AVERAGE() =COUNT() =MAX() =MIN()</span>
+                </div>
+              </CardContent></Card>
+
+              {/* Spreadsheet */}
+              <Card className="overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-muted/50">
+                          <th className="w-12 h-10 border p-2 text-xs font-medium text-muted-foreground sticky left-0 bg-muted/50 z-10">#</th>
+                          {spreadsheet.columns.map((col) => (
+                            <th key={col} className="min-w-[120px] h-10 border p-2 text-xs font-medium text-muted-foreground">{col}</th>
+                          ))}
+                          <th className="w-12 border p-2 sticky right-0 bg-muted/50 z-10">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={addRow}><Plus className="h-4 w-4" /></Button>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {spreadsheet.rows.map((row, rowIdx) => (
+                          <tr key={row.id} className="hover:bg-muted/30">
+                            <td className="w-12 h-10 border p-1 text-xs text-muted-foreground text-center sticky left-0 bg-background z-10">{rowIdx + 1}</td>
+                            {spreadsheet.columns.map((col) => {
+                              const cell = row.cells[col];
+                              const cellId = `${col}${rowIdx + 1}`;
+                              const isSelected = selectedCell === cellId;
+                              const isEditing = editingCell === cellId;
+                              const displayValue = cell ? formatCellValue(cell) : "";
+                              const isFormula = cell?.value?.startsWith("=");
+
+                              return (
+                                <td key={col} className={`min-w-[120px] h-10 border p-0 ${isSelected ? "ring-2 ring-primary ring-inset" : ""}`}
+                                  onClick={() => handleCellClick(cellId)}
+                                  onDoubleClick={() => handleCellDoubleClick(cellId)}>
+                                  {isEditing ? (
+                                    <input ref={inputRef} type="text" value={editValue} onChange={(e) => setEditValue(e.target.value)}
+                                      onBlur={handleEditComplete} onKeyDown={handleKeyDown}
+                                      className="w-full h-full px-2 text-sm outline-none bg-background" />
+                                  ) : (
+                                    <div className={`w-full h-full px-2 text-sm flex items-center truncate ${isFormula ? "font-mono text-blue-600" : ""} ${cell?.format.bold ? "font-bold" : ""}`}
+                                      style={{ color: cell?.format.color || "inherit", backgroundColor: cell?.format.backgroundColor || "inherit" }}>
+                                      {displayValue}
+                                    </div>
+                                  )}
+                                </td>
+                              );
+                            })}
+                            <td className="w-12 border p-1 sticky right-0 bg-background z-10">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                onClick={() => deleteRow(row.id)}><Trash2 className="h-4 w-4" /></Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Chart Visualization */}
+              {chartData.labels.length > 0 && (
+                <Card>
+                  <CardHeader><CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-5 w-5" />Data Visualization</CardTitle></CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {/* Simple bar chart representation */}
+                      <div className="flex items-end gap-2 h-48">
+                        {chartData.values.map((val, idx) => {
+                          const max = Math.max(...chartData.values);
+                          const height = max > 0 ? (val / max) * 100 : 0;
+                          return (
+                            <div key={idx} className="flex-1 flex flex-col items-center gap-1">
+                              <div className="w-full bg-gradient-to-t from-primary to-primary/50 rounded-t relative" style={{ height: `${Math.max(height, 5)}%` }}>
+                                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium whitespace-nowrap">{formatCurrency(val)}</div>
+                              </div>
+                              <div className="text-xs text-muted-foreground truncate max-w-full">{chartData.labels[idx]}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {/* Summary */}
+                      <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+                        <div className="text-center"><div className="text-2xl font-bold text-emerald-600">{formatCurrency(totals.total)}</div><div className="text-xs text-muted-foreground">Total</div></div>
+                        <div className="text-center"><div className="text-2xl font-bold text-blue-600">{chartData.values.length}</div><div className="text-xs text-muted-foreground">Categories</div></div>
+                        <div className="text-center"><div className="text-2xl font-bold text-purple-600">{chartData.values.length > 0 ? formatCurrency(totals.total / chartData.values.length) : "0"}</div><div className="text-xs text-muted-foreground">Average</div></div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Formula Help */}
+              <Card>
+                <CardHeader><CardTitle className="text-base">Formula Reference</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                    <div className="p-3 bg-muted rounded-lg"><div className="font-mono text-blue-600 font-medium">=SUM(A1:A10)</div><div className="text-muted-foreground mt-1">Sum range</div></div>
+                    <div className="p-3 bg-muted rounded-lg"><div className="font-mono text-blue-600 font-medium">=AVERAGE(A1:A10)</div><div className="text-muted-foreground mt-1">Average range</div></div>
+                    <div className="p-3 bg-muted rounded-lg"><div className="font-mono text-blue-600 font-medium">=COUNT(A1:A10)</div><div className="text-muted-foreground mt-1">Count non-empty</div></div>
+                    <div className="p-3 bg-muted rounded-lg"><div className="font-mono text-blue-600 font-medium">=MAX(A1:A10)</div><div className="text-muted-foreground mt-1">Maximum value</div></div>
+                    <div className="p-3 bg-muted rounded-lg"><div className="font-mono text-blue-600 font-medium">=MIN(A1:A10)</div><div className="text-muted-foreground mt-1">Minimum value</div></div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Templates Tab */}
+            <TabsContent value="templates">
+              <Card>
+                <CardHeader><CardTitle className="text-base">Choose a Template</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {TEMPLATES.map((template) => (
+                      <button key={template.id}
+                        className="flex flex-col items-center p-4 border rounded-lg hover:bg-muted/50 hover:border-primary transition-all text-center"
+                        onClick={() => initializeSpreadsheet(template.id)}>
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary mb-3">{template.icon}</div>
+                        <div className="font-medium text-sm">{template.name}</div>
+                        <div className="text-xs text-muted-foreground mt-1">{template.description}</div>
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Reports Tab */}
+            <TabsContent value="reports" className="space-y-4">
+              <Card>
+                <CardHeader><CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-5 w-5" />Generate Custom Report</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Report Title</Label>
+                      <Input value={reportConfig.title} onChange={(e) => setReportConfig({ ...reportConfig, title: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Group By</Label>
+                      <Select value={reportConfig.groupBy} onValueChange={(v) => setReportConfig({ ...reportConfig, groupBy: v as any })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="day">By Day</SelectItem>
+                          <SelectItem value="week">By Week</SelectItem>
+                          <SelectItem value="month">By Month</SelectItem>
+                          <SelectItem value="member">By Member</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>From Date</Label>
+                      <Input type="date" value={reportConfig.dateFrom} onChange={(e) => setReportConfig({ ...reportConfig, dateFrom: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>To Date</Label>
+                      <Input type="date" value={reportConfig.dateTo} onChange={(e) => setReportConfig({ ...reportConfig, dateTo: e.target.value })} />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Include Transaction Types</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {["deposit", "withdrawal"].map((type) => (
+                          <Badge key={type} variant={reportConfig.includeTypes.includes(type) ? "default" : "outline"}
+                            className="cursor-pointer" onClick={() => {
+                              const types = reportConfig.includeTypes.includes(type)
+                                ? reportConfig.includeTypes.filter((t) => t !== type)
+                                : [...reportConfig.includeTypes, type];
+                              setReportConfig({ ...reportConfig, includeTypes: types });
+                            }}>
+                            {type}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <Button onClick={generateReport} className="w-full" disabled={!financialData || financialData.length === 0}>
+                    <BarChart3 className="h-4 w-4 mr-2" />Generate Report
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Explicit request lifecycle so the tab never looks dead */}
+              {financialLoading && (
+                <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Loading transaction data…</CardContent></Card>
+              )}
+              {financialError && (
+                <Card><CardContent className="p-6 flex flex-col items-center gap-3 text-center">
+                  <AlertCircle className="h-6 w-6 text-destructive" />
+                  <p className="text-sm text-muted-foreground">Could not load transaction data for this period.</p>
+                  <Button variant="outline" size="sm" onClick={() => refetchFinancial()}>Retry</Button>
+                </CardContent></Card>
+              )}
+              {financialData && financialData.length === 0 && !financialLoading && (
+                <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">
+                  No transactions found between {reportConfig.dateFrom} and {reportConfig.dateTo}. Try widening the date range.
+                </CardContent></Card>
+              )}
+
+              {/* Report Preview */}
+              {financialData && financialData.length > 0 && (
+                <Card>
+                  <CardHeader><CardTitle className="text-base">Data Preview ({financialData.length} records)</CardTitle></CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto max-h-64">
+                      <table className="w-full text-sm">
+                        <thead className="sticky top-0 bg-muted">
+                          <tr>
+                            <th className="p-2 text-left">Date</th>
+                            <th className="p-2 text-left">Type</th>
+                            <th className="p-2 text-left">Member</th>
+                            <th className="p-2 text-right">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {financialData.slice(0, 50).map((item) => (
+                            <tr key={item.id} className="hover:bg-muted/30">
+                              <td className="p-2">{new Date(item.date).toLocaleDateString()}</td>
+                              <td className="p-2"><Badge variant="outline">{item.type}</Badge></td>
+                              <td className="p-2">{item.memberName}</td>
+                              <td className="p-2 text-right font-medium">{formatCurrency(item.amount)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
+    </div>
+  );
+
+  const toolbar = (
+    <div className="flex gap-2">
+      <Button variant="outline" onClick={exportXLSX}><FileSpreadsheetIcon className="h-4 w-4 mr-1" />Export XLSX</Button>
+      <Button variant="outline" onClick={exportCSV}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
+    </div>
+  );
+
+  if (embedded) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-sm text-muted-foreground">
+            Perform accounting calculations, generate reports, and visualize data.
+          </p>
+          {toolbar}
+        </div>
+        {spreadsheetBody}
+      </div>
+    );
+  }
+
   return (
     <Layout>
       <div className="space-y-4">
@@ -809,10 +1091,7 @@ export default function AccountingSpreadsheet() {
               Perform accounting calculations, generate reports, and visualize data
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={exportXLSX}><FileSpreadsheetIcon className="h-4 w-4 mr-1" />Export XLSX</Button>
-            <Button variant="outline" onClick={exportCSV}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
-          </div>
+          {toolbar}
         </div>
 
         {/* Quick Stats */}
@@ -839,258 +1118,10 @@ export default function AccountingSpreadsheet() {
           </CardContent></Card>
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-          <TabsList>
-            <TabsTrigger value="grid"><Grid3X3 className="h-4 w-4 mr-1" />Spreadsheet</TabsTrigger>
-            <TabsTrigger value="templates"><FileSpreadsheet className="h-4 w-4 mr-1" />Templates</TabsTrigger>
-            <TabsTrigger value="reports"><BarChart3 className="h-4 w-4 mr-1" />Reports</TabsTrigger>
-          </TabsList>
-
-          {/* Grid Tab */}
-          <TabsContent value="grid" className="space-y-4">
-            {/* Toolbar */}
-            <Card><CardContent className="p-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <Button variant="outline" size="sm" onClick={() => setShowTemplates(true)}><FileSpreadsheet className="h-4 w-4 mr-1" />Templates</Button>
-                <Button variant="outline" size="sm" onClick={addRow}><Plus className="h-4 w-4 mr-1" />Add Row</Button>
-                <div className="h-6 w-px bg-border" />
-                <Badge variant="outline" className="text-xs"><Type className="h-3 w-3 mr-1" />Text</Badge>
-                <Badge variant="outline" className="text-xs"><Hash className="h-3 w-3 mr-1" />Number</Badge>
-                <Badge variant="outline" className="text-xs"><DollarSign className="h-3 w-3 mr-1" />Currency</Badge>
-                <Badge variant="outline" className="text-xs"><Percent className="h-3 w-3 mr-1" />Percentage</Badge>
-                <div className="h-6 w-px bg-border" />
-                <span className="text-xs text-muted-foreground">Formulas: =SUM() =AVERAGE() =COUNT() =MAX() =MIN()</span>
-              </div>
-            </CardContent></Card>
-
-            {/* Spreadsheet */}
-            <Card className="overflow-hidden">
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-muted/50">
-                        <th className="w-12 h-10 border p-2 text-xs font-medium text-muted-foreground sticky left-0 bg-muted/50 z-10">#</th>
-                        {spreadsheet.columns.map((col) => (
-                          <th key={col} className="min-w-[120px] h-10 border p-2 text-xs font-medium text-muted-foreground">{col}</th>
-                        ))}
-                        <th className="w-12 border p-2 sticky right-0 bg-muted/50 z-10">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={addRow}><Plus className="h-4 w-4" /></Button>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {spreadsheet.rows.map((row, rowIdx) => (
-                        <tr key={row.id} className="hover:bg-muted/30">
-                          <td className="w-12 h-10 border p-1 text-xs text-muted-foreground text-center sticky left-0 bg-background z-10">{rowIdx + 1}</td>
-                          {spreadsheet.columns.map((col) => {
-                            const cell = row.cells[col];
-                            const cellId = `${col}${rowIdx + 1}`;
-                            const isSelected = selectedCell === cellId;
-                            const isEditing = editingCell === cellId;
-                            const displayValue = cell ? formatCellValue(cell) : "";
-                            const isFormula = cell?.value?.startsWith("=");
-
-                            return (
-                              <td key={col} className={`min-w-[120px] h-10 border p-0 ${isSelected ? "ring-2 ring-primary ring-inset" : ""}`}
-                                onClick={() => handleCellClick(cellId)}
-                                onDoubleClick={() => handleCellDoubleClick(cellId)}>
-                                {isEditing ? (
-                                  <input ref={inputRef} type="text" value={editValue} onChange={(e) => setEditValue(e.target.value)}
-                                    onBlur={handleEditComplete} onKeyDown={handleKeyDown}
-                                    className="w-full h-full px-2 text-sm outline-none bg-background" />
-                                ) : (
-                                  <div className={`w-full h-full px-2 text-sm flex items-center truncate ${isFormula ? "font-mono text-blue-600" : ""} ${cell?.format.bold ? "font-bold" : ""}`}
-                                    style={{ color: cell?.format.color || "inherit", backgroundColor: cell?.format.backgroundColor || "inherit" }}>
-                                    {displayValue}
-                                  </div>
-                                )}
-                              </td>
-                            );
-                          })}
-                          <td className="w-12 border p-1 sticky right-0 bg-background z-10">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                              onClick={() => deleteRow(row.id)}><Trash2 className="h-4 w-4" /></Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Chart Visualization */}
-            {chartData.labels.length > 0 && (
-              <Card>
-                <CardHeader><CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-5 w-5" />Data Visualization</CardTitle></CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {/* Simple bar chart representation */}
-                    <div className="flex items-end gap-2 h-48">
-                      {chartData.values.map((val, idx) => {
-                        const max = Math.max(...chartData.values);
-                        const height = max > 0 ? (val / max) * 100 : 0;
-                        return (
-                          <div key={idx} className="flex-1 flex flex-col items-center gap-1">
-                            <div className="w-full bg-gradient-to-t from-primary to-primary/50 rounded-t relative" style={{ height: `${Math.max(height, 5)}%` }}>
-                              <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium whitespace-nowrap">{formatCurrency(val)}</div>
-                            </div>
-                            <div className="text-xs text-muted-foreground truncate max-w-full">{chartData.labels[idx]}</div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {/* Summary */}
-                    <div className="grid grid-cols-3 gap-4 pt-4 border-t">
-                      <div className="text-center"><div className="text-2xl font-bold text-emerald-600">{formatCurrency(totals.total)}</div><div className="text-xs text-muted-foreground">Total</div></div>
-                      <div className="text-center"><div className="text-2xl font-bold text-blue-600">{chartData.values.length}</div><div className="text-xs text-muted-foreground">Categories</div></div>
-                      <div className="text-center"><div className="text-2xl font-bold text-purple-600">{chartData.values.length > 0 ? formatCurrency(totals.total / chartData.values.length) : "0"}</div><div className="text-xs text-muted-foreground">Average</div></div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Formula Help */}
-            <Card>
-              <CardHeader><CardTitle className="text-base">Formula Reference</CardTitle></CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
-                  <div className="p-3 bg-muted rounded-lg"><div className="font-mono text-blue-600 font-medium">=SUM(A1:A10)</div><div className="text-muted-foreground mt-1">Sum range</div></div>
-                  <div className="p-3 bg-muted rounded-lg"><div className="font-mono text-blue-600 font-medium">=AVERAGE(A1:A10)</div><div className="text-muted-foreground mt-1">Average range</div></div>
-                  <div className="p-3 bg-muted rounded-lg"><div className="font-mono text-blue-600 font-medium">=COUNT(A1:A10)</div><div className="text-muted-foreground mt-1">Count non-empty</div></div>
-                  <div className="p-3 bg-muted rounded-lg"><div className="font-mono text-blue-600 font-medium">=MAX(A1:A10)</div><div className="text-muted-foreground mt-1">Maximum value</div></div>
-                  <div className="p-3 bg-muted rounded-lg"><div className="font-mono text-blue-600 font-medium">=MIN(A1:A10)</div><div className="text-muted-foreground mt-1">Minimum value</div></div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Templates Tab */}
-          <TabsContent value="templates">
-            <Card>
-              <CardHeader><CardTitle className="text-base">Choose a Template</CardTitle></CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  {TEMPLATES.map((template) => (
-                    <button key={template.id}
-                      className="flex flex-col items-center p-4 border rounded-lg hover:bg-muted/50 hover:border-primary transition-all text-center"
-                      onClick={() => initializeSpreadsheet(template.id)}>
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary mb-3">{template.icon}</div>
-                      <div className="font-medium text-sm">{template.name}</div>
-                      <div className="text-xs text-muted-foreground mt-1">{template.description}</div>
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Reports Tab */}
-          <TabsContent value="reports" className="space-y-4">
-            <Card>
-              <CardHeader><CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-5 w-5" />Generate Custom Report</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Report Title</Label>
-                    <Input value={reportConfig.title} onChange={(e) => setReportConfig({ ...reportConfig, title: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Group By</Label>
-                    <Select value={reportConfig.groupBy} onValueChange={(v) => setReportConfig({ ...reportConfig, groupBy: v as any })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="day">By Day</SelectItem>
-                        <SelectItem value="week">By Week</SelectItem>
-                        <SelectItem value="month">By Month</SelectItem>
-                        <SelectItem value="member">By Member</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>From Date</Label>
-                    <Input type="date" value={reportConfig.dateFrom} onChange={(e) => setReportConfig({ ...reportConfig, dateFrom: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>To Date</Label>
-                    <Input type="date" value={reportConfig.dateTo} onChange={(e) => setReportConfig({ ...reportConfig, dateTo: e.target.value })} />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label>Include Transaction Types</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {["deposit", "withdrawal"].map((type) => (
-                        <Badge key={type} variant={reportConfig.includeTypes.includes(type) ? "default" : "outline"}
-                          className="cursor-pointer" onClick={() => {
-                            const types = reportConfig.includeTypes.includes(type)
-                              ? reportConfig.includeTypes.filter((t) => t !== type)
-                              : [...reportConfig.includeTypes, type];
-                            setReportConfig({ ...reportConfig, includeTypes: types });
-                          }}>
-                          {type}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <Button onClick={generateReport} className="w-full" disabled={!financialData || financialData.length === 0}>
-                  <BarChart3 className="h-4 w-4 mr-2" />Generate Report
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Explicit request lifecycle so the tab never looks dead */}
-            {financialLoading && (
-              <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Loading transaction data…</CardContent></Card>
-            )}
-            {financialError && (
-              <Card><CardContent className="p-6 flex flex-col items-center gap-3 text-center">
-                <AlertCircle className="h-6 w-6 text-destructive" />
-                <p className="text-sm text-muted-foreground">Could not load transaction data for this period.</p>
-                <Button variant="outline" size="sm" onClick={() => refetchFinancial()}>Retry</Button>
-              </CardContent></Card>
-            )}
-            {financialData && financialData.length === 0 && !financialLoading && (
-              <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">
-                No transactions found between {reportConfig.dateFrom} and {reportConfig.dateTo}. Try widening the date range.
-              </CardContent></Card>
-            )}
-
-            {/* Report Preview */}
-            {financialData && financialData.length > 0 && (
-              <Card>
-                <CardHeader><CardTitle className="text-base">Data Preview ({financialData.length} records)</CardTitle></CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto max-h-64">
-                    <table className="w-full text-sm">
-                      <thead className="sticky top-0 bg-muted">
-                        <tr>
-                          <th className="p-2 text-left">Date</th>
-                          <th className="p-2 text-left">Type</th>
-                          <th className="p-2 text-left">Member</th>
-                          <th className="p-2 text-right">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {financialData.slice(0, 50).map((item) => (
-                          <tr key={item.id} className="hover:bg-muted/30">
-                            <td className="p-2">{new Date(item.date).toLocaleDateString()}</td>
-                            <td className="p-2"><Badge variant="outline">{item.type}</Badge></td>
-                            <td className="p-2">{item.memberName}</td>
-                            <td className="p-2 text-right font-medium">{formatCurrency(item.amount)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
+        {spreadsheetBody}
       </div>
     </Layout>
   );
 }
+
+export default AccountingSpreadsheet;

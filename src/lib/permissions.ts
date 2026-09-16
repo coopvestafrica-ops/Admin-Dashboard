@@ -80,8 +80,59 @@ export const PAGES = {
 
 export type PageKey = typeof PAGES[keyof typeof PAGES];
 
-// Role types must match database schema
+// Role types.
+//
+// The backend (`profiles.role`) is the source of truth and accepts
+// `superadmin`, `super_admin`, `admin`, `staff`, `member` — see
+// `PATCH /api/admin/admins/:id/role` in the backend. The dashboard's own
+// vocabulary historically added `operator` and `viewer`. `staff` is the
+// backend's spelling of limited administrative access, so it maps onto
+// `operator` here rather than being an unknown role.
 export type Role = 'super_admin' | 'admin' | 'operator' | 'viewer' | 'member';
+
+/** Roles the backend will accept when writing `profiles.role`. */
+export const BACKEND_ROLE_VALUES = ['superadmin', 'super_admin', 'admin', 'staff', 'member'] as const;
+
+/**
+ * Map any spelling that can appear in `profiles.role` onto a `Role`.
+ *
+ * Without this, a member whose role is stored as `staff` failed
+ * `isValidAdminRole` and was handed an empty sidebar — a total lockout rather
+ * than a reduced one.
+ */
+export function normalizeRole(raw: string | null | undefined): Role | null {
+  if (!raw) return null;
+  const key = raw.trim().toLowerCase();
+  const aliases: Record<string, Role> = {
+    superadmin: 'super_admin',
+    super_admin: 'super_admin',
+    admin: 'admin',
+    staff: 'operator',
+    operator: 'operator',
+    viewer: 'viewer',
+    member: 'member',
+  };
+  return aliases[key] ?? null;
+}
+
+/** The value to persist when assigning a role, in the backend's spelling. */
+export function toBackendRole(role: Role): string {
+  return role === 'super_admin' ? 'superadmin' : role === 'operator' ? 'staff' : role;
+}
+
+/**
+ * Normalise a role key for *display lookup* against the roles list returned by
+ * `GET /api/admin/roles`, whose keys are `superadmin` / `admin` / `staff`.
+ * Distinct from {@link toBackendRole}, which maps the dashboard's own role
+ * vocabulary when writing.
+ */
+export function normalizeRoleKey(roleKey: string | null | undefined): string {
+  if (!roleKey) return '';
+  const key = roleKey.trim().toLowerCase();
+  if (key === 'super_admin') return 'superadmin';
+  if (key === 'operator') return 'staff';
+  return key;
+}
 
 // Role hierarchy - higher roles inherit permissions from lower roles
 export const ROLE_HIERARCHY: Record<Role, number> = {
@@ -291,11 +342,11 @@ export function hasPrivilege(roleA: Role, roleB: Role): boolean {
 export const ADMIN_ROLES: Role[] = ['super_admin', 'admin', 'operator', 'viewer'];
 
 /**
- * Check if a role is a valid admin role (can access admin dashboard)
+ * Check if a role is a valid admin role (can access admin dashboard).
+ * Accepts every backend spelling (including `staff`) and normalises first.
  */
 export function isValidAdminRole(role: string | null | undefined): role is Role {
-  if (!role) return false;
-  return ADMIN_ROLES.includes(role as Role);
+  return normalizeRole(role) !== null && normalizeRole(role) !== 'member';
 }
 
 /**

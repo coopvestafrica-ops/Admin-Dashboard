@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Role, isValidAdminRole, isElevatedAdminRole, getAccessiblePages, hasPermission, PageKey, ADMIN_ROLES } from '@/lib/permissions';
+import { Role, normalizeRole, isValidAdminRole, isElevatedAdminRole, getAccessiblePages, hasPermission, PageKey, ADMIN_ROLES } from '@/lib/permissions';
 
 interface UserProfile {
   id: string;
@@ -49,7 +49,9 @@ export function useUserRole(): UseUserRoleReturn {
       } else {
         setProfile({
           id: data?.id || session.user.id,
-          role: isValidAdminRole(data?.role) ? data.role as Role : null,
+          // Normalise so backend spellings (`superadmin`, `staff`) become the
+          // dashboard's vocabulary instead of resolving to no role at all.
+          role: normalizeRole(data?.role),
         });
       }
     } catch (err) {

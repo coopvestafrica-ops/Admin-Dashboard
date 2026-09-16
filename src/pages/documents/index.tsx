@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,14 +53,11 @@ export default function Documents() {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6 max-w-6xl mx-auto">
-        <div className="flex items-center gap-3">
-          <FolderLock className="h-7 w-7 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold">Document Vault</h1>
-            <p className="text-muted-foreground text-sm">Secure document storage. Every view and download is audit-logged.</p>
-          </div>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Document Vault"
+          description="Secure document storage. Every view and download is audit-logged."
+        />
 
         {data?.fallback && (
           <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
@@ -120,7 +118,7 @@ export default function Documents() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

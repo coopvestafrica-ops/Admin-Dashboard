@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 
 import { api } from "@/lib/api";
+import { normalizeRoleKey } from "@/lib/permissions";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Role {
@@ -55,10 +57,13 @@ interface AdminAccount {
 }
 
 // ── Available Roles ──────────────────────────────────────────────────────────
+// Fallback role definitions, used until `GET /api/admin/roles` answers. The
+// `role_key` values mirror the backend's vocabulary (`superadmin`, `staff`) so
+// that assigning a role writes a value the backend accepts.
 const AVAILABLE_ROLES: Role[] = [
-  { id: "1", role_key: "super_admin", label: "Super Admin", description: "Full system access including all admin features", color: "#dc2626", hierarchy: 4 },
+  { id: "1", role_key: "superadmin", label: "Super Admin", description: "Full system access including all admin features", color: "#dc2626", hierarchy: 4 },
   { id: "2", role_key: "admin", label: "Admin", description: "Full access to all features except super admin settings", color: "#7c3aed", hierarchy: 3 },
-  { id: "3", role_key: "operator", label: "Operator", description: "Can manage loans, contributions, and member communications", color: "#2563eb", hierarchy: 2 },
+  { id: "3", role_key: "staff", label: "Staff", description: "Can manage loans, contributions, and member communications", color: "#2563eb", hierarchy: 2 },
   { id: "4", role_key: "viewer", label: "Viewer", description: "Read-only access to dashboard and reports", color: "#059669", hierarchy: 1 },
 ];
 
@@ -102,7 +107,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
 export default function RoleManagement() {
   const [activeTab, setActiveTab] = useState("staff");
   const [admins, setAdmins] = useState<AdminAccount[]>([]);
-  const [roles] = useState<Role[]>(AVAILABLE_ROLES);
+  const [roles, setRoles] = useState<Role[]>(AVAILABLE_ROLES);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loadingStaff, setLoadingStaff] = useState(true);
   const [loadingPerms, setLoadingPerms] = useState(true);
@@ -170,18 +175,16 @@ export default function RoleManagement() {
     a.role.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Get role label. Normalises the super_admin / superadmin spelling
-  // difference between the dashboard defaults and the backend's /roles list.
+  // Get role label, resolving the spelling differences between the profiles
+  // table (`super_admin`) and the roles list (`superadmin`).
   const getRoleLabel = (roleKey: string) => {
-    const key = roleKey === 'super_admin' ? 'superadmin' : roleKey;
-    const role = roles.find(r => (r.role_key === 'super_admin' ? 'superadmin' : r.role_key) === key);
+    const role = roles.find(r => r.role_key === normalizeRoleKey(roleKey));
     return role?.label ?? roleKey;
   };
 
   // Get role color
   const getRoleColor = (roleKey: string) => {
-    const key = roleKey === 'super_admin' ? 'superadmin' : roleKey;
-    const role = roles.find(r => (r.role_key === 'super_admin' ? 'superadmin' : r.role_key) === key);
+    const role = roles.find(r => r.role_key === normalizeRoleKey(roleKey));
     return role?.color ?? "#6b7280";
   };
 
@@ -286,8 +289,18 @@ export default function RoleManagement() {
   const isLoading = loadingStaff || loadingPerms;
 
   return (
-    <Layout title="Role Management" subtitle="Assign roles and manage admin permissions">
-      <div className="space-y-6">
+    <Layout>
+      <PageBody>
+        <PageHeader
+          title="Role Management"
+          description="Assign roles and manage what each administrator can reach. Only Super Admins can change roles."
+          actions={
+            <Button onClick={() => setShowCreateDialog(true)}>
+              <Plus className="mr-2 h-4 w-4" aria-hidden />
+              Add Administrator
+            </Button>
+          }
+        />
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -511,7 +524,6 @@ export default function RoleManagement() {
             </TabsContent>
           </Tabs>
         )}
-      </div>
 
       {/* ── Assign Role Dialog ── */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
@@ -711,6 +723,7 @@ export default function RoleManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </PageBody>
     </Layout>
   );
 }

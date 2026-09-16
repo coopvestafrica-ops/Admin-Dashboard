@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -97,11 +98,11 @@ export default function FraudDetection() {
 
   return (
     <Layout>
-      <div className="space-y-6 p-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Fraud Detection & Risk Alerts</h1>
-          <p className="text-muted-foreground mt-1">Monitor suspicious activities and manage fraud risk across the platform.</p>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Fraud Detection & Risk Alerts"
+          description="Monitor suspicious activities and manage fraud risk across the platform."
+        />
 
         {/* Summary Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -223,7 +224,7 @@ export default function FraudDetection() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

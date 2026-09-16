@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -159,11 +160,11 @@ export default function UserVerification() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Account Verification (KYC)</h1>
-          <p className="text-muted-foreground">Review and verify user identity documents</p>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Account Verification (KYC)"
+          description="Review and verify user identity documents"
+        />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -340,7 +341,7 @@ export default function UserVerification() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageBody>
 
       {/* Review Dialog */}
       <Dialog open={!!reviewTarget} onOpenChange={() => setReviewTarget(null)}>

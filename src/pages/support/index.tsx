@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useGetSupportTickets } from "@/lib/api-client";
+import { useGetSupportTickets, SUPPORT_TICKET_PAGE_SIZE } from "@/lib/api-client";
+import type { GetSupportTicketsStatus } from "@/lib/api-client";
 import { authedFetch } from "@/lib/authed-fetch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, LifeBuoy, CheckCircle, Clock, AlertTriangle, MessageSquare, Eye, Send, User, Calendar, ChevronRight, Volume2, VolumeX } from "lucide-react";
@@ -135,10 +137,10 @@ export default function Support() {
   const { toast } = useToast();
 
   const { data, isLoading } = useGetSupportTickets({
-    status: (status as "open" | "in_progress" | "resolved" | "closed") || undefined,
+    status: (status as GetSupportTicketsStatus) || undefined,
     page,
-    limit: 20,
-  }, { query: { enabled: true } });
+    limit: SUPPORT_TICKET_PAGE_SIZE,
+  });
 
   const { mutate: resolve } = useResolveTicket();
   const { mutate: updateStatus } = useUpdateTicketStatus();
@@ -217,24 +219,24 @@ export default function Support() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Complaints Management</h1>
-            <p className="text-muted-foreground">Manage member complaints and support requests</p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSoundEnabled(!soundEnabled);
-              soundService.setSoundEnabled(!soundEnabled);
-            }}
-          >
-            {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-            <span className="ml-2">{soundEnabled ? "Sound On" : "Sound Off"}</span>
-          </Button>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Complaints Management"
+          description="Manage member complaints and support requests"
+          actions={<>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSoundEnabled(!soundEnabled);
+                soundService.setSoundEnabled(!soundEnabled);
+              }}
+            >
+              {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              <span className="ml-2">{soundEnabled ? "Sound On" : "Sound Off"}</span>
+            </Button>
+          </>}
+        />
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -495,7 +497,7 @@ export default function Support() {
             </div>
           </div>
         )}
-      </div>
+      </PageBody>
     </Layout>
   );
 }

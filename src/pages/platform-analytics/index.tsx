@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -132,27 +133,27 @@ export default function PlatformAnalytics() {
   return (
     <Layout>
       <div className="space-y-6 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Platform Growth & Analytics</h1>
-            <p className="text-muted-foreground mt-1">Track platform performance, user growth, and financial metrics.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7d">Last 7d</SelectItem>
-                <SelectItem value="30d">Last 30d</SelectItem>
-                <SelectItem value="90d">Last 90d</SelectItem>
-                <SelectItem value="12m">Last 12m</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={handleExport} className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Export CSV
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Platform Growth & Analytics"
+          description="Track platform performance, user growth, and financial metrics."
+          actions={<>
+            <div className="flex items-center gap-3">
+              <Select value={period} onValueChange={setPeriod}>
+                <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7d">Last 7d</SelectItem>
+                  <SelectItem value="30d">Last 30d</SelectItem>
+                  <SelectItem value="90d">Last 90d</SelectItem>
+                  <SelectItem value="12m">Last 12m</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" onClick={handleExport} className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Export CSV
+              </Button>
+            </div>
+          </>}
+        />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {kpis.map(({ label, value, growth, icon: Icon, color, bg }) => (

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -159,25 +160,24 @@ export default function SecurityAccess() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Shield className="h-6 w-6 text-primary" /> Security & Access Control
-            </h1>
-            <p className="text-muted-foreground">MFA enforcement, IP monitoring, session management & security events</p>
-          </div>
-          <div className="flex gap-2">
-            {criticalCount > 0 && (
-              <Badge className="bg-red-100 text-red-800 border-red-300 px-3 py-1.5 text-sm">
-                <AlertTriangle className="mr-1.5 h-4 w-4" /> {criticalCount} Critical Alert{criticalCount > 1 ? "s" : ""}
-              </Badge>
-            )}
-            <Button variant="outline" size="sm" onClick={() => settingsMutation.mutate({ twoFactorRequired: true })}>
-              <Key className="mr-2 h-4 w-4" /> Enforce MFA All
-            </Button>
-          </div>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Security & Access Control"
+          description="MFA enforcement, IP monitoring, session management and security events."
+          breadcrumbs={[{ label: "Platform Control" }, { label: "Security" }]}
+          actions={
+            <>
+              {criticalCount > 0 && (
+                <Badge className="bg-red-100 text-red-800 border-red-300 px-3 py-1.5 text-sm">
+                  <AlertTriangle className="mr-1.5 h-4 w-4" aria-hidden /> {criticalCount} Critical Alert{criticalCount > 1 ? "s" : ""}
+                </Badge>
+              )}
+              <Button variant="outline" size="sm" onClick={() => settingsMutation.mutate({ twoFactorRequired: true })}>
+                <Key className="mr-2 h-4 w-4" aria-hidden /> Enforce MFA All
+              </Button>
+            </>
+          }
+        />
 
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[
@@ -359,7 +359,7 @@ export default function SecurityAccess() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </PageBody>
 
       <Dialog open={showIpDialog} onOpenChange={setShowIpDialog}>
         <DialogContent>

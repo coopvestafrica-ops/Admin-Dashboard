@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -134,11 +135,11 @@ export default function GuarantorSystem() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Guarantor System</h1>
-          <p className="text-muted-foreground">Manage guarantor requirements and relationships</p>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Guarantor System"
+          description="Manage guarantor requirements and relationships"
+        />
 
         {/* Settings Card */}
         <Card>
@@ -343,7 +344,7 @@ export default function GuarantorSystem() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

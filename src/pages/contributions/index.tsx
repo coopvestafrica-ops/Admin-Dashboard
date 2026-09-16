@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { PageHeader, PageBody } from "@/components/PageHeader";
+import { MemberContributions } from "@/pages/member-contributions";
 import { StatCard, StatGrid } from "@/components/StatCard";
 import { DataState } from "@/components/DataState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -255,6 +256,7 @@ export default function Contributions() {
             <TabsTrigger value="missed">Missed / Overdue</TabsTrigger>
             <TabsTrigger value="trends">Contribution Trends</TabsTrigger>
             <TabsTrigger value="deposits">Deposits</TabsTrigger>
+            <TabsTrigger value="manage">Manage Member</TabsTrigger>
           </TabsList>
 
           {/* All + Pending + Missed */}
@@ -443,6 +445,10 @@ export default function Contributions() {
           </TabsContent>
 
           {/* Deposits Tab */}
+          <TabsContent value="manage" className="mt-4">
+            <MemberContributions embedded />
+          </TabsContent>
+
           <TabsContent value="deposits" className="mt-4 space-y-4">
             {/* Deposit Summary Stats */}
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

@@ -1,4 +1,5 @@
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetInvestments, useGetInvestmentPortfolio } from "@/lib/api-client";
@@ -35,11 +36,11 @@ export default function Investments() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Investments</h1>
-          <p className="text-muted-foreground">Cooperative investment portfolio overview</p>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Investments"
+          description="Cooperative investment portfolio overview"
+        />
 
         {/* Portfolio Summary */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -206,7 +207,7 @@ export default function Investments() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

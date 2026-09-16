@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -79,14 +80,11 @@ export default function ApprovalCenter() {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6 max-w-6xl mx-auto">
-        <div className="flex items-center gap-3">
-          <ClipboardCheck className="h-7 w-7 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold">Approval Center</h1>
-            <p className="text-muted-foreground text-sm">Maker-checker workflow. Staff submit, Super Admin approves or rejects. All actions audit-logged.</p>
-          </div>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Approval Center"
+          description="Maker-checker workflow. Staff submit, Super Admin approves or rejects. All actions audit-logged."
+        />
 
         <div className="flex items-center gap-2">
           <Select value={status} onValueChange={setStatus}>
@@ -133,7 +131,7 @@ export default function ApprovalCenter() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageBody>
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="max-w-lg">

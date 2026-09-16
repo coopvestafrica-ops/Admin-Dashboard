@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -159,17 +160,17 @@ export default function Reports() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Reports & Analytics</h1>
-            <p className="text-muted-foreground">Schedule and manage automated reports</p>
-          </div>
-          <Button onClick={() => setShowCreateDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Report
-          </Button>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Reports & Analytics"
+          description="Schedule and manage automated reports"
+          actions={<>
+            <Button onClick={() => setShowCreateDialog(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Report
+            </Button>
+          </>}
+        />
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
@@ -261,7 +262,7 @@ export default function Reports() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </PageBody>
 
       {/* Create Report Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

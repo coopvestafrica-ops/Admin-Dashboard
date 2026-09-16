@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useGetRollovers, useApproveRollover, useRejectRollover, useGetRolloverStats } from "@/lib/api-client/generated/rollover-hooks";
+import type { Rollover } from "@/lib/api-client/generated/rollover-hooks";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import {
   RefreshCw, CheckCircle, XCircle, Clock, AlertTriangle, CreditCard,
@@ -96,12 +98,12 @@ export default function RolloverManagement() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <PageBody>
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold">Loan Rollover Management</h1>
-          <p className="text-muted-foreground">View and manage loan rollover requests</p>
-        </div>
+        <PageHeader
+          title="Loan Rollover Management"
+          description="View and manage loan rollover requests"
+        />
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -247,7 +249,7 @@ export default function RolloverManagement() {
             <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</Button>
           </div>
         )}
-      </div>
+      </PageBody>
 
       {/* Rollover Detail Modal */}
       <Dialog open={!!selectedRollover} onOpenChange={() => setSelectedRollover(null)}>

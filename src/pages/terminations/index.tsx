@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -72,18 +73,13 @@ export default function Terminations() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <UserX className="h-6 w-6" />
-              Membership Terminations
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Review termination requests submitted from the mobile app. Approving keeps the member in
-              "pending termination" until they confirm in the app; rejecting restores them to active.
-            </p>
-          </div>
+      <PageBody>
+        <PageHeader
+          title="Membership Terminations"
+          description="Review termination requests submitted from the mobile app. Approving keeps the member in pending-termination until they confirm in the app; rejecting restores them to active."
+          breadcrumbs={[{ label: "Support" }, { label: "Terminations" }]}
+        />
+        <div className="flex items-center justify-end flex-wrap gap-3">
           <Select value={status || "all"} onValueChange={(v) => setStatus(v === "all" ? "" : v)}>
             <SelectTrigger className="w-44">
               <SelectValue placeholder="All statuses" />
@@ -188,7 +184,7 @@ export default function Terminations() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </PageBody>
     </Layout>
   );
 }

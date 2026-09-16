@@ -1,149 +1,193 @@
+import { useEffect, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader, PageBody } from "@/components/PageHeader";
+import { StatCard, StatGrid } from "@/components/StatCard";
+import { DataState } from "@/components/DataState";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import { useGetInterestRates } from "@/lib/api-client";
-import type { InterestRate } from "@/lib/api-client";
-import { Percent, TrendingUp, TrendingDown } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { api } from "@/lib/api";
+import { Percent, Save, RotateCcw, Info } from "lucide-react";
 
-const loanTypeLabels: Record<string, string> = {
-  personal: "Personal",
-  business: "Business",
-  agricultural: "Agricultural",
-  education: "Education",
-  emergency: "Emergency",
-  cooperative: "Cooperative",
-};
-
-const COLORS = ["#2d6a4f", "#40916c", "#52b788", "#74c69d", "#95d5b2", "#f6ae2d"];
-
+/**
+ * Interest rate configuration.
+ *
+ * The backend keeps exactly three rates as `system_settings` rows and returns
+ * them as a flat map; the mobile app resolves loan pricing from the same keys.
+ * This screen edits those three values rather than inventing a per-loan-type
+ * schedule the backend has nowhere to store.
+ */
 export default function InterestRates() {
-  const { data, isLoading } = useGetInterestRates();
+  const { data, isLoading, isError, error, refetch } = useGetInterestRates();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const rates: InterestRate[] = data ?? [];
-  const avgRate = rates.length > 0 ? (rates.reduce((s: number, r: InterestRate) => s + r.rate, 0) / rates.length).toFixed(1) : "0";
-  const maxRate = rates.length > 0 ? Math.max(...rates.map((r: InterestRate) => r.rate)) : 0;
-  const minRate = rates.length > 0 ? Math.min(...rates.map((r: InterestRate) => r.rate)) : 0;
+  const rates = data ?? [];
+  // Local draft keyed by setting key so each row can be saved independently.
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
 
-  const chartData = rates.map((r: InterestRate) => ({
-    type: loanTypeLabels[r.loanType] ?? r.loanType,
-    rate: r.rate,
-  }));
+  useEffect(() => {
+    if (!rates.length) return;
+    setDrafts((prev) => {
+      const next = { ...prev };
+      for (const r of rates) {
+        if (next[r.key] === undefined) next[r.key] = String(r.rate);
+      }
+      return next;
+    });
+  }, [rates]);
+
+  const save = useMutation({
+    mutationFn: ({ key, rate }: { key: string; rate: number }) =>
+      api.put(`/admin/system-settings/${key}`, { value: String(rate) }),
+    onSuccess: (_res, vars) => {
+      toast({
+        title: "Rate updated",
+        description: "The mobile app picks this up within a few minutes.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["getInterestRates"] });
+      setDrafts((prev) => ({ ...prev, [vars.key]: String(vars.rate) }));
+    },
+    onError: (err: Error) =>
+      toast({ title: "Could not save rate", description: err.message, variant: "destructive" }),
+  });
+
+  const highest = rates.length ? Math.max(...rates.map((r) => r.rate)) : 0;
+  const lowest = rates.length ? Math.min(...rates.map((r) => r.rate)) : 0;
+
+  const dirty = (key: string) => {
+    const original = rates.find((r) => r.key === key);
+    if (!original) return false;
+    const draft = drafts[key];
+    return draft !== undefined && Number(draft) !== original.rate;
+  };
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Interest Rates</h1>
-          <p className="text-muted-foreground">Cooperative loan interest rate configurations</p>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Interest Rates"
+          description="The savings, loan and investment rates the platform and the member app both read. Changes apply to new calculations."
+          breadcrumbs={[{ label: "Financial Control" }, { label: "Interest Rates" }]}
+        />
 
-        {/* Summary */}
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { label: "Average Rate", value: `${avgRate}%`, icon: Percent, color: "text-primary" },
-            { label: "Highest Rate", value: `${maxRate}%`, icon: TrendingUp, color: "text-red-600" },
-            { label: "Lowest Rate", value: `${minRate}%`, icon: TrendingDown, color: "text-emerald-600" },
-          ].map(({ label, value, icon: Icon, color }) => (
-            <Card key={label}>
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                  <Icon className={`h-5 w-5 ${color}`} />
-                </div>
-                <div>
-                  {isLoading ? (
-                    <Skeleton className="h-6 w-16" />
-                  ) : (
-                    <div className="text-xl font-bold">{value}</div>
-                  )}
-                  <div className="text-xs text-muted-foreground">{label}</div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <StatGrid columns={3}>
+          <StatCard
+            label="Rates Configured"
+            value={rates.length}
+            format="number"
+            icon={Percent}
+            loading={isLoading}
+          />
+          <StatCard
+            label="Highest Rate"
+            value={`${highest}%`}
+            icon={Percent}
+            loading={isLoading}
+            valueClassName="text-amber-600"
+          />
+          <StatCard
+            label="Lowest Rate"
+            value={`${lowest}%`}
+            icon={Percent}
+            loading={isLoading}
+            valueClassName="text-emerald-600"
+          />
+        </StatGrid>
 
-        {/* Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Rate Comparison by Loan Type</CardTitle>
+            <CardTitle className="text-base">Rate Configuration</CardTitle>
+            <CardDescription>
+              These values are stored as platform settings and are the single source of truth
+              shared with the mobile app.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-56 w-full" />
-            ) : (
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={chartData} barCategoryGap="30%">
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="type" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${v}%`} />
-                  <Tooltip formatter={(val: number) => [`${val}%`]} />
-                  <Bar dataKey="rate" name="Interest Rate" radius={[4, 4, 0, 0]}>
-                    {chartData.map((_entry: { type: string; rate: number }, i: number) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+            <DataState
+              loading={isLoading}
+              error={isError ? error : undefined}
+              isEmpty={!isLoading && !isError && rates.length === 0}
+              emptyTitle="No rates configured"
+              emptyDescription="The platform has no interest-rate settings yet."
+              onRetry={() => refetch()}
+              skeletonRows={3}
+            >
+              <div className="space-y-4">
+                {rates.map((rate) => (
+                  <div
+                    key={rate.key}
+                    className="flex flex-col gap-3 border-b pb-4 last:border-0 last:pb-0 sm:flex-row sm:items-end sm:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Label htmlFor={`rate-${rate.key}`} className="font-medium">
+                          {rate.label}
+                        </Label>
+                        <Badge variant="outline" className="font-mono text-[10px]">
+                          {rate.key}
+                        </Badge>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">{rate.description}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <Input
+                          id={`rate-${rate.key}`}
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          className="w-28 pr-7 tabular-nums"
+                          value={drafts[rate.key] ?? String(rate.rate)}
+                          onChange={(e) =>
+                            setDrafts((prev) => ({ ...prev, [rate.key]: e.target.value }))
+                          }
+                        />
+                        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                          %
+                        </span>
+                      </div>
+                      <Button
+                        size="sm"
+                        disabled={!dirty(rate.key) || save.isPending}
+                        onClick={() => save.mutate({ key: rate.key, rate: Number(drafts[rate.key]) })}
+                      >
+                        <Save className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={!dirty(rate.key)}
+                        onClick={() =>
+                          setDrafts((prev) => ({ ...prev, [rate.key]: String(rate.rate) }))
+                        }
+                        aria-label={`Reset ${rate.label}`}
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </DataState>
           </CardContent>
         </Card>
 
-        {/* Rates Table */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Current Rate Schedule</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-muted-foreground">
-                      <th className="pb-3 text-left font-medium">Loan Type</th>
-                      <th className="pb-3 text-right font-medium">Interest Rate</th>
-                      <th className="pb-3 text-right font-medium">Penalty Rate</th>
-                      <th className="pb-3 text-right font-medium">Min Amount</th>
-                      <th className="pb-3 text-right font-medium">Max Amount</th>
-                      <th className="pb-3 text-right font-medium">Tenure</th>
-                      <th className="pb-3 text-left font-medium">Description</th>
-                      <th className="pb-3 text-left font-medium">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {rates.map((rate: InterestRate) => (
-                      <tr key={rate.id} className="hover:bg-muted/50 transition-colors" data-testid={`row-rate-${rate.id}`}>
-                        <td className="py-3 font-medium">{loanTypeLabels[rate.loanType] ?? rate.loanType}</td>
-                        <td className="py-3 text-right font-bold text-primary">{rate.rate}%</td>
-                        <td className="py-3 text-right text-red-600">—</td>
-                        <td className="py-3 text-right text-muted-foreground">
-                          ₦{(rate.minAmount / 1000).toFixed(0)}k
-                        </td>
-                        <td className="py-3 text-right text-muted-foreground">
-                          ₦{(rate.maxAmount / 1000000).toFixed(1)}M
-                        </td>
-                        <td className="py-3 text-right text-muted-foreground">{rate.tenure}mo</td>
-                        <td className="py-3 text-muted-foreground text-xs max-w-[160px] truncate">{rate.description ?? "—"}</td>
-                        <td className="py-3">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            rate.isActive ? "bg-emerald-100 text-emerald-800" : "bg-gray-100 text-gray-700"
-                          }`}>
-                            {rate.isActive ? "Active" : "Inactive"}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+        <div className="flex items-start gap-3 rounded-lg border bg-muted/40 p-4">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+          <p className="text-sm text-muted-foreground">
+            Loan pricing in the member app is derived from a savings multiple and a per-product
+            rate, so a change here applies to newly created loans and does not retroactively
+            reprice existing ones.
+          </p>
+        </div>
+      </PageBody>
     </Layout>
   );
 }
