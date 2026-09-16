@@ -1,9 +1,47 @@
-export function formatCurrency(amount: number) {
+/**
+ * Currency formatting shared by every admin screen.
+ *
+ * These mirror the mobile app's money conventions so the same figure reads
+ * identically in both systems:
+ *   - `formatCurrency` = grouped with 2 decimals (`₦1,234,567.89`), matching
+ *     the app's `Formatters.formatCurrency` / wallet balances. Use it wherever
+ *     kobo matter: ledgers, transactions, reconciliation, approvals.
+ *   - `formatCurrencyWhole` = grouped, no decimals (`₦1,234,568`), matching the
+ *     app's dashboard headline. Use it for KPI tiles and summary cards where
+ *     decimals are noise.
+ *
+ * Previously `formatCurrency` used 0 decimals, so the admin rendered `₦1,235`
+ * where the member's app showed `₦1,234.56` — the two disagreed on the same
+ * payment.
+ */
+export function formatCurrency(amount: number | null | undefined) {
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return "₦0.00";
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
+}
+
+/** Grouped whole naira, e.g. `₦1,234,568`. For KPI tiles and headlines. */
+export function formatCurrencyWhole(amount: number | null | undefined) {
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return "₦0";
   return new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency: "NGN",
     minimumFractionDigits: 0,
-  }).format(amount);
+    maximumFractionDigits: 0,
+  }).format(n);
+}
+
+/** Plain grouped number with no currency symbol, e.g. `1,234,568`. */
+export function formatNumber(value: number | null | undefined) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "0";
+  return n.toLocaleString("en-NG");
 }
 
 /**

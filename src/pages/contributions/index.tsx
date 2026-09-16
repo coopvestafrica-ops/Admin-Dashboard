@@ -1,5 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
+import { StatCard, StatGrid } from "@/components/StatCard";
+import { DataState } from "@/components/DataState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -206,52 +209,43 @@ export default function Contributions() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Contribution Management</h1>
-            <p className="text-muted-foreground">Track, approve, and manage all member contributions</p>
-          </div>
-          <div className="flex gap-2">
-            <Button size="sm" onClick={() => { setDialog({ type: "addSingle" }); resetSingleContributionForm(); }}>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Contribution
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setDialog({ type: "add" })}>
-              <Upload className="mr-2 h-4 w-4" /> Upload Excel
-            </Button>
-            <Button variant="outline" size="sm" onClick={exportTemplate}>
-              <Download className="mr-2 h-4 w-4" /> Download Template
-            </Button>
-          </div>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="Contribution Management"
+          description="Track, approve, and manage all member contributions"
+          actions={
+            <>
+              <Button size="sm" onClick={() => { setDialog({ type: "addSingle" }); resetSingleContributionForm(); }}>
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Contribution
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setDialog({ type: "add" })}>
+                <Upload className="mr-2 h-4 w-4" /> Upload Excel
+              </Button>
+              <Button variant="outline" size="sm" onClick={exportTemplate}>
+                <Download className="mr-2 h-4 w-4" /> Download Template
+              </Button>
+            </>
+          }
+        />
 
-        {/* Summary Stats */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatGrid columns={4}>
           {[
-            { label: "Total Collected", value: summary?.totalCollected, format: "currency" as const, icon: Wallet, color: "text-primary" },
-            { label: "This Month", value: summary?.thisMonth, format: "currency" as const, icon: TrendingUp, color: "text-emerald-600" },
+            { label: "Total Collected", value: summary?.totalCollected ?? 0, format: "currency" as const, icon: Wallet, color: "text-primary" },
+            { label: "This Month", value: summary?.thisMonth ?? 0, format: "currency" as const, icon: TrendingUp, color: "text-emerald-600" },
             { label: "Missed Contributions", value: summary?.overdue ?? 0, format: "number" as const, icon: AlertCircle, color: "text-red-500" },
             { label: "Pending Approval", value: summary?.pending ?? 0, format: "number" as const, icon: RefreshCw, color: "text-amber-500" },
           ].map(s => (
-            <Card key={s.label}>
-              <CardContent className="p-4 flex items-center gap-3">
-                {loadingSummary ? <Skeleton className="h-10 w-full" /> : (
-                  <>
-                    <div className="p-2 rounded-lg bg-muted">
-                      <s.icon className={`h-5 w-5 ${s.color}`} />
-                    </div>
-                    <div>
-                      <div className="text-xl font-bold">
-                        {s.format === "currency" ? formatCurrency(s.value ?? 0) : (s.value ?? 0).toLocaleString()}
-                      </div>
-                      <div className="text-xs text-muted-foreground">{s.label}</div>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+            <StatCard
+              key={s.label}
+              label={s.label}
+              value={s.value}
+              format={s.format === "currency" ? "currency" : "number"}
+              icon={s.icon}
+              iconClassName={s.color}
+              loading={loadingSummary}
+            />
           ))}
-        </div>
+        </StatGrid>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -288,14 +282,14 @@ export default function Contributions() {
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
-                  {isLoading ? (
-                    <div className="p-6 space-y-3">{Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
-                  ) : !data?.data?.length ? (
-                    <div className="flex h-48 flex-col items-center justify-center gap-2 text-muted-foreground">
-                      <Wallet className="h-8 w-8 opacity-40" />
-                      <p>No contributions found.</p>
-                    </div>
-                  ) : (
+                  <DataState
+                    loading={isLoading}
+                    isEmpty={!isLoading && !data?.data?.length}
+                    emptyTitle="No contributions found"
+                    emptyDescription="Contributions appear here once members pay, or when you add them manually."
+                    skeletonRows={8}
+                  >
+                  {(
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
@@ -364,6 +358,7 @@ export default function Contributions() {
                       )}
                     </div>
                   )}
+                  </DataState>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -610,7 +605,7 @@ export default function Contributions() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </PageBody>
 
       {/* Action Dialogs */}
       <Dialog open={dialog.type === "approve" || dialog.type === "reverse"} onOpenChange={() => setDialog({ type: null })}>

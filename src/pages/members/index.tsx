@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
+import { StatCard, StatGrid } from "@/components/StatCard";
+import { DataState } from "@/components/DataState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -450,43 +453,37 @@ export default function Members() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">User Management</h1>
-            <p className="text-muted-foreground">Command center for all member accounts</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={exportCSV}>
-              <Download className="mr-2 h-4 w-4" /> Export CSV
-            </Button>
-            <Button size="sm" onClick={() => setLocation("/user-verification")}>
-              <CheckCircle2 className="mr-2 h-4 w-4" /> Pending KYC
-            </Button>
-            <Button size="sm" onClick={() => setAddMemberDialog(true)}>
-              <UserPlus className="mr-2 h-4 w-4" /> Add Member
-            </Button>
-          </div>
-        </div>
+      <PageBody>
+        <PageHeader
+          title="User Management"
+          description="Command center for all member accounts"
+          actions={
+            <>
+              <Button variant="outline" size="sm" onClick={exportCSV}>
+                <Download className="mr-2 h-4 w-4" /> Export CSV
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setLocation("/user-verification")}>
+                <CheckCircle2 className="mr-2 h-4 w-4" /> Pending KYC
+              </Button>
+              <Button size="sm" onClick={() => setAddMemberDialog(true)}>
+                <UserPlus className="mr-2 h-4 w-4" /> Add Member
+              </Button>
+            </>
+          }
+        />
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
+        <StatGrid columns={6}>
           {stats.map((s) => (
-            <Card key={s.label} className="cursor-pointer hover:shadow-md transition-shadow" data-testid={`stat-${s.testid}`}>
-              <CardContent className="p-4">
-                {statsLoading ? (
-                  <Skeleton className="h-10 w-full" />
-                ) : (
-                  <div className="text-center">
-                    <s.icon className={`mx-auto mb-1 h-5 w-5 ${s.color}`} />
-                    <div className="text-xl font-bold">{s.value.toLocaleString()}</div>
-                    <div className="text-xs text-muted-foreground">{s.label}</div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <StatCard
+              key={s.label}
+              label={s.label}
+              value={s.value}
+              icon={s.icon}
+              iconClassName={s.color}
+              loading={statsLoading}
+            />
           ))}
-        </div>
+        </StatGrid>
 
         {/* Tabs + Filters */}
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setPage(1); }}>
@@ -530,25 +527,16 @@ export default function Members() {
           <TabsContent value={activeTab} className="mt-4">
             <Card>
               <CardContent className="p-0">
-                {isLoading ? (
-                  <div className="space-y-3 p-6">
-                    {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
-                  </div>
-                ) : error ? (
-                  <div className="flex h-48 flex-col items-center justify-center gap-2 text-red-500">
-                    <AlertTriangle className="h-8 w-8" />
-                    <p>Failed to load members. Please try again.</p>
-                    <p className="text-xs text-muted-foreground">{String((error as Error)?.message || error)}</p>
-                    <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-                      Retry
-                    </Button>
-                  </div>
-                ) : !members.length ? (
-                  <div className="flex h-48 flex-col items-center justify-center gap-2 text-muted-foreground">
-                    <Users className="h-8 w-8 opacity-40" />
-                    <p>No members found.</p>
-                  </div>
-                ) : (
+                <DataState
+                  loading={isLoading}
+                  error={error}
+                  isEmpty={!isLoading && !error && members.length === 0}
+                  emptyTitle="No members found"
+                  emptyDescription="Members will appear here once they register on the mobile app."
+                  skeletonRows={8}
+                  onRetry={() => window.location.reload()}
+                >
+                {(
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm" data-testid="members-table">
                       <thead>
@@ -703,11 +691,12 @@ export default function Members() {
                     )}
                   </div>
                 )}
+                </DataState>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </PageBody>
 
       {/* Admin Action Dialog */}
       <Dialog open={actionDialog.open} onOpenChange={(o) => { if (!o) closeAction(); }}>

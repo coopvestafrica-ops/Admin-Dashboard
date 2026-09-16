@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { PageHeader, PageBody } from "@/components/PageHeader";
+import { StatCard, StatGrid } from "@/components/StatCard";
+import { DataStateRow } from "@/components/DataState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -211,34 +214,30 @@ export default function Loans() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Loan Management</h1>
-            <p className="text-muted-foreground">Full approval workflow, risk scoring & repayment tracking</p>
-          </div>
-          <div className="flex gap-2">
+      <PageBody>
+        <PageHeader
+          title="Loan Management"
+          description="Full approval workflow, risk scoring & repayment tracking"
+          actions={
             <Button variant="outline" size="sm" onClick={exportCSV}>
               <Download className="mr-2 h-4 w-4" /> Export
             </Button>
-          </div>
-        </div>
+          }
+        />
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+        <StatGrid columns={6}>
           {stats.map(s => (
-            <Card key={s.label} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <s.icon className={`mx-auto mb-1 h-5 w-5 ${s.color}`} />
-                <div className="text-lg font-bold">
-                  {s.format === "currency" ? formatCurrency(s.value) : s.value.toLocaleString()}
-                </div>
-                <div className="text-xs text-muted-foreground">{s.label}</div>
-              </CardContent>
-            </Card>
+            <StatCard
+              key={s.label}
+              label={s.label}
+              value={s.value}
+              format={s.format === "currency" ? "currency" : "number"}
+              icon={s.icon}
+              iconClassName={s.color}
+              loading={isLoading}
+            />
           ))}
-        </div>
+        </StatGrid>
 
         {/* Tabs + Table */}
         <Tabs value={activeTab} onValueChange={v => { setActiveTab(v); }}>
@@ -407,12 +406,13 @@ export default function Loans() {
                           </td>
                         </tr>
                       ))}
-                      {isLoading && (
-                        <tr><td colSpan={10} className="py-12 text-center text-muted-foreground">Loading loans…</td></tr>
-                      )}
-                      {!isLoading && filtered.length === 0 && (
-                        <tr><td colSpan={10} className="py-12 text-center text-muted-foreground">No loans found.</td></tr>
-                      )}
+                      <DataStateRow
+                        colSpan={10}
+                        loading={isLoading}
+                        isEmpty={!isLoading && filtered.length === 0}
+                        emptyTitle="No loans found"
+                        emptyDescription={search || status ? "No loans match the current filters." : "Loan applications will appear here as members apply."}
+                      />
                     </tbody>
                   </table>
                 </div>
@@ -420,7 +420,7 @@ export default function Loans() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </PageBody>
 
       {/* Pagination */}
       {totalPages > 1 && (

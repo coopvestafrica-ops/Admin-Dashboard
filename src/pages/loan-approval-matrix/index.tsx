@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { authedFetch } from "@/lib/authed-fetch";
+import { formatCurrencyWhole } from "@/lib/format";
 import { asArray } from "@/lib/normalize";
 import { Shield, Plus, Trash2 } from "lucide-react";
 
@@ -44,7 +45,10 @@ async function saveMatrix(t: Thresholds) {
 }
 
 const ROLES = ["staff", "admin", "super_admin"];
-const fmtMoney = (n: number) => (n >= Infinity || n > 1e12 ? "Unlimited" : `₦${Number(n || 0).toLocaleString()}`);
+// Uses the shared formatter so approval limits read the same as every other
+// money figure in the admin (and match the app's grouping).
+const fmtMoney = (n: number) =>
+  !Number.isFinite(n) || n > 1e12 ? "Unlimited" : formatCurrencyWhole(n);
 
 export default function LoanApprovalMatrix() {
   const qc = useQueryClient();

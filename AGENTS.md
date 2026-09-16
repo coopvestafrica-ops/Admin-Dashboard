@@ -64,3 +64,58 @@
   fee_types/member_fees tables are missing (added `loadError` state).
 - `.vercel/project.json` is locally modified by `vercel deploy`; revert it
   before committing (`git checkout .vercel/project.json`).
+
+## Page structure — use the shared shell (do not hand-roll)
+Every page must use these so 54 screens read consistently. Before this, pages
+hand-rolled their own chrome: 83 usages of `text-2xl font-bold`, 25 of
+`text-xl font-bold` and 14 of `text-3xl font-bold`, so the same visual weight
+meant different things on different screens.
+
+- `@/components/PageHeader` — title, description, optional breadcrumbs, right-
+  aligned actions and, inside it, `PageBody` for the `space-y-6` rhythm.
+  ```tsx
+  <Layout>
+    <PageBody>
+      <PageHeader title="Loan Management" description="…"
+        breadcrumbs={[{ label: "Loans", href: "/loans" }]}
+        actions={<Button …/>} />
+      …content…
+    </PageBody>
+  </Layout>
+  ```
+- `@/components/StatCard` + `StatGrid` — KPI tiles. Never hand-roll a
+  `<Card><CardContent>` stat block: it drifted between `text-lg`/`text-xl`,
+  centred vs left-aligned, and currency rendered with or without a symbol.
+  Pass `format="currency" | "number" | "percent"` and `loading` (renders a
+  skeleton) so a tile never briefly shows `0`.
+- `@/components/DataState` (+ `DataStateRow` for tables) — loading / empty /
+  error. Pages previously rendered a bare `No loans found.` and had no error
+  state at all, so an API failure looked identical to "no data".
+
+## Money and number formatting — one source of truth
+`@/lib/format` mirrors the mobile app so the same figure reads the same in both:
+- `formatCurrency` → `₦1,234,567.89` (2dp). Matches the app's wallet/ledger
+  `Formatters.formatCurrency`. Use for ledger, transactions, reconciliation,
+  approvals — anywhere kobo matter.
+- `formatCurrencyWhole` → `₦1,234,568` (0dp). Matches the app's dashboard
+  headline. Use for KPI tiles and summary cards.
+- `formatNumber` → `1,234,568`.
+
+Do not use bare `toLocaleString()` for money: 40 call sites did, many without a
+₦ symbol, and `formatCurrency` used to be 0dp while the app showed 2dp, so the
+admin and the member's app disagreed on the same payment. Do not declare a local
+`fmtMoney` helper — import the shared one.
+
+## Mobile ↔ admin correspondence
+The admin is the operator view of the same data the Flutter app shows members.
+Keep these aligned when touching either side:
+- Withdrawal requests: admin actioning debits the wallet; the app never debits
+  on request. See `withdrawal_requests` (migration 032).
+- Contribution plan: `contribution_plans.current_monthly_amount` is the single
+  source of truth for "Monthly Savings" in the app's obligations card, and due
+  reductions are applied on read by the backend (`applyDueReduction`).
+- Loan totals: cancelled/rejected applications must not count as borrowed or
+  repaid — the app filters them with `isLoanNeverDisbursed`.
+- The mobile `loanEligibilityMonths` config (0 = waived while testing) and the
+  backend's `loanPolicy.js` comment agree that the 6-month rule is not yet
+  enforced. Restore both together, not one side alone.
