@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/format";
-import { supabase } from "@/lib/supabase";
+import { authedFetch } from "@/lib/authed-fetch";
 import {
   Search,
   Plus,
@@ -218,13 +218,14 @@ export default function ManualDeposits() {
     queryKey: ["member-search", debouncedSearch],
     queryFn: async () => {
       if (!debouncedSearch || debouncedSearch.length < 2) return [];
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, user_id, name, email, phone, created_at")
-        .or(`name.ilike.%${debouncedSearch}%,email.ilike.%${debouncedSearch}%,phone.ilike.%${debouncedSearch}%`)
-        .limit(10);
-      if (error) throw error;
-      return data as Member[];
+      // Through the admin API rather than querying `profiles` from the browser.
+      const res = await authedFetch(
+        `/api/admin/members?search=${encodeURIComponent(debouncedSearch)}&limit=10`,
+      );
+      if (!res.ok) throw new Error("Failed to search members");
+
+      const body = await res.json();
+      return (body.data ?? []) as Member[];
     },
     enabled: debouncedSearch.length >= 2,
     staleTime: 30000, // Cache for 30 seconds
@@ -235,14 +236,16 @@ export default function ManualDeposits() {
     queryKey: ["wallet-balance", selectedMember?.id],
     queryFn: async () => {
       if (!selectedMember) return null;
-      const { data, error } = await supabase
-        .from("wallets")
-        .select("*")
-        .eq("profile_id", selectedMember.id)
-        .single();
-      if (error && error.code !== "PGRST116") throw error;
-      
-      if (!data) {
+      const res = await authedFetch(
+        `/api/admin/wallets?profileId=${encodeURIComponent(selectedMember.id)}&limit=1`,
+      );
+      if (!res.ok) throw new Error("Failed to load wallet");
+
+      const body = await res.json();
+      const wallet = (body.wallets ?? [])[0];
+
+      // A member with no wallet row yet has a zero balance, not an error.
+      if (!wallet) {
         return {
           id: "",
           profile_id: selectedMember.id,
@@ -252,7 +255,15 @@ export default function ManualDeposits() {
           last_updated: new Date().toISOString(),
         } as WalletBalance;
       }
-      return data as WalletBalance;
+
+      return {
+        id: wallet.id,
+        profile_id: wallet.profile_id,
+        balance: Number(wallet.balance) || 0,
+        total_contributions: Number(wallet.total_contributions) || 0,
+        total_withdrawals: Number(wallet.total_withdrawals) || 0,
+        last_updated: wallet.updated_at || wallet.last_updated || new Date().toISOString(),
+      } as WalletBalance;
     },
     enabled: !!selectedMember,
   });
@@ -267,14 +278,13 @@ export default function ManualDeposits() {
     queryKey: ["member-transactions", selectedMember?.id],
     queryFn: async () => {
       if (!selectedMember) return [];
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("*")
-        .eq("profile_id", selectedMember.id)
-        .order("created_at", { ascending: false })
-        .limit(100);
-      if (error) throw error;
-      return (data || []) as TransactionRecord[];
+      const res = await authedFetch(
+        `/api/admin/transactions?profileId=${encodeURIComponent(selectedMember.id)}&limit=100`,
+      );
+      if (!res.ok) throw new Error("Failed to load transactions");
+
+      const body = await res.json();
+      return (body.transactions ?? []) as TransactionRecord[];
     },
     enabled: !!selectedMember,
   });
@@ -283,27 +293,23 @@ export default function ManualDeposits() {
   const { data: allDeposits, isLoading: loadingAll, refetch: refetchAll } = useQuery({
     queryKey: ["all-manual-deposits", dateFrom, dateTo, filterType, page, pageSize],
     queryFn: async () => {
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-      
-      let query = supabase
-        .from("deposit_requests")
-        .select(`
-          *,
-          profiles!deposit_requests_profile_id_fkey(name, email)
-        `, { count: "exact" })
-        .order("created_at", { ascending: false })
-        .range(from, to);
-      
-      if (dateFrom) query = query.gte("created_at", dateFrom);
-      if (dateTo) query = query.lte("created_at", dateTo + "T23:59:59");
-      if (filterType !== "all") query = query.eq("status", filterType);
-      
-      const { data, error, count } = await query;
-      if (error) throw error;
-      return { 
-        data: data || [], 
-        total: count || 0 
+      // Through the admin API. The endpoint already joins the member profile and
+      // supports the same filters this table needs.
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(pageSize),
+      });
+      if (dateFrom) params.set("from", dateFrom);
+      if (dateTo) params.set("to", `${dateTo}T23:59:59.999Z`);
+      if (filterType !== "all") params.set("status", filterType);
+
+      const res = await authedFetch(`/api/admin/deposits?${params}`);
+      if (!res.ok) throw new Error("Failed to load deposits");
+
+      const body = await res.json();
+      return {
+        data: body.data ?? [],
+        total: body.pagination?.total ?? (body.data ?? []).length,
       };
     },
   });
@@ -312,14 +318,14 @@ export default function ManualDeposits() {
   const { data: auditLogs, isLoading: loadingAudit, refetch: refetchAudit } = useQuery({
     queryKey: ["deposit-audit-logs"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("audit_logs")
-        .select(`*, admin_profile:profiles!audit_logs_actor_id_fkey(name, email)`)
-        .eq("target_model", "deposit_requests")
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return (data || []) as (AuditLog & { admin_profile?: { name: string; email: string } })[];
+      // Through the admin API, filtered to deposit records.
+      const res = await authedFetch(
+        "/api/admin/audit-logs?targetModel=deposit_requests&limit=50",
+      );
+      if (!res.ok) throw new Error("Failed to load audit logs");
+
+      const body = await res.json();
+      return (body.logs ?? []) as (AuditLog & { admin_profile?: { name: string; email: string } })[];
     },
   });
 
@@ -357,7 +363,19 @@ export default function ManualDeposits() {
     return validationErrors.find(e => e.field === field)?.message;
   };
 
-  // Create manual deposit mutation
+  // Create manual deposit mutation.
+  //
+  // This previously wrote to the database directly from the browser: five
+  // separate PostgREST calls (transaction, deposit_request, read wallet, update
+  // wallet, audit log) with no transaction boundary, and the new balance
+  // computed client-side as `balanceBefore + amount`. Two admins recording
+  // deposits at the same time therefore read the same starting balance and one
+  // credit was silently lost, and a failure part-way through left a transaction
+  // with no wallet credit (or the reverse). The audit entry was client-authored.
+  //
+  // It is now one server call. `record_manual_deposit()` performs the whole
+  // operation in a single transaction with the wallet row locked and the balance
+  // computed server-side.
   const { mutate: createDeposit, isPending: creating } = useMutation({
     mutationFn: async (depositData: {
       amount: number;
@@ -367,124 +385,51 @@ export default function ManualDeposits() {
       reference: string;
     }) => {
       if (!selectedMember) throw new Error("No member selected");
-      
-      // Get current admin user
-      const { data: { user } } = await supabase.auth.getUser();
-      const adminId = user?.id || "system";
-      
-      // Start transaction-like operations
-      const timestamp = new Date().toISOString();
-      
-      // 1. Create visible transaction record FIRST (deposit_requests requires transaction_id FK)
-      const { data: txn, error: txnError } = await supabase.from("transactions").insert({
-        profile_id: selectedMember.id,
-        type: "deposit",
-        category: depositData.deposit_type,
-        amount: depositData.amount,
-        status: "completed",
-        payment_method: depositData.payment_method,
-        description: `${depositTypeLabels[depositData.deposit_type]}: ${depositData.description}`,
-        reference: depositData.reference,
-        initiated_at: timestamp,
-        completed_at: timestamp,
-        created_at: timestamp,
-      }).select().single();
-      
-      if (txnError) throw new Error(`Failed to create transaction: ${txnError.message}`);
-      
-      // 2. Create deposit_request record
-      const { data: deposit, error: depositError } = await supabase
-        .from("deposit_requests")
-        .insert({
-          profile_id: selectedMember.id,
-          transaction_id: txn.id,
-          amount: depositData.amount,
-          currency: "NGN",
-          status: "verified",
-          payment_reference: depositData.reference,
-          payment_date: timestamp,
-          admin_notes: depositData.description,
-          verified_by: adminId,
-          verified_at: timestamp,
-          created_at: timestamp,
-        })
-        .select()
-        .single();
-      
-      if (depositError) throw new Error(`Failed to create deposit: ${depositError.message}`);
-      
-      // 3. Get current wallet state
-      const { data: currentWallet } = await supabase
-        .from("wallets")
-        .select("*")
-        .eq("profile_id", selectedMember.id)
-        .single();
-      
-      const balanceBefore = currentWallet?.balance || 0;
-      const newBalance = balanceBefore + depositData.amount;
-      
-      // 4. Update or create wallet
-      if (currentWallet) {
-        await supabase
-          .from("wallets")
-          .update({
-            balance: newBalance,
-            last_updated: timestamp,
-          })
-          .eq("profile_id", selectedMember.id);
-      } else {
-        await supabase
-          .from("wallets")
-          .insert({
-            profile_id: selectedMember.id,
-            balance: depositData.amount,
-            currency: "NGN",
-            is_active: true,
-            last_updated: timestamp,
-          });
-      }
 
-      // 5. Update transaction with balance info
-      await supabase.from("transactions").update({
-        balance_before: balanceBefore,
-        balance_after: newBalance,
-      }).eq("id", txn.id);
-
-      // 6. Create audit log entry
-      await supabase.from("audit_logs").insert({
-        action: "CREATE",
-        target_model: "deposit_requests",
-        target_id: deposit.id,
-        metadata: {
-          profile_id: selectedMember.id,
-          member_name: selectedMember.name,
+      const res = await authedFetch("/api/admin/deposits/manual", {
+        method: "POST",
+        body: JSON.stringify({
+          profileId: selectedMember.id,
           amount: depositData.amount,
-          deposit_type: depositData.deposit_type,
-          payment_method: depositData.payment_method,
-          description: depositData.description,
+          depositType: depositData.deposit_type,
+          paymentMethod: depositData.payment_method,
           reference: depositData.reference,
-          balance_before: balanceBefore,
-          balance_after: newBalance,
-        },
-        actor_id: adminId,
-        details: `Manual deposit: ${depositTypeLabels[depositData.deposit_type]} of ${formatCurrency(depositData.amount)} for ${selectedMember.name}`,
-        ip_address: "admin-panel",
-        created_at: timestamp,
+          description: depositData.description,
+        }),
       });
-      
-      return deposit;
+
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(body.error || `Failed to record deposit (${res.status})`);
+      }
+      return body as {
+        balance_before: number;
+        balance_after: number;
+        credits_member_balance: boolean;
+        settled_registration_fee: boolean;
+        deposit_type_label: string;
+      };
     },
-    onSuccess: () => {
-      toast({ 
-        title: "Deposit Recorded Successfully", 
-        description: "The deposit has been credited and all records updated.",
+    onSuccess: (result) => {
+      // State what actually happened. Levy and entrance-fee deposits are
+      // Coopvest income and deliberately do NOT inflate the member's balance, so
+      // claiming "credited" for them would be misleading.
+      const description = result.settled_registration_fee
+        ? `Recorded. The registration fee is now settled (balance unchanged at ${formatCurrency(result.balance_before)}).`
+        : result.credits_member_balance
+          ? `New balance: ${formatCurrency(result.balance_after)} (was ${formatCurrency(result.balance_before)}).`
+          : `Recorded as ${result.deposit_type_label}. This is Coopvest income and does not change the member's balance.`;
+
+      toast({
+        title: "Deposit Recorded Successfully",
+        description,
         className: "bg-emerald-50 border-emerald-200",
       });
       qc.invalidateQueries({ queryKey: ["wallet-balance", selectedMember?.id] });
       qc.invalidateQueries({ queryKey: ["member-transactions", selectedMember?.id] });
       qc.invalidateQueries({ queryKey: ["all-manual-deposits"] });
       qc.invalidateQueries({ queryKey: ["deposit-audit-logs"] });
-      
+
       // Reset form
       setShowAddDeposit(false);
       setDepositAmount("");
@@ -527,8 +472,12 @@ export default function ManualDeposits() {
     const today = new Date().toISOString().split("T")[0];
     return {
       count: deposits.length,
-      amount: deposits.reduce((sum, d) => sum + d.amount, 0),
-      today: deposits.filter(d => d.created_at.startsWith(today)).reduce((sum, d) => sum + d.amount, 0),
+      // `data` now comes from the admin API rather than a typed Supabase query,
+      // so annotate the reducer inputs explicitly.
+      amount: deposits.reduce((sum: number, d: DepositRecord) => sum + (Number(d.amount) || 0), 0),
+      today: deposits
+        .filter((d: DepositRecord) => (d.created_at || "").startsWith(today))
+        .reduce((sum: number, d: DepositRecord) => sum + (Number(d.amount) || 0), 0),
       total: allDeposits.total,
     };
   }, [allDeposits]);

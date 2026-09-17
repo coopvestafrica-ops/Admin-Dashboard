@@ -95,9 +95,19 @@ export default function Sessions() {
 
     try {
       const res = await authedFetch(`/api/admin/sessions/user/${userId}`, { method: "DELETE" });
+      const body = await res.json().catch(() => ({}));
       if (res.ok) {
-        toast({ title: "Success", description: "All user sessions terminated" });
+        toast({
+          title: "User signed out",
+          description: body.message || "All user sessions terminated.",
+        });
         fetchSessions();
+      } else {
+        toast({
+          title: "Could not terminate sessions",
+          description: body.error || `Request failed (${res.status})`,
+          variant: "destructive",
+        });
       }
     } catch {
       toast({ title: "Error", description: "Failed to terminate sessions", variant: "destructive" });
@@ -109,9 +119,23 @@ export default function Sessions() {
 
     try {
       const res = await authedFetch("/api/admin/sessions/terminate-others", { method: "DELETE" });
+      // Report the backend's message: it distinguishes a real revocation from a
+      // no-op, and the previous hardcoded "Success" claimed a sign-out even when
+      // the server had done nothing.
+      const body = await res.json().catch(() => ({}));
       if (res.ok) {
-        toast({ title: "Success", description: "Logged out from other devices" });
+        toast({
+          title: "Other sessions terminated",
+          description:
+            body.message || "Signed out of all other devices. This device stays signed in.",
+        });
         fetchMySessions();
+      } else {
+        toast({
+          title: "Could not terminate sessions",
+          description: body.error || `Request failed (${res.status})`,
+          variant: "destructive",
+        });
       }
     } catch {
       toast({ title: "Error", description: "Failed to terminate sessions", variant: "destructive" });
