@@ -39,6 +39,8 @@ export default function RolloverManagement() {
   const [selectedRollover, setSelectedRollover] = useState<RolloverModal["rollover"]>(null);
   const [rejectDialog, setRejectDialog] = useState<{ open: boolean; rollover: Rollover | null }>({ open: false, rollover: null });
   const [rejectReason, setRejectReason] = useState("");
+  // Amount for the new loan when executing a rollover refinance.
+  const [approveAmount, setApproveAmount] = useState("");
   const { toast } = useToast();
 
   const effectiveStatus = statusFilter !== "all" ? statusFilter : undefined;
@@ -63,13 +65,30 @@ export default function RolloverManagement() {
 
   function handleApprove(rollover: Rollover) {
     approveRollover(
-      { rolloverId: rollover.rolloverId },
       {
-        onSuccess: () => toast({ title: "Rollover Approved", description: `Rollover ${rollover.rolloverId} has been approved.` }),
-        onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+        rolloverId: rollover.rolloverId,
+        // Approving executes the refinance. Sending the requested amount makes
+        // the settlement explicit; the backend falls back to the member's
+        // maximum eligible amount if this is omitted.
+        requestedAmount: approveAmount ? Number(approveAmount) : undefined,
+        tenureMonths: rollover.newTenure || undefined,
+      },
+      {
+        onSuccess: (data) => {
+          const result = data as { message?: string } | undefined;
+          toast({
+            title: "Rollover executed",
+            description:
+              result?.message ||
+              `Rollover ${rollover.rolloverId} approved. A new loan was created, the old balance settled, and only the net amount disbursed.`,
+          });
+        },
+        onError: (e: Error) =>
+          toast({ title: "Could not execute rollover", description: e.message, variant: "destructive" }),
       }
     );
     setSelectedRollover(null);
+    setApproveAmount("");
   }
 
   function handleReject(rollover: Rollover) {
@@ -324,9 +343,34 @@ export default function RolloverManagement() {
                 <div className="flex items-center gap-2 text-sm">
                   <span className="text-muted-foreground">New Tenure:</span>
                   <span className="font-semibold">{selectedRollover.newTenure} months</span>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Rollover Fee: {formatCurrency(selectedRollover.rolloverFee)}</span>
                 </div>
+                {/* The refinancing figures. A rollover creates a new loan that
+                    settles the old balance, so only the difference is paid out;
+                    without these an approver cannot see what is being agreed. */}
+                {selectedRollover.settlementAmount != null && (
+                  <div className="mt-3 pt-3 border-t grid grid-cols-3 gap-3 text-sm">
+                    <div>
+                      <div className="text-xs text-muted-foreground">New loan</div>
+                      <div className="font-semibold">{formatCurrency(selectedRollover.originalAmount)}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Settles old balance</div>
+                      <div className="font-semibold">{formatCurrency(selectedRollover.settlementAmount)}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Net to member</div>
+                      <div className="font-semibold text-primary">
+                        {formatCurrency(selectedRollover.netDisbursed ?? 0)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {selectedRollover.appliedAt && (
+                  <div className="mt-3 pt-3 border-t text-xs text-emerald-700">
+                    Executed {new Date(selectedRollover.appliedAt).toLocaleString()} — new loan created and
+                    old balance settled.
+                  </div>
+                )}
                 {selectedRollover.reason && (
                   <div className="mt-3 pt-3 border-t">
                     <div className="text-xs text-muted-foreground">Reason</div>

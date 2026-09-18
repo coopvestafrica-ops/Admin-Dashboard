@@ -17,6 +17,17 @@ export interface Rollover {
   createdAt: string;
   approvedAt?: string;
   rejectionReason?: string;
+
+  // Refinancing detail. A rollover creates a new loan that settles the old
+  // balance, so the member receives only the difference.
+  extensionMonths?: number;
+  /** Amount actually disbursed to the member (new loan less the settlement). */
+  netDisbursed?: number | null;
+  /** The balance the new loan settled. */
+  settlementAmount?: number | null;
+  /** Set once the refinance has been executed. */
+  appliedAt?: string | null;
+  reviewedAt?: string | null;
 }
 
 export interface RolloversListResponse {
@@ -43,8 +54,25 @@ export function useGetRollovers(params?: { page?: number; limit?: number; status
 export function useApproveRollover() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ rolloverId, notes }: { rolloverId: string; notes?: string }) =>
-      api.post(`/rollovers/${rolloverId}/approve`, { notes }),
+    // Approving executes the refinance, so it needs the new loan amount and
+    // tenure. Without them the backend falls back to the member's maximum
+    // eligible amount at their existing tenure.
+    mutationFn: ({
+      rolloverId,
+      notes,
+      requestedAmount,
+      tenureMonths,
+    }: {
+      rolloverId: string;
+      notes?: string;
+      requestedAmount?: number;
+      tenureMonths?: number;
+    }) =>
+      api.post(`/rollovers/${rolloverId}/approve`, {
+        notes,
+        requestedAmount,
+        tenureMonths,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rollovers"] });
     },
