@@ -81,8 +81,19 @@ const sidebarGroupsBase = [
       { title: "Wallet Management", icon: WalletCards, href: "/wallet-management", page: PAGES.WALLET_MANAGEMENT },
       // Payment Proofs is a tab inside Deposit Verification — both are the
       // "confirm money that arrived" job.
+      //
+      // Still reachable because admin-side settlement work (recording a
+      // correction, verifying a proof an admin raised) has not gone away even
+      // though members can no longer *create* manual deposits or upload a
+      // proof from the app.
       { title: "Deposit Verification", icon: BadgeDollarSign, href: "/deposit-verification", page: PAGES.DEPOSIT_VERIFICATION },
-      { title: "Manual Deposits", icon: Pencil, href: "/manual-deposits", page: PAGES.MANUAL_DEPOSITS },
+      // MANUAL DEPOSIT DISABLED — members can no longer submit a manual
+      // deposit from the app (they pay via Paystack, which settles
+      // automatically), so the manual-deposit queue has no new inbound work.
+      // Sidebar entry hidden; the /manual-deposits route stays registered so
+      // existing bookmarks keep working. Restore this line if manual deposits
+      // come back.
+      // { title: "Manual Deposits", icon: Pencil, href: "/manual-deposits", page: PAGES.MANUAL_DEPOSITS },
       { title: "Withdrawal Approvals", icon: ArrowDownToLine, href: "/withdrawal-management", page: PAGES.WITHDRAWAL_MANAGEMENT },
       { title: "Guarantor System", icon: HandshakeIcon, href: "/guarantor-system", page: PAGES.GUARANTOR_SYSTEM },
       { title: "Loan Rollovers", icon: RefreshCw, href: "/rollover-management", page: PAGES.LOANS },
