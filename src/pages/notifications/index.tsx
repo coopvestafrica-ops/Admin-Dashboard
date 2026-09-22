@@ -15,10 +15,11 @@ import { api } from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Bell, BellOff, Info, AlertTriangle, CheckCircle, AlertCircle,
-  Send, Smartphone, Mail, MessageSquare, Users, Loader2,
+  Send, Smartphone, Mail, MessageSquare, Users, Loader2, UserCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { DirectMessageComposer } from "@/components/announcements/DirectMessageComposer";
 
 const typeConfig: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
   info:    { icon: Info,          color: "text-blue-600",    bg: "bg-blue-50"    },
@@ -182,6 +183,9 @@ export default function Notifications() {
             <TabsTrigger value="send">
               <Send className="h-4 w-4 mr-2" />Send Notification
             </TabsTrigger>
+            <TabsTrigger value="direct" data-testid="tab-direct-message">
+              <UserCircle className="h-4 w-4 mr-2" />Direct Message
+            </TabsTrigger>
             <TabsTrigger value="inbox">
               <Bell className="h-4 w-4 mr-2" />Notification Inbox
               {unreadCount > 0 && (
@@ -189,6 +193,11 @@ export default function Notifications() {
               )}
             </TabsTrigger>
           </TabsList>
+
+          {/* ── DIRECT MESSAGE TAB ── */}
+          <TabsContent value="direct">
+            <DirectMessageComposer />
+          </TabsContent>
 
           {/* ── SEND TAB ── */}
           <TabsContent value="send">
