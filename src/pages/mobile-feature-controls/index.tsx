@@ -18,6 +18,7 @@ import {
   FileText, MessageSquare, BookOpen, CheckCircle, Loader2, MoveUp, MoveDown,
 } from "lucide-react";
 import { api, getAdminApiUrl } from "@/lib/api";
+import { AnnouncementManager } from "@/components/announcements/AnnouncementManager";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface MobileFeature {
@@ -27,9 +28,6 @@ interface MobileFeature {
 interface Banner {
   id: string; title: string; subtitle: string;
   imageUrl: string; linkUrl: string; active: boolean; order: number;
-}
-interface Announcement {
-  id: string; title: string; body: string; active: boolean; createdAt: string;
 }
 interface OnboardingSlide {
   id: string; title: string; description: string; icon: string; order: number;
@@ -56,9 +54,6 @@ const DEFAULT_FEATURES: MobileFeature[] = [
 const DEFAULT_BANNERS: Banner[] = [
   { id: "b1", title: "Welcome to Coopvest Africa", subtitle: "Save, Invest & Grow Together",      imageUrl: "", linkUrl: "", active: true, order: 1 },
   { id: "b2", title: "Apply for a Cooperative Loan", subtitle: "Low interest rates for members", imageUrl: "", linkUrl: "", active: true, order: 2 },
-];
-const DEFAULT_ANNOUNCEMENTS: Announcement[] = [
-  { id: "a1", title: "New Feature: Wallet Transfers", body: "Members can now transfer funds between wallets instantly. Update your app to get started!", active: true, createdAt: NOW },
 ];
 const DEFAULT_SLIDES: OnboardingSlide[] = [
   { id: "s1", title: "Welcome to Coopvest Africa", description: "Your trusted cooperative savings and investment platform.", icon: "🏦", order: 1 },
@@ -219,70 +214,11 @@ function BannerEditor() {
 }
 
 // ── Announcements ──────────────────────────────────────────────────────────────
-function AnnouncementEditor() {
-  const { toast } = useToast();
-  const [items, setItems] = useState<Announcement[]>(DEFAULT_ANNOUNCEMENTS);
-  const [editing, setEditing] = useState<Announcement | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const handleSave = () => {
-    if (!editing) return;
-    setIsSaving(true);
-    setTimeout(() => {
-      setItems((prev) => prev.some((a) => a.id === editing.id) ? prev.map((a) => a.id === editing.id ? editing : a) : [editing, ...prev]);
-      setEditing(null); setIsSaving(false); toast({ title: "Announcement saved" });
-    }, 500);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">In-app announcements shown to members on the home screen.</p>
-        <Button size="sm" onClick={() => setEditing({ id: `a${Date.now()}`, title: "", body: "", active: true, createdAt: NOW })}><Plus className="h-4 w-4 mr-2" />New Announcement</Button>
-      </div>
-      <div className="space-y-3">
-        {items.map((ann) => (
-          <Card key={ann.id}>
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${ann.active ? "bg-primary/10" : "bg-muted"}`}>
-                  <MessageSquare className={`h-4 w-4 ${ann.active ? "text-primary" : "text-muted-foreground"}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm">{ann.title}</p>
-                    <Badge variant={ann.active ? "default" : "secondary"}>{ann.active ? "Live" : "Hidden"}</Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{ann.body}</p>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditing(ann)}><Edit3 className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500" onClick={() => { setItems((p) => p.filter((a) => a.id !== ann.id)); toast({ title: "Announcement removed" }); }}><Trash2 className="h-4 w-4" /></Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Announcement</DialogTitle></DialogHeader>
-          {editing && (
-            <div className="space-y-4">
-              <div><Label>Title</Label><Input value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} placeholder="Announcement title" /></div>
-              <div><Label>Body</Label><Textarea value={editing.body} onChange={(e) => setEditing({ ...editing, body: e.target.value })} rows={4} placeholder="Announcement content..." /></div>
-              <div className="flex items-center gap-3"><Switch checked={editing.active} onCheckedChange={(v) => setEditing({ ...editing, active: v })} /><Label>Show in app</Label></div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={isSaving}>{isSaving ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Saving...</> : <><Save className="h-4 w-4 mr-2" />Save</>}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
+// The editor that lived here was non-functional: it seeded a hardcoded
+// DEFAULT_ANNOUNCEMENTS array, kept everything in React state, and showed
+// "Announcement saved" without calling any API — so nothing it created ever
+// reached a device. Announcement publishing now lives in
+// components/announcements/AnnouncementManager, which talks to the real API.
 
 // ── Onboarding Slides ──────────────────────────────────────────────────────────
 function OnboardingSlides() {
@@ -415,7 +351,7 @@ export default function MobileFeatureControls() {
           </TabsList>
           <TabsContent value="features"      className="mt-6"><FeatureToggles /></TabsContent>
           <TabsContent value="banners"       className="mt-6"><BannerEditor /></TabsContent>
-          <TabsContent value="announcements" className="mt-6"><AnnouncementEditor /></TabsContent>
+          <TabsContent value="announcements" className="mt-6"><AnnouncementManager /></TabsContent>
           <TabsContent value="onboarding"    className="mt-6"><OnboardingSlides /></TabsContent>
           <TabsContent value="content"       className="mt-6"><ContentSections /></TabsContent>
         </Tabs>
