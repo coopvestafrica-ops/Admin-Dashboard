@@ -54,3 +54,43 @@ export async function downloadReport(
 
   return { filename, rowCount };
 }
+
+/**
+ * Download a comparative-analytics export.
+ *
+ * Same mechanics as downloadReport — a binary attachment needs a Blob rather
+ * than JSON parsing — but the comparison is addressed by query string rather
+ * than a report id, and the server names the file after the two periods being
+ * compared.
+ */
+export async function downloadComparative(
+  queryString: string,
+  format: "csv" | "xlsx",
+): Promise<string> {
+  const token = await getAccessToken();
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const url = `${getApiBaseUrl()}/admin/comparative/export.${format}?${queryString}`;
+  const res = await fetch(url, { headers });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({}));
+    throw new Error(detail.error || `Export failed (${res.status})`);
+  }
+
+  const disposition = res.headers.get("Content-Disposition") || "";
+  const filename = /filename="?([^"]+)"?/.exec(disposition)?.[1]
+    || `coopvest-comparison.${format}`;
+
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = objectUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+
+  return filename;
+}

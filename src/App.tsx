@@ -45,6 +45,7 @@ const GuarantorSystem = lazyRetry(() => import("@/pages/guarantor-system/index")
 const ExcelManager = lazyRetry(() => import("@/pages/excel-manager/index"));
 const SystemSettings = lazyRetry(() => import("@/pages/system-settings/index"));
 const Reports = lazyRetry(() => import("@/pages/reports/index"));
+const ComparativeAnalytics = lazyRetry(() => import("@/pages/comparative-analytics/index"));
 const BulkOperations = lazyRetry(() => import("@/pages/bulk-operations/index"));
 const Reconciliation = lazyRetry(() => import("@/pages/reconciliation/index"));
 const Sessions = lazyRetry(() => import("@/pages/sessions/index"));
@@ -138,6 +139,7 @@ function Router() {
       <Route path="/excel-manager">{() => <ProtectedRoute component={ExcelManager} />}</Route>
       <Route path="/system-settings">{() => <ProtectedRoute component={SystemSettings} />}</Route>
       <Route path="/reports">{() => <ProtectedRoute component={Reports} />}</Route>
+      <Route path="/comparative-analytics">{() => <ProtectedRoute component={ComparativeAnalytics} />}</Route>
       <Route path="/bulk-operations">{() => <ProtectedRoute component={BulkOperations} />}</Route>
       <Route path="/reconciliation">{() => <ProtectedRoute component={Reconciliation} />}</Route>
       <Route path="/sessions">{() => <ProtectedRoute component={Sessions} />}</Route>

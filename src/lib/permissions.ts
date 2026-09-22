@@ -37,6 +37,7 @@ export const PAGES = {
   // Operations
   SYSTEM_SETTINGS: 'system_settings',
   REPORTS: 'reports',
+  COMPARATIVE_ANALYTICS: 'comparative_analytics',
   BULK_OPERATIONS: 'bulk_operations',
   SESSION_MANAGEMENT: 'sessions',
   LOGIN_HISTORY: 'login_history',
@@ -174,6 +175,7 @@ export const ROLE_PERMISSIONS: Record<Role, PageKey[]> = {
     
     // Operations
     PAGES.REPORTS,
+    PAGES.COMPARATIVE_ANALYTICS,
     PAGES.SESSION_MANAGEMENT,
     PAGES.LOGIN_HISTORY,
     
@@ -224,6 +226,7 @@ export const ROLE_PERMISSIONS: Record<Role, PageKey[]> = {
     
     // Operations
     PAGES.REPORTS,
+    PAGES.COMPARATIVE_ANALYTICS,
     
     // Analytics & Risk
     PAGES.PLATFORM_ANALYTICS,
@@ -277,6 +280,7 @@ export const ROUTE_TO_PAGE: Record<string, PageKey> = {
   '/system-settings': PAGES.SYSTEM_SETTINGS,
   '/fee-management': PAGES.FEE_MANAGEMENT,
   '/reports': PAGES.REPORTS,
+  '/comparative-analytics': PAGES.COMPARATIVE_ANALYTICS,
   '/bulk-operations': PAGES.BULK_OPERATIONS,
   '/sessions': PAGES.SESSION_MANAGEMENT,
   '/login-history': PAGES.LOGIN_HISTORY,
