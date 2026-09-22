@@ -90,27 +90,52 @@ export type PageKey = typeof PAGES[keyof typeof PAGES];
 // vocabulary historically added `operator` and `viewer`. `staff` is the
 // backend's spelling of limited administrative access, so it maps onto
 // `operator` here rather than being an unknown role.
+//
+// The backend now defines a fuller taxonomy (CEO, COO, Legal Adviser, Chief
+// System Analyst, Manager, System Analyst) and enforces permissions
+// server-side. These local keys remain only so an unknown role still renders a
+// usable sidebar; the authoritative list and the effective permission set come
+// from `GET /api/admin/permissions` (see `usePermissions` in
+// `@/lib/use-permissions`). Never treat this map as the security boundary —
+// the server rejects anything it does not permit regardless of what the UI
+// shows.
 export type Role = 'super_admin' | 'admin' | 'operator' | 'viewer' | 'member';
 
 /** Roles the backend will accept when writing `profiles.role`. */
 export const BACKEND_ROLE_VALUES = ['superadmin', 'super_admin', 'admin', 'staff', 'member'] as const;
 
 /**
- * Map any spelling that can appear in `profiles.role` onto a `Role`.
+ * Map any spelling that can appear in `profiles.role` onto a local `Role`.
  *
- * Without this, a member whose role is stored as `staff` failed
- * `isValidAdminRole` and was handed an empty sidebar — a total lockout rather
- * than a reduced one.
+ * The backend also accepts the newer canonical names (ceo, coo, manager,
+ * legal_adviser, chief_system_analyst, system_analyst) plus older aliases
+ * (cto, legal, compliance_officer, analyst). Each is mapped to the local key
+ * that best matches its authority so those accounts still get a sensible
+ * sidebar. The map is a display convenience only.
  */
 export function normalizeRole(raw: string | null | undefined): Role | null {
   if (!raw) return null;
   const key = raw.trim().toLowerCase();
   const aliases: Record<string, Role> = {
+    // apex
     superadmin: 'super_admin',
     super_admin: 'super_admin',
+    ceo: 'super_admin',
+    // full administration
     admin: 'admin',
+    coo: 'admin',
+    chief_system_analyst: 'admin',
+    cto: 'admin',
+    // limited administration
     staff: 'operator',
     operator: 'operator',
+    manager: 'operator',
+    system_analyst: 'operator',
+    analyst: 'operator',
+    // oversight
+    legal_adviser: 'viewer',
+    legal: 'viewer',
+    compliance_officer: 'viewer',
     viewer: 'viewer',
     member: 'member',
   };
