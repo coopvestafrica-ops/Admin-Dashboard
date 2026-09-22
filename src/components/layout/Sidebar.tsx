@@ -31,6 +31,7 @@ import {
   FileSpreadsheet,
   Server,
   FileBarChart,
+  TrendingUp,
   Upload,
   RefreshCw,
   Monitor,
@@ -112,6 +113,8 @@ const sidebarGroupsBase = [
     items: [
       { title: "System Settings", icon: Server, href: "/system-settings", page: PAGES.SYSTEM_SETTINGS },
       { title: "Reports", icon: FileBarChart, href: "/reports", page: PAGES.REPORTS },
+      { title: "Comparative Analytics", icon: TrendingUp, href: "/comparative-analytics", page: PAGES.COMPARATIVE_ANALYTICS },
+      { title: "Organization Finance", icon: Building2, href: "/organization-finance", page: PAGES.ORGANIZATION_FINANCE },
       { title: "Bulk Operations", icon: Upload, href: "/bulk-operations", page: PAGES.BULK_OPERATIONS },
       { title: "Session Management", icon: Monitor, href: "/sessions", page: PAGES.SESSION_MANAGEMENT },
       { title: "Login History", icon: History, href: "/login-history", page: PAGES.LOGIN_HISTORY },

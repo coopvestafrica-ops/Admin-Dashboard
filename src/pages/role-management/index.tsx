@@ -24,6 +24,7 @@ import {
 
 import { api } from "@/lib/api";
 import { normalizeRoleKey } from "@/lib/permissions";
+import { usePermissions } from "@/lib/use-permissions";
 import { PageHeader, PageBody } from "@/components/PageHeader";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -57,14 +58,18 @@ interface AdminAccount {
 }
 
 // ── Available Roles ──────────────────────────────────────────────────────────
-// Fallback role definitions, used until `GET /api/admin/roles` answers. The
-// `role_key` values mirror the backend's vocabulary (`superadmin`, `staff`) so
-// that assigning a role writes a value the backend accepts.
+// Fallback role definitions, used only until `GET /api/admin/roles` answers. The
+// `role_key` values mirror the backend's vocabulary so an assignment writes a
+// value the backend accepts. The authoritative catalogue (including the six
+// business roles and the permission matrix) comes from the backend — see
+// `usePermissions` in `@/lib/use-permissions`.
 const AVAILABLE_ROLES: Role[] = [
-  { id: "1", role_key: "superadmin", label: "Super Admin", description: "Full system access including all admin features", color: "#dc2626", hierarchy: 4 },
-  { id: "2", role_key: "admin", label: "Admin", description: "Full access to all features except super admin settings", color: "#7c3aed", hierarchy: 3 },
-  { id: "3", role_key: "staff", label: "Staff", description: "Can manage loans, contributions, and member communications", color: "#2563eb", hierarchy: 2 },
-  { id: "4", role_key: "viewer", label: "Viewer", description: "Read-only access to dashboard and reports", color: "#059669", hierarchy: 1 },
+  { id: "1", role_key: "ceo", label: "CEO", description: "Apex authority. Full access to everything.", color: "#dc2626", hierarchy: 6 },
+  { id: "2", role_key: "coo", label: "COO", description: "Operations across the platform. No role administration, no direct balance or ledger writes.", color: "#c026d3", hierarchy: 5 },
+  { id: "3", role_key: "chief_system_analyst", label: "Chief System Analyst", description: "System and technical administration.", color: "#7c3aed", hierarchy: 4 },
+  { id: "4", role_key: "legal_adviser", label: "Legal Adviser / Compliance Officer", description: "Legal and compliance oversight with full visibility, but no operational writes.", color: "#0891b2", hierarchy: 4 },
+  { id: "5", role_key: "manager", label: "Manager", description: "Operational member management: members, loans, contributions and approvals.", color: "#2563eb", hierarchy: 3 },
+  { id: "6", role_key: "system_analyst", label: "System Analyst", description: "Technical and support functions, read-mostly. No financial or member writes.", color: "#059669", hierarchy: 2 },
 ];
 
 // ── Icon Mapping ──────────────────────────────────────────────────────────────
@@ -115,6 +120,17 @@ export default function RoleManagement() {
   const [editAdmin, setEditAdmin] = useState<AdminAccount | null>(null);
   const [permEditAdmin, setPermEditAdmin] = useState<AdminAccount | null>(null);
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+
+  // The authoritative role catalogue and permission set, straight from the
+  // backend. Kept separate from the display-only `permissions` state above so
+  // the two purposes cannot be confused.
+  const {
+    roles: rbacRoles,
+    permissions: rbacPermissions,
+    current: rbacCurrent,
+    isLoading: rbacLoading,
+    error: rbacError,
+  } = usePermissions();
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -335,6 +351,9 @@ export default function RoleManagement() {
               <TabsTrigger value="staff">Staff Accounts</TabsTrigger>
               <TabsTrigger value="roles">Role Definitions</TabsTrigger>
               <TabsTrigger value="permissions">Permission Matrix</TabsTrigger>
+              <TabsTrigger value="enforced" data-testid="tab-enforced-permissions">
+                Enforced (Server)
+              </TabsTrigger>
             </TabsList>
 
             {/* Staff Accounts Tab */}
@@ -519,6 +538,94 @@ export default function RoleManagement() {
                       );
                     })}
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Enforced (Server) Tab — the authoritative catalogue */}
+            <TabsContent value="enforced" className="space-y-4" data-testid="enforced-permissions">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Permissions Enforced by the Server</CardTitle>
+                  <CardDescription>
+                    Read live from the backend. These are the permissions the API actually
+                    checks on every request — the matrix above is display-only and cannot
+                    grant access on its own.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {rbacLoading ? (
+                    <div className="space-y-2">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="h-8 w-full animate-pulse rounded bg-muted" />
+                      ))}
+                    </div>
+                  ) : rbacError ? (
+                    <p className="text-sm text-destructive">
+                      Could not load the server permission catalogue.
+                    </p>
+                  ) : (
+                    <>
+                      {rbacCurrent && (
+                        <div className="mb-6 rounded-lg bg-muted/50 p-4">
+                          <p className="text-sm font-medium">
+                            Your role: {rbacCurrent.label ?? rbacCurrent.role}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Stored as <code className="bg-background px-1 rounded">{rbacCurrent.storedAs}</code>
+                            {" · "}
+                            {rbacCurrent.permissions.length} permission
+                            {rbacCurrent.permissions.length === 1 ? "" : "s"}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="mb-4">
+                        <p className="text-sm font-semibold mb-2">Roles</p>
+                        <div className="overflow-x-auto rounded-md border">
+                          <table className="w-full text-sm">
+                            <thead className="bg-muted/50">
+                              <tr>
+                                <th className="text-left p-2">Role</th>
+                                <th className="text-left p-2">Key</th>
+                                <th className="text-right p-2">Permissions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {rbacRoles.map((r) => (
+                                <tr key={r.key} className="border-t">
+                                  <td className="p-2">
+                                    <p className="font-medium">{r.label}</p>
+                                    <p className="text-xs text-muted-foreground">{r.description}</p>
+                                  </td>
+                                  <td className="p-2">
+                                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{r.key}</code>
+                                  </td>
+                                  <td className="p-2 text-right tabular-nums">{r.permissionCount}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-semibold mb-2">
+                          Permissions ({rbacPermissions.length})
+                        </p>
+                        <div className="grid gap-1 sm:grid-cols-2">
+                          {rbacPermissions.map((p) => (
+                            <div key={p.key} className="flex items-start gap-2 rounded border p-2">
+                              <code className="text-xs bg-muted px-1.5 py-0.5 rounded shrink-0">
+                                {p.key}
+                              </code>
+                              <span className="text-xs text-muted-foreground">{p.description}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
