@@ -87,11 +87,14 @@ function useSendNotification() {
     mutationFn: async (payload: {
       title: string; message: string; type: string; channels: string[]; audience: string;
     }) => {
-      // Backend broadcast saves a notification row for every active member.
+      // Backend broadcast saves a notification row for every targeted member
+      // and dispatches FCM push to their registered devices.
       return api.post(`/admin/notifications/broadcast`, {
         title: payload.title,
         message: payload.message,
         type: payload.type,
+        channels: payload.channels,
+        audience: payload.audience,
       });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["getNotifications"] }),
@@ -135,13 +138,21 @@ export default function Notifications() {
         let desc: string;
         if (!wantedPush) {
           desc = `Notification saved and delivered via: ${channelsUsed.join(", ") || "in-app"}.`;
+        } else if (push?.status === "skipped" || push?.reason === "no_firebase_credentials") {
+          desc = "Notification saved. Push was not delivered — Firebase is not configured on the server." +
+            (push?.error ? ` (${push.error})` : "");
         } else if (push && typeof push.targeted === "number" && push.targeted > 0) {
           const failed = typeof push.errors === "number" ? push.errors : 0;
           desc = failed > 0
             ? `Push sent to ${push.targeted} device(s) (${failed} failed). Notification saved.`
             : `Push delivered to ${push.targeted} device(s). Notification saved.`;
         } else {
-          desc = `Notification saved. Push was not delivered — no registered devices or Firebase is not configured.`;
+          desc = "Notification saved. Push was not delivered — no devices are registered for the selected audience.";
+        }
+
+        const unsupported: string[] = res?.notImplemented ?? [];
+        if (unsupported.length > 0) {
+          desc += ` Note: ${unsupported.join(" and ")} delivery is not implemented yet — members receive it in-app only.`;
         }
 
         toast({ title: "Notification saved!", description: desc });
