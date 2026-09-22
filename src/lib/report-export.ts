@@ -94,3 +94,36 @@ export async function downloadComparative(
 
   return filename;
 }
+
+/** Download the organization finance export for a period. */
+export async function downloadOrgFinance(
+  periodMonth: string,
+  format: "csv" | "xlsx",
+): Promise<string> {
+  const token = await getAccessToken();
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const url = `${getApiBaseUrl()}/admin/organizations/finance/export.${format}?periodMonth=${encodeURIComponent(periodMonth)}`;
+  const res = await fetch(url, { headers });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({}));
+    throw new Error(detail.error || `Export failed (${res.status})`);
+  }
+
+  const disposition = res.headers.get("Content-Disposition") || "";
+  const filename = /filename="?([^"]+)"?/.exec(disposition)?.[1]
+    || `coopvest-organizations-${periodMonth}.${format}`;
+
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = objectUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+
+  return filename;
+}
