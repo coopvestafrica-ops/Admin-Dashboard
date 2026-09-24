@@ -9,6 +9,8 @@ import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { isValidAdminRole } from "@/lib/permissions";
 import { syncSessionWithBackend } from "@/lib/api";
+import { getAssurance, pendingFactorId, verifyChallenge } from "@/lib/mfa";
+import { MfaChallengeForm } from "@/components/security/MfaChallengeForm";
 
 // Helper to parse user agent for device info
 function getDeviceInfo() {
@@ -65,6 +67,11 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Set when the password succeeded but a second factor is still owed. Holding
+  // it in state renders the challenge screen INSTEAD of the dashboard, so the
+  // password alone never yields access.
+  const [mfaChallenge, setMfaChallenge] = useState<{ factorId: string } | null>(null);
 
   // Check if supabase is available on mount and handle redirect errors
   useEffect(() => {
@@ -141,6 +148,49 @@ export default function Login() {
       
       // Log successful login (include profile id so the record is linked)
       logLoginAttempt(email, true, undefined, profile?.id);
+    }
+
+    // ── Enforce the second factor ──────────────────────────────────────────
+    //
+    // Required BEFORE the backend session is claimed or the dashboard is
+    // reached. Without this check, enrolling a factor would protect nothing:
+    // the password alone would still produce a fully-privileged session, and
+    // the MFA challenge would never be requested.
+    //
+    // Supabase reports the session as aal1 with nextLevel aal2 when a verified
+    // factor exists but has not been satisfied yet — that is the condition to
+    // gate on.
+    try {
+      const assurance = await getAssurance();
+      if (assurance.requiresChallenge) {
+        const factorId = await pendingFactorId();
+        if (!factorId) {
+          // nextLevel says a factor is owed but none can be found. Refuse
+          // rather than fall through to the dashboard: failing open here would
+          // silently disable two-factor authentication.
+          await supabase.auth.signOut();
+          setError("Two-factor authentication is required but no authenticator is registered. Contact the system administrator.");
+          setIsLoading(false);
+          return;
+        }
+        // Hand off to the challenge screen. The password is NOT carried: the
+        // session already exists in Supabase, so only the second factor is
+        // needed, and retaining a password in component state is unnecessary
+        // risk.
+        setMfaChallenge({ factorId });
+        setIsLoading(false);
+        return;
+      }
+    } catch (mfaError) {
+      // If the assurance cannot be determined we must not assume it is fine.
+      await supabase.auth.signOut();
+      setError(
+        mfaError instanceof Error
+          ? `Could not verify two-factor status: ${mfaError.message}`
+          : "Could not verify two-factor status. Please try again.",
+      );
+      setIsLoading(false);
+      return;
     }
 
     // Claim this session on the backend (single-device login). Without this,
@@ -231,7 +281,25 @@ export default function Login() {
           </p>
         </div>
 
-        <Card className="border-border shadow-xl">
+        {mfaChallenge ? (
+            // Second factor outstanding: the password was accepted but the
+            // session is still aal1, so the form below is replaced entirely.
+            // Rendering the login form again would let the user re-submit a
+            // password and appears to offer a way around the challenge.
+            <MfaChallengeForm
+              factorId={mfaChallenge.factorId}
+              onVerified={async () => {
+                await syncSessionWithBackend();
+                setLocation("/dashboard");
+              }}
+              onCancel={async () => {
+                await supabase.auth.signOut();
+                setMfaChallenge(null);
+                setError(null);
+              }}
+          />
+        ) : (
+          <Card className="border-border shadow-xl">
           <CardHeader>
             <CardTitle>Sign in to continue</CardTitle>
             <CardDescription>Enter your operator credentials</CardDescription>
@@ -269,7 +337,8 @@ export default function Login() {
               </Button>
             </CardFooter>
           </form>
-        </Card>
+          </Card>
+        )}
       </div>
     </div>
   );

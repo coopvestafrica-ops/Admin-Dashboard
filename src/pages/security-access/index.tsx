@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MfaSetup } from "@/components/security/MfaSetup";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { getAccessToken } from "@/lib/supabase";
@@ -201,6 +202,7 @@ export default function SecurityAccess() {
             <TabsTrigger value="sessions">Active Sessions</TabsTrigger>
             <TabsTrigger value="ip">IP Control</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="mfa" data-testid="tab-mfa">Two-Factor</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-4">
@@ -357,6 +359,10 @@ export default function SecurityAccess() {
                 </Button>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="mfa" className="mt-4">
+            <MfaSetup />
           </TabsContent>
         </Tabs>
       </PageBody>
