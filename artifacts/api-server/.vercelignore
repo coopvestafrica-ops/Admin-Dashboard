@@ -1,8 +1,0 @@
-# Exclude TypeScript source - use pre-built dist
-src
-__tests__
-*.test.ts
-*.spec.ts
-tsconfig.json
-vitest.config.ts
-build*.mjs
