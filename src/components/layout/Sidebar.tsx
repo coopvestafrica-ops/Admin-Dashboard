@@ -47,6 +47,7 @@ import {
   ClipboardCheck,
   BookOpen,
   Mail,
+  MailQuestion,
   FolderLock,
   DatabaseBackup,
 } from "lucide-react";
@@ -161,6 +162,7 @@ const sidebarGroupsBase = [
     items: [
       { title: "Notifications", icon: Bell, href: "/notifications", page: PAGES.NOTIFICATIONS },
       { title: "Support Tickets", icon: LifeBuoy, href: "/support", page: PAGES.SUPPORT_TICKETS },
+      { title: "Website Enquiries", icon: MailQuestion, href: "/enquiries", page: PAGES.WEBSITE_ENQUIRIES },
       { title: "Terminations", icon: UserX, href: "/terminations", page: PAGES.TERMINATIONS },
     ],
   },
