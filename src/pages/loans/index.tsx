@@ -41,6 +41,9 @@ interface Guarantor {
   email: string | null;
   phone: string | null;
   status: string;
+  channel?: "salary" | "direct" | "unknown";
+  eligible?: boolean;
+  ineligibleReason?: string | null;
   consentedAt: string | null;
   createdAt: string;
 }
@@ -597,8 +600,22 @@ export default function Loans() {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium text-sm">{guarantor.name}</div>
+                          <div className="font-medium text-sm flex items-center gap-2">
+                            {guarantor.name}
+                            {guarantor.eligible === false && (
+                              <Badge
+                                className="bg-red-100 text-red-800"
+                                variant="outline"
+                                title={guarantor.ineligibleReason ?? undefined}
+                              >
+                                Ineligible
+                              </Badge>
+                            )}
+                          </div>
                           <div className="text-xs text-muted-foreground flex items-center gap-2">
+                            {guarantor.channel && guarantor.channel !== "unknown" && (
+                              <span>{guarantor.channel === "salary" ? "Salary deduction" : "Direct deposit"}</span>
+                            )}
                             {guarantor.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{guarantor.phone}</span>}
                             {guarantor.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{guarantor.email}</span>}
                           </div>
