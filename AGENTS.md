@@ -119,3 +119,18 @@ Keep these aligned when touching either side:
 - The mobile `loanEligibilityMonths` config (0 = waived while testing) and the
   backend's `loanPolicy.js` comment agree that the 6-month rule is not yet
   enforced. Restore both together, not one side alone.
+
+## Single-session claim must precede page queries (2026-10)
+- The backend enforces one active session per profile
+  (`profiles.active_session_id`); a token whose session id no longer matches
+  gets `401 {"code":"SESSION_REPLACED"}` on every admin call. Only
+  `POST /auth/sync` claims the session.
+- `ProtectedRoute` must **await** `syncSessionWithBackend()` before rendering
+  the route. A fire-and-forget sync lets the page's first query race the claim,
+  and the loser renders an inline "Failed to load …" (seen on Backups,
+  Documents, Emergency Controls). The global query `onError` ignores 401/403,
+  so no toast explains it.
+- `authedFetch` re-claims the session once and retries on a `401
+  SESSION_REPLACED` body, so a stale tab self-heals instead of erroring.
+- To reproduce deterministically, delay `**/auth/sync` with Playwright routing
+  and make the session stale (a second login via the API) to force the race.
