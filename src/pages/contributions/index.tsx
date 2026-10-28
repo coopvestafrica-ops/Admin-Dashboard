@@ -78,7 +78,11 @@ export default function Contributions() {
   const rejectDepositMutation = useRejectDeposit();
 
   const contributions = Array.isArray(data?.data) ? data.data : [];
-  const trendsData = Array.isArray(trendsRaw) ? trendsRaw : [];
+  // The monthly endpoint returns { month, amount, count }; map `amount` onto
+  // `value` so the trend charts/table (which read `value`) show real figures.
+  const trendsData = Array.isArray(trendsRaw)
+    ? trendsRaw.map((t) => ({ ...t, value: Number(t.value ?? t.amount ?? 0), amount: Number(t.amount ?? t.value ?? 0) }))
+    : [];
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / 20);
 

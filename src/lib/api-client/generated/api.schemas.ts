@@ -34,6 +34,8 @@ export interface DashboardSummary {
 export interface MonthlyData {
   month: string;
   value: number;
+  amount?: number;
+  count?: number;
   label?: string;
 }
 
