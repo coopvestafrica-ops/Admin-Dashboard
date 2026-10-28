@@ -386,7 +386,7 @@ export default function Contributions() {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                      <YAxis tickFormatter={(v) => `₦${(v / 1000000).toFixed(0)}M`} tick={{ fontSize: 11 }} />
+                      <YAxis tickFormatter={(v) => (v >= 1000000 ? `₦${(v / 1000000).toFixed(1)}M` : `₦${(v / 1000).toFixed(0)}k`)} tick={{ fontSize: 11 }} />
                       <Tooltip formatter={(v: number) => formatCurrency(v)} />
                       <Area type="monotone" dataKey="collected" stroke="#2d6a4f" fill="url(#colorCollected)" name="Collected" />
                     </AreaChart>
@@ -401,7 +401,7 @@ export default function Contributions() {
                     <BarChart data={(trendsData ?? []).map((t) => ({ month: t.month, collected: t.value, missed: 0 }))}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                      <YAxis tickFormatter={(v) => `₦${(v / 1000000).toFixed(0)}M`} tick={{ fontSize: 11 }} />
+                      <YAxis tickFormatter={(v) => (v >= 1000000 ? `₦${(v / 1000000).toFixed(1)}M` : `₦${(v / 1000).toFixed(0)}k`)} tick={{ fontSize: 11 }} />
                       <Tooltip formatter={(v: number) => formatCurrency(v)} />
                       <Legend />
                       <Bar dataKey="collected" fill="#40916c" name="Collected" radius={[4, 4, 0, 0]} />
