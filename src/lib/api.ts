@@ -8,6 +8,9 @@
 
 import { supabase } from './supabase';
 
+// Upper bound on the session-claim request so awaiting it can never hang the UI.
+const SYNC_TIMEOUT_MS = 8000;
+
 // Get the base API URL - uses Latest-Coopvest backend
 // The admin API routes are mounted at /api on the backend
 export function getApiBaseUrl(): string {
@@ -51,15 +54,25 @@ export async function syncSessionWithBackend(): Promise<boolean> {
   try {
     const token = await getAuthToken();
     if (!token) return false;
-    const res = await fetch(`${getApiBaseUrl()}/auth/sync`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({}),
-    });
-    return res.ok;
+    // Bounded so a slow/cold backend can never block the caller indefinitely
+    // (ProtectedRoute awaits this before rendering). On timeout the fetchers'
+    // SESSION_REPLACED self-heal still recovers once the backend responds.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), SYNC_TIMEOUT_MS);
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/auth/sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({}),
+        signal: controller.signal,
+      });
+      return res.ok;
+    } finally {
+      clearTimeout(timer);
+    }
   } catch {
     return false;
   }
