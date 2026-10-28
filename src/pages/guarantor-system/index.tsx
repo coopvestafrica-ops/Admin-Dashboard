@@ -295,9 +295,9 @@ function EligibilityChecker() {
           >
             <div className="flex items-center gap-2 font-medium">
               {verdict.eligible ? (
-                <CheckCircle className="h-5 w-5 text-emerald-600" />
+                <CheckCircle className="h-5 w-5 text-emerald-700" />
               ) : (
-                <XCircle className="h-5 w-5 text-red-600" />
+                <XCircle className="h-5 w-5 text-red-700" />
               )}
               <span className={verdict.eligible ? "text-emerald-800" : "text-red-800"}>
                 {verdict.eligible ? "Eligible to guarantee" : "Not eligible"}
@@ -405,8 +405,8 @@ export default function GuarantorSystem() {
             label="Ineligible Pairings"
             value={ineligibleCount}
             icon={AlertTriangle}
-            iconClassName={ineligibleCount > 0 ? "text-red-600" : "text-muted-foreground"}
-            valueClassName={ineligibleCount > 0 ? "text-red-600" : undefined}
+            iconClassName={ineligibleCount > 0 ? "text-red-700" : "text-muted-foreground"}
+            valueClassName={ineligibleCount > 0 ? "text-red-700" : undefined}
             hint="Guarantees that no longer meet the contribution-channel rule"
             loading={isLoading}
           />
@@ -553,7 +553,7 @@ export default function GuarantorSystem() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-8 text-emerald-600 hover:bg-emerald-50"
+                              className="h-8 text-emerald-700 hover:bg-emerald-50"
                               onClick={() => doProcess({ id: req.id, action: "approve" })}
                               disabled={processing}
                             >
@@ -563,7 +563,7 @@ export default function GuarantorSystem() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-8 text-red-600 hover:bg-red-50"
+                              className="h-8 text-red-700 hover:bg-red-50"
                               onClick={() => doProcess({ id: req.id, action: "reject" })}
                               disabled={processing}
                             >

@@ -16,11 +16,13 @@
         } catch (e) { /* ignore */ }
       })();
     </script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Coopvest Africa Admin Dashboard - Manage savings contributions, loan auditing, compliance (KYC), and platform operations." />
     <meta name="keywords" content="coopvest, admin dashboard, cooperative, savings, loans, kyc, compliance, africa" />
     <meta name="author" content="Coopvest Africa" />
-    <meta name="robots" content="index, nofollow" />
+    <!-- Admin surfaces must never be indexed or followed by crawlers. -->
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="color-scheme" content="light dark" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
@@ -46,9 +48,11 @@
     
     <title>Coopvest Africa Admin Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Fonts are declared once in src/index.css (Plus Jakarta Sans). A second
+         Inter link here was unused and only cost an extra render-blocking
+         request. Preconnect stays so the CSS @import resolves fast. -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />

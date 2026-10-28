@@ -118,7 +118,7 @@ export default function ReferralProgram() {
       label: "Conversion Rate",
       value: data?.analytics.conversionRate ?? 0,
       icon: Percent,
-      color: "text-emerald-600",
+      color: "text-emerald-700",
       bg: "bg-emerald-50",
       format: (v: number) => `${v.toFixed(1)}%`,
     },

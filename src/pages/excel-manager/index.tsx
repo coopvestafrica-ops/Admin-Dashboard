@@ -222,10 +222,10 @@ export default function ExcelManager() {
         {/* Quick Download Templates */}
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[
-            { type: "bulk_contributions", label: "Contributions Template", icon: Wallet, color: "text-emerald-600" },
+            { type: "bulk_contributions", label: "Contributions Template", icon: Wallet, color: "text-emerald-700" },
             { type: "user_import", label: "User Import Template", icon: Users, color: "text-blue-600" },
             { type: "payroll", label: "Payroll Template", icon: Briefcase, color: "text-purple-600" },
-            { type: "reconciliation", label: "Reconciliation Template", icon: ArrowDownToLine, color: "text-amber-600" },
+            { type: "reconciliation", label: "Reconciliation Template", icon: ArrowDownToLine, color: "text-amber-700" },
           ].map(t => (
             <Card key={t.type} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => downloadTemplate(t.type)}>
               <CardContent className="p-4 flex items-center gap-3">
@@ -275,7 +275,7 @@ export default function ExcelManager() {
                     <div className="text-center py-12">
                       <FileSpreadsheet className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
                       <p className="text-muted-foreground mb-2">No uploads found</p>
-                      <p className="text-sm text-muted-foreground/70">Upload your first file to get started.</p>
+                      <p className="text-sm text-muted-foreground">Upload your first file to get started.</p>
                     </div>
                   ) : (
                     <table className="w-full text-sm">
@@ -296,7 +296,7 @@ export default function ExcelManager() {
                           <tr key={u.id} className="hover:bg-muted/30">
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2">
-                                <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                                <FileSpreadsheet className="h-4 w-4 text-emerald-700" />
                                 <span className="font-medium">{u.filename}</span>
                               </div>
                             </td>
@@ -307,9 +307,9 @@ export default function ExcelManager() {
                             <td className="px-4 py-3 text-center">{u.rows?.toLocaleString() ?? 0}</td>
                             <td className="px-4 py-3 text-center">
                               {(u.errors ?? 0) > 0 ? (
-                                <span className="text-red-600 font-semibold">{u.errors}</span>
+                                <span className="text-red-700 font-semibold">{u.errors}</span>
                               ) : (
-                                <span className="text-emerald-600">✓</span>
+                                <span className="text-emerald-700">✓</span>
                               )}
                             </td>
                             <td className="px-4 py-3 text-center">
@@ -324,7 +324,7 @@ export default function ExcelManager() {
                                   <Eye className="h-3.5 w-3.5" />
                                 </Button>
                                 {u.status === "reviewing" && (
-                                  <Button variant="ghost" size="sm" className="text-emerald-600"
+                                  <Button variant="ghost" size="sm" className="text-emerald-700"
                                     onClick={() => {
                                       setUploads(prev => prev.map(r => r.id === u.id ? { ...r, status: "processed" } : r));
                                       toast({ title: "Approved", description: `${u.filename} has been approved.` });
@@ -427,8 +427,8 @@ export default function ExcelManager() {
                 <div className="grid grid-cols-3 gap-4">
                   {[
                     { label: "Expected Collections", value: "₦24,100,000", color: "text-primary" },
-                    { label: "Actual Collections", value: "₦23,501,000", color: "text-emerald-600" },
-                    { label: "Discrepancies", value: "₦599,000", color: "text-red-600" },
+                    { label: "Actual Collections", value: "₦23,501,000", color: "text-emerald-700" },
+                    { label: "Discrepancies", value: "₦599,000", color: "text-red-700" },
                   ].map(s => (
                     <Card key={s.label} className="border-dashed">
                       <CardContent className="p-4 text-center">
@@ -462,7 +462,7 @@ export default function ExcelManager() {
                           </td>
                           <td className="px-4 py-2.5 text-center">{u.rows.toLocaleString()}</td>
                           <td className="px-4 py-2.5 text-center">
-                            {(u.errors ?? 0) > 0 ? <span className="text-red-600">{u.errors}</span> : <span className="text-emerald-600">0</span>}
+                            {(u.errors ?? 0) > 0 ? <span className="text-red-700">{u.errors}</span> : <span className="text-emerald-700">0</span>}
                           </td>
                           <td className="px-4 py-2.5 text-center">
                             <Badge className={statusColors[u.status]} variant="outline">{u.status}</Badge>

@@ -23,7 +23,7 @@ export interface StatCardProps {
   /** How to render `value` when it is numeric. */
   format?: "number" | "currency" | "percent" | "raw";
   icon?: ElementType;
-  /** Tailwind text colour for the icon, e.g. "text-emerald-600". */
+  /** Tailwind text colour for the icon, e.g. "text-emerald-700". */
   iconClassName?: string;
   /** Optional secondary line under the label. */
   hint?: string;
@@ -53,8 +53,8 @@ function renderValue(value: number | string, format: StatCardProps["format"]) {
 }
 
 const TREND_STYLES: Record<StatTrend, { icon: ElementType; className: string }> = {
-  up: { icon: ArrowUpRight, className: "text-emerald-600" },
-  down: { icon: ArrowDownRight, className: "text-red-600" },
+  up: { icon: ArrowUpRight, className: "text-emerald-700" },
+  down: { icon: ArrowDownRight, className: "text-red-700" },
   flat: { icon: Minus, className: "text-muted-foreground" },
 };
 

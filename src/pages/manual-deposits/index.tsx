@@ -166,11 +166,11 @@ const depositTypeColors: Record<string, string> = {
 };
 
 const transactionTypeColors: Record<string, { bg: string; text: string; icon: LucideIcon }> = {
-  deposit: { bg: "bg-emerald-100", text: "text-emerald-600", icon: ArrowRight },
-  withdrawal: { bg: "bg-red-100", text: "text-red-600", icon: ArrowUpRight },
+  deposit: { bg: "bg-emerald-100", text: "text-emerald-700", icon: ArrowRight },
+  withdrawal: { bg: "bg-red-100", text: "text-red-700", icon: ArrowUpRight },
   adjustment: { bg: "bg-blue-100", text: "text-blue-600", icon: RefreshCw },
-  credit: { bg: "bg-emerald-100", text: "text-emerald-600", icon: CheckCircle2 },
-  debit: { bg: "bg-amber-100", text: "text-amber-600", icon: AlertTriangle },
+  credit: { bg: "bg-emerald-100", text: "text-emerald-700", icon: CheckCircle2 },
+  debit: { bg: "bg-amber-100", text: "text-amber-700", icon: AlertTriangle },
 };
 
 export default function ManualDeposits() {
@@ -509,7 +509,7 @@ export default function ManualDeposits() {
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100">
-                <Banknote className="h-6 w-6 text-emerald-600" />
+                <Banknote className="h-6 w-6 text-emerald-700" />
               </div>
               <div>
                 <div className="text-2xl font-bold">{totals.count}</div>
@@ -531,7 +531,7 @@ export default function ManualDeposits() {
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-100">
-                <Calendar className="h-6 w-6 text-amber-600" />
+                <Calendar className="h-6 w-6 text-amber-700" />
               </div>
               <div>
                 <div className="text-2xl font-bold">{formatCurrency(totals.today)}</div>
@@ -558,7 +558,7 @@ export default function ManualDeposits() {
             <CardTitle className="text-base flex items-center gap-2">
               <User className="h-5 w-5" />
               Member Selection
-              <Badge variant="outline" className="ml-2 text-amber-600 border-amber-200 bg-amber-50">Required</Badge>
+              <Badge variant="outline" className="ml-2 text-amber-700 border-amber-200 bg-amber-50">Required</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -596,7 +596,7 @@ export default function ManualDeposits() {
                             {member.email} • {member.phone || "No phone"}
                           </div>
                         </div>
-                        {selectedMember?.id === member.id && <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />}
+                        {selectedMember?.id === member.id && <CheckCircle2 className="h-5 w-5 text-emerald-700 shrink-0" />}
                       </button>
                     ))}
                   </div>
@@ -646,7 +646,7 @@ export default function ManualDeposits() {
                 {loadingWallet ? <Skeleton className="h-20 w-full mt-4" /> : (
                   <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-emerald-600">{formatCurrency(memberWallet?.balance || 0)}</div>
+                      <div className="text-2xl font-bold text-emerald-700">{formatCurrency(memberWallet?.balance || 0)}</div>
                       <div className="text-xs text-muted-foreground">Current Balance</div>
                     </div>
                     <div className="text-center">
@@ -654,7 +654,7 @@ export default function ManualDeposits() {
                       <div className="text-xs text-muted-foreground">Wallet Balance</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-red-600">{formatCurrency(0)}</div>
+                      <div className="text-2xl font-bold text-red-700">{formatCurrency(0)}</div>
                       <div className="text-xs text-muted-foreground">Total Withdrawals</div>
                     </div>
                   </div>
@@ -673,8 +673,8 @@ export default function ManualDeposits() {
                 Deposit Records
               </CardTitle>
               <div className="flex flex-wrap gap-2">
-                <Input type="date" className="w-auto text-sm" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-                <Input type="date" className="w-auto text-sm" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+                <Input type="date" className="w-auto text-sm" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} aria-label="From date" />
+                <Input type="date" className="w-auto text-sm" value={dateTo} onChange={(e) => setDateTo(e.target.value)} aria-label="To date" />
                 <Select value={filterType} onValueChange={setFilterType}>
                   <SelectTrigger className="w-auto text-sm"><SelectValue placeholder="Filter by status" /></SelectTrigger>
                   <SelectContent>
@@ -723,7 +723,7 @@ export default function ManualDeposits() {
                             }>{deposit.status || "pending"}</Badge>
                           </td>
                           <td className="py-3 font-mono text-xs">{deposit.payment_reference || deposit.reference || "—"}</td>
-                          <td className="py-3 text-right font-semibold text-emerald-600">+{formatCurrency(deposit.amount)}</td>
+                          <td className="py-3 text-right font-semibold text-emerald-700">+{formatCurrency(deposit.amount)}</td>
                           <td className="py-3 text-muted-foreground capitalize">{deposit.bank_name || deposit.payment_method?.replace("_", " ") || "—"}</td>
                           <td className="py-3 text-muted-foreground text-xs">{deposit.verifier?.name || deposit.admin_profile?.name || "System"}</td>
                         </tr>
@@ -753,19 +753,19 @@ export default function ManualDeposits() {
                     </Select>
                     <span className="text-sm text-muted-foreground">per page</span>
                     <div className="flex items-center gap-1 ml-4">
-                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={page === 1} onClick={() => setPage(1)}>
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={page === 1} onClick={() => setPage(1)} aria-label="First page">
                         <ChevronsLeft className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))} aria-label="Previous page">
                         <ChevronLeft className="h-4 w-4" />
                       </Button>
                       <span className="px-3 text-sm">
                         Page {page} of {totalPages || 1}
                       </span>
-                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} aria-label="Next page">
                         <ChevronRight className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={page >= totalPages} onClick={() => setPage(totalPages)}>
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={page >= totalPages} onClick={() => setPage(totalPages)} aria-label="Last page">
                         <ChevronsRight className="h-4 w-4" />
                       </Button>
                     </div>
@@ -849,7 +849,7 @@ export default function ManualDeposits() {
                 <div className="text-sm text-emerald-800 mb-2">Balance Update Preview:</div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div><span className="text-muted-foreground">Current:</span><div className="font-medium">{formatCurrency(memberWallet?.balance || 0)}</div></div>
-                  <div><span className="text-muted-foreground">Deposit:</span><div className="font-medium text-emerald-600">+{formatCurrency(parseFloat(depositAmount) || 0)}</div></div>
+                  <div><span className="text-muted-foreground">Deposit:</span><div className="font-medium text-emerald-700">+{formatCurrency(parseFloat(depositAmount) || 0)}</div></div>
                   <div className="col-span-2 border-t pt-2 mt-2"><span className="text-muted-foreground">New Balance:</span><div className="font-bold text-lg text-emerald-700">{formatCurrency((memberWallet?.balance || 0) + (parseFloat(depositAmount) || 0))}</div></div>
                 </div>
               </div>
@@ -858,7 +858,7 @@ export default function ManualDeposits() {
             {validationErrors.length > 0 && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                 <div className="text-sm text-red-700 font-medium mb-1">Please fix the following errors:</div>
-                {validationErrors.map((err, i) => <div key={i} className="text-xs text-red-600">• {err.message}</div>)}
+                {validationErrors.map((err, i) => <div key={i} className="text-xs text-red-700">• {err.message}</div>)}
               </div>
             )}
           </div>
@@ -900,7 +900,7 @@ export default function ManualDeposits() {
                               <div className="text-xs text-muted-foreground mt-0.5">{new Date(txn.created_at).toLocaleString()}{txn.reference && ` • Ref: ${txn.reference}`}</div>
                             </div>
                             <div className="text-right shrink-0 ml-4">
-                              <div className={`font-semibold ${txn.type === "deposit" || txn.type === "credit" ? "text-emerald-600" : "text-red-600"}`}>
+                              <div className={`font-semibold ${txn.type === "deposit" || txn.type === "credit" ? "text-emerald-700" : "text-red-700"}`}>
                                 {txn.type === "deposit" || txn.type === "credit" ? "+" : "-"}{formatCurrency(txn.amount)}
                               </div>
                               <div className="text-xs text-muted-foreground">Balance: {formatCurrency(txn.balance_after)}</div>
@@ -943,7 +943,7 @@ export default function ManualDeposits() {
                     <div key={log.id} className="p-4 border-b last:border-b-0 hover:bg-muted/30">
                       <div className="flex items-start gap-4">
                         <div className={`flex h-10 w-10 items-center justify-center rounded-full shrink-0 ${log.action === "CREATE" ? "bg-emerald-100" : log.action === "UPDATE" ? "bg-blue-100" : log.action === "DELETE" ? "bg-red-100" : "bg-gray-100"}`}>
-                          <Shield className={`h-5 w-5 ${log.action === "CREATE" ? "text-emerald-600" : log.action === "UPDATE" ? "text-blue-600" : log.action === "DELETE" ? "text-red-600" : "text-gray-600"}`} />
+                          <Shield className={`h-5 w-5 ${log.action === "CREATE" ? "text-emerald-700" : log.action === "UPDATE" ? "text-blue-600" : log.action === "DELETE" ? "text-red-700" : "text-gray-600"}`} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-4">

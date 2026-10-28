@@ -107,10 +107,10 @@ export default function FraudDetection() {
         {/* Summary Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { label: "Total Flags Today", value: todayAlerts.length, icon: Flag, color: "text-red-600", bg: "bg-red-50" },
+            { label: "Total Flags Today", value: todayAlerts.length, icon: Flag, color: "text-red-700", bg: "bg-red-50" },
             { label: "High Risk Users", value: criticalHighCount, icon: Flame, color: "text-orange-600", bg: "bg-orange-50" },
-            { label: "Open Cases", value: openCount, icon: AlertTriangle, color: "text-amber-600", bg: "bg-amber-50" },
-            { label: "Resolved Cases", value: resolvedCount, icon: CheckCircle, color: "text-green-600", bg: "bg-green-50" },
+            { label: "Open Cases", value: openCount, icon: AlertTriangle, color: "text-amber-700", bg: "bg-amber-50" },
+            { label: "Resolved Cases", value: resolvedCount, icon: CheckCircle, color: "text-green-700", bg: "bg-green-50" },
           ].map(({ label, value, icon: Icon, color, bg }) => (
             <Card key={label}>
               <CardContent className="p-5">

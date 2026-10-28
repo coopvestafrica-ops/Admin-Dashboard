@@ -89,14 +89,14 @@ export default function InterestRates() {
             value={`${highest}%`}
             icon={Percent}
             loading={isLoading}
-            valueClassName="text-amber-600"
+            valueClassName="text-amber-700"
           />
           <StatCard
             label="Lowest Rate"
             value={`${lowest}%`}
             icon={Percent}
             loading={isLoading}
-            valueClassName="text-emerald-600"
+            valueClassName="text-emerald-700"
           />
         </StatGrid>
 

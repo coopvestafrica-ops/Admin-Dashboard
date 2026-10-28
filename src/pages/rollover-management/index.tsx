@@ -109,8 +109,8 @@ export default function RolloverManagement() {
 
   const statCards = [
     { label: "Total Rollovers",     value: stats?.total ?? 0,                            icon: RefreshCw,        color: "text-blue-600" },
-    { label: "Pending Approval",    value: stats?.pending ?? 0,                          icon: Clock,            color: "text-amber-600" },
-    { label: "Approved",            value: stats?.approved ?? 0,                          icon: CheckCircle,      color: "text-emerald-600" },
+    { label: "Pending Approval",    value: stats?.pending ?? 0,                          icon: Clock,            color: "text-amber-700" },
+    { label: "Approved",            value: stats?.approved ?? 0,                          icon: CheckCircle,      color: "text-emerald-700" },
     { label: "Rejected",            value: stats?.rejected ?? 0,                          icon: XCircle,          color: "text-red-500" },
     { label: "Fees Collected",      value: formatCurrency(stats?.totalFeeCollected ?? 0), icon: DollarSign,       color: "text-purple-600" },
   ];

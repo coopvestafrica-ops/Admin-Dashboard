@@ -149,6 +149,7 @@ export default function BulkOperations() {
                     <Label>Import Type</Label>
                     <select
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                    aria-label="Import type"
                       value={importType}
                       onChange={(e) => setImportType(e.target.value as any)}
                     >
@@ -159,7 +160,7 @@ export default function BulkOperations() {
 
                   <div className="space-y-2">
                     <Label>CSV File</Label>
-                    <Input type="file" accept=".csv" onChange={handleFileSelect} />
+                    <Input type="file" accept=".csv" onChange={handleFileSelect} aria-label="CSV file to import" />
                   </div>
 
                   {selectedFile && (
@@ -204,11 +205,11 @@ export default function BulkOperations() {
                   <CardContent className="space-y-4">
                     <div className="flex gap-4">
                       <div className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <CheckCircle className="h-5 w-5 text-green-700" />
                         <span className="font-medium">{importResult.results?.success || 0} Success</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <XCircle className="h-5 w-5 text-red-600" />
+                        <XCircle className="h-5 w-5 text-red-700" />
                         <span className="font-medium">{importResult.results?.failed || 0} Failed</span>
                       </div>
                     </div>
@@ -248,6 +249,7 @@ export default function BulkOperations() {
                     <Label>Status Filter</Label>
                     <select
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                    aria-label="Export status filter"
                       value={exportStatus}
                       onChange={(e) => setExportStatus(e.target.value)}
                     >
@@ -263,6 +265,7 @@ export default function BulkOperations() {
                     <Label>Format</Label>
                     <select
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                    aria-label="Export format"
                       value={exportFormat}
                       onChange={(e) => setExportFormat(e.target.value as any)}
                     >

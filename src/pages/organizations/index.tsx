@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
 import { PageHeader, PageBody } from "@/components/PageHeader";
@@ -111,7 +111,7 @@ export default function Organizations() {
           {[
             { label: "Total Organizations", value: orgs.length, icon: Building2, color: "text-primary", format: "number" },
             { label: "Total Members", value: orgs.reduce((s, o) => s + o.memberCount, 0), icon: Users, color: "text-blue-600", format: "number" },
-            { label: "Total Contributions", value: 0, icon: TrendingUp, color: "text-emerald-600", format: "currency" },
+            { label: "Total Contributions", value: 0, icon: TrendingUp, color: "text-emerald-700", format: "currency" },
             { label: "Deduction Issues", value: 0, icon: AlertCircle, color: "text-red-500", format: "number" },
           ].map(s => (
             <Card key={s.label}>
@@ -177,10 +177,14 @@ export default function Organizations() {
                   ) : filtered.length === 0 ? (
                     <tr><td colSpan={6} className="py-8 text-center text-muted-foreground">No organizations found.</td></tr>
                   ) : filtered.map(org => (
-                    <>
-                      <tr key={org.id} className="hover:bg-muted/30 transition-colors">
+                    <Fragment key={org.id}>
+                      <tr className="hover:bg-muted/30 transition-colors">
                         <td className="px-4 py-3">
-                          <button onClick={() => setExpandedId(expandedId === String(org.id) ? null : org.id)}>
+                          <button
+                            onClick={() => setExpandedId(expandedId === String(org.id) ? null : org.id)}
+                            aria-label={expandedId === String(org.id) ? `Collapse ${org.name}` : `Expand ${org.name}`}
+                            aria-expanded={expandedId === String(org.id)}
+                          >
                             {expandedId === String(org.id)
                               ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
                               : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
@@ -203,20 +207,20 @@ export default function Organizations() {
                             <Button variant="outline" size="sm" onClick={() => { setSelectedOrg(org); setDetailTab("overview"); }}>
                               Details
                             </Button>
-                            <Button variant="outline" size="sm" onClick={() => exportRemittanceReport(org)}>
+                            <Button variant="outline" size="sm" onClick={() => exportRemittanceReport(org)} aria-label={`Export remittance report for ${org.name}`}>
                               <Download className="h-3 w-3" />
                             </Button>
                           </div>
                         </td>
                       </tr>
                       {expandedId === String(org.id) && (
-                        <tr key={`${org.id}-expanded`} className="bg-muted/20">
+                        <tr className="bg-muted/20">
                           <td colSpan={6} className="px-8 py-4">
                             <div className="text-xs text-muted-foreground">No additional details available.</div>
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   ))}
                 </tbody>
               </table>

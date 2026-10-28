@@ -26,9 +26,9 @@ import { formatDistanceToNow } from "date-fns";
 // ── Notification type config ────────────────────────────────────────────────
 const typeConfig: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
   info:    { icon: Info,          color: "text-blue-600",    bg: "bg-blue-50 dark:bg-blue-950/40"    },
-  warning: { icon: AlertTriangle, color: "text-amber-600",   bg: "bg-amber-50 dark:bg-amber-950/40"   },
-  success: { icon: CheckCircle,   color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/40" },
-  error:   { icon: AlertCircle,   color: "text-red-600",     bg: "bg-red-50 dark:bg-red-950/40"     },
+  warning: { icon: AlertTriangle, color: "text-amber-700",   bg: "bg-amber-50 dark:bg-amber-950/40"   },
+  success: { icon: CheckCircle,   color: "text-emerald-700", bg: "bg-emerald-50 dark:bg-emerald-950/40" },
+  error:   { icon: AlertCircle,   color: "text-red-700",     bg: "bg-red-50 dark:bg-red-950/40"     },
   alert:   { icon: AlertTriangle, color: "text-orange-600",  bg: "bg-orange-50 dark:bg-orange-950/40"  },
 };
 const defaultType = { icon: Info, color: "text-muted-foreground", bg: "bg-muted" };
@@ -202,7 +202,7 @@ export function Header({ onOpenSearch, onOpenMobileMenu }: HeaderProps) {
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground truncate mt-0.5">{n.message}</p>
-                          <p className="text-[11px] text-muted-foreground/70 mt-1">
+                          <p className="text-[11px] text-muted-foreground mt-1">
                             {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
                           </p>
                         </div>
@@ -230,7 +230,7 @@ export function Header({ onOpenSearch, onOpenMobileMenu }: HeaderProps) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full" aria-label="User menu">
               <Avatar className="h-9 w-9 border">
-                <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
                   {getInitials(user?.email)}
                 </AvatarFallback>
               </Avatar>

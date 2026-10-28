@@ -139,9 +139,9 @@ export default function Payroll() {
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[
             { label: "Total Remitted", value: formatCurrency(totalProcessed), icon: TrendingUp, color: "text-primary" },
-            { label: "Pending Batches", value: pendingCount.toString(), icon: Clock, color: "text-amber-600" },
+            { label: "Pending Batches", value: pendingCount.toString(), icon: Clock, color: "text-amber-700" },
             { label: "Records Processed", value: totalRecords.toLocaleString(), icon: Users, color: "text-blue-600" },
-            { label: "Organizations", value: orgs.length.toString(), icon: Building2, color: "text-emerald-600" },
+            { label: "Organizations", value: orgs.length.toString(), icon: Building2, color: "text-emerald-700" },
           ].map(({ label, value, icon: Icon, color }) => (
             <Card key={label}>
               <CardContent className="p-4 flex items-center gap-3">
@@ -184,7 +184,7 @@ export default function Payroll() {
               <p className="text-sm font-medium">Drag & drop your payroll sheet here</p>
               <p className="mt-1 text-xs text-muted-foreground">Supports .xlsx, .xls, .csv — max 10MB</p>
               {uploadSuccess && (
-                <div className="mt-3 flex items-center gap-2 text-emerald-600 text-sm font-medium">
+                <div className="mt-3 flex items-center gap-2 text-emerald-700 text-sm font-medium">
                   <CheckCircle2 className="h-4 w-4" />
                   File uploaded successfully — pending review
                 </div>
@@ -270,10 +270,10 @@ export default function Payroll() {
                         <td className="py-3 text-right font-semibold">{formatCurrency(batch.totalAmount)}</td>
                         <td className="py-3">
                           {batch.status === "completed" ? (
-                            <span className="text-emerald-600 font-medium">
+                            <span className="text-emerald-700 font-medium">
                               {batch.matchedCount}/{batch.recordCount}
                               {batch.unmatchedCount > 0 && (
-                                <span className="ml-1 text-amber-600">({batch.unmatchedCount} unmatched)</span>
+                                <span className="ml-1 text-amber-700">({batch.unmatchedCount} unmatched)</span>
                               )}
                             </span>
                           ) : (

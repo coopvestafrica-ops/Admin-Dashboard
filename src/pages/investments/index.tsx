@@ -46,9 +46,9 @@ export default function Investments() {
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[
             { label: "Total Invested", value: portfolio?.totalInvested ?? 0, format: "currency" as const, icon: DollarSign, color: "text-primary" },
-            { label: "Current Value", value: portfolio?.currentValue ?? 0, format: "currency" as const, icon: TrendingUp, color: "text-emerald-600" },
+            { label: "Current Value", value: portfolio?.currentValue ?? 0, format: "currency" as const, icon: TrendingUp, color: "text-emerald-700" },
             { label: "Active Investments", value: portfolio?.activeCount ?? 0, format: "number" as const, icon: Layers, color: "text-blue-600" },
-            { label: "Return %", value: portfolio?.returnPercentage ?? 0, format: "percent" as const, icon: BarChart2, color: "text-amber-600" },
+            { label: "Return %", value: portfolio?.returnPercentage ?? 0, format: "percent" as const, icon: BarChart2, color: "text-amber-700" },
           ].map(({ label, value, format, icon: Icon, color }) => (
             <Card key={label}>
               <CardContent className="p-4 flex items-center gap-3">
@@ -149,7 +149,7 @@ export default function Investments() {
               <div className="text-center py-12">
                 <TrendingUp className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
                 <p className="text-muted-foreground mb-2">No investments found</p>
-                <p className="text-sm text-muted-foreground/70">Investment pools will appear here once created.</p>
+                <p className="text-sm text-muted-foreground">Investment pools will appear here once created.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -179,7 +179,7 @@ export default function Investments() {
                           <td className="py-3 text-right">{formatCurrency(amount)}</td>
                           <td className="py-3 text-right font-semibold">{formatCurrency(current)}</td>
                           <td className="py-3 text-right">
-                            <span className={`font-medium ${gain >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                            <span className={`font-medium ${gain >= 0 ? "text-emerald-700" : "text-red-700"}`}>
                               {gain >= 0 ? "+" : ""}{gainPct}%
                             </span>
                           </td>

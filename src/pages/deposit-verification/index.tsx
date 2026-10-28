@@ -285,7 +285,7 @@ export default function DepositVerification() {
           breadcrumbs={[{ label: "Financial Control" }, { label: "Deposit Verification" }]}
           actions={<>
             {supabase && (
-            <div className="flex items-center gap-1.5 text-xs text-emerald-600">
+            <div className="flex items-center gap-1.5 text-xs text-emerald-700">
             <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
@@ -338,7 +338,7 @@ export default function DepositVerification() {
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
-                <Clock className="h-5 w-5 text-amber-600" />
+                <Clock className="h-5 w-5 text-amber-700" />
               </div>
               <div>
                 <div className="text-lg font-bold">{summary?.pending ?? 0}</div>
@@ -349,7 +349,7 @@ export default function DepositVerification() {
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                <CheckCircle2 className="h-5 w-5 text-emerald-700" />
               </div>
               <div>
                 <div className="text-lg font-bold">{summary?.verified_today ?? 0}</div>
@@ -371,7 +371,7 @@ export default function DepositVerification() {
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100">
-                <XCircle className="h-5 w-5 text-red-600" />
+                <XCircle className="h-5 w-5 text-red-700" />
               </div>
               <div>
                 <div className="text-lg font-bold">{summary?.rejected_today ?? 0}</div>
@@ -429,6 +429,7 @@ export default function DepositVerification() {
                         <Checkbox
                           checked={selected.length === deposits.length && deposits.length > 0}
                           onCheckedChange={toggleAll}
+                          aria-label="Select all deposits"
                         />
                       </th>
                       <th className="pb-3 text-left font-medium">User</th>
@@ -451,6 +452,7 @@ export default function DepositVerification() {
                             <Checkbox
                               checked={selected.includes(deposit.id)}
                               onCheckedChange={() => toggleSelect(deposit.id)}
+                              aria-label="Select deposit"
                             />
                           </td>
                           <td className="py-3">
@@ -498,7 +500,7 @@ export default function DepositVerification() {
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    className="h-8 text-emerald-600 hover:bg-emerald-50"
+                                    className="h-8 text-emerald-700 hover:bg-emerald-50"
                                     onClick={() => doVerify({ id: deposit.id })}
                                     disabled={verifying}
                                     title="Verify"
@@ -508,7 +510,7 @@ export default function DepositVerification() {
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    className="h-8 text-red-600 hover:bg-red-50"
+                                    className="h-8 text-red-700 hover:bg-red-50"
                                     onClick={() => setRejectTarget(deposit)}
                                     title="Reject"
                                   >

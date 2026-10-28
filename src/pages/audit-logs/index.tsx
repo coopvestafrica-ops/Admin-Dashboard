@@ -17,23 +17,23 @@ import {
 import { formatDistanceToNow } from "date-fns";
 
 const actionConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  login:           { label: "Login",               icon: LogIn,         color: "text-emerald-600 bg-emerald-50" },
+  login:           { label: "Login",               icon: LogIn,         color: "text-emerald-700 bg-emerald-50" },
   logout:          { label: "Logout",              icon: LogOut,        color: "text-gray-600 bg-gray-100" },
-  login_failed:    { label: "Failed Login",        icon: AlertTriangle, color: "text-red-600 bg-red-50" },
-  loan_approve:    { label: "Loan Approved",       icon: CheckCircle,   color: "text-emerald-600 bg-emerald-50" },
-  loan_reject:     { label: "Loan Rejected",       icon: CreditCard,    color: "text-red-600 bg-red-50" },
+  login_failed:    { label: "Failed Login",        icon: AlertTriangle, color: "text-red-700 bg-red-50" },
+  loan_approve:    { label: "Loan Approved",       icon: CheckCircle,   color: "text-emerald-700 bg-emerald-50" },
+  loan_reject:     { label: "Loan Rejected",       icon: CreditCard,    color: "text-red-700 bg-red-50" },
   loan_penalty:    { label: "Penalty Added",       icon: AlertTriangle, color: "text-orange-600 bg-orange-50" },
   loan_restructure:{ label: "Loan Restructured",   icon: ArrowLeftRight,color: "text-blue-600 bg-blue-50" },
   user_suspend:    { label: "User Suspended",      icon: Ban,           color: "text-orange-600 bg-orange-50" },
   account_change:  { label: "Account Changed",     icon: User,          color: "text-blue-600 bg-blue-50" },
-  balance_adjust:  { label: "Balance Adjusted",    icon: Banknote,      color: "text-amber-600 bg-amber-50" },
-  payment_reverse: { label: "Payment Reversed",    icon: ArrowLeftRight,color: "text-red-600 bg-red-50" },
+  balance_adjust:  { label: "Balance Adjusted",    icon: Banknote,      color: "text-amber-700 bg-amber-50" },
+  payment_reverse: { label: "Payment Reversed",    icon: ArrowLeftRight,color: "text-red-700 bg-red-50" },
   feature_toggle:  { label: "Feature Toggled",     icon: ToggleLeft,    color: "text-purple-600 bg-purple-50" },
-  kyc_approve:     { label: "KYC Approved",        icon: CheckCircle,   color: "text-emerald-600 bg-emerald-50" },
-  settings_update: { label: "Settings Updated",    icon: Settings,      color: "text-amber-600 bg-amber-50" },
+  kyc_approve:     { label: "KYC Approved",        icon: CheckCircle,   color: "text-emerald-700 bg-emerald-50" },
+  settings_update: { label: "Settings Updated",    icon: Settings,      color: "text-amber-700 bg-amber-50" },
   staff_create:    { label: "Staff Created",       icon: UserCog,       color: "text-blue-600 bg-blue-50" },
   role_change:     { label: "Role Changed",        icon: Key,           color: "text-purple-600 bg-purple-50" },
-  ip_block:        { label: "IP Blocked",          icon: Lock,          color: "text-red-600 bg-red-50" },
+  ip_block:        { label: "IP Blocked",          icon: Lock,          color: "text-red-700 bg-red-50" },
   org_onboard:     { label: "Org Onboarded",       icon: Building2,     color: "text-blue-600 bg-blue-50" },
 };
 
@@ -125,9 +125,9 @@ export default function AuditLogs() {
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[
             { label: "Total Events", value: total, color: "text-primary" },
-            { label: "Critical", value: allLogs.filter(l => l.severity === "Critical").length, color: "text-red-600" },
-            { label: "Warnings", value: allLogs.filter(l => l.severity === "Warning").length, color: "text-amber-600" },
-            { label: "Actions Today", value: allLogs.filter(l => l.timestamp?.startsWith(new Date().toISOString().slice(0,10))).length, color: "text-emerald-600" },
+            { label: "Critical", value: allLogs.filter(l => l.severity === "Critical").length, color: "text-red-700" },
+            { label: "Warnings", value: allLogs.filter(l => l.severity === "Warning").length, color: "text-amber-700" },
+            { label: "Actions Today", value: allLogs.filter(l => l.timestamp?.startsWith(new Date().toISOString().slice(0,10))).length, color: "text-emerald-700" },
           ].map(s => (
             <Card key={s.label}>
               <CardContent className="p-4">

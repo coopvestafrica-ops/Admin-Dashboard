@@ -23,15 +23,15 @@ import { DirectMessageComposer } from "@/components/announcements/DirectMessageC
 
 const typeConfig: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
   info:    { icon: Info,          color: "text-blue-600",    bg: "bg-blue-50"    },
-  warning: { icon: AlertTriangle, color: "text-amber-600",   bg: "bg-amber-50"   },
-  success: { icon: CheckCircle,   color: "text-emerald-600", bg: "bg-emerald-50" },
-  error:   { icon: AlertCircle,   color: "text-red-600",     bg: "bg-red-50"     },
+  warning: { icon: AlertTriangle, color: "text-amber-700",   bg: "bg-amber-50"   },
+  success: { icon: CheckCircle,   color: "text-emerald-700", bg: "bg-emerald-50" },
+  error:   { icon: AlertCircle,   color: "text-red-700",     bg: "bg-red-50"     },
 };
 
 const CHANNELS = [
   { id: "push",  label: "Push Notification", icon: Smartphone,    color: "text-blue-600"  },
-  { id: "sms",   label: "SMS",               icon: MessageSquare, color: "text-amber-600" },
-  { id: "email", label: "Email",             icon: Mail,          color: "text-emerald-600" },
+  { id: "sms",   label: "SMS",               icon: MessageSquare, color: "text-amber-700" },
+  { id: "email", label: "Email",             icon: Mail,          color: "text-emerald-700" },
 ];
 
 const AUDIENCE_OPTIONS = [
@@ -220,7 +220,7 @@ export default function Notifications() {
                         return (
                           <button key={ch.id} onClick={() => toggleChannel(ch.id)} data-testid={`channel-${ch.id}`}
                             className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
-                              active ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/40"
+                              active ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary/40"
                             }`}>
                             <Icon className={`h-4 w-4 ${active ? "text-primary" : ch.color}`} />{ch.label}
                           </button>
@@ -336,7 +336,7 @@ export default function Notifications() {
                               {!notif.isRead && <span className="h-2 w-2 rounded-full bg-primary shrink-0" />}
                             </div>
                             <p className="text-sm text-muted-foreground mt-0.5">{notif.message}</p>
-                            <p className="text-xs text-muted-foreground/70 mt-1">
+                            <p className="text-xs text-muted-foreground mt-1">
                               {notif.createdAt ? formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true }) : ""}
                             </p>
                           </div>

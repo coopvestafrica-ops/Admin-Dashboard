@@ -211,7 +211,7 @@ export default function WithdrawalManagement() {
             icon={Clock}
             loading={isLoading}
             hint={totals.pendingCount ? formatCurrency(totals.pendingAmount) : undefined}
-            valueClassName={totals.pendingCount ? "text-amber-600" : undefined}
+            valueClassName={totals.pendingCount ? "text-amber-700" : undefined}
           />
           <StatCard
             label="Daily Limit"

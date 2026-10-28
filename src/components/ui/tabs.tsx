@@ -12,7 +12,9 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground",
+      // Tab strips overflow horizontally on narrow screens; let them scroll
+      // instead of clipping or wrapping the triggers.
+      "inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground max-w-full overflow-x-auto no-scrollbar",
       className
     )}
     {...props}

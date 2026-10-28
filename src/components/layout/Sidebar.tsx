@@ -243,17 +243,17 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
           {!collapsed && (
             <div className="flex flex-col">
               <span className="text-sm font-bold tracking-tight">Coopvest</span>
-              <span className="text-[10px] text-muted-foreground font-medium">Admin Dashboard</span>
+              <span className="text-[10px] text-sidebar-foreground/70 font-medium">Admin Dashboard</span>
             </div>
           )}
         </Link>
         {setMobileOpen && (
-          <Button variant="ghost" size="icon" className="lg:hidden shrink-0" onClick={() => setMobileOpen(false)}>
+          <Button variant="ghost" size="icon" className="lg:hidden shrink-0" onClick={() => setMobileOpen(false)} aria-label="Close navigation menu">
             <X className="h-5 w-5" />
           </Button>
         )}
         {!setMobileOpen && (
-          <Button variant="ghost" size="icon" className="hidden lg:flex shrink-0" onClick={() => setCollapsed(!collapsed)}>
+          <Button variant="ghost" size="icon" className="hidden lg:flex shrink-0" onClick={() => setCollapsed(!collapsed)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
             <Menu className="h-5 w-5" />
           </Button>
         )}
@@ -278,6 +278,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
                 {!collapsed ? (
                   <button
                     onClick={() => toggleGroup(group.key)}
+                    aria-expanded={!isGroupCollapsed}
                     className={cn(
                       "flex items-center justify-between px-3 py-2 text-[11px] font-semibold uppercase tracking-wider rounded-lg transition-all duration-200",
                       hasActive

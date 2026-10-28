@@ -55,7 +55,7 @@ function KPICard({
           {loading
             ? <Skeleton className="h-5 w-12" />
             : growth !== undefined && (
-              <div className={`flex items-center gap-1 text-sm font-medium ${growth >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+              <div className={`flex items-center gap-1 text-sm font-medium ${growth >= 0 ? "text-emerald-700" : "text-red-500"}`}>
                 {growth >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                 {Math.abs(growth)}%
               </div>
@@ -151,7 +151,7 @@ function AttentionRequired() {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <ShieldAlert className="h-5 w-5 text-red-600" /> Attention Required
+          <ShieldAlert className="h-5 w-5 text-red-700" /> Attention Required
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -343,7 +343,7 @@ export default function Dashboard() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Repayment Rate Trend */}
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><Percent className="h-5 w-5 text-emerald-600" />Repayment Rate Trend</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><Percent className="h-5 w-5 text-emerald-700" />Repayment Rate Trend</CardTitle></CardHeader>
             <CardContent>
               {loadingAnalytics ? <Skeleton className="h-40 w-full" /> : analyticsData?.repaymentTrend && analyticsData.repaymentTrend.length > 0 ? (
                 <ResponsiveContainer width="100%" height={160}>
@@ -363,7 +363,7 @@ export default function Dashboard() {
 
           {/* Risk Exposure */}
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-red-600" />Risk Exposure</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-red-700" />Risk Exposure</CardTitle></CardHeader>
             <CardContent>
               {loadingAnalytics ? <Skeleton className="h-40 w-full" /> : analyticsData?.riskExposure && analyticsData.riskExposure.length > 0 ? (
                 <ResponsiveContainer width="100%" height={160}>
@@ -383,7 +383,7 @@ export default function Dashboard() {
 
           {/* Defaulter Trends */}
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><UserX className="h-5 w-5 text-amber-600" />Defaulter Trends</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><UserX className="h-5 w-5 text-amber-700" />Defaulter Trends</CardTitle></CardHeader>
             <CardContent>
               {loadingAnalytics ? <Skeleton className="h-40 w-full" /> : analyticsData?.defaulterTrend && analyticsData.defaulterTrend.length > 0 ? (
                 <ResponsiveContainer width="100%" height={160}>
@@ -439,12 +439,12 @@ export default function Dashboard() {
             <CardContent>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 {[
-                  { label: "Admins Online", value: govStats.adminsOnline ?? 0, icon: Activity, accent: "text-emerald-600" },
-                  { label: "Failed Logins (24h)", value: govStats.failedLoginAttemptsToday ?? 0, icon: ShieldAlert, accent: "text-amber-600" },
+                  { label: "Admins Online", value: govStats.adminsOnline ?? 0, icon: Activity, accent: "text-emerald-700" },
+                  { label: "Failed Logins (24h)", value: govStats.failedLoginAttemptsToday ?? 0, icon: ShieldAlert, accent: "text-amber-700" },
                   { label: "Pending Approvals", value: govStats.pendingApprovalRequests ?? 0, icon: Clock, accent: "text-blue-600" },
-                  { label: "Suspicious Activity", value: govStats.suspiciousActivitiesDetected ?? 0, icon: ShieldAlert, accent: "text-red-600" },
+                  { label: "Suspicious Activity", value: govStats.suspiciousActivitiesDetected ?? 0, icon: ShieldAlert, accent: "text-red-700" },
                   { label: "Financial Changes (24h)", value: govStats.recentFinancialChanges ?? 0, icon: TrendingUp, accent: "text-primary" },
-                  { label: "Suspended (24h)", value: govStats.accountsSuspendedToday ?? 0, icon: UserX, accent: "text-red-600" },
+                  { label: "Suspended (24h)", value: govStats.accountsSuspendedToday ?? 0, icon: UserX, accent: "text-red-700" },
                   { label: "Total Admins", value: govStats.totalAdmins ?? 0, icon: Users, accent: "text-primary" },
                 ].map((s) => (
                   <button

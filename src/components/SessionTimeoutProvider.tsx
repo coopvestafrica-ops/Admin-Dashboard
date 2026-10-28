@@ -114,7 +114,7 @@ export function SessionTimeoutProvider({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
-              <Clock className="h-6 w-6 text-amber-600" />
+              <Clock className="h-6 w-6 text-amber-700" />
             </div>
             <DialogTitle className="text-center">Session Expiring Soon</DialogTitle>
             <DialogDescription className="text-center">

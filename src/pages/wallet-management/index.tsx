@@ -160,21 +160,21 @@ export default function WalletManagement() {
       label: "Pending Transfers",
       value: String(data?.pendingTransfers ?? 0),
       icon: TrendingUp,
-      color: "text-amber-600",
+      color: "text-amber-700",
       bg: "bg-amber-50",
     },
     {
       label: "Today's Volume",
       value: formatCurrency(data?.todayVolume ?? 0),
       icon: CheckCircle2,
-      color: "text-emerald-600",
+      color: "text-emerald-700",
       bg: "bg-emerald-50",
     },
     {
       label: "Frozen Wallets",
       value: String(data?.frozenCount ?? 0),
       icon: Snowflake,
-      color: "text-red-600",
+      color: "text-red-700",
       bg: "bg-red-50",
     },
   ];
@@ -263,6 +263,7 @@ export default function WalletManagement() {
                         <Checkbox
                           checked={selected.length === wallets.length && wallets.length > 0}
                           onCheckedChange={toggleAll}
+                          aria-label="Select all wallets"
                         />
                       </th>
                       <th className="pb-3 text-left font-medium">User</th>
@@ -281,6 +282,7 @@ export default function WalletManagement() {
                             <Checkbox
                               checked={selected.includes(wallet.id)}
                               onCheckedChange={() => toggleSelect(wallet.id)}
+                              aria-label="Select wallet"
                             />
                           </td>
                           <td className="py-3">
@@ -325,7 +327,7 @@ export default function WalletManagement() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-8 text-amber-600 hover:bg-amber-50"
+                                className="h-8 text-amber-700 hover:bg-amber-50"
                                 onClick={() => setAdjustWallet(wallet)}
                               >
                                 <SlidersHorizontal className="h-3.5 w-3.5 mr-1" />
