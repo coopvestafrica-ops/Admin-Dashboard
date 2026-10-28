@@ -50,6 +50,9 @@ import {
   MailQuestion,
   FolderLock,
   DatabaseBackup,
+  Calculator,
+  Landmark,
+  ArrowLeftRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -61,109 +64,97 @@ import { PAGES, ROUTE_TO_PAGE, hasPermission, PageKey } from "@/lib/permissions"
 // Sidebar items with page keys for permission checking
 const sidebarGroupsBase = [
   {
-    title: "Core Operations",
-    key: "core",
+    title: "Overview",
+    key: "overview",
     items: [
       { title: "Dashboard", icon: LayoutDashboard, href: "/dashboard", page: PAGES.DASHBOARD },
-      { title: "Members", icon: Users, href: "/members", page: PAGES.MEMBERS },
-      { title: "Loans", icon: CreditCard, href: "/loans", page: PAGES.LOANS },
-      // Contribution Management hosts the per-member editor as a tab, so the
-      // former standalone "Member Contributions" entry is folded into it.
-      { title: "Contributions", icon: Wallet, href: "/contributions", page: PAGES.CONTRIBUTIONS },
-      { title: "Payroll", icon: Briefcase, href: "/payroll", page: PAGES.PAYROLL },
-      { title: "Excel Manager", icon: FileSpreadsheet, href: "/excel-manager", page: PAGES.EXCEL_MANAGER },
-      { title: "Investments", icon: PieChart, href: "/investments", page: PAGES.INVESTMENTS },
+      { title: "Platform Analytics", icon: BarChart3, href: "/platform-analytics", page: PAGES.PLATFORM_ANALYTICS },
+      { title: "Reports", icon: FileBarChart, href: "/reports", page: PAGES.REPORTS },
+      { title: "Comparative Analytics", icon: TrendingUp, href: "/comparative-analytics", page: PAGES.COMPARATIVE_ANALYTICS },
     ],
   },
   {
-    title: "Financial Control",
-    key: "finance",
+    title: "Members",
+    key: "members",
     items: [
-      { title: "Financial Dashboard", icon: DollarSign, href: "/financial-dashboard", page: PAGES.FINANCIAL_DASHBOARD },
-      { title: "Wallet Management", icon: WalletCards, href: "/wallet-management", page: PAGES.WALLET_MANAGEMENT },
-      // Payment Proofs is a tab inside Deposit Verification — both are the
-      // "confirm money that arrived" job.
-      //
-      // Still reachable because admin-side settlement work (recording a
-      // correction, verifying a proof an admin raised) has not gone away even
-      // though members can no longer *create* manual deposits or upload a
-      // proof from the app.
-      { title: "Deposit Verification", icon: BadgeDollarSign, href: "/deposit-verification", page: PAGES.DEPOSIT_VERIFICATION },
-      // MANUAL DEPOSIT DISABLED — members can no longer submit a manual
-      // deposit from the app (they pay via Paystack, which settles
-      // automatically), so the manual-deposit queue has no new inbound work.
-      // Sidebar entry hidden; the /manual-deposits route stays registered so
-      // existing bookmarks keep working. Restore this line if manual deposits
-      // come back.
-      // { title: "Manual Deposits", icon: Pencil, href: "/manual-deposits", page: PAGES.MANUAL_DEPOSITS },
-      { title: "Withdrawal Approvals", icon: ArrowDownToLine, href: "/withdrawal-management", page: PAGES.WITHDRAWAL_MANAGEMENT },
+      { title: "Members", icon: Users, href: "/members", page: PAGES.MEMBERS },
+      { title: "KYC Verification", icon: BadgeCheck, href: "/user-verification", page: PAGES.KYC_VERIFICATION },
+      { title: "Organizations", icon: Building2, href: "/organizations", page: PAGES.ORGANIZATIONS },
+      { title: "Referral Program", icon: Gift, href: "/referral-program", page: PAGES.REFERRAL_PROGRAM },
+      { title: "Terminations", icon: UserX, href: "/terminations", page: PAGES.TERMINATIONS },
+    ],
+  },
+  {
+    title: "Lending",
+    key: "lending",
+    items: [
+      { title: "Loans", icon: CreditCard, href: "/loans", page: PAGES.LOANS },
+      { title: "Loan Approval Matrix", icon: Shield, href: "/loan-approval-matrix", page: PAGES.LOAN_APPROVAL_MATRIX },
       { title: "Guarantor System", icon: HandshakeIcon, href: "/guarantor-system", page: PAGES.GUARANTOR_SYSTEM },
       { title: "Loan Rollovers", icon: RefreshCw, href: "/rollover-management", page: PAGES.LOANS },
       { title: "Interest Rates", icon: Percent, href: "/interest-rates", page: PAGES.INTEREST_RATES },
-      { title: "Fee Management", icon: Receipt, href: "/fee-management", page: PAGES.FEE_MANAGEMENT },
-      { title: "Reconciliation", icon: RefreshCw, href: "/reconciliation", page: PAGES.RECONCILIATION },
-      { title: "Financial Ledger", icon: BookOpen, href: "/financial-ledger", page: PAGES.FINANCIAL_LEDGER },
-      // The spreadsheet is a tab inside Accounting; the route still resolves so
-      // existing bookmarks keep working.
-      { title: "Accounting", icon: BarChart3, href: "/accounting", page: PAGES.ACCOUNTING },
-    ],
-  },
-  {
-    title: "Operations",
-    key: "ops",
-    items: [
-      { title: "System Settings", icon: Server, href: "/system-settings", page: PAGES.SYSTEM_SETTINGS },
-      { title: "Reports", icon: FileBarChart, href: "/reports", page: PAGES.REPORTS },
-      { title: "Comparative Analytics", icon: TrendingUp, href: "/comparative-analytics", page: PAGES.COMPARATIVE_ANALYTICS },
-      { title: "Organization Finance", icon: Building2, href: "/organization-finance", page: PAGES.ORGANIZATION_FINANCE },
-      { title: "Bulk Operations", icon: Upload, href: "/bulk-operations", page: PAGES.BULK_OPERATIONS },
-      { title: "Session Management", icon: Monitor, href: "/sessions", page: PAGES.SESSION_MANAGEMENT },
-      { title: "Login History", icon: History, href: "/login-history", page: PAGES.LOGIN_HISTORY },
-      { title: "Documents", icon: FolderLock, href: "/documents", page: PAGES.DOCUMENTS },
-      { title: "Backups", icon: DatabaseBackup, href: "/backups", page: PAGES.BACKUPS },
-    ],
-  },
-  {
-    title: "Platform Control",
-    key: "platform",
-    items: [
-      { title: "Mobile App Controls", icon: Smartphone, href: "/mobile-feature-controls", page: PAGES.MOBILE_FEATURE_CONTROLS },
-      { title: "Role Management", icon: UserCog, href: "/role-management", page: PAGES.ROLE_MANAGEMENT },
-      { title: "Security & Access", icon: Lock, href: "/security-access", page: PAGES.SECURITY_ACCESS },
-      { title: "Organizations", icon: Building2, href: "/organizations", page: PAGES.ORGANIZATIONS },
-      { title: "Referral Program", icon: Gift, href: "/referral-program", page: PAGES.REFERRAL_PROGRAM },
-      { title: "Loan Approval Matrix", icon: Shield, href: "/loan-approval-matrix", page: PAGES.LOAN_APPROVAL_MATRIX },
-      { title: "Notification Templates", icon: Mail, href: "/notification-templates", page: PAGES.NOTIFICATION_TEMPLATES },
-      { title: "Emergency Controls", icon: ShieldAlert, href: "/emergency-controls", page: PAGES.EMERGENCY_CONTROLS },
-    ],
-  },
-  {
-    title: "Analytics & Risk",
-    key: "analytics",
-    items: [
-      { title: "Platform Analytics", icon: BarChart3, href: "/platform-analytics", page: PAGES.PLATFORM_ANALYTICS },
-      { title: "Fraud Detection", icon: AlertTriangle, href: "/fraud-detection", page: PAGES.FRAUD_DETECTION },
       { title: "Risk Scoring", icon: Activity, href: "/risk-scoring", page: PAGES.RISK_SCORING },
-      { title: "KYC Verification", icon: BadgeCheck, href: "/user-verification", page: PAGES.KYC_VERIFICATION },
     ],
   },
   {
-    title: "Governance",
-    key: "governance",
+    title: "Money Movement",
+    key: "money",
     items: [
+      { title: "Contributions", icon: Wallet, href: "/contributions", page: PAGES.CONTRIBUTIONS },
+      { title: "Deposit Verification", icon: BadgeDollarSign, href: "/deposit-verification", page: PAGES.DEPOSIT_VERIFICATION },
+      { title: "Withdrawal Approvals", icon: ArrowDownToLine, href: "/withdrawal-management", page: PAGES.WITHDRAWAL_MANAGEMENT },
+      { title: "Wallet Management", icon: WalletCards, href: "/wallet-management", page: PAGES.WALLET_MANAGEMENT },
+      { title: "Investments", icon: PieChart, href: "/investments", page: PAGES.INVESTMENTS },
+      { title: "Payroll", icon: Briefcase, href: "/payroll", page: PAGES.PAYROLL },
+      { title: "Excel Manager", icon: FileSpreadsheet, href: "/excel-manager", page: PAGES.EXCEL_MANAGER },
+    ],
+  },
+  {
+    title: "Accounting",
+    key: "accounting",
+    items: [
+      { title: "Financial Dashboard", icon: DollarSign, href: "/financial-dashboard", page: PAGES.FINANCIAL_DASHBOARD },
+      { title: "Financial Ledger", icon: BookOpen, href: "/financial-ledger", page: PAGES.FINANCIAL_LEDGER },
+      { title: "Accounting", icon: Calculator, href: "/accounting", page: PAGES.ACCOUNTING },
+      { title: "Reconciliation", icon: ArrowLeftRight, href: "/reconciliation", page: PAGES.RECONCILIATION },
+      { title: "Fee Management", icon: Receipt, href: "/fee-management", page: PAGES.FEE_MANAGEMENT },
+      { title: "Organization Finance", icon: Landmark, href: "/organization-finance", page: PAGES.ORGANIZATION_FINANCE },
+    ],
+  },
+  {
+    title: "Risk & Compliance",
+    key: "risk",
+    items: [
+      { title: "Fraud Detection", icon: AlertTriangle, href: "/fraud-detection", page: PAGES.FRAUD_DETECTION },
       { title: "Compliance", icon: ShieldCheck, href: "/compliance", page: PAGES.COMPLIANCE },
       { title: "Approval Center", icon: ClipboardCheck, href: "/approval-center", page: PAGES.APPROVAL_CENTER },
       { title: "Audit Logs", icon: FileText, href: "/audit-logs", page: PAGES.AUDIT_LOGS },
     ],
   },
   {
-    title: "Support",
-    key: "support",
+    title: "Communication",
+    key: "comms",
     items: [
       { title: "Notifications", icon: Bell, href: "/notifications", page: PAGES.NOTIFICATIONS },
+      { title: "Notification Templates", icon: Mail, href: "/notification-templates", page: PAGES.NOTIFICATION_TEMPLATES },
       { title: "Support Tickets", icon: LifeBuoy, href: "/support", page: PAGES.SUPPORT_TICKETS },
       { title: "Website Enquiries", icon: MailQuestion, href: "/enquiries", page: PAGES.WEBSITE_ENQUIRIES },
-      { title: "Terminations", icon: UserX, href: "/terminations", page: PAGES.TERMINATIONS },
+    ],
+  },
+  {
+    title: "System",
+    key: "system",
+    items: [
+      { title: "System Settings", icon: Server, href: "/system-settings", page: PAGES.SYSTEM_SETTINGS },
+      { title: "Mobile App Controls", icon: Smartphone, href: "/mobile-feature-controls", page: PAGES.MOBILE_FEATURE_CONTROLS },
+      { title: "Role Management", icon: UserCog, href: "/role-management", page: PAGES.ROLE_MANAGEMENT },
+      { title: "Security & Access", icon: Lock, href: "/security-access", page: PAGES.SECURITY_ACCESS },
+      { title: "Emergency Controls", icon: ShieldAlert, href: "/emergency-controls", page: PAGES.EMERGENCY_CONTROLS },
+      { title: "Bulk Operations", icon: Upload, href: "/bulk-operations", page: PAGES.BULK_OPERATIONS },
+      { title: "Session Management", icon: Monitor, href: "/sessions", page: PAGES.SESSION_MANAGEMENT },
+      { title: "Login History", icon: History, href: "/login-history", page: PAGES.LOGIN_HISTORY },
+      { title: "Documents", icon: FolderLock, href: "/documents", page: PAGES.DOCUMENTS },
+      { title: "Backups", icon: DatabaseBackup, href: "/backups", page: PAGES.BACKUPS },
     ],
   },
   {
@@ -174,6 +165,7 @@ const sidebarGroupsBase = [
     ],
   },
 ];
+
 
 interface SidebarItem {
   title: string;
