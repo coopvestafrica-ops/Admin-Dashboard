@@ -8,6 +8,13 @@ export type BodyType<T> = T;
 
 export type AuthTokenGetter = () => Promise<string | null> | string | null;
 
+/**
+ * Called when a request fails with 401 `SESSION_REPLACED`. It should re-claim
+ * the backend session and return `true` on success, after which the request is
+ * retried once with a freshly-fetched token.
+ */
+export type SessionReclaimer = () => Promise<boolean> | boolean;
+
 const NO_BODY_STATUS = new Set([204, 205, 304]);
 const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
 
@@ -18,6 +25,7 @@ const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
 let _baseUrl: string | null = null;
 let _authTokenGetter: AuthTokenGetter | null = null;
 let _serviceToken: string | null = null;
+let _sessionReclaimer: SessionReclaimer | null = null;
 
 /**
  * Set a base URL that is prepended to every relative request URL
@@ -52,6 +60,16 @@ export function setAuthTokenGetter(getter: AuthTokenGetter | null): void {
  */
 export function setServiceToken(token: string | null): void {
   _serviceToken = token;
+}
+
+/**
+ * Register a hook that re-claims the backend session when a request is rejected
+ * with `401 SESSION_REPLACED` (the backend allows one active session per
+ * profile). `customFetch` calls it once and retries the request. Pass `null` to
+ * disable the behaviour.
+ */
+export function setSessionReclaimer(reclaimer: SessionReclaimer | null): void {
+  _sessionReclaimer = reclaimer;
 }
 
 function isRequest(input: RequestInfo | URL): input is Request {
@@ -361,26 +379,57 @@ export async function customFetch<T = unknown>(
 
   // Attach bearer token when an auth getter is configured and no
   // Authorization header has been explicitly provided.
-  if (_authTokenGetter && !headers.has("authorization")) {
-    const token = await _authTokenGetter();
-    if (token) {
-      headers.set("authorization", `Bearer ${token}`);
+  const attachAuth = async (h: Headers): Promise<void> => {
+    if (_authTokenGetter && !h.has("authorization")) {
+      const token = await _authTokenGetter();
+      if (token) {
+        h.set("authorization", `Bearer ${token}`);
+      }
     }
-  }
 
-  // Attach service token for admin API endpoints
-  if (_serviceToken && !headers.has("x-service-token")) {
-    headers.set("x-service-token", _serviceToken);
-  }
+    // Attach service token for admin API endpoints
+    if (_serviceToken && !h.has("x-service-token")) {
+      h.set("x-service-token", _serviceToken);
+    }
+  };
+
+  await attachAuth(headers);
 
   const requestInfo = { method, url: resolveUrl(input) };
   
 
-  const response = await fetch(input, { ...init, method, headers });
+  let response = await fetch(input, { ...init, method, headers });
 
   if (!response.ok) {
-    const errorData = await parseErrorBody(response, method);
-    throw new ApiError(response, errorData, requestInfo);
+    let errorData = await parseErrorBody(response, method);
+
+    // The backend allows one active session per profile; a session id that no
+    // longer matches `active_session_id` yields 401 SESSION_REPLACED. Re-claim
+    // the session once and retry so a page whose session was replaced (e.g.
+    // signed in on another device) self-heals instead of erroring.
+    if (
+      response.status === 401 &&
+      _sessionReclaimer &&
+      typeof errorData === "object" &&
+      errorData !== null &&
+      (errorData as Record<string, unknown>).code === "SESSION_REPLACED"
+    ) {
+      const reclaimed = await _sessionReclaimer();
+      if (reclaimed) {
+        const retryHeaders = mergeHeaders(headers);
+        // Drop the stale bearer so attachAuth fetches a fresh one.
+        if (_authTokenGetter) retryHeaders.delete("authorization");
+        await attachAuth(retryHeaders);
+        response = await fetch(input, { ...init, method, headers: retryHeaders });
+        if (!response.ok) {
+          errorData = await parseErrorBody(response, method);
+        }
+      }
+    }
+
+    if (!response.ok) {
+      throw new ApiError(response, errorData, requestInfo);
+    }
   }
 
   return (await parseSuccessBody(response, responseType, requestInfo)) as T;
