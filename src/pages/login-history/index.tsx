@@ -140,7 +140,7 @@ export default function LoginHistory() {
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-green-100 rounded-lg">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
+                  <CheckCircle className="h-6 w-6 text-green-700" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Successful (7d)</p>
@@ -154,7 +154,7 @@ export default function LoginHistory() {
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-red-100 rounded-lg">
-                  <XCircle className="h-6 w-6 text-red-600" />
+                  <XCircle className="h-6 w-6 text-red-700" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Failed (7d)</p>
@@ -168,7 +168,7 @@ export default function LoginHistory() {
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-amber-100 rounded-lg">
-                  <AlertTriangle className="h-6 w-6 text-amber-600" />
+                  <AlertTriangle className="h-6 w-6 text-amber-700" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Suspicious (24h)</p>
@@ -233,9 +233,9 @@ export default function LoginHistory() {
                       <div key={login.id} className="flex items-center gap-4 p-4 border rounded-lg">
                         <div className={`p-3 rounded-lg ${login.success ? "bg-green-100" : "bg-red-100"}`}>
                           {login.success ? (
-                            <CheckCircle className="h-5 w-5 text-green-600" />
+                            <CheckCircle className="h-5 w-5 text-green-700" />
                           ) : (
-                            <XCircle className="h-5 w-5 text-red-600" />
+                            <XCircle className="h-5 w-5 text-red-700" />
                           )}
                         </div>
                         <div className="flex-1">
@@ -263,7 +263,7 @@ export default function LoginHistory() {
                         <div className="text-right">
                           <p className="text-sm">{formatTimeAgo(login.created_at)}</p>
                           {login.failure_reason && (
-                            <p className="text-xs text-red-600">{login.failure_reason}</p>
+                            <p className="text-xs text-red-700">{login.failure_reason}</p>
                           )}
                         </div>
                       </div>
@@ -316,7 +316,7 @@ export default function LoginHistory() {
                           {suspicious.flaggedIPs.map((item: any, i: number) => (
                             <div key={i} className="flex items-center justify-between p-3 border rounded-lg bg-red-50">
                               <div className="flex items-center gap-3">
-                                <Ban className="h-5 w-5 text-red-600" />
+                                <Ban className="h-5 w-5 text-red-700" />
                                 <div>
                                   <p className="font-medium">{item.ip}</p>
                                   <p className="text-sm text-muted-foreground">{item.count} failed attempts</p>

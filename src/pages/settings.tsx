@@ -275,6 +275,7 @@ export default function Settings() {
                   <Switch
                     checked={salaryDeduction.enabled}
                     onCheckedChange={saveGlobalToggle}
+                    aria-label="Enable global salary deduction"
                   />
                 </div>
               </div>
@@ -368,12 +369,14 @@ export default function Settings() {
                           onCheckedChange={() => toggleOrgDeduction(org)}
                           disabled={!salaryDeduction.enabled}
                           title={!salaryDeduction.enabled ? "Enable global salary deduction first" : undefined}
+                          aria-label={`Toggle salary deduction for ${org.name}`}
                         />
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-destructive hover:text-destructive"
                           onClick={() => removeOrganization(org.id)}
+                          aria-label={`Remove ${org.name}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

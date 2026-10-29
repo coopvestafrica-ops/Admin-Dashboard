@@ -29,7 +29,7 @@ const priorityConfig: Record<string, { label: string; className: string; icon: R
   low: { label: "Low", className: "text-gray-500", icon: Clock },
   medium: { label: "Medium", className: "text-blue-600", icon: AlertTriangle },
   high: { label: "High", className: "text-orange-600", icon: AlertTriangle },
-  urgent: { label: "Urgent", className: "text-red-600 font-semibold", icon: AlertTriangle },
+  urgent: { label: "Urgent", className: "text-red-700 font-semibold", icon: AlertTriangle },
 };
 
 const categoryConfig: Record<string, string> = {
@@ -241,10 +241,10 @@ export default function Support() {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: "Open", count: stats.open, icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
+            { label: "Open", count: stats.open, icon: Clock, color: "text-amber-700", bg: "bg-amber-50" },
             { label: "In Progress", count: stats.inProgress, icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50" },
-            { label: "Resolved", count: stats.resolved, icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
-            { label: "Urgent", count: stats.urgent, icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50" },
+            { label: "Resolved", count: stats.resolved, icon: CheckCircle, color: "text-emerald-700", bg: "bg-emerald-50" },
+            { label: "Urgent", count: stats.urgent, icon: AlertTriangle, color: "text-red-700", bg: "bg-red-50" },
           ].map(({ label, count, icon: Icon, color, bg }) => (
             <Card key={label} className={bg}>
               <CardContent className="p-4 flex items-center gap-3">

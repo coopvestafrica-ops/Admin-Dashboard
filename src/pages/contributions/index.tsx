@@ -78,7 +78,11 @@ export default function Contributions() {
   const rejectDepositMutation = useRejectDeposit();
 
   const contributions = Array.isArray(data?.data) ? data.data : [];
-  const trendsData = Array.isArray(trendsRaw) ? trendsRaw : [];
+  // The monthly endpoint returns { month, amount, count }; map `amount` onto
+  // `value` so the trend charts/table (which read `value`) show real figures.
+  const trendsData = Array.isArray(trendsRaw)
+    ? trendsRaw.map((t) => ({ ...t, value: Number(t.value ?? t.amount ?? 0), amount: Number(t.amount ?? t.value ?? 0) }))
+    : [];
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / 20);
 
@@ -232,7 +236,7 @@ export default function Contributions() {
         <StatGrid columns={4}>
           {[
             { label: "Total Collected", value: summary?.totalCollected ?? 0, format: "currency" as const, icon: Wallet, color: "text-primary" },
-            { label: "This Month", value: summary?.thisMonth ?? 0, format: "currency" as const, icon: TrendingUp, color: "text-emerald-600" },
+            { label: "This Month", value: summary?.thisMonth ?? 0, format: "currency" as const, icon: TrendingUp, color: "text-emerald-700" },
             { label: "Missed Contributions", value: summary?.overdue ?? 0, format: "number" as const, icon: AlertCircle, color: "text-red-500" },
             { label: "Pending Approval", value: summary?.pending ?? 0, format: "number" as const, icon: RefreshCw, color: "text-amber-500" },
           ].map(s => (
@@ -334,7 +338,7 @@ export default function Contributions() {
                                       </Button>
                                     )}
                                     {(c.status === "paid" || c.status === "pending") && (
-                                      <Button size="sm" variant="outline" className="text-red-600 border-red-300 hover:bg-red-50"
+                                      <Button size="sm" variant="outline" className="text-red-700 border-red-300 hover:bg-red-50"
                                         onClick={() => handleAction("reverse", c.id, c.memberName)}>
                                         <XCircle className="mr-1 h-3 w-3" /> Reverse
                                       </Button>
@@ -382,7 +386,7 @@ export default function Contributions() {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                      <YAxis tickFormatter={(v) => `₦${(v / 1000000).toFixed(0)}M`} tick={{ fontSize: 11 }} />
+                      <YAxis tickFormatter={(v) => (v >= 1000000 ? `₦${(v / 1000000).toFixed(1)}M` : `₦${(v / 1000).toFixed(0)}k`)} tick={{ fontSize: 11 }} />
                       <Tooltip formatter={(v: number) => formatCurrency(v)} />
                       <Area type="monotone" dataKey="collected" stroke="#2d6a4f" fill="url(#colorCollected)" name="Collected" />
                     </AreaChart>
@@ -397,7 +401,7 @@ export default function Contributions() {
                     <BarChart data={(trendsData ?? []).map((t) => ({ month: t.month, collected: t.value, missed: 0 }))}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                      <YAxis tickFormatter={(v) => `₦${(v / 1000000).toFixed(0)}M`} tick={{ fontSize: 11 }} />
+                      <YAxis tickFormatter={(v) => (v >= 1000000 ? `₦${(v / 1000000).toFixed(1)}M` : `₦${(v / 1000).toFixed(0)}k`)} tick={{ fontSize: 11 }} />
                       <Tooltip formatter={(v: number) => formatCurrency(v)} />
                       <Legend />
                       <Bar dataKey="collected" fill="#40916c" name="Collected" radius={[4, 4, 0, 0]} />
@@ -429,9 +433,9 @@ export default function Contributions() {
                         <tr key={transformed.month} className="hover:bg-muted/30">
                           <td className="px-4 py-2.5">{transformed.month}</td>
                           <td className="px-4 py-2.5 text-right font-medium text-emerald-700">{formatCurrency(transformed.collected)}</td>
-                          <td className="px-4 py-2.5 text-right text-red-600">{formatCurrency(transformed.missed)}</td>
+                          <td className="px-4 py-2.5 text-right text-red-700">{formatCurrency(transformed.missed)}</td>
                           <td className="px-4 py-2.5 text-right">
-                            <span className={`font-semibold ${Number(rate) >= 95 ? "text-emerald-600" : Number(rate) >= 85 ? "text-amber-600" : "text-red-600"}`}>
+                            <span className={`font-semibold ${Number(rate) >= 95 ? "text-emerald-700" : Number(rate) >= 85 ? "text-amber-700" : "text-red-700"}`}>
                               {rate}%
                             </span>
                           </td>
@@ -454,7 +458,7 @@ export default function Contributions() {
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
               {[
                 { label: "Pending", value: depositSummary?.pendingCount, amount: depositSummary?.pendingAmount, icon: Clock, color: "text-amber-500" },
-                { label: "Verified", value: depositSummary?.verifiedCount, amount: depositSummary?.verifiedAmount, icon: CheckCircle, color: "text-emerald-600" },
+                { label: "Verified", value: depositSummary?.verifiedCount, amount: depositSummary?.verifiedAmount, icon: CheckCircle, color: "text-emerald-700" },
                 { label: "Rejected", value: depositSummary?.rejectedCount, amount: null, icon: XCircle, color: "text-red-500" },
                 { label: "Total", value: depositSummary?.totalCount, amount: null, icon: Banknote, color: "text-primary" },
               ].map(s => (
@@ -570,7 +574,7 @@ export default function Contributions() {
                                       <Button 
                                         variant="ghost" 
                                         size="sm" 
-                                        className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                        className="text-emerald-700 hover:text-emerald-700 hover:bg-emerald-50"
                                         onClick={() => setDialog({ type: "verifyDeposit", depositId: deposit.id, memberName: deposit.memberName })}
                                       >
                                         <Check className="h-4 w-4" />
@@ -578,7 +582,7 @@ export default function Contributions() {
                                       <Button 
                                         variant="ghost" 
                                         size="sm" 
-                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        className="text-red-700 hover:text-red-700 hover:bg-red-50"
                                         onClick={() => setDialog({ type: "rejectDeposit", depositId: deposit.id, memberName: deposit.memberName })}
                                       >
                                         <X className="h-4 w-4" />
@@ -804,7 +808,7 @@ export default function Contributions() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-emerald-600" /> Verify Deposit
+              <CheckCircle className="h-5 w-5 text-emerald-700" /> Verify Deposit
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
@@ -848,7 +852,7 @@ export default function Contributions() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <XCircle className="h-5 w-5 text-red-600" /> Reject Deposit
+              <XCircle className="h-5 w-5 text-red-700" /> Reject Deposit
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">

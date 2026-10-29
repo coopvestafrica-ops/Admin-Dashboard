@@ -145,9 +145,9 @@ export function DirectMessageComposer() {
   const canSend = Boolean(selected) && title.trim().length > 0 && message.trim().length > 0;
 
   const statusTone = useMemo(() => ({
-    active: "text-emerald-600",
+    active: "text-emerald-700",
     inactive: "text-muted-foreground",
-    flagged: "text-red-600",
+    flagged: "text-red-700",
   } as Record<string, string>), []);
 
   return (
@@ -205,7 +205,7 @@ export function DirectMessageComposer() {
                       </p>
                     )}
                     {!m.isActive && (
-                      <p className="text-xs mt-0.5 text-amber-600">Inactive account</p>
+                      <p className="text-xs mt-0.5 text-amber-700">Inactive account</p>
                     )}
                   </button>
                 );
@@ -346,7 +346,7 @@ export function DirectMessageComposer() {
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm font-medium">{m.title}</p>
                           {m.isRead ? (
-                            <span className="text-xs text-emerald-600 flex items-center gap-1">
+                            <span className="text-xs text-emerald-700 flex items-center gap-1">
                               <CheckCircle2 className="h-3 w-3" />Read
                             </span>
                           ) : (
@@ -354,7 +354,7 @@ export function DirectMessageComposer() {
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">{m.message}</p>
-                        <p className="text-xs text-muted-foreground/70 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {new Date(m.createdAt).toLocaleString()}
                           {m.sentBy && ` · by ${m.sentBy}`}
                         </p>

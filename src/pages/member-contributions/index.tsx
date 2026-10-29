@@ -527,7 +527,7 @@ official confirmation of your contribution.`.trim();
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                      <Wallet className="h-5 w-5 text-emerald-600" />
+                      <Wallet className="h-5 w-5 text-emerald-700" />
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Savings Balance</p>
@@ -555,7 +555,7 @@ official confirmation of your contribution.`.trim();
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                      <AlertTriangle className="h-5 w-5 text-amber-600" />
+                      <AlertTriangle className="h-5 w-5 text-amber-700" />
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Missed Contributions</p>
@@ -643,7 +643,7 @@ official confirmation of your contribution.`.trim();
                                     <FileText className="h-4 w-4" />
                                   </Button>
                                   {userRole === "super_admin" && (
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600" onClick={() => openDeleteDialog(contrib)} title="Delete">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-700" onClick={() => openDeleteDialog(contrib)} title="Delete">
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
                                   )}
@@ -786,7 +786,7 @@ official confirmation of your contribution.`.trim();
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
+            <DialogTitle className="flex items-center gap-2 text-red-700">
               <Shield className="h-5 w-5" />
               Delete Contribution (Super Admin Only)
             </DialogTitle>

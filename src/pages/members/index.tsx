@@ -182,7 +182,7 @@ export default function Members() {
   // Safely extract stats with fallbacks - ensure always array of StatCard
   const defaultStats: StatCard[] = [
     { label: "Total Users", value: 0, icon: Users, color: "text-primary", testid: "total" },
-    { label: "Active Users", value: 0, icon: UserCheck, color: "text-emerald-600", testid: "active" },
+    { label: "Active Users", value: 0, icon: UserCheck, color: "text-emerald-700", testid: "active" },
     { label: "Suspended", value: 0, icon: UserX, color: "text-orange-500", testid: "suspended" },
     { label: "Pending Verification", value: 0, icon: Clock, color: "text-amber-500", testid: "pending" },
     { label: "Loan Defaulters", value: 0, icon: AlertTriangle, color: "text-red-500", testid: "defaulters" },
@@ -559,7 +559,7 @@ export default function Members() {
                                   {member.profilePicture ? (
                                     <AvatarImage src={member.profilePicture} alt={`${member.firstName} ${member.lastName}`} />
                                   ) : null}
-                                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+                                  <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
                                     {((member.firstName?.[0] || '') + (member.lastName?.[0] || '')).toUpperCase() || '??'}
                                   </AvatarFallback>
                                 </Avatar>
@@ -607,7 +607,7 @@ export default function Members() {
                             <td className="px-4 py-3 text-center">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8" data-testid={`actions-${member.id}`}>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" data-testid={`actions-${member.id}`} aria-label={`Actions for ${member.firstName} ${member.lastName}`}>
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
@@ -618,7 +618,7 @@ export default function Members() {
                                   <DropdownMenuSeparator />
                                   {member.status !== "active" && (
                                     <DropdownMenuItem onClick={() => openAction(member.id, "activate", `${member.firstName} ${member.lastName}`)}>
-                                      <UserCheck className="mr-2 h-4 w-4 text-emerald-600" /> Activate Account
+                                      <UserCheck className="mr-2 h-4 w-4 text-emerald-700" /> Activate Account
                                     </DropdownMenuItem>
                                   )}
                                   {member.status === "active" && (
@@ -634,10 +634,10 @@ export default function Members() {
                                     <KeyRound className="mr-2 h-4 w-4" /> Reset Password
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => openAction(member.id, "verify", `${member.firstName} ${member.lastName}`)}>
-                                    <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Verify User
+                                    <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-700" /> Verify User
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem onClick={() => openAction(member.id, "restrict_loans", `${member.firstName} ${member.lastName}`)} className="text-red-600">
+                                  <DropdownMenuItem onClick={() => openAction(member.id, "restrict_loans", `${member.firstName} ${member.lastName}`)} className="text-red-700">
                                     <CreditCard className="mr-2 h-4 w-4" /> Restrict Loans
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => openAction(member.id, "change_contribution", `${member.firstName} ${member.lastName}`)}>
@@ -645,11 +645,11 @@ export default function Members() {
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   {member.role === 'admin' ? (
-                                    <DropdownMenuItem onClick={() => openAction(member.id, "remove_admin", `${member.firstName} ${member.lastName}`)} className="text-amber-600">
+                                    <DropdownMenuItem onClick={() => openAction(member.id, "remove_admin", `${member.firstName} ${member.lastName}`)} className="text-amber-700">
                                       <Shield className="mr-2 h-4 w-4" /> Remove Admin
                                     </DropdownMenuItem>
                                   ) : member.role !== 'super_admin' ? (
-                                    <DropdownMenuItem onClick={() => openAction(member.id, "make_admin", `${member.firstName} ${member.lastName}`)} className="text-amber-600">
+                                    <DropdownMenuItem onClick={() => openAction(member.id, "make_admin", `${member.firstName} ${member.lastName}`)} className="text-amber-700">
                                       <Crown className="mr-2 h-4 w-4" /> Make Admin
                                     </DropdownMenuItem>
                                   ) : null}
@@ -664,7 +664,7 @@ export default function Members() {
                                     </DropdownMenuItem>
                                   )}
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem onClick={() => openAction(member.id, "delete", `${member.firstName} ${member.lastName}`)} className="text-red-600 font-semibold">
+                                  <DropdownMenuItem onClick={() => openAction(member.id, "delete", `${member.firstName} ${member.lastName}`)} className="text-red-700 font-semibold">
                                     <Trash2 className="mr-2 h-4 w-4" /> Delete Member
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -820,7 +820,7 @@ export default function Members() {
       <Dialog open={deleteConfirmDialog.open} onOpenChange={(o) => { if (!o) closeDeleteConfirmDialog(); }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
+            <DialogTitle className="flex items-center gap-2 text-red-700">
               <ShieldCheck className="h-5 w-5" />
               {deleteConfirmDialog.step === 1 && "Super Admin Deletion - Warning"}
               {deleteConfirmDialog.step === 2 && "Enter Confirmation Code"}
@@ -833,7 +833,7 @@ export default function Members() {
               <div className="space-y-4">
                 <div className="rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 p-4">
                   <div className="flex gap-3">
-                    <AlertOctagon className="h-6 w-6 text-red-600 flex-shrink-0" />
+                    <AlertOctagon className="h-6 w-6 text-red-700 flex-shrink-0" />
                     <div>
                       <h4 className="font-semibold text-red-800 dark:text-red-400">Permanent Deletion Warning</h4>
                       <p className="text-sm text-red-700 dark:text-red-300 mt-1">
@@ -871,7 +871,7 @@ export default function Members() {
                 
                 <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 p-3">
                   <div className="flex gap-2">
-                    <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0" />
+                    <AlertTriangle className="h-5 w-5 text-amber-700 flex-shrink-0" />
                     <p className="text-sm text-amber-800 dark:text-amber-300">
                       This action is <strong>IRREVERSIBLE</strong>. The user will need to create a completely new account if they wish to rejoin.
                     </p>
@@ -941,6 +941,7 @@ export default function Members() {
                           showPassword: !prev.showPassword 
                         }))}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={deleteConfirmDialog.showPassword ? "Hide password" : "Show password"}
                       >
                         {deleteConfirmDialog.showPassword ? (
                           <EyeOff className="h-4 w-4" />

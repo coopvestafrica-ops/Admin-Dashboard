@@ -46,7 +46,7 @@ export function useGetRollovers(params?: { page?: number; limit?: number; status
   
   return useQuery({
     queryKey: ["rollovers", params],
-    queryFn: () => api.get<RolloversListResponse>(`/rollovers?${queryParams}`),
+    queryFn: () => api.get<RolloversListResponse>(`/admin/rollovers?${queryParams}`),
   });
 }
 
@@ -68,7 +68,7 @@ export function useApproveRollover() {
       requestedAmount?: number;
       tenureMonths?: number;
     }) =>
-      api.post(`/rollovers/${rolloverId}/approve`, {
+      api.post(`/admin/rollovers/${rolloverId}/approve`, {
         notes,
         requestedAmount,
         tenureMonths,
@@ -84,7 +84,7 @@ export function useRejectRollover() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ rolloverId, reason }: { rolloverId: string; reason: string }) =>
-      api.post(`/rollovers/${rolloverId}/reject`, { reason }),
+      api.post(`/admin/rollovers/${rolloverId}/reject`, { reason }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rollovers"] });
     },
@@ -96,7 +96,7 @@ export function useGetRolloverStats() {
   return useQuery({
     queryKey: ["rollover-stats"],
     queryFn: async () => {
-      const data = await api.get<RolloversListResponse>("/rollovers?limit=1000");
+      const data = await api.get<RolloversListResponse>("/admin/rollovers?limit=1000");
       const rollovers = data.data || [];
       return {
         total: rollovers.length,

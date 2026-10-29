@@ -325,6 +325,7 @@ export default function OrganizationFinance() {
                   value={periodMonth}
                   onChange={(e) => setPeriodMonth(e.target.value)}
                   data-testid="input-org-period"
+                  aria-label="Period month"
                 />
                 <Button onClick={() => setAppliedPeriod(periodMonth)} variant="outline">
                   Apply
@@ -511,7 +512,7 @@ export default function OrganizationFinance() {
                               )}
                               {r.memberCountDrift !== 0 && (
                                 <span
-                                  className="text-xs text-amber-600"
+                                  className="text-xs text-amber-700"
                                   title={`Stored member_count is ${r.storedMemberCount}; actual is ${r.members}`}
                                 >
                                   count drift
@@ -526,7 +527,7 @@ export default function OrganizationFinance() {
                           <TableCell className="text-right tabular-nums">
                             {r.members}
                             {r.lapsedMembers > 0 && (
-                              <span className="text-xs text-amber-600 block">{r.lapsedMembers} lapsed</span>
+                              <span className="text-xs text-amber-700 block">{r.lapsedMembers} lapsed</span>
                             )}
                           </TableCell>
                           <TableCell className="text-right tabular-nums">{money(r.expectedMonthly)}</TableCell>
@@ -538,7 +539,7 @@ export default function OrganizationFinance() {
                           <TableCell className="text-right tabular-nums">
                             {r.activeLoans}
                             {r.overdueLoans > 0 && (
-                              <span className="text-xs text-red-600 block">{r.overdueLoans} overdue</span>
+                              <span className="text-xs text-red-700 block">{r.overdueLoans} overdue</span>
                             )}
                           </TableCell>
                         </TableRow>

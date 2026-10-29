@@ -279,7 +279,7 @@ export function PaymentProofs({ embedded = false }: { embedded?: boolean } = {})
             title="Pending"
             value={summary?.pending ?? 0}
             sub={`${summary?.pending_today ?? 0} today`}
-            icon={<Clock className="h-5 w-5 text-amber-600" />}
+            icon={<Clock className="h-5 w-5 text-amber-700" />}
             className="border-amber-200"
           />
           <SummaryCard
@@ -292,14 +292,14 @@ export function PaymentProofs({ embedded = false }: { embedded?: boolean } = {})
             title="Approved"
             value={summary?.approved ?? 0}
             sub={`${summary?.approved_today ?? 0} today`}
-            icon={<CheckCircle2 className="h-5 w-5 text-emerald-600" />}
+            icon={<CheckCircle2 className="h-5 w-5 text-emerald-700" />}
             className="border-emerald-200"
           />
           <SummaryCard
             title="Approved Amount"
             value={formatCurrency(summary?.total_approved_amount ?? 0)}
             sub={`${formatCurrency(summary?.today_approved_amount ?? 0)} today`}
-            icon={<Banknote className="h-5 w-5 text-green-600" />}
+            icon={<Banknote className="h-5 w-5 text-green-700" />}
             className="border-green-200"
           />
         </div>
@@ -318,7 +318,7 @@ export function PaymentProofs({ embedded = false }: { embedded?: boolean } = {})
                     onChange={(e) => setSearchInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && runSearch()}
                   />
-                  <Button onClick={runSearch} variant="secondary">
+                  <Button onClick={runSearch} variant="secondary" aria-label="Search">
                     <Search className="h-4 w-4" />
                   </Button>
                 </div>
@@ -377,7 +377,7 @@ export function PaymentProofs({ embedded = false }: { embedded?: boolean } = {})
             </CardTitle>
             <div className="flex items-center gap-2">
               {supabase && (
-                <div className="flex items-center gap-1.5 text-xs text-emerald-600">
+                <div className="flex items-center gap-1.5 text-xs text-emerald-700">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />

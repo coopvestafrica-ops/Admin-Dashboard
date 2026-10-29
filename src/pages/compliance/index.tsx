@@ -89,10 +89,10 @@ export default function Compliance() {
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[
-            { label: "Pending", value: summary?.pending, icon: Clock, color: "text-amber-600" },
+            { label: "Pending", value: summary?.pending, icon: Clock, color: "text-amber-700" },
             { label: "Under Review", value: summary?.totalThisMonth, icon: ShieldCheck, color: "text-blue-600" },
-            { label: "Approved", value: summary?.approved, icon: CheckCircle, color: "text-emerald-600" },
-            { label: "Rejected", value: summary?.rejected, icon: ShieldX, color: "text-red-600" },
+            { label: "Approved", value: summary?.approved, icon: CheckCircle, color: "text-emerald-700" },
+            { label: "Rejected", value: summary?.rejected, icon: ShieldX, color: "text-red-700" },
           ].map(({ label, value, icon: Icon, color }) => (
             <Card key={label}>
               <CardContent className="p-4 flex items-center gap-3">
@@ -196,7 +196,7 @@ export default function Compliance() {
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  className="h-8 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                                  className="h-8 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-700"
                                   onClick={() => handleApprove(item.id)}
                                   data-testid={`button-approve-${item.id}`}
                                 >
@@ -206,7 +206,7 @@ export default function Compliance() {
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  className="h-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                  className="h-8 text-red-700 hover:bg-red-50 hover:text-red-700"
                                   onClick={() => handleReject(item.id)}
                                   data-testid={`button-reject-${item.id}`}
                                 >

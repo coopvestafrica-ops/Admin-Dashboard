@@ -473,9 +473,9 @@ export default function MemberProfile() {
   }
 
   const riskColor =
-    activeMember.riskScore >= 80 ? "text-emerald-600" :
-    activeMember.riskScore >= 60 ? "text-amber-600" :
-    activeMember.riskScore >= 40 ? "text-orange-600" : "text-red-600";
+    activeMember.riskScore >= 80 ? "text-emerald-700" :
+    activeMember.riskScore >= 60 ? "text-amber-700" :
+    activeMember.riskScore >= 40 ? "text-orange-600" : "text-red-700";
 
   const totalInvestments = investmentsData.reduce((sum, i) => sum + Number(i.amount), 0);
   const totalLoans = loansData.reduce((sum, l) => sum + Number(l.amount), 0);
@@ -500,7 +500,7 @@ export default function MemberProfile() {
                 {activeMember.profilePicture ? (
                   <AvatarImage src={activeMember.profilePicture} alt={`${activeMember.firstName} ${activeMember.lastName}`} />
                 ) : null}
-                <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
+                <AvatarFallback className="bg-primary text-primary-foreground text-xl font-bold">
                   {(activeMember.avatarInitials || (activeMember.firstName?.[0] || '') + (activeMember.lastName?.[0] || '')).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -524,7 +524,7 @@ export default function MemberProfile() {
           </div>
           <div className="flex flex-wrap gap-2">
             {activeMember.status !== "active" && (
-              <Button size="sm" variant="outline" className="text-emerald-600" onClick={() => setActionDialog({ open: true, action: "activate" })}>
+              <Button size="sm" variant="outline" className="text-emerald-700" onClick={() => setActionDialog({ open: true, action: "activate" })}>
                 <CheckCircle2 className="h-4 w-4 mr-1" /> Activate
               </Button>
             )}
@@ -543,11 +543,11 @@ export default function MemberProfile() {
               <BadgeCheck className="h-4 w-4 mr-1" /> Verify
             </Button>
             {activeMember.role === 'admin' ? (
-              <Button size="sm" variant="outline" className="text-amber-600" onClick={() => setActionDialog({ open: true, action: "remove_admin" })}>
+              <Button size="sm" variant="outline" className="text-amber-700" onClick={() => setActionDialog({ open: true, action: "remove_admin" })}>
                 <Shield className="h-4 w-4 mr-1" /> Remove Admin
               </Button>
             ) : (
-              <Button size="sm" variant="outline" className="text-amber-600" onClick={() => setActionDialog({ open: true, action: "make_admin" })}>
+              <Button size="sm" variant="outline" className="text-amber-700" onClick={() => setActionDialog({ open: true, action: "make_admin" })}>
                 <Crown className="h-4 w-4 mr-1" /> Make Admin
               </Button>
             )}
@@ -675,11 +675,11 @@ export default function MemberProfile() {
                 <CardHeader><CardTitle className="text-base flex items-center gap-2"><DollarSign className="h-4 w-4" /> Financial Summary</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex justify-between items-center p-3 bg-emerald-50 rounded-lg">
-                    <div className="flex items-center gap-2"><PiggyBank className="h-4 w-4 text-emerald-600" /><span className="text-sm">Total Contributions</span></div>
+                    <div className="flex items-center gap-2"><PiggyBank className="h-4 w-4 text-emerald-700" /><span className="text-sm">Total Contributions</span></div>
                     <span className={`font-bold text-emerald-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(activeMember.totalContributions)}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
-                    <div className="flex items-center gap-2"><CreditCard className="h-4 w-4 text-amber-600" /><span className="text-sm">Total Loan Amount</span></div>
+                    <div className="flex items-center gap-2"><CreditCard className="h-4 w-4 text-amber-700" /><span className="text-sm">Total Loan Amount</span></div>
                     <span className={`font-bold text-amber-700 ${!showBalances && "blur-sm select-none"}`}>{formatCurrency(totalLoans)}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
@@ -717,7 +717,7 @@ export default function MemberProfile() {
                       <Button size="sm" variant="outline" onClick={() => setActionDialog({ open: true, action: "change_contribution" })}>
                         <ArrowUpDown className="h-3 w-3 mr-1" /> Method
                       </Button>
-                      <Button size="sm" variant="outline" className="text-red-600" onClick={() => setActionDialog({ open: true, action: "restrict_loans" })}>
+                      <Button size="sm" variant="outline" className="text-red-700" onClick={() => setActionDialog({ open: true, action: "restrict_loans" })}>
                         <ShieldAlert className="h-3 w-3 mr-1" /> Restrict
                       </Button>
                     </div>
@@ -798,7 +798,7 @@ export default function MemberProfile() {
                         {(obligations.fines || []).map((f: any) => (
                           <TableRow key={f.id}>
                             <TableCell>Penalty — {f.label || 'Fine'}</TableCell>
-                            <TableCell className="text-right font-medium text-red-600">{formatCurrency(Number(f.amount ?? 0))}</TableCell>
+                            <TableCell className="text-right font-medium text-red-700">{formatCurrency(Number(f.amount ?? 0))}</TableCell>
                             <TableCell>Fines account</TableCell>
                           </TableRow>
                         ))}
@@ -1145,7 +1145,7 @@ export default function MemberProfile() {
                           <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-muted/40 border-b">
                             <div className="flex items-center gap-3">
                               <div className="h-9 w-9 bg-amber-100 rounded-lg flex items-center justify-center">
-                                <CreditCard className="h-4 w-4 text-amber-600" />
+                                <CreditCard className="h-4 w-4 text-amber-700" />
                               </div>
                               <div>
                                 <p className="font-semibold text-sm">{loan.loanType || "Personal Loan"}</p>
@@ -1242,7 +1242,7 @@ export default function MemberProfile() {
                       <div key={inv.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
                         <div className="flex items-center gap-4">
                           <div className="h-10 w-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                            <TrendingUp className="h-5 w-5 text-emerald-600" />
+                            <TrendingUp className="h-5 w-5 text-emerald-700" />
                           </div>
                           <div>
                             <p className="font-medium">{inv.name || inv.plan || "Investment"}</p>
@@ -1283,7 +1283,7 @@ export default function MemberProfile() {
                       <div key={tx.id} className={`flex items-center justify-between p-4 hover:bg-muted/50 ${i % 2 === 0 ? "bg-muted/20" : ""}`}>
                         <div className="flex items-center gap-3">
                           <div className={`h-8 w-8 rounded-full flex items-center justify-center ${tx.type === "credit" ? "bg-emerald-100" : "bg-red-100"}`}>
-                            {tx.type === "credit" ? <ArrowRight className="h-4 w-4 text-emerald-600" /> : <ArrowUpRight className="h-4 w-4 text-red-600" />}
+                            {tx.type === "credit" ? <ArrowRight className="h-4 w-4 text-emerald-700" /> : <ArrowUpRight className="h-4 w-4 text-red-700" />}
                           </div>
                           <div>
                             <p className="font-medium text-sm">{tx.description || tx.type}</p>
@@ -1291,7 +1291,7 @@ export default function MemberProfile() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className={`font-semibold ${tx.type === "credit" ? "text-emerald-600" : "text-red-600"} ${!showBalances && "blur-sm select-none"}`}>
+                          <p className={`font-semibold ${tx.type === "credit" ? "text-emerald-700" : "text-red-700"} ${!showBalances && "blur-sm select-none"}`}>
                             {tx.type === "credit" ? "+" : "-"}{formatCurrency(tx.amount)}
                           </p>
                           <Badge variant="outline" className="text-xs">{tx.status || "completed"}</Badge>
@@ -1312,7 +1312,7 @@ export default function MemberProfile() {
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
                     <div className="flex items-center gap-2">
-                      {activeMember.kycVerified ? <BadgeCheck className="h-5 w-5 text-emerald-600" /> : <Clock className="h-5 w-5 text-amber-600" />}
+                      {activeMember.kycVerified ? <BadgeCheck className="h-5 w-5 text-emerald-700" /> : <Clock className="h-5 w-5 text-amber-700" />}
                       <div>
                         <p className="font-medium">Identity Verification</p>
                         <p className="text-xs text-muted-foreground">NIN / BVN / Passport</p>
@@ -1322,7 +1322,7 @@ export default function MemberProfile() {
                   </div>
                   <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
                     <div className="flex items-center gap-2">
-                      {activeMember.registrationFeePaid ? <BadgeCheck className="h-5 w-5 text-emerald-600" /> : <Clock className="h-5 w-5 text-amber-600" />}
+                      {activeMember.registrationFeePaid ? <BadgeCheck className="h-5 w-5 text-emerald-700" /> : <Clock className="h-5 w-5 text-amber-700" />}
                       <div>
                         <p className="font-medium">Registration Fee (₦5,000)</p>
                         <p className="text-xs text-muted-foreground">One-time membership activation fee</p>

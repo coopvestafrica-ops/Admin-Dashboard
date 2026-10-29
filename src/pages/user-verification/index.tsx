@@ -152,9 +152,9 @@ export default function UserVerification() {
   const totalPages = Math.ceil(total / 20);
 
   const summaryCards = [
-    { label: "Pending KYC", value: data?.pendingCount, icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-    { label: "Verified Today", value: data?.verifiedToday, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { label: "Rejected", value: data?.rejectedCount, icon: XCircle, color: "text-red-600", bg: "bg-red-50" },
+    { label: "Pending KYC", value: data?.pendingCount, icon: Clock, color: "text-amber-700", bg: "bg-amber-50" },
+    { label: "Verified Today", value: data?.verifiedToday, icon: CheckCircle2, color: "text-emerald-700", bg: "bg-emerald-50" },
+    { label: "Rejected", value: data?.rejectedCount, icon: XCircle, color: "text-red-700", bg: "bg-red-50" },
     { label: "Total Verified", value: data?.totalVerified, icon: ShieldCheck, color: "text-blue-600", bg: "bg-blue-50" },
   ];
 
@@ -285,7 +285,7 @@ export default function UserVerification() {
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    className="h-7 text-emerald-600 hover:bg-emerald-50"
+                                    className="h-7 text-emerald-700 hover:bg-emerald-50"
                                     onClick={() => doReview({ id: rec.id, action: "verify" })}
                                     disabled={reviewing}
                                   >
@@ -295,7 +295,7 @@ export default function UserVerification() {
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    className="h-7 text-red-600 hover:bg-red-50"
+                                    className="h-7 text-red-700 hover:bg-red-50"
                                     onClick={() => setReviewTarget({ record: rec, action: "reject" })}
                                   >
                                     <XCircle className="h-3.5 w-3.5 mr-1" />

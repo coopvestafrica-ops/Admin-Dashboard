@@ -23,14 +23,16 @@ export function ProtectedRoute({ component: Component }: ProtectedRouteProps) {
       return;
     }
 
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (data.session) {
         setAuthenticated(true);
         // Claim this restored session on the backend. A page refresh keeps
         // the Supabase session but the profile's active_session_id may be stale
         // (claimed by an older/another session), causing 401 SESSION_REPLACED
-        // on every admin API call. Syncing here makes refreshes load data.
-        void syncSessionWithBackend();
+        // on every admin API call. Awaiting the sync here (rather than firing
+        // it and rendering immediately) means page queries cannot race it and
+        // surface spurious "Failed to load …" errors.
+        await syncSessionWithBackend();
       } else {
         setLocation("/");
       }

@@ -50,10 +50,13 @@ async function fetchFraudAlerts(): Promise<FraudAlert[]> {
   return Array.isArray(json.alerts) ? json.alerts : (Array.isArray(json) ? json : MOCK_ALERTS);
 }
 
-async function updateAlertStatus(payload: { id: number; action: string }): Promise<void> {
+async function updateAlertStatus(payload: { id: number; userId: string; action: string }): Promise<void> {
   const res = await authedFetch(`/api/admin/fraud-detection/${payload.id}`, {
     method: "PATCH",
-    body: JSON.stringify({ action: payload.action }),
+    // `userId` is the profile the alert belongs to; the numeric `id` is only a
+    // position in the derived list, so the backend must not use it to pick the
+    // profile to freeze/clear.
+    body: JSON.stringify({ action: payload.action, userId: payload.userId }),
   });
   if (!res.ok) throw new Error("Failed to update alert");
 }
@@ -107,10 +110,10 @@ export default function FraudDetection() {
         {/* Summary Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { label: "Total Flags Today", value: todayAlerts.length, icon: Flag, color: "text-red-600", bg: "bg-red-50" },
+            { label: "Total Flags Today", value: todayAlerts.length, icon: Flag, color: "text-red-700", bg: "bg-red-50" },
             { label: "High Risk Users", value: criticalHighCount, icon: Flame, color: "text-orange-600", bg: "bg-orange-50" },
-            { label: "Open Cases", value: openCount, icon: AlertTriangle, color: "text-amber-600", bg: "bg-amber-50" },
-            { label: "Resolved Cases", value: resolvedCount, icon: CheckCircle, color: "text-green-600", bg: "bg-green-50" },
+            { label: "Open Cases", value: openCount, icon: AlertTriangle, color: "text-amber-700", bg: "bg-amber-50" },
+            { label: "Resolved Cases", value: resolvedCount, icon: CheckCircle, color: "text-green-700", bg: "bg-green-50" },
           ].map(({ label, value, icon: Icon, color, bg }) => (
             <Card key={label}>
               <CardContent className="p-5">
@@ -203,10 +206,10 @@ export default function FraudDetection() {
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-1 flex-wrap">
-                              <Button size="sm" variant="outline" className="h-7 text-xs border-red-200 text-red-700 hover:bg-red-50" onClick={() => updateAlert({ id: alert.id, action: "freeze" })}>Freeze</Button>
-                              <Button size="sm" variant="outline" className="h-7 text-xs border-amber-200 text-amber-700 hover:bg-amber-50" onClick={() => updateAlert({ id: alert.id, action: "flag" })}>Flag</Button>
-                              <Button size="sm" variant="outline" className="h-7 text-xs border-green-200 text-green-700 hover:bg-green-50" onClick={() => updateAlert({ id: alert.id, action: "clear" })}>Clear</Button>
-                              <Button size="sm" variant="outline" className="h-7 text-xs border-purple-200 text-purple-700 hover:bg-purple-50" onClick={() => updateAlert({ id: alert.id, action: "escalate" })}>Escalate</Button>
+                              <Button size="sm" variant="outline" className="h-7 text-xs border-red-200 text-red-700 hover:bg-red-50" onClick={() => updateAlert({ id: alert.id, userId: alert.userId, action: "freeze" })}>Freeze</Button>
+                              <Button size="sm" variant="outline" className="h-7 text-xs border-amber-200 text-amber-700 hover:bg-amber-50" onClick={() => updateAlert({ id: alert.id, userId: alert.userId, action: "flag" })}>Flag</Button>
+                              <Button size="sm" variant="outline" className="h-7 text-xs border-green-200 text-green-700 hover:bg-green-50" onClick={() => updateAlert({ id: alert.id, userId: alert.userId, action: "clear" })}>Clear</Button>
+                              <Button size="sm" variant="outline" className="h-7 text-xs border-purple-200 text-purple-700 hover:bg-purple-50" onClick={() => updateAlert({ id: alert.id, userId: alert.userId, action: "escalate" })}>Escalate</Button>
                             </div>
                           </td>
                         </tr>

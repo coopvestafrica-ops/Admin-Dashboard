@@ -321,7 +321,7 @@ export default function Accounting() {
   );
   const derivedNotice = anyDerived ? (
     <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/40">
-      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
+      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" aria-hidden />
       <div className="text-sm">
         <p className="font-medium text-amber-900 dark:text-amber-200">
           Reports derived from the transaction ledger
@@ -365,11 +365,11 @@ export default function Accounting() {
             <div className="flex flex-wrap items-end gap-4">
               <div className="space-y-1">
                 <Label className="text-xs">From</Label>
-                <Input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="w-40" />
+                <Input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="w-40" aria-label="From date" />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">To / As at</Label>
-                <Input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="w-40" />
+                <Input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="w-40" aria-label="To date" />
               </div>
               <Button
                 variant="outline"
@@ -438,7 +438,7 @@ export default function Accounting() {
               <StatCard
                 label="Total Credits"
                 value={tbData ? formatCurrency(tbData.totals.credit) : "—"}
-                color="text-emerald-600"
+                color="text-emerald-700"
               />
             </div>
 
@@ -472,7 +472,7 @@ export default function Accounting() {
                           <td className="p-3 text-right font-mono text-blue-600">
                             {row.debit > 0 ? formatCurrency(row.debit) : "—"}
                           </td>
-                          <td className="p-3 text-right font-mono text-emerald-600">
+                          <td className="p-3 text-right font-mono text-emerald-700">
                             {row.credit > 0 ? formatCurrency(row.credit) : "—"}
                           </td>
                         </tr>
@@ -483,7 +483,7 @@ export default function Accounting() {
                         <tr className="border-t-2 font-bold bg-muted/30">
                           <td colSpan={3} className="p-3">TOTAL</td>
                           <td className="p-3 text-right font-mono text-blue-600">{formatCurrency(tbData.totals.debit)}</td>
-                          <td className="p-3 text-right font-mono text-emerald-600">{formatCurrency(tbData.totals.credit)}</td>
+                          <td className="p-3 text-right font-mono text-emerald-700">{formatCurrency(tbData.totals.credit)}</td>
                         </tr>
                       </tfoot>
                     )}
@@ -515,17 +515,17 @@ export default function Accounting() {
               <StatCard
                 label="Total Revenue"
                 value={plData ? formatCurrency(plData.profit_loss.total_revenue) : "—"}
-                color="text-emerald-600"
+                color="text-emerald-700"
               />
               <StatCard
                 label="Total Expenses"
                 value={plData ? formatCurrency(plData.profit_loss.total_expenses) : "—"}
-                color="text-red-600"
+                color="text-red-700"
               />
               <StatCard
                 label="Net Income"
                 value={plData ? formatCurrency(plData.profit_loss.net_income) : "—"}
-                color={(plData?.profit_loss.net_income ?? 0) >= 0 ? "text-emerald-600" : "text-red-600"}
+                color={(plData?.profit_loss.net_income ?? 0) >= 0 ? "text-emerald-700" : "text-red-700"}
               />
             </div>
 
@@ -548,7 +548,7 @@ export default function Accounting() {
                         <tr key={r.account_code} className="border-b">
                           <td className="p-3 font-mono text-xs text-muted-foreground">{r.account_code}</td>
                           <td className="p-3">{r.account_name}</td>
-                          <td className="p-3 text-right font-mono text-emerald-600">{formatCurrency(r.net)}</td>
+                          <td className="p-3 text-right font-mono text-emerald-700">{formatCurrency(r.net)}</td>
                         </tr>
                       ))}
                       {plData && (
@@ -580,7 +580,7 @@ export default function Accounting() {
                         <tr key={r.account_code} className="border-b">
                           <td className="p-3 font-mono text-xs text-muted-foreground">{r.account_code}</td>
                           <td className="p-3">{r.account_name}</td>
-                          <td className="p-3 text-right font-mono text-red-600">{formatCurrency(r.net)}</td>
+                          <td className="p-3 text-right font-mono text-red-700">{formatCurrency(r.net)}</td>
                         </tr>
                       ))}
                       {plData && (
@@ -814,7 +814,7 @@ export default function Accounting() {
                             <td className="p-3 text-right font-mono text-blue-600 text-xs">
                               {entry.debit > 0 ? formatCurrency(entry.debit) : "—"}
                             </td>
-                            <td className="p-3 text-right font-mono text-emerald-600 text-xs">
+                            <td className="p-3 text-right font-mono text-emerald-700 text-xs">
                               {entry.credit > 0 ? formatCurrency(entry.credit) : "—"}
                             </td>
                             <td className="p-3 text-right font-mono text-xs font-semibold">
@@ -848,7 +848,7 @@ export default function Accounting() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label>Transaction Date</Label>
-                <Input type="date" value={jeDate} onChange={e => setJeDate(e.target.value)} />
+                <Input type="date" value={jeDate} onChange={e => setJeDate(e.target.value)} aria-label="Transaction date" />
               </div>
               <div className="space-y-1">
                 <Label>Description</Label>
@@ -938,7 +938,7 @@ export default function Accounting() {
                     <tr className="border-t-2 bg-muted/30 font-semibold">
                       <td className="p-2 text-sm">Totals</td>
                       <td className="p-2 text-right font-mono text-blue-600">{formatCurrency(jeTotalDebit)}</td>
-                      <td className="p-2 text-right font-mono text-emerald-600">{formatCurrency(jeTotalCredit)}</td>
+                      <td className="p-2 text-right font-mono text-emerald-700">{formatCurrency(jeTotalCredit)}</td>
                       <td />
                     </tr>
                   </tfoot>

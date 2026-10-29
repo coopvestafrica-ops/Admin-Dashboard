@@ -120,7 +120,7 @@ export default function EmergencyControls() {
                   return (
                     <div key={t.key} className="flex items-center justify-between rounded-lg border p-4">
                       <div className="flex items-start gap-3">
-                        <Icon className={`h-5 w-5 mt-0.5 ${active ? "text-red-600" : "text-muted-foreground"}`} />
+                        <Icon className={`h-5 w-5 mt-0.5 ${active ? "text-red-700" : "text-muted-foreground"}`} />
                         <div>
                           <div className="font-medium flex items-center gap-2">
                             {t.label}

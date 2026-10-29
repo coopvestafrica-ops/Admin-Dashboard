@@ -330,11 +330,11 @@ export default function FinancialLedger() {
             </div>
             <div>
               <label className="text-xs text-muted-foreground">From</label>
-              <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" />
+              <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" aria-label="From date" />
             </div>
             <div>
               <label className="text-xs text-muted-foreground">To</label>
-              <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" />
+              <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" aria-label="To date" />
             </div>
             <Button onClick={applyFilters}>Apply</Button>
             <Button variant="ghost" onClick={() => { setFilters({ page: "1", limit: "50" }); setTxnSearch(""); setProfileId(""); setReference(""); setMemberName(""); setPaymentMethod(""); setStatusFilter(""); setFrom(""); setTo(""); }}>Reset</Button>
@@ -375,14 +375,14 @@ export default function FinancialLedger() {
                           <td className="py-2 pr-3">{r.memberName || r.profileId?.slice(0, 8) || "—"}</td>
                           <td className="py-2 pr-3 font-mono text-xs">{r.reference || r.id.slice(0, 8)}</td>
                           <td className="py-2 pr-3">{r.type}</td>
-                          <td className="py-2 pr-3 text-right text-red-600">{r.debit ? money(r.debit) : "—"}</td>
-                          <td className="py-2 pr-3 text-right text-green-600">{r.credit ? money(r.credit) : "—"}</td>
+                          <td className="py-2 pr-3 text-right text-red-700">{r.debit ? money(r.debit) : "—"}</td>
+                          <td className="py-2 pr-3 text-right text-green-700">{r.credit ? money(r.credit) : "—"}</td>
                           {r.previousBalance !== undefined && (
                             <td className="py-2 pr-3 text-right font-medium">{r.newBalance !== undefined ? money(r.newBalance) : "—"}</td>
                           )}
                           <td className="py-2 pr-3">
                             <div className="flex items-center gap-1">
-                              {isCredit ? <ArrowUpRight className="h-3 w-3 text-green-600" /> : <ArrowDownRight className="h-3 w-3 text-red-600" />}
+                              {isCredit ? <ArrowUpRight className="h-3 w-3 text-green-700" /> : <ArrowDownRight className="h-3 w-3 text-red-700" />}
                               {r.reversed && <Badge variant="destructive" className="text-[9px]">REVERSED</Badge>}
                             </div>
                           </td>
