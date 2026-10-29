@@ -82,7 +82,7 @@ function formatCurrency(val: number) {
 function GrowthBadge({ value }: { value: number }) {
   const positive = value >= 0;
   return (
-    <span className={`flex items-center gap-0.5 text-xs font-medium ${positive ? "text-green-600" : "text-red-600"}`}>
+    <span className={`flex items-center gap-0.5 text-xs font-medium ${positive ? "text-green-700" : "text-red-700"}`}>
       {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowRight className="h-3 w-3" />}
       {Math.abs(value)}%
     </span>
@@ -123,10 +123,10 @@ export default function PlatformAnalytics() {
 
   const kpis = [
     { label: "Total Users", value: data.kpis.totalUsers.toLocaleString(), growth: data.kpis.totalUsersGrowth, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-    { label: "Active Users (30d)", value: data.kpis.activeUsers30d.toLocaleString(), growth: data.kpis.activeUsersGrowth, icon: Activity, color: "text-green-600", bg: "bg-green-50" },
-    { label: "Revenue MTD", value: formatCurrency(data.kpis.revenueMTD), growth: data.kpis.revenueGrowth, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
+    { label: "Active Users (30d)", value: data.kpis.activeUsers30d.toLocaleString(), growth: data.kpis.activeUsersGrowth, icon: Activity, color: "text-green-700", bg: "bg-green-50" },
+    { label: "Revenue MTD", value: formatCurrency(data.kpis.revenueMTD), growth: data.kpis.revenueGrowth, icon: DollarSign, color: "text-emerald-700", bg: "bg-emerald-50" },
     { label: "Loan Portfolio", value: formatCurrency(data.kpis.loanPortfolio), growth: data.kpis.loanGrowth, icon: CreditCard, color: "text-purple-600", bg: "bg-purple-50" },
-    { label: "Savings Pool", value: formatCurrency(data.kpis.savingsPool), growth: data.kpis.savingsGrowth, icon: PiggyBank, color: "text-amber-600", bg: "bg-amber-50" },
+    { label: "Savings Pool", value: formatCurrency(data.kpis.savingsPool), growth: data.kpis.savingsGrowth, icon: PiggyBank, color: "text-amber-700", bg: "bg-amber-50" },
     { label: "Growth Rate", value: `${data.kpis.growthRate}%`, growth: data.kpis.growthRate, icon: TrendingUp, color: "text-rose-600", bg: "bg-rose-50" },
   ];
 

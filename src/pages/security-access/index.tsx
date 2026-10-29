@@ -185,7 +185,7 @@ export default function SecurityAccess() {
             { label: "Active Sessions",   value: sessions.length,  icon: Monitor,      color: "text-primary" },
             { label: "Unresolved Alerts", value: unresolvedCount,  icon: ShieldAlert,  color: "text-red-500" },
             { label: "Critical Events",   value: criticalCount,    icon: AlertTriangle, color: "text-orange-500" },
-            { label: "Blocked IPs",       value: blockedIPs.length, icon: Ban,          color: "text-red-600" },
+            { label: "Blocked IPs",       value: blockedIPs.length, icon: Ban,          color: "text-red-700" },
           ].map(s => (
             <Card key={s.label}>
               <CardContent className="p-4 flex items-center gap-3">
@@ -212,7 +212,7 @@ export default function SecurityAccess() {
                   <CardTitle className="text-base flex items-center gap-2"><Bell className="h-4 w-4" /> Security Events & Alerts</CardTitle>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline">{unresolvedCount} unresolved</Badge>
-                    <Button variant="ghost" size="sm" onClick={() => qc.invalidateQueries({ queryKey: ["security-events"] })}><RefreshCw className="h-3.5 w-3.5" /></Button>
+                    <Button variant="ghost" size="sm" aria-label="Refresh security events" onClick={() => qc.invalidateQueries({ queryKey: ["security-events"] })}><RefreshCw className="h-3.5 w-3.5" /></Button>
                   </div>
                 </div>
               </CardHeader>
@@ -243,7 +243,7 @@ export default function SecurityAccess() {
                             </div>
                           </div>
                           {!ev.resolved && sev !== "Info" && !blockedIPs.includes(ev.ipAddress) && (
-                            <Button size="sm" variant="outline" className="text-red-600 border-red-300 shrink-0" onClick={() => ipBlockMutation.mutate({ ip: ev.ipAddress, action: "block" })}>
+                            <Button size="sm" variant="outline" className="text-red-700 border-red-300 shrink-0" onClick={() => ipBlockMutation.mutate({ ip: ev.ipAddress, action: "block" })}>
                               <Ban className="mr-1 h-3 w-3" /> Block IP
                             </Button>
                           )}
@@ -287,7 +287,7 @@ export default function SecurityAccess() {
                             <td className="px-4 py-3 text-center text-xs text-muted-foreground">{new Date(s.loginTime).toLocaleString("en-NG")}</td>
                             <td className="px-4 py-3 text-center">
                               {!s.isCurrentSession && (
-                                <Button variant="outline" size="sm" className="text-red-600 border-red-300" onClick={() => terminateMutation.mutate(s.id)}>
+                                <Button variant="outline" size="sm" className="text-red-700 border-red-300" onClick={() => terminateMutation.mutate(s.id)}>
                                   <LogOut className="mr-1 h-3 w-3" /> Terminate
                                 </Button>
                               )}
@@ -314,7 +314,7 @@ export default function SecurityAccess() {
                   {blockedIPs.map(ip => (
                     <div key={ip} className="flex items-center justify-between rounded-lg border border-red-100 bg-red-50 px-3 py-2">
                       <span className="font-mono text-sm text-red-800">{ip}</span>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-red-600" onClick={() => ipBlockMutation.mutate({ ip, action: "unblock" })}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-red-700" onClick={() => ipBlockMutation.mutate({ ip, action: "unblock" })}><Trash2 className="h-3.5 w-3.5" /></Button>
                     </div>
                   ))}
                 </CardContent>

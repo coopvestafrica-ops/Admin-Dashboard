@@ -112,7 +112,7 @@ function formatChange(m: Metric): string {
 function changeTone(m: Metric): string {
   if (m.absolute === 0) return "text-muted-foreground";
   const good = m.higherIsBetter ? m.absolute > 0 : m.absolute < 0;
-  return good ? "text-emerald-600" : "text-red-600";
+  return good ? "text-emerald-700" : "text-red-700";
 }
 
 function ChangeIcon({ m }: { m: Metric }) {
@@ -183,6 +183,7 @@ function PeriodPicker({
           value={value.type}
           onChange={(e) => onChange({ ...value, type: e.target.value as PeriodType })}
           data-testid={`select-${slug}-type`}
+          aria-label={`${label} period type`}
         >
           <option value="week">Week</option>
           <option value="month">Month</option>
@@ -196,6 +197,7 @@ function PeriodPicker({
             value={value.year}
             onChange={(e) => onChange({ ...value, year: Number(e.target.value) })}
             data-testid={`select-${slug}-year`}
+          aria-label={`${label} year`}
           >
             {years.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
@@ -208,6 +210,7 @@ function PeriodPicker({
           value={value.month}
           onChange={(e) => onChange({ ...value, month: Number(e.target.value) })}
           data-testid={`select-${slug}-month`}
+          aria-label={`${label} month`}
         >
           {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
         </select>
@@ -219,6 +222,7 @@ function PeriodPicker({
           value={value.quarter}
           onChange={(e) => onChange({ ...value, quarter: Number(e.target.value) })}
           data-testid={`select-${slug}-quarter`}
+          aria-label={`${label} quarter`}
         >
           {[1, 2, 3, 4].map((qn) => <option key={qn} value={qn}>Q{qn}</option>)}
         </select>
@@ -230,6 +234,7 @@ function PeriodPicker({
           value={value.week}
           onChange={(e) => onChange({ ...value, week: Number(e.target.value) })}
           data-testid={`select-${slug}-week`}
+          aria-label={`${label} week`}
         >
           {Array.from({ length: 53 }, (_, i) => i + 1).map((w) => (
             <option key={w} value={w}>Week {w}</option>
@@ -458,10 +463,10 @@ const ComparativeAnalytics = () => {
               <CardContent className="space-y-3">
                 <p className="text-sm leading-relaxed">{data.insights.summary}</p>
                 <div className="flex flex-wrap gap-4 text-xs">
-                  <span className="text-emerald-600 font-medium">
+                  <span className="text-emerald-700 font-medium">
                     {data.insights.improvedCount} metrics improved
                   </span>
-                  <span className="text-red-600 font-medium">
+                  <span className="text-red-700 font-medium">
                     {data.insights.declinedCount} declined
                   </span>
                 </div>
@@ -469,7 +474,7 @@ const ComparativeAnalytics = () => {
                   <ul className="space-y-1 pt-1">
                     {data.insights.insights.slice(0, 6).map((ins, i) => (
                       <li key={i} className="text-xs flex items-start gap-2">
-                        <span className={ins.sentiment === "positive" ? "text-emerald-600" : "text-red-600"}>
+                        <span className={ins.sentiment === "positive" ? "text-emerald-700" : "text-red-700"}>
                           {ins.sentiment === "positive" ? "▲" : "▼"}
                         </span>
                         <span>{ins.text}</span>
@@ -494,7 +499,7 @@ const ComparativeAnalytics = () => {
                       was {formatValue(c.A, c.unit, true)}
                     </p>
                     {pct !== null ? (
-                      <p className={`text-xs font-medium mt-1 ${pct >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                      <p className={`text-xs font-medium mt-1 ${pct >= 0 ? "text-emerald-700" : "text-red-700"}`}>
                         {pct >= 0 ? "▲" : "▼"} {Math.abs(pct).toFixed(1)}%
                       </p>
                     ) : (

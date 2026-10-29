@@ -130,7 +130,7 @@ export default function FinancialDashboard() {
           </div>
         </div>
         {trend !== undefined && !isLoading && (
-          <div className={`flex items-center mt-3 text-sm ${trend >= 0 ? "text-green-600" : "text-red-600"}`}>
+          <div className={`flex items-center mt-3 text-sm ${trend >= 0 ? "text-green-700" : "text-red-700"}`}>
             {trend >= 0 ? <ArrowUpRight className="w-4 h-4 mr-1" /> : <ArrowRight className="w-4 h-4 mr-1" />}
             <span>{Math.abs(trend)}% from last period</span>
           </div>
@@ -186,7 +186,7 @@ export default function FinancialDashboard() {
             title="Total Contributions"
             value={summary.totalContributions}
             icon={PiggyBank}
-            color="text-green-600"
+            color="text-green-700"
             isLoading={loadingContrib}
           />
           <StatCard
@@ -200,14 +200,14 @@ export default function FinancialDashboard() {
             title="Loan Repayments"
             value={summary.totalLoanRepayments}
             icon={TrendingUp}
-            color="text-emerald-600"
+            color="text-emerald-700"
             isLoading={loadingLoans}
           />
           <StatCard
             title="Net Cash Flow"
             value={summary.netFlow}
             icon={DollarSign}
-            color={summary.netFlow >= 0 ? "text-green-600" : "text-red-600"}
+            color={summary.netFlow >= 0 ? "text-green-700" : "text-red-700"}
             isLoading={loading}
           />
         </div>
@@ -231,7 +231,7 @@ export default function FinancialDashboard() {
             title="Withdrawals"
             value={summary.totalWithdrawals}
             icon={ArrowRight}
-            color="text-red-600"
+            color="text-red-700"
             isLoading={loadingTx}
           />
           <StatCard
@@ -294,7 +294,7 @@ export default function FinancialDashboard() {
                             </td>
                             <td className="py-3 px-4 text-sm max-w-xs truncate">{tx.description}</td>
                             <td className={`py-3 px-4 text-sm text-right font-medium ${
-                              tx.type === "credit" ? "text-green-600" : "text-red-600"
+                              tx.type === "credit" ? "text-green-700" : "text-red-700"
                             }`}>
                               {tx.type === "credit" ? "+" : "-"}{formatCurrency(tx.amount)}
                             </td>
@@ -323,25 +323,25 @@ export default function FinancialDashboard() {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                   <div className="flex items-center gap-3">
-                    <ArrowUpRight className="w-5 h-5 text-green-600" />
+                    <ArrowUpRight className="w-5 h-5 text-green-700" />
                     <span className="text-sm font-medium">Total Income</span>
                   </div>
-                  <span className="text-sm font-bold text-green-600">
+                  <span className="text-sm font-bold text-green-700">
                     {formatCurrency(summary.totalContributions + summary.totalLoanRepayments)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                   <div className="flex items-center gap-3">
-                    <ArrowRight className="w-5 h-5 text-red-600" />
+                    <ArrowRight className="w-5 h-5 text-red-700" />
                     <span className="text-sm font-medium">Total Expenses</span>
                   </div>
-                  <span className="text-sm font-bold text-red-600">
+                  <span className="text-sm font-bold text-red-700">
                     {formatCurrency(summary.totalLoanDisbursements + summary.totalPayroll + summary.totalWithdrawals)}
                   </span>
                 </div>
                 <div className="border-t pt-4 flex items-center justify-between">
                   <span className="text-sm font-medium">Net Balance</span>
-                  <span className={`text-lg font-bold ${summary.netFlow >= 0 ? "text-green-600" : "text-red-600"}`}>
+                  <span className={`text-lg font-bold ${summary.netFlow >= 0 ? "text-green-700" : "text-red-700"}`}>
                     {formatCurrency(summary.netFlow)}
                   </span>
                 </div>
@@ -369,7 +369,7 @@ export default function FinancialDashboard() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Repayment Rate</span>
-                  <span className="text-sm font-medium text-green-600">{loadingLoans ? "—" : `${Number(loanPortfolio?.repaymentRate ?? 0).toFixed(1)}%`}</span>
+                  <span className="text-sm font-medium text-green-700">{loadingLoans ? "—" : `${Number(loanPortfolio?.repaymentRate ?? 0).toFixed(1)}%`}</span>
                 </div>
               </CardContent>
             </Card>

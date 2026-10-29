@@ -111,7 +111,7 @@ function FeatureToggles() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {features.map((feature) => (
-            <Card key={feature.id} className={`transition-opacity ${!feature.enabled ? "opacity-60" : ""}`}>
+            <Card key={feature.id} className={feature.enabled ? "" : "border-dashed"}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
@@ -122,7 +122,7 @@ function FeatureToggles() {
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">{feature.description}</p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground/70">
+                    <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{new Date(feature.lastUpdated).toLocaleDateString()}</span>
                       <span className="flex items-center gap-1"><User className="h-3 w-3" />{feature.updatedBy}</span>
                     </div>

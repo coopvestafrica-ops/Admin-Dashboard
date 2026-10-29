@@ -839,7 +839,7 @@ export function AccountingSpreadsheet({ embedded = false }: { embedded?: boolean
                             <th key={col} className="min-w-[120px] h-10 border p-2 text-xs font-medium text-muted-foreground">{col}</th>
                           ))}
                           <th className="w-12 border p-2 sticky right-0 bg-muted/50 z-10">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={addRow}><Plus className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={addRow} aria-label="Add row"><Plus className="h-4 w-4" /></Button>
                           </th>
                         </tr>
                       </thead>
@@ -874,7 +874,7 @@ export function AccountingSpreadsheet({ embedded = false }: { embedded?: boolean
                             })}
                             <td className="w-12 border p-1 sticky right-0 bg-background z-10">
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                onClick={() => deleteRow(row.id)}><Trash2 className="h-4 w-4" /></Button>
+                                onClick={() => deleteRow(row.id)} aria-label={`Delete row ${rowIdx + 1}`}><Trash2 className="h-4 w-4" /></Button>
                             </td>
                           </tr>
                         ))}
@@ -907,7 +907,7 @@ export function AccountingSpreadsheet({ embedded = false }: { embedded?: boolean
                       </div>
                       {/* Summary */}
                       <div className="grid grid-cols-3 gap-4 pt-4 border-t">
-                        <div className="text-center"><div className="text-2xl font-bold text-emerald-600">{formatCurrency(totals.total)}</div><div className="text-xs text-muted-foreground">Total</div></div>
+                        <div className="text-center"><div className="text-2xl font-bold text-emerald-700">{formatCurrency(totals.total)}</div><div className="text-xs text-muted-foreground">Total</div></div>
                         <div className="text-center"><div className="text-2xl font-bold text-blue-600">{chartData.values.length}</div><div className="text-xs text-muted-foreground">Categories</div></div>
                         <div className="text-center"><div className="text-2xl font-bold text-purple-600">{chartData.values.length > 0 ? formatCurrency(totals.total / chartData.values.length) : "0"}</div><div className="text-xs text-muted-foreground">Average</div></div>
                       </div>
@@ -1101,7 +1101,7 @@ export function AccountingSpreadsheet({ embedded = false }: { embedded?: boolean
             <div><div className="text-lg font-bold">{spreadsheet.rows.length}</div><div className="text-xs text-muted-foreground">Rows</div></div>
           </CardContent></Card>
           <Card><CardContent className="p-3 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100"><DollarSign className="h-5 w-5 text-emerald-600" /></div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100"><DollarSign className="h-5 w-5 text-emerald-700" /></div>
             <div><div className="text-lg font-bold">{totals.cells}</div><div className="text-xs text-muted-foreground">Currency Cells</div></div>
           </CardContent></Card>
           <Card><CardContent className="p-3 flex items-center gap-3">
@@ -1109,7 +1109,7 @@ export function AccountingSpreadsheet({ embedded = false }: { embedded?: boolean
             <div><div className="text-lg font-bold truncate max-w-[120px]">{formatCurrency(totals.total)}</div><div className="text-xs text-muted-foreground">Total Value</div></div>
           </CardContent></Card>
           <Card><CardContent className="p-3 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100"><FileSpreadsheet className="h-5 w-5 text-amber-600" /></div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100"><FileSpreadsheet className="h-5 w-5 text-amber-700" /></div>
             <div><div className="text-lg font-bold truncate max-w-[120px]">{spreadsheet.name}</div><div className="text-xs text-muted-foreground">Active Sheet</div></div>
           </CardContent></Card>
           <Card><CardContent className="p-3 flex items-center gap-3">

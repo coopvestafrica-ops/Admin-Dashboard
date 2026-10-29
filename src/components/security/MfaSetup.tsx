@@ -145,8 +145,8 @@ export function MfaSetup() {
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             {isProtected
-              ? <ShieldCheck className="h-4 w-4 text-emerald-600" />
-              : <ShieldAlert className="h-4 w-4 text-amber-600" />}
+              ? <ShieldCheck className="h-4 w-4 text-emerald-700" />
+              : <ShieldAlert className="h-4 w-4 text-amber-700" />}
             Two-Factor Authentication
             <Badge variant={isProtected ? "default" : "destructive"} className="ml-auto">
               {isProtected ? "Enabled" : "Not enabled"}
@@ -187,11 +187,11 @@ export function MfaSetup() {
                     <KeyRound className="h-3.5 w-3.5" />
                     {f.friendly_name || "Authenticator app"}
                     {f.status === "verified" ? (
-                      <span className="text-xs text-emerald-600 inline-flex items-center gap-1">
+                      <span className="text-xs text-emerald-700 inline-flex items-center gap-1">
                         <CheckCircle2 className="h-3 w-3" />verified
                       </span>
                     ) : (
-                      <span className="text-xs text-amber-600">not confirmed</span>
+                      <span className="text-xs text-amber-700">not confirmed</span>
                     )}
                   </p>
                   <p className="text-xs text-muted-foreground">

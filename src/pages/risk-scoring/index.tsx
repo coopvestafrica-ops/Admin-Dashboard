@@ -54,10 +54,12 @@ interface RiskResponse {
 }
 
 function getRiskConfig(score: number) {
-  if (score >= 80) return { label: "Low Risk", color: "text-emerald-700", bg: "bg-emerald-100", bar: "#2d6a4f" };
-  if (score >= 60) return { label: "Moderate", color: "text-amber-700", bg: "bg-amber-100", bar: "#f6ae2d" };
-  if (score >= 40) return { label: "High Risk", color: "text-orange-700", bg: "bg-orange-100", bar: "#f4a261" };
-  return { label: "Very High", color: "text-red-700", bg: "bg-red-100", bar: "#e63946" };
+  // `bar` fills the progress bar; `fg` is the darker variant used for the
+  // numeric score, because the bar hues (e.g. #f6ae2d) fail contrast as text.
+  if (score >= 80) return { label: "Low Risk", color: "text-emerald-700", bg: "bg-emerald-100", bar: "#2d6a4f", fg: "#1b4332" };
+  if (score >= 60) return { label: "Moderate", color: "text-amber-700", bg: "bg-amber-100", bar: "#f6ae2d", fg: "#92600a" };
+  if (score >= 40) return { label: "High Risk", color: "text-orange-700", bg: "bg-orange-100", bar: "#f4a261", fg: "#9a4a12" };
+  return { label: "Very High", color: "text-red-700", bg: "bg-red-100", bar: "#e63946", fg: "#b91c1c" };
 }
 
 function ScoreBar({ score }: { score: number }) {
@@ -67,7 +69,7 @@ function ScoreBar({ score }: { score: number }) {
       <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
         <div className="h-2 rounded-full transition-all" style={{ width: `${score}%`, backgroundColor: cfg.bar }} />
       </div>
-      <span className="text-sm font-bold w-8 text-right" style={{ color: cfg.bar }}>{score}</span>
+      <span className="text-sm font-bold w-8 text-right" style={{ color: cfg.fg }}>{score}</span>
     </div>
   );
 }
@@ -138,8 +140,8 @@ export default function RiskScoring() {
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[
             { label: "Avg. Risk Score", value: `${avgScore}/100`, icon: Activity, color: "text-primary" },
-            { label: "Flagged at Risk", value: flaggedCount, icon: AlertTriangle, color: "text-red-600" },
-            { label: "Low Risk Members", value: lowRiskCount, icon: Shield, color: "text-emerald-600" },
+            { label: "Flagged at Risk", value: flaggedCount, icon: AlertTriangle, color: "text-red-700" },
+            { label: "Low Risk Members", value: lowRiskCount, icon: Shield, color: "text-emerald-700" },
             { label: "Total Assessed", value: members.length, icon: Users, color: "text-blue-600" },
           ].map(({ label, value, icon: Icon, color }) => (
             <Card key={label}>
@@ -159,7 +161,7 @@ export default function RiskScoring() {
         {/* Flagged members alert */}
         {flaggedCount > 0 && (
           <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-            <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
+            <AlertTriangle className="h-5 w-5 text-red-700 mt-0.5 shrink-0" />
             <div>
               <p className="text-sm font-semibold text-red-800">{flaggedCount} member{flaggedCount > 1 ? "s" : ""} flagged at high default risk</p>
               <p className="text-xs text-red-700 mt-0.5">
@@ -210,7 +212,7 @@ export default function RiskScoring() {
                         </div>
                         <ScoreBar score={m.score} />
                         {m.factors.isFlagged && (
-                          <p className="text-xs text-red-600 mt-0.5 flex items-center gap-1">
+                          <p className="text-xs text-red-700 mt-0.5 flex items-center gap-1">
                             <AlertTriangle className="h-3 w-3" />Flagged — {m.factors.defaultedLoans} defaulted loan{m.factors.defaultedLoans !== 1 ? "s" : ""}
                           </p>
                         )}
@@ -285,7 +287,7 @@ export default function RiskScoring() {
                           </td>
                           <td className="py-3 text-center">{m.factors.activeLoans}</td>
                           <td className="py-3 text-center">
-                            <span className={m.factors.defaultedLoans > 0 ? "text-red-600 font-bold" : "text-muted-foreground"}>
+                            <span className={m.factors.defaultedLoans > 0 ? "text-red-700 font-bold" : "text-muted-foreground"}>
                               {m.factors.defaultedLoans}
                             </span>
                           </td>
@@ -316,14 +318,14 @@ export default function RiskScoring() {
                                 <div className="rounded-lg border p-3 space-y-1 text-xs">
                                   <p className="text-xs font-semibold text-muted-foreground mb-2">Risk Factors</p>
                                   <div className="flex justify-between"><span className="text-muted-foreground">Active Loans</span><span className="font-medium">{m.factors.activeLoans}</span></div>
-                                  <div className="flex justify-between"><span className="text-muted-foreground">Defaulted Loans</span><span className={`font-medium ${m.factors.defaultedLoans > 0 ? "text-red-600" : ""}`}>{m.factors.defaultedLoans}</span></div>
+                                  <div className="flex justify-between"><span className="text-muted-foreground">Defaulted Loans</span><span className={`font-medium ${m.factors.defaultedLoans > 0 ? "text-red-700" : ""}`}>{m.factors.defaultedLoans}</span></div>
                                   <div className="flex justify-between"><span className="text-muted-foreground">Total Outstanding</span><span className="font-medium">₦{m.factors.totalBalance.toLocaleString("en-NG")}</span></div>
                                   <div className="flex justify-between"><span className="text-muted-foreground">KYC Status</span><span className="font-medium">{m.factors.kycVerified ? "Verified" : "Pending"}</span></div>
                                   <div className="flex justify-between"><span className="text-muted-foreground">Last Updated</span><span className="font-medium">{new Date(m.lastUpdated).toLocaleDateString("en-NG")}</span></div>
                                 </div>
                                 {m.factors.isFlagged && (
                                   <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-start gap-2">
-                                    <AlertTriangle className="h-3.5 w-3.5 text-red-600 mt-0.5 shrink-0" />
+                                    <AlertTriangle className="h-3.5 w-3.5 text-red-700 mt-0.5 shrink-0" />
                                     <p className="text-xs text-red-700">
                                       This member is flagged due to {m.factors.defaultedLoans} defaulted loan{m.factors.defaultedLoans !== 1 ? "s" : ""}.
                                       Review their profile before approving new credit.

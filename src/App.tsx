@@ -168,7 +168,7 @@ function ConfigError() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-8 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-amber-100 text-amber-600 mx-auto">
+        <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-amber-100 text-amber-700 mx-auto">
           <span className="text-3xl font-bold">!</span>
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Configuration Required</h1>

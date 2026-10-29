@@ -189,7 +189,7 @@ export default function Sessions() {
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-green-100 rounded-lg">
-                  <Clock className="h-6 w-6 text-green-600" />
+                  <Clock className="h-6 w-6 text-green-700" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Active (24h)</p>
@@ -217,7 +217,7 @@ export default function Sessions() {
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-amber-100 rounded-lg">
-                  <AlertTriangle className="h-6 w-6 text-amber-600" />
+                  <AlertTriangle className="h-6 w-6 text-amber-700" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Failed Logins</p>

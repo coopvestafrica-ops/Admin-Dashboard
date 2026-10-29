@@ -276,7 +276,7 @@ export function AnnouncementManager() {
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{a.content}</p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {new Date(a.createdAt).toLocaleString()}
                       {a.targetCount !== null && ` · reaches ${a.targetCount}`}
                       {` · ${a.readCount} read`}
@@ -388,7 +388,7 @@ export function AnnouncementManager() {
                     </SelectContent>
                   </Select>
                   {draft.priority === "critical" && (
-                    <p className="text-xs text-amber-600 mt-1">
+                    <p className="text-xs text-amber-700 mt-1">
                       A critical pop-up cannot be dismissed until the member taps OK.
                     </p>
                   )}

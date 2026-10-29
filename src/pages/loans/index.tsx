@@ -96,10 +96,10 @@ const statusCfg: Record<string, { label: string; cls: string }> = {
 };
 
 const riskColor = (s: number) =>
-  s >= 80 ? "text-emerald-600 bg-emerald-50"
-  : s >= 60 ? "text-amber-600 bg-amber-50"
+  s >= 80 ? "text-emerald-700 bg-emerald-50"
+  : s >= 60 ? "text-amber-700 bg-amber-50"
   : s >= 40 ? "text-orange-600 bg-orange-50"
-  : "text-red-600 bg-red-50";
+  : "text-red-700 bg-red-50";
 
 const repaymentCls: Record<string, string> = {
   paid:     "bg-emerald-100 text-emerald-800",
@@ -144,8 +144,8 @@ export default function Loans() {
 
   const stats = [
     { label: "Total Applications",  value: total,                                                                       icon: CreditCard,   color: "text-primary" },
-    { label: "Pending Review",       value: (portfolio as { pendingCount?: number } | undefined)?.pendingCount ?? 0,    icon: Clock,        color: "text-amber-600" },
-    { label: "Active Loans",         value: (portfolio as { activeCount?: number } | undefined)?.activeCount ?? 0,      icon: TrendingUp,   color: "text-emerald-600" },
+    { label: "Pending Review",       value: (portfolio as { pendingCount?: number } | undefined)?.pendingCount ?? 0,    icon: Clock,        color: "text-amber-700" },
+    { label: "Active Loans",         value: (portfolio as { activeCount?: number } | undefined)?.activeCount ?? 0,      icon: TrendingUp,   color: "text-emerald-700" },
     { label: "Defaulters",           value: (portfolio as { defaultedCount?: number } | undefined)?.defaultedCount ?? 0, icon: AlertTriangle, color: "text-red-500" },
     { label: "Total Disbursed",      value: (portfolio as { totalDisbursed?: number } | undefined)?.totalDisbursed ?? 0, icon: Banknote,     color: "text-blue-600", format: "currency" as const },
     { label: "Outstanding Balance",  value: (portfolio as { outstanding?: number } | undefined)?.outstanding ?? 0,      icon: TrendingDown, color: "text-orange-500", format: "currency" as const },
@@ -300,7 +300,7 @@ export default function Loans() {
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
                               <Avatar className="h-8 w-8">
-                                <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+                                <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
                                   {(() => {
                                     const name = String(loan.memberName ?? '').trim();
                                     const initials = name.split(' ').filter(Boolean).map(n => n[0] || '').join('').slice(0, 2);
@@ -380,7 +380,7 @@ export default function Loans() {
                                     <DropdownMenuItem className="text-emerald-700" onClick={() => openAction(loan, "approve")}>
                                       <CheckCircle className="mr-2 h-4 w-4" /> Approve Loan
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem className="text-red-600" onClick={() => openAction(loan, "reject")}>
+                                    <DropdownMenuItem className="text-red-700" onClick={() => openAction(loan, "reject")}>
                                       <XCircle className="mr-2 h-4 w-4" /> Reject Loan
                                     </DropdownMenuItem>
                                     <DropdownMenuItem className="text-sky-700" onClick={() => openAction(loan, "requestInfo")}>
@@ -595,7 +595,7 @@ export default function Loans() {
                     <div key={guarantor.id || idx} className="rounded-lg border p-3 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                          <AvatarFallback className="text-xs bg-primary text-primary-foreground">
                             {guarantor.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>

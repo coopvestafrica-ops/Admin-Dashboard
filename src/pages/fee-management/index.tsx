@@ -240,7 +240,7 @@ export default function FeeManagement() {
                         <TableCell>{mf.label}</TableCell>
                         <TableCell className="text-right">{formatCurrency(Number(mf.amount))}</TableCell>
                         <TableCell className="text-right">
-                          <Button size="sm" variant="ghost" className="text-red-600" onClick={() => waiveFee(mf)}>
+                          <Button size="sm" variant="ghost" className="text-red-700" onClick={() => waiveFee(mf)}>
                             Waive
                           </Button>
                         </TableCell>

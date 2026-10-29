@@ -229,7 +229,7 @@ export default function VerifyEmailPage() {
         {status === "success" && (
           <>
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
-              <svg className="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="h-8 w-8 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
@@ -252,7 +252,7 @@ export default function VerifyEmailPage() {
               {isVerifyingOtp ? "Verifying..." : "Verify email"}
             </button>
             {otpMsg && (
-              <p className="mt-2 text-xs font-medium text-red-600">{otpMsg}</p>
+              <p className="mt-2 text-xs font-medium text-red-700">{otpMsg}</p>
             )}
             <p className="mt-3 text-xs text-slate-500">If the link expired or didn't work, use the code shown in the email — or request a new one below.</p>
           </div>
@@ -261,7 +261,7 @@ export default function VerifyEmailPage() {
         {status === "error" && (
           <>
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
-              <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="h-8 w-8 text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
@@ -275,7 +275,7 @@ export default function VerifyEmailPage() {
                 {isResending ? "Sending..." : "Send verification email"}
               </button>
               {resendMsg && (
-                <p className={`mt-2 text-xs font-medium ${resendMsg.startsWith("A new") ? "text-emerald-600" : "text-red-600"}`}>
+                <p className={`mt-2 text-xs font-medium ${resendMsg.startsWith("A new") ? "text-emerald-700" : "text-red-700"}`}>
                   {resendMsg}
                 </p>
               )}

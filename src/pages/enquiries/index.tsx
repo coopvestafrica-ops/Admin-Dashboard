@@ -168,8 +168,8 @@ export default function Enquiries() {
         />
 
         <StatGrid>
-          <StatCard label="New / open" value={stats.new} icon={Inbox} iconClassName="text-amber-600" loading={listQuery.isLoading} />
-          <StatCard label="Replied" value={stats.replied} icon={MailOpen} iconClassName="text-emerald-600" loading={listQuery.isLoading} />
+          <StatCard label="New / open" value={stats.new} icon={Inbox} iconClassName="text-amber-700" loading={listQuery.isLoading} />
+          <StatCard label="Replied" value={stats.replied} icon={MailOpen} iconClassName="text-emerald-700" loading={listQuery.isLoading} />
           <StatCard label="Closed" value={stats.closed} icon={CheckCircle} iconClassName="text-gray-500" loading={listQuery.isLoading} />
           <StatCard label="Total" value={total} icon={Mail} iconClassName="text-blue-600" loading={listQuery.isLoading} />
         </StatGrid>
