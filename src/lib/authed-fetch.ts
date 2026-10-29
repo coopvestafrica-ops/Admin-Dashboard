@@ -1,5 +1,5 @@
 import { getAccessToken } from "@/lib/supabase";
-import { getApiBaseUrl } from "@/lib/api";
+import { getApiBaseUrl, syncSessionWithBackend } from "@/lib/api";
 
 /**
  * Authenticated fetch wrapper for admin pages that use raw `fetch`.
@@ -28,6 +28,30 @@ export async function authedFetch(
     path.startsWith("/api/")
       ? `${getApiBaseUrl()}${path.slice("/api".length)}`
       : path;
-  return fetch(url, { ...options, headers });
+  const res = await fetch(url, { ...options, headers });
+
+  // The backend enforces a single active session per profile. A restored
+  // Supabase session can carry a session id that no longer matches
+  // `profiles.active_session_id` (e.g. it was replaced), which makes every
+  // admin call fail with 401 SESSION_REPLACED. Re-claim the session once and
+  // retry so the page loads instead of showing "Failed to load …".
+  if (res.status === 401) {
+    let code: string | undefined;
+    try {
+      code = ((await res.clone().json()) as { code?: string }).code;
+    } catch {
+      code = undefined;
+    }
+    if (code === "SESSION_REPLACED") {
+      const claimed = await syncSessionWithBackend();
+      if (claimed) {
+        const fresh = await getAccessToken();
+        if (fresh) headers["Authorization"] = `Bearer ${fresh}`;
+        return fetch(url, { ...options, headers });
+      }
+    }
+  }
+
+  return res;
 }
 
