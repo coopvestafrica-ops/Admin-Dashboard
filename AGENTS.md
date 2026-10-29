@@ -134,3 +134,16 @@ Keep these aligned when touching either side:
   SESSION_REPLACED` body, so a stale tab self-heals instead of erroring.
 - To reproduce deterministically, delay `**/auth/sync` with Playwright routing
   and make the session stale (a second login via the API) to force the race.
+
+## E2E smoke gate (`e2e/`, `playwright.config.ts`)
+- `npm run test:e2e` signs in once (handling the MFA challenge when enrolled),
+  sweeps every registered route, and fails on a `Failed to load …` alert or a
+  bounce to `/login`. `npm run test:e2e:install` fetches Chromium.
+- Run it against the deployed origin, not `vite preview` on localhost: the
+  backend only allows the production origin, so localhost calls are rejected by
+  CORS and every page shows `Failed to fetch`. `SMOKE_BASE_URL` overrides the
+  target; `SMOKE_ADMIN_EMAIL` / `SMOKE_ADMIN_PASSWORD` supply credentials.
+- The route-sweep sign-in guard matches `/\/login($|\?)/` — anchored, so
+  `/login-history` is not mistaken for the sign-in screen.
+- Chart tests skip (annotated `skip-empty`) when an account legitimately has no
+  data; they fail only when a chart that *has* data draws a degenerate path.
