@@ -1,18 +1,27 @@
-name: Deploy to Vercel
+name: Typecheck
 
+# This repository deploys to Vercel through Vercel's own Git integration, which
+# builds every push to `main`. That workflow is the deploy path, and the gate
+# that matters is in `vercel.json` (`npm run typecheck && npm run build`).
+#
+# The previous version of this file also tried to deploy with `vercel --prod`
+# from Actions. It failed on every run from at least 2026-10-28 because the
+# VERCEL_TOKEN secret was invalid, while the site kept deploying through the Git
+# integration — so it never deployed anything and only produced a red check.
+# It is removed rather than repaired: two deploy paths race, and the one inside
+# Vercel cannot be skipped.
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  # Type checking is the only automated correctness check this app has, and it
-  # was not run before deploying. It would have caught the wallet page reading
-  # `data` while the API returned `wallets`, which shipped as a broken screen.
-  # No unit tests exist yet; `typecheck` is the honest gate available today.
+  # Early signal on the pull request. Vercel repeats this check during its own
+  # build, which is what actually prevents a broken deploy.
   typecheck:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -22,7 +31,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
 
       - name: Install dependencies
@@ -30,32 +39,3 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
-
-  deploy:
-    needs: typecheck
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel
-
-      - name: Pull Vercel Environment
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build Project
-        run: |
-          rm -rf dist .vercel/output
-          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-
-      - name: Deploy to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}

@@ -1,12 +1,18 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run typecheck && npm run build",
   "installCommand": "npm install",
   "framework": "vite",
   "outputDirectory": "dist/public",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://coopvest-api.onrender.com/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api/(.*)",
+      "destination": "https://coopvest-api.onrender.com/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ],
   "env": {
     "VITE_API_URL": "https://coopvest-api.onrender.com",
