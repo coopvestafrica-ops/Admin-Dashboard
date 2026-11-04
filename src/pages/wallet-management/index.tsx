@@ -45,7 +45,7 @@ interface UserWallet {
   balance: number;
   status: WalletStatus;
   lastTransactionAt: string;
-  lastTransactionAmount: number;
+  lastTransactionAmount: number | null;
 }
 
 interface WalletsResponse {
@@ -68,6 +68,18 @@ async function fetchWallets(params: Record<string, string>): Promise<WalletsResp
   const res = await authedFetch(`/api/admin/wallets?${qs}`);
   if (!res.ok) throw new Error("Failed to fetch wallets");
   return res.json();
+}
+
+async function fetchWalletStats(): Promise<Partial<WalletsResponse>> {
+  try {
+    const res = await authedFetch("/api/admin/wallets/stats");
+    if (!res.ok) return {};
+    return await res.json();
+  } catch {
+    // The summary cards read from this, so a failure leaves them at zero
+    // rather than taking down the wallet table.
+    return {};
+  }
 }
 
 async function updateWalletStatus(id: string, status: WalletStatus): Promise<void> {
@@ -98,7 +110,7 @@ export default function WalletManagement() {
   const qc = useQueryClient();
 
   const queryKey = ["wallets", statusFilter, search, page];
-  const { data, isLoading } = useQuery<WalletsResponse>({
+  const { data: listData, isLoading } = useQuery<WalletsResponse>({
     queryKey,
     queryFn: () =>
       fetchWallets({
@@ -109,12 +121,22 @@ export default function WalletManagement() {
       }),
   });
 
+  // The four summary cards are totals across every wallet, not the current
+  // page, so they come from their own aggregate endpoint.
+  const { data: stats } = useQuery<Partial<WalletsResponse>>({
+    queryKey: ["wallet-stats"],
+    queryFn: fetchWalletStats,
+  });
+
+  const data = listData ? { ...listData, ...stats } : listData;
+
   const { mutate: toggleStatus, isPending: toggling } = useMutation({
     mutationFn: ({ id, status }: { id: string; status: WalletStatus }) =>
       updateWalletStatus(id, status),
     onSuccess: () => {
       toast({ title: "Wallet updated", description: "Wallet status changed successfully." });
       qc.invalidateQueries({ queryKey: ["wallets"] });
+      qc.invalidateQueries({ queryKey: ["wallet-stats"] });
     },
     onError: () =>
       toast({ title: "Error", description: "Failed to update wallet.", variant: "destructive" }),
@@ -126,6 +148,7 @@ export default function WalletManagement() {
     onSuccess: () => {
       toast({ title: "Balance adjusted", description: "Manual adjustment applied successfully." });
       qc.invalidateQueries({ queryKey: ["wallets"] });
+      qc.invalidateQueries({ queryKey: ["wallet-stats"] });
       setAdjustWallet(null);
       setAdjustAmount("");
       setAdjustNote("");
@@ -297,7 +320,11 @@ export default function WalletManagement() {
                           </td>
                           <td className="py-3 text-muted-foreground text-xs">
                             <div>{formatDateTime(wallet.lastTransactionAt)}</div>
-                            <div>{formatCurrency(wallet.lastTransactionAmount)}</div>
+                            <div>
+                              {wallet.lastTransactionAmount == null
+                                ? "\u2014"
+                                : formatCurrency(wallet.lastTransactionAmount)}
+                            </div>
                           </td>
                           <td className="py-3">
                             <div className="flex items-center justify-center gap-1">
