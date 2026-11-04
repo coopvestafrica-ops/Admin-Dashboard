@@ -19,10 +19,16 @@ import {
 } from "lucide-react";
 import { authedFetch } from "@/lib/authed-fetch";
 
+interface ReferralTier {
+  minConfirmed: number;
+  bonusPercent: number;
+}
+
 interface ReferralSettings {
   enabled: boolean;
   bonusAmount: number;
   maxReferralsPerUser: number;
+  tiers?: ReferralTier[];
 }
 
 interface ReferralEntry {
@@ -30,12 +36,16 @@ interface ReferralEntry {
   userId: number;
   userName: string;
   referralsMade: number;
+  confirmedReferrals: number;
+  bonusPercent: number;
   bonusEarned: number;
   status: "active" | "suspended";
 }
 
 interface ReferralAnalytics {
   totalThisMonth: number;
+  totalReferrals: number;
+  totalConfirmed: number;
   totalBonusPaid: number;
   conversionRate: number;
 }
@@ -99,7 +109,7 @@ export default function ReferralProgram() {
 
   const analyticsCards = [
     {
-      label: "Total Referrals This Month",
+      label: "Confirmed Referrals This Month",
       value: data?.analytics.totalThisMonth ?? 0,
       icon: Users,
       color: "text-blue-600",
@@ -107,7 +117,15 @@ export default function ReferralProgram() {
       format: (v: number) => String(v),
     },
     {
-      label: "Total Bonuses Paid",
+      label: "Confirmed Referrals (All Time)",
+      value: data?.analytics.totalConfirmed ?? 0,
+      icon: Trophy,
+      color: "text-indigo-600",
+      bg: "bg-indigo-50",
+      format: (v: number) => String(v),
+    },
+    {
+      label: "Discount Value (notional)",
       value: data?.analytics.totalBonusPaid ?? 0,
       icon: Gift,
       color: "text-purple-600",
@@ -133,7 +151,7 @@ export default function ReferralProgram() {
         />
 
         {/* Analytics */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {analyticsCards.map(({ label, value, icon: Icon, color, bg, format }) => (
             <Card key={label}>
               <CardContent className="p-4 flex items-center gap-3">
@@ -163,6 +181,16 @@ export default function ReferralProgram() {
               </div>
             ) : (
               <div className="space-y-6">
+                <p className="text-sm text-muted-foreground">
+                  Members earn a tiered discount on loan interest —{" "}
+                  {(data?.settings.tiers ?? [])
+                    .filter((t) => t.bonusPercent > 0)
+                    .sort((a, b) => a.minConfirmed - b.minConfirmed)
+                    .map((t) => `${t.bonusPercent}% at ${t.minConfirmed}`)
+                    .join(", ") || "0.5% at 2, 1% at 5, 2% at 10"}{" "}
+                  confirmed referrals. The amount below is a notional cash value used
+                  for reporting only; it does not credit any wallet.
+                </p>
                 <div className="flex items-center gap-4">
                   <Switch
                     id="program-enabled"
@@ -175,7 +203,7 @@ export default function ReferralProgram() {
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="bonus-amount">Referral Bonus Amount (₦)</Label>
+                    <Label htmlFor="bonus-amount">Notional Value per Confirmed Referral (₦)</Label>
                     <div className="relative">
                       <Gift className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -234,8 +262,10 @@ export default function ReferralProgram() {
                     <tr className="border-b text-muted-foreground">
                       <th className="pb-3 text-left font-medium w-12">Rank</th>
                       <th className="pb-3 text-left font-medium">User</th>
-                      <th className="pb-3 text-right font-medium">Referrals Made</th>
-                      <th className="pb-3 text-right font-medium">Bonus Earned</th>
+                      <th className="pb-3 text-right font-medium">Invited</th>
+                      <th className="pb-3 text-right font-medium">Confirmed</th>
+                      <th className="pb-3 text-right font-medium">Tier</th>
+                      <th className="pb-3 text-right font-medium">Discount Value</th>
                       <th className="pb-3 text-left font-medium">Status</th>
                     </tr>
                   </thead>
@@ -255,6 +285,8 @@ export default function ReferralProgram() {
                         </td>
                         <td className="py-3 font-medium">{entry.userName}</td>
                         <td className="py-3 text-right font-semibold">{entry.referralsMade}</td>
+                        <td className="py-3 text-right font-semibold">{entry.confirmedReferrals}</td>
+                        <td className="py-3 text-right font-semibold">{entry.bonusPercent}%</td>
                         <td className="py-3 text-right font-semibold">{formatCurrency(entry.bonusEarned)}</td>
                         <td className="py-3">
                           <span
@@ -271,7 +303,7 @@ export default function ReferralProgram() {
                     ))}
                     {leaderboard.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="py-12 text-center text-muted-foreground">
+                        <td colSpan={6} className="py-12 text-center text-muted-foreground">
                           No referral data yet
                         </td>
                       </tr>
