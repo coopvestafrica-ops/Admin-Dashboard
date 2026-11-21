@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { PageHeader, PageBody } from "@/components/PageHeader";
 import { StatCard, StatGrid } from "@/components/StatCard";
@@ -21,7 +21,7 @@ import { formatCurrency, formatDateTime } from "@/lib/format";
 import {
   Search, CheckCircle, XCircle, Clock, AlertTriangle, CreditCard,
   ShieldAlert, Plus, Download, MoreVertical, Users, TrendingUp,
-  TrendingDown, RefreshCw, Banknote, FileWarning, Phone, Mail, User, Wallet
+  TrendingDown, RefreshCw, Banknote, FileWarning, Phone, Mail, User, Wallet, Receipt
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
@@ -49,6 +49,18 @@ interface Guarantor {
   /** Null for guarantees recorded before migration 067 — nothing is held. */
   pledged: number | null;
   pledgedRecovered: number;
+}
+
+/** A repayment as returned by GET /api/admin/loans/:id/repayments. */
+interface LoanRepaymentRow {
+  id: string;
+  amount: number;
+  principal_component: number | null;
+  interest_component: number | null;
+  status: string | null;
+  paid_at: string | null;
+  due_date: string | null;
+  reference: string | null;
 }
 
 interface ApiLoan {
@@ -117,6 +129,20 @@ export default function Loans() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
   const [selectedLoan, setSelectedLoan] = useState<ApiLoan | null>(null);
+  const [repayments, setRepayments] = useState<LoanRepaymentRow[] | null>(null);
+
+  // Repayment history is fetched per loan when the detail dialog opens, not
+  // with the list: it is one request per loan viewed rather than one per row.
+  useEffect(() => {
+    if (!selectedLoan) { setRepayments(null); return; }
+    let cancelled = false;
+    setRepayments(null);
+    authedFetch(`/api/admin/loans/${selectedLoan.id}/repayments`)
+      .then((r) => (r.ok ? r.json() : { repayments: [] }))
+      .then((body) => { if (!cancelled) setRepayments(body?.repayments ?? []); })
+      .catch(() => { if (!cancelled) setRepayments([]); });
+    return () => { cancelled = true; };
+  }, [selectedLoan]);
   const [actionDialog, setActionDialog] = useState<{ open: boolean; loan: ApiLoan | null; action: LoanAction | null }>({ open: false, loan: null, action: null });
   const [actionNote, setActionNote] = useState("");
   const [penaltyAmount, setPenaltyAmount] = useState("");
@@ -558,7 +584,7 @@ export default function Loans() {
 
       {/* ── Loan Detail Modal ── */}
       {selectedLoan && (
-        <Dialog open={!!selectedLoan} onOpenChange={() => setSelectedLoan(null)}>
+        <Dialog open={!!selectedLoan} onOpenChange={() => { setSelectedLoan(null); setRepayments(null); }}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
@@ -704,6 +730,74 @@ export default function Loans() {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Repayment History */}
+            <div className="border-t pt-4 mt-4">
+              <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Receipt className="h-4 w-4" /> Repayment History
+                {repayments && repayments.length > 0 && (
+                  <span className="text-xs font-normal text-muted-foreground">
+                    ({repayments.length} payment{repayments.length === 1 ? "" : "s"})
+                  </span>
+                )}
+              </h4>
+              {repayments === null ? (
+                <p className="text-xs text-muted-foreground">Loading…</p>
+              ) : repayments.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No repayments recorded yet.</p>
+              ) : (
+                <div className="rounded-lg border overflow-hidden">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="text-left p-2 font-medium">Date</th>
+                        <th className="text-right p-2 font-medium">Amount</th>
+                        <th className="text-right p-2 font-medium">Principal</th>
+                        <th className="text-right p-2 font-medium">Interest</th>
+                        <th className="text-left p-2 font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {repayments.map((r) => (
+                        <tr key={r.id} className="border-t">
+                          <td className="p-2">
+                            {r.paid_at || r.due_date
+                              ? new Date(r.paid_at || r.due_date!).toLocaleDateString()
+                              : "—"}
+                          </td>
+                          <td className="p-2 text-right font-medium">{formatCurrency(Number(r.amount))}</td>
+                          {/* Older rows were written before the split was
+                              recorded, so they show a dash rather than 0.00 —
+                              a zero would read as "no interest charged". */}
+                          <td className="p-2 text-right">
+                            {r.principal_component != null ? formatCurrency(Number(r.principal_component)) : "—"}
+                          </td>
+                          <td className="p-2 text-right text-emerald-700">
+                            {r.interest_component != null ? formatCurrency(Number(r.interest_component)) : "—"}
+                          </td>
+                          <td className="p-2 capitalize">{r.status ?? "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-muted/30 border-t font-medium">
+                      <tr>
+                        <td className="p-2">Total</td>
+                        <td className="p-2 text-right">
+                          {formatCurrency(repayments.reduce((s2, r) => s2 + Number(r.amount || 0), 0))}
+                        </td>
+                        <td className="p-2 text-right">
+                          {formatCurrency(repayments.reduce((s2, r) => s2 + Number(r.principal_component || 0), 0))}
+                        </td>
+                        <td className="p-2 text-right text-emerald-700">
+                          {formatCurrency(repayments.reduce((s2, r) => s2 + Number(r.interest_component || 0), 0))}
+                        </td>
+                        <td className="p-2" />
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
             </div>
 
             {/* Guarantors Section */}
