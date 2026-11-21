@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { PageHeader, PageBody } from "@/components/PageHeader";
 import { StatCard, StatGrid } from "@/components/StatCard";
@@ -20,14 +20,14 @@ import { authedFetch } from "@/lib/authed-fetch";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import {
   Search, CheckCircle, XCircle, Clock, AlertTriangle, CreditCard,
-  ShieldAlert, Lock, Plus, Download, MoreVertical, Users, TrendingUp,
-  TrendingDown, RefreshCw, Banknote, FileWarning, HandshakeIcon, Phone, Mail, User, Wallet
+  ShieldAlert, Plus, Download, MoreVertical, Users, TrendingUp,
+  TrendingDown, RefreshCw, Banknote, FileWarning, Phone, Mail, User, Wallet, Receipt
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type LoanAction = "approve" | "reject" | "freeze" | "penalty" | "guarantor" | "restructure" | "requestInfo" | "setoff";
+type LoanAction = "approve" | "reject" | "disburse" | "penalty" | "restructure" | "requestInfo" | "setoff";
 
 interface BorrowerRisk {
   score: number;
@@ -49,6 +49,18 @@ interface Guarantor {
   /** Null for guarantees recorded before migration 067 — nothing is held. */
   pledged: number | null;
   pledgedRecovered: number;
+}
+
+/** A repayment as returned by GET /api/admin/loans/:id/repayments. */
+interface LoanRepaymentRow {
+  id: string;
+  amount: number;
+  principal_component: number | null;
+  interest_component: number | null;
+  status: string | null;
+  paid_at: string | null;
+  due_date: string | null;
+  reference: string | null;
 }
 
 interface ApiLoan {
@@ -117,6 +129,20 @@ export default function Loans() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
   const [selectedLoan, setSelectedLoan] = useState<ApiLoan | null>(null);
+  const [repayments, setRepayments] = useState<LoanRepaymentRow[] | null>(null);
+
+  // Repayment history is fetched per loan when the detail dialog opens, not
+  // with the list: it is one request per loan viewed rather than one per row.
+  useEffect(() => {
+    if (!selectedLoan) { setRepayments(null); return; }
+    let cancelled = false;
+    setRepayments(null);
+    authedFetch(`/api/admin/loans/${selectedLoan.id}/repayments`)
+      .then((r) => (r.ok ? r.json() : { repayments: [] }))
+      .then((body) => { if (!cancelled) setRepayments(body?.repayments ?? []); })
+      .catch(() => { if (!cancelled) setRepayments([]); });
+    return () => { cancelled = true; };
+  }, [selectedLoan]);
   const [actionDialog, setActionDialog] = useState<{ open: boolean; loan: ApiLoan | null; action: LoanAction | null }>({ open: false, loan: null, action: null });
   const [actionNote, setActionNote] = useState("");
   const [penaltyAmount, setPenaltyAmount] = useState("");
@@ -183,6 +209,9 @@ export default function Loans() {
         onSuccess: () => toast({ title: "Loan Rejected", description: `Loan for ${loan.memberName || loan.loanId} rejected.` }),
         onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
       });
+    } else if (action === "disburse") {
+      disburse(loan);
+      return;
     } else if (action === "requestInfo") {
       if (!actionNote.trim() || actionNote.trim().length < 3) {
         toast({ title: "Message required", description: "Describe the additional information you need from the borrower.", variant: "destructive" });
@@ -204,14 +233,38 @@ export default function Loans() {
     } else if (action === "setoff") {
       recoverFromSavings(loan, noticeServed);
       return;
-    } else {
-      const msgs: Partial<Record<LoanAction, string>> = {
-        freeze: `Loan for ${loan.memberName} frozen.`,
-        penalty: `Penalty of ${formatCurrency(Number(penaltyAmount))} added to ${loan.memberName}.`,
-        guarantor: `Guarantor recovery triggered for ${loan.memberName}.`,
-        restructure: `Repayment plan restructured for ${loan.memberName}.`,
-      };
-      toast({ title: "Action Noted", description: msgs[action] ?? "Action completed." });
+    } else if (action === "penalty") {
+      if (!(Number(penaltyAmount) > 0)) {
+        toast({ title: "Amount required", description: "Enter the penalty amount to charge.", variant: "destructive" });
+        return;
+      }
+      authedFetch(`/api/admin/loans/${loan.id}/penalty`, {
+        method: "POST",
+        body: JSON.stringify({ amount: Number(penaltyAmount) }),
+      })
+        .then(async (r) => {
+          const body = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(body?.error || "Penalty failed");
+          toast({ title: "Penalty Added", description: `${formatCurrency(Number(penaltyAmount))} charged to ${loan.memberName}.` });
+          qc.invalidateQueries({ queryKey: ["getLoans"] });
+        })
+        .catch((e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }));
+    } else if (action === "restructure") {
+      authedFetch(`/api/admin/loans/${loan.id}/restructure`, {
+        method: "POST",
+        body: JSON.stringify({
+          newTenureMonths: restructurePlan.months ? Number(restructurePlan.months) : undefined,
+          newInterestRate: restructurePlan.rate ? Number(restructurePlan.rate) : undefined,
+          reason: actionNote.trim() || "Repayment plan restructured by administrator",
+        }),
+      })
+        .then(async (r) => {
+          const body = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(body?.error || "Restructure failed");
+          toast({ title: "Plan Restructured", description: `New repayment plan applied to ${loan.memberName}.` });
+          qc.invalidateQueries({ queryKey: ["getLoans"] });
+        })
+        .catch((e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }));
     }
     setActionDialog({ open: false, loan: null, action: null });
   }
@@ -241,6 +294,34 @@ export default function Loans() {
         } else {
           toast({ title: "Loan Approved", description: `Loan for ${loan.memberName || loan.loanId} approved.` });
         }
+        qc.invalidateQueries({ queryKey: ["getLoans"] });
+        qc.invalidateQueries({ queryKey: ["getDashboardSummary"] });
+        qc.invalidateQueries({ queryKey: ["getLoanPortfolioSummary"] });
+      })
+      .catch((e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }));
+  }
+
+  /**
+   * Pay out an approved loan. Credits the principal to the member's wallet and
+   * moves the loan to active, which is what makes repayment and arrears
+   * escalation start working. Only valid from `approved`; a 409 means it was
+   * already disbursed (double click), so we refresh rather than retry.
+   */
+  function disburse(loan: ApiLoan) {
+    authedFetch(`/api/admin/loans/${loan.id}/disburse`, {
+      method: "POST",
+      body: JSON.stringify({ confirm: true }),
+    })
+      .then(async (r) => {
+        const body = await r.json().catch(() => ({}));
+        if (r.status === 409) {
+          toast({ title: "Already disbursed", description: body?.error || "This loan is no longer awaiting disbursement." });
+        } else if (!r.ok) {
+          throw new Error(body?.error || "Disbursement failed");
+        } else {
+          toast({ title: "Loan Disbursed", description: `${formatCurrency(Number(loan.amount ?? 0))} credited to ${loan.memberName}'s wallet.` });
+        }
+        setActionDialog({ open: false, loan: null, action: null });
         qc.invalidateQueries({ queryKey: ["getLoans"] });
         qc.invalidateQueries({ queryKey: ["getDashboardSummary"] });
         qc.invalidateQueries({ queryKey: ["getLoanPortfolioSummary"] });
@@ -451,11 +532,13 @@ export default function Loans() {
                                     </DropdownMenuItem>
                                   </>
                                 )}
-                                {(loan.status === "active" || loan.status === "defaulted") && (
+                                {loan.status === "approved" && (
+                                  <DropdownMenuItem className="text-emerald-700" onClick={() => openAction(loan, "disburse")}>
+                                    <Banknote className="mr-2 h-4 w-4" /> Disburse Loan
+                                  </DropdownMenuItem>
+                                )}
+                                {(loan.status === "active" || loan.status === "defaulted" || loan.status === "overdue" || loan.status === "in_recovery") && (
                                   <>
-                                    <DropdownMenuItem onClick={() => openAction(loan, "freeze")} className="text-indigo-600">
-                                      <Lock className="mr-2 h-4 w-4" /> Freeze Loan
-                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => openAction(loan, "penalty")} className="text-orange-600">
                                       <FileWarning className="mr-2 h-4 w-4" /> Add Penalty
                                     </DropdownMenuItem>
@@ -464,9 +547,6 @@ export default function Loans() {
                                         <Wallet className="mr-2 h-4 w-4" /> Recover from Savings
                                       </DropdownMenuItem>
                                     )}
-                                    <DropdownMenuItem onClick={() => openAction(loan, "guarantor")} className="text-purple-600">
-                                      <HandshakeIcon className="mr-2 h-4 w-4" /> Trigger Guarantor Recovery
-                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => openAction(loan, "restructure")}>
                                       <RefreshCw className="mr-2 h-4 w-4" /> Restructure Repayment
                                     </DropdownMenuItem>
@@ -504,7 +584,7 @@ export default function Loans() {
 
       {/* ── Loan Detail Modal ── */}
       {selectedLoan && (
-        <Dialog open={!!selectedLoan} onOpenChange={() => setSelectedLoan(null)}>
+        <Dialog open={!!selectedLoan} onOpenChange={() => { setSelectedLoan(null); setRepayments(null); }}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
@@ -652,6 +732,74 @@ export default function Loans() {
               </div>
             </div>
 
+            {/* Repayment History */}
+            <div className="border-t pt-4 mt-4">
+              <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Receipt className="h-4 w-4" /> Repayment History
+                {repayments && repayments.length > 0 && (
+                  <span className="text-xs font-normal text-muted-foreground">
+                    ({repayments.length} payment{repayments.length === 1 ? "" : "s"})
+                  </span>
+                )}
+              </h4>
+              {repayments === null ? (
+                <p className="text-xs text-muted-foreground">Loading…</p>
+              ) : repayments.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No repayments recorded yet.</p>
+              ) : (
+                <div className="rounded-lg border overflow-hidden">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="text-left p-2 font-medium">Date</th>
+                        <th className="text-right p-2 font-medium">Amount</th>
+                        <th className="text-right p-2 font-medium">Principal</th>
+                        <th className="text-right p-2 font-medium">Interest</th>
+                        <th className="text-left p-2 font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {repayments.map((r) => (
+                        <tr key={r.id} className="border-t">
+                          <td className="p-2">
+                            {r.paid_at || r.due_date
+                              ? new Date(r.paid_at || r.due_date!).toLocaleDateString()
+                              : "—"}
+                          </td>
+                          <td className="p-2 text-right font-medium">{formatCurrency(Number(r.amount))}</td>
+                          {/* Older rows were written before the split was
+                              recorded, so they show a dash rather than 0.00 —
+                              a zero would read as "no interest charged". */}
+                          <td className="p-2 text-right">
+                            {r.principal_component != null ? formatCurrency(Number(r.principal_component)) : "—"}
+                          </td>
+                          <td className="p-2 text-right text-emerald-700">
+                            {r.interest_component != null ? formatCurrency(Number(r.interest_component)) : "—"}
+                          </td>
+                          <td className="p-2 capitalize">{r.status ?? "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-muted/30 border-t font-medium">
+                      <tr>
+                        <td className="p-2">Total</td>
+                        <td className="p-2 text-right">
+                          {formatCurrency(repayments.reduce((s2, r) => s2 + Number(r.amount || 0), 0))}
+                        </td>
+                        <td className="p-2 text-right">
+                          {formatCurrency(repayments.reduce((s2, r) => s2 + Number(r.principal_component || 0), 0))}
+                        </td>
+                        <td className="p-2 text-right text-emerald-700">
+                          {formatCurrency(repayments.reduce((s2, r) => s2 + Number(r.interest_component || 0), 0))}
+                        </td>
+                        <td className="p-2" />
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
+            </div>
+
             {/* Guarantors Section */}
             <div className="border-t pt-4 mt-4">
               <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
@@ -734,14 +882,8 @@ export default function Loans() {
               )}
               {(selectedLoan.status === "active" || selectedLoan.status === "defaulted") && (
                 <>
-                  <Button size="sm" variant="outline" onClick={() => { setSelectedLoan(null); openAction(selectedLoan, "freeze"); }}>
-                    <Lock className="mr-1 h-3.5 w-3.5" /> Freeze
-                  </Button>
                   <Button size="sm" variant="outline" className="text-orange-600" onClick={() => { setSelectedLoan(null); openAction(selectedLoan, "penalty"); }}>
                     <FileWarning className="mr-1 h-3.5 w-3.5" /> Add Penalty
-                  </Button>
-                  <Button size="sm" variant="outline" className="text-purple-600" onClick={() => { setSelectedLoan(null); openAction(selectedLoan, "guarantor"); }}>
-                    <HandshakeIcon className="mr-1 h-3.5 w-3.5" /> Guarantor Recovery
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => { setSelectedLoan(null); openAction(selectedLoan, "restructure"); }}>
                     <RefreshCw className="mr-1 h-3.5 w-3.5" /> Restructure
@@ -764,9 +906,8 @@ export default function Loans() {
             <DialogTitle>
               {actionDialog.action === "approve"    && "Approve Loan"}
               {actionDialog.action === "reject"     && "Reject Loan"}
-              {actionDialog.action === "freeze"     && "Freeze Loan"}
+              {actionDialog.action === "disburse"   && "Disburse Loan"}
               {actionDialog.action === "penalty"    && "Add Penalty"}
-              {actionDialog.action === "guarantor"  && "Trigger Guarantor Recovery"}
               {actionDialog.action === "restructure"&& "Restructure Repayment Plan"}
               {actionDialog.action === "requestInfo" && "Request More Information"}
               {actionDialog.action === "setoff"   && "Recover from Savings"}
@@ -776,6 +917,13 @@ export default function Loans() {
             <p className="text-sm text-muted-foreground">
               Member: <strong>{actionDialog.loan?.memberName}</strong> · {formatCurrency(actionDialog.loan?.amount ?? 0)}
             </p>
+
+            {actionDialog.action === "disburse" && (
+              <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+                This credits <strong>{formatCurrency(actionDialog.loan?.amount ?? 0)}</strong> to the member's wallet
+                and starts their repayment schedule. It can only be done once.
+              </div>
+            )}
 
             {actionDialog.action === "penalty" && (
               <div className="space-y-1.5">
@@ -797,11 +945,6 @@ export default function Loans() {
               </div>
             )}
 
-            {actionDialog.action === "guarantor" && (
-              <div className="rounded-lg bg-purple-50 border border-purple-200 p-3 text-sm text-purple-800">
-                This will initiate the guarantor recovery process for <strong>{actionDialog.loan?.memberName}</strong>. A formal demand notice will be generated.
-              </div>
-            )}
 
             {actionDialog.action === "requestInfo" && (
               <div className="rounded-lg bg-sky-50 border border-sky-200 p-3 text-sm text-sky-800">
@@ -857,7 +1000,7 @@ export default function Loans() {
             <Button
               onClick={executeAction}
               disabled={actionDialog.action === "setoff" && !noticeServed}
-              variant={["reject", "freeze", "setoff"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
+              variant={["reject", "setoff"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
             >
               Confirm
             </Button>
