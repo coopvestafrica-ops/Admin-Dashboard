@@ -21,13 +21,13 @@ import { formatCurrency, formatDateTime } from "@/lib/format";
 import {
   Search, CheckCircle, XCircle, Clock, AlertTriangle, CreditCard,
   ShieldAlert, Lock, Plus, Download, MoreVertical, Users, TrendingUp,
-  TrendingDown, RefreshCw, Banknote, FileWarning, HandshakeIcon, Phone, Mail, User
+  TrendingDown, RefreshCw, Banknote, FileWarning, HandshakeIcon, Phone, Mail, User, Wallet
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type LoanAction = "approve" | "reject" | "freeze" | "penalty" | "guarantor" | "restructure" | "requestInfo";
+type LoanAction = "approve" | "reject" | "freeze" | "penalty" | "guarantor" | "restructure" | "requestInfo" | "setoff";
 
 interface BorrowerRisk {
   score: number;
@@ -46,6 +46,9 @@ interface Guarantor {
   ineligibleReason?: string | null;
   consentedAt: string | null;
   createdAt: string;
+  /** Null for guarantees recorded before migration 067 — nothing is held. */
+  pledged: number | null;
+  pledgedRecovered: number;
 }
 
 interface ApiLoan {
@@ -118,6 +121,18 @@ export default function Loans() {
   const [actionNote, setActionNote] = useState("");
   const [penaltyAmount, setPenaltyAmount] = useState("");
   const [restructurePlan, setRestructurePlan] = useState({ months: "", rate: "" });
+  // Set when the backend refuses an approval because savings do not cover the
+  // loan. Holds the figures so the officer can decide with them in front of
+  // them instead of reading a bare error.
+  const [underCovered, setUnderCovered] = useState<{
+    loan: ApiLoan; message: string;
+    coverage?: { requiredAmount?: number; coveredAmount?: number; shortfall?: number };
+  } | null>(null);
+  const [noticeServed, setNoticeServed] = useState(false);
+  const [setoffResult, setSetoffResult] = useState<{
+    recovered?: number; shortfall?: number;
+    steps?: Array<{ name?: string; role?: string; amount?: number }>;
+  } | null>(null);
   const [page, setPage] = useState(1);
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -154,23 +169,15 @@ export default function Loans() {
   function openAction(loan: ApiLoan, action: LoanAction) {
     setActionDialog({ open: true, loan, action });
     setActionNote(""); setPenaltyAmount(""); setRestructurePlan({ months: "", rate: "" });
+    setNoticeServed(false);
   }
 
   function executeAction() {
     if (!actionDialog.loan || !actionDialog.action) return;
     const { loan, action } = actionDialog;
     if (action === "approve") {
-      apiApprove(loan.id, {
-        onSuccess: (res) => {
-          const body = res as { pendingApproval?: boolean; message?: string } | undefined;
-          if (body?.pendingApproval) {
-            toast({ title: "Sent to Approval Center", description: body.message || "This loan requires Super Admin approval." });
-          } else {
-            toast({ title: "Loan Approved", description: `Loan for ${loan.memberName || loan.loanId} approved.` });
-          }
-        },
-        onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
-      });
+      approve(loan);
+      return;
     } else if (action === "reject") {
       apiReject({ id: loan.id, reason: actionNote }, {
         onSuccess: () => toast({ title: "Loan Rejected", description: `Loan for ${loan.memberName || loan.loanId} rejected.` }),
@@ -194,6 +201,9 @@ export default function Loans() {
           qc.invalidateQueries({ queryKey: ["getLoans"] });
         })
         .catch((e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }));
+    } else if (action === "setoff") {
+      recoverFromSavings(loan, noticeServed);
+      return;
     } else {
       const msgs: Partial<Record<LoanAction, string>> = {
         freeze: `Loan for ${loan.memberName} frozen.`,
@@ -204,6 +214,59 @@ export default function Loans() {
       toast({ title: "Action Noted", description: msgs[action] ?? "Action completed." });
     }
     setActionDialog({ open: false, loan: null, action: null });
+  }
+
+  /**
+   * Approve a loan. The backend refuses with 409 UNDER_COVERED when savings do
+   * not cover it; rather than showing a raw error we surface the figures and
+   * let the officer approve deliberately with `acknowledgeUnderCovered`.
+   */
+  function approve(loan: ApiLoan, acknowledgeUnderCovered = false) {
+    authedFetch(`/api/admin/loans/${loan.id}/approve`, {
+      method: "POST",
+      body: JSON.stringify({ acknowledgeUnderCovered }),
+    })
+      .then(async (r) => {
+        const body = await r.json().catch(() => ({}));
+        if (r.status === 409 && body?.code === "UNDER_COVERED") {
+          setActionDialog({ open: false, loan: null, action: null });
+          setUnderCovered({ loan, message: body.error, coverage: body.coverage });
+          return;
+        }
+        if (!r.ok) throw new Error(body?.error || "Approval failed");
+        setUnderCovered(null);
+        setActionDialog({ open: false, loan: null, action: null });
+        if (body?.pendingApproval) {
+          toast({ title: "Sent to Approval Center", description: body.message || "This loan requires Super Admin approval." });
+        } else {
+          toast({ title: "Loan Approved", description: `Loan for ${loan.memberName || loan.loanId} approved.` });
+        }
+        qc.invalidateQueries({ queryKey: ["getLoans"] });
+        qc.invalidateQueries({ queryKey: ["getDashboardSummary"] });
+        qc.invalidateQueries({ queryKey: ["getLoanPortfolioSummary"] });
+      })
+      .catch((e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }));
+  }
+
+  /**
+   * Recover a defaulted loan from savings. Two flags are required because the
+   * debit is irreversible and the policy commits to telling the member first.
+   */
+  function recoverFromSavings(loan: ApiLoan, noticeServed: boolean) {
+    authedFetch(`/api/admin/loans/${loan.id}/recover-from-savings`, {
+      method: "POST",
+      body: JSON.stringify({ noticeServed, confirm: true }),
+    })
+      .then(async (r) => {
+        const body = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(body?.error || "Recovery failed");
+        setActionDialog({ open: false, loan: null, action: null });
+        setSetoffResult(body);
+        qc.invalidateQueries({ queryKey: ["getLoans"] });
+        qc.invalidateQueries({ queryKey: ["getDashboardSummary"] });
+        qc.invalidateQueries({ queryKey: ["getLoanPortfolioSummary"] });
+      })
+      .catch((e: Error) => toast({ title: "Recovery failed", description: e.message, variant: "destructive" }));
   }
 
   function exportCSV() {
@@ -396,6 +459,11 @@ export default function Loans() {
                                     <DropdownMenuItem onClick={() => openAction(loan, "penalty")} className="text-orange-600">
                                       <FileWarning className="mr-2 h-4 w-4" /> Add Penalty
                                     </DropdownMenuItem>
+                                    {(loan.status === "overdue" || loan.status === "defaulted" || loan.status === "in_recovery") && (
+                                      <DropdownMenuItem onClick={() => { setSetoffResult(null); setActionDialog({ open: true, loan, action: "setoff" }); }} className="text-red-700">
+                                        <Wallet className="mr-2 h-4 w-4" /> Recover from Savings
+                                      </DropdownMenuItem>
+                                    )}
                                     <DropdownMenuItem onClick={() => openAction(loan, "guarantor")} className="text-purple-600">
                                       <HandshakeIcon className="mr-2 h-4 w-4" /> Trigger Guarantor Recovery
                                     </DropdownMenuItem>
@@ -613,6 +681,16 @@ export default function Loans() {
                             )}
                           </div>
                           <div className="text-xs text-muted-foreground flex items-center gap-2">
+                            {guarantor.pledged != null ? (
+                              <span className="font-medium text-foreground">
+                                Pledged {formatCurrency(guarantor.pledged)}
+                                {(guarantor.pledgedRecovered ?? 0) > 0 && (
+                                  <span className="text-red-700"> · {formatCurrency(guarantor.pledgedRecovered)} recovered</span>
+                                )}
+                              </span>
+                            ) : guarantor.consentedAt ? (
+                              <span className="text-amber-700">No pledge recorded</span>
+                            ) : null}
                             {guarantor.channel && guarantor.channel !== "unknown" && (
                               <span>{guarantor.channel === "salary" ? "Salary deduction" : "Direct deposit"}</span>
                             )}
@@ -691,6 +769,7 @@ export default function Loans() {
               {actionDialog.action === "guarantor"  && "Trigger Guarantor Recovery"}
               {actionDialog.action === "restructure"&& "Restructure Repayment Plan"}
               {actionDialog.action === "requestInfo" && "Request More Information"}
+              {actionDialog.action === "setoff"   && "Recover from Savings"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -730,6 +809,44 @@ export default function Loans() {
               </div>
             )}
 
+            {actionDialog.action === "setoff" && (
+              <div className="space-y-3">
+                <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-800">
+                  This debits savings to settle the outstanding balance: the borrower's
+                  savings first, then each guarantor up to the amount they pledged.
+                  <strong> It cannot be undone.</strong>
+                </div>
+                <div className="rounded-lg border p-3 text-sm space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Outstanding</span>
+                    <span className="font-semibold">{formatCurrency(actionDialog.loan?.balance ?? 0)}</span>
+                  </div>
+                  {(actionDialog.loan?.guarantors ?? []).filter(g => g.consentedAt).map((g, i) => (
+                    <div key={g.id || i} className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">{g.name} (guarantor)</span>
+                      <span>
+                        {g.pledged == null
+                          ? "no pledge recorded"
+                          : `${formatCurrency(Math.max(0, g.pledged - (g.pledgedRecovered ?? 0)))} of ${formatCurrency(g.pledged)} left`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <label className="flex items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="mt-1"
+                    checked={noticeServed}
+                    onChange={e => setNoticeServed(e.target.checked)}
+                  />
+                  <span>
+                    I confirm the member and any affected guarantors have been notified
+                    in writing that savings will be applied to this loan.
+                  </span>
+                </label>
+              </div>
+            )}
+
             <div className="space-y-1.5">
               <Label>Note / Reason</Label>
               <Textarea placeholder="Enter reason for this action…" value={actionNote} onChange={e => setActionNote(e.target.value)} rows={2} />
@@ -739,10 +856,98 @@ export default function Loans() {
             <Button variant="outline" onClick={() => setActionDialog({ open: false, loan: null, action: null })}>Cancel</Button>
             <Button
               onClick={executeAction}
-              variant={["reject", "freeze"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
+              disabled={actionDialog.action === "setoff" && !noticeServed}
+              variant={["reject", "freeze", "setoff"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
             >
               Confirm
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Under-covered decision ── */}
+      <Dialog open={!!underCovered} onOpenChange={o => { if (!o) setUnderCovered(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Savings do not cover this loan</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              Member: <strong>{underCovered?.loan.memberName}</strong> ·{" "}
+              {formatCurrency(underCovered?.loan.amount ?? 0)}
+            </p>
+            {underCovered?.coverage && (
+              <div className="rounded-lg border divide-y text-sm">
+                {[
+                  ["Needed in savings", underCovered.coverage.requiredAmount],
+                  ["Available", underCovered.coverage.coveredAmount],
+                  ["Uncovered", underCovered.coverage.shortfall],
+                ].map(([label, value], i) => (
+                  <div key={i} className="flex items-center justify-between px-3 py-2">
+                    <span className={i === 2 ? "font-medium text-red-700" : "text-muted-foreground"}>{label}</span>
+                    <span className={i === 2 ? "font-semibold text-red-700" : "font-medium"}>
+                      {formatCurrency(Number(value ?? 0))}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-sm text-muted-foreground">{underCovered?.message}</p>
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-900">
+              Approving anyway leaves part of this loan unsecured. The shortfall above
+              cannot be recovered from savings if the member defaults.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUnderCovered(null)}>Cancel</Button>
+            <Button
+              className="bg-amber-600 hover:bg-amber-700"
+              onClick={() => { if (underCovered) approve(underCovered.loan, true); }}
+            >
+              Approve Anyway
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Set-off result ── */}
+      <Dialog open={!!setoffResult} onOpenChange={o => { if (!o) setSetoffResult(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Recovered from savings</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="rounded-lg border divide-y text-sm">
+              <div className="flex items-center justify-between px-3 py-2">
+                <span className="text-muted-foreground">Recovered</span>
+                <span className="font-semibold text-emerald-700">{formatCurrency(Number(setoffResult?.recovered ?? 0))}</span>
+              </div>
+              <div className="flex items-center justify-between px-3 py-2">
+                <span className="text-muted-foreground">Still outstanding</span>
+                <span className={Number(setoffResult?.shortfall ?? 0) > 0 ? "font-semibold text-red-700" : "font-medium"}>
+                  {formatCurrency(Number(setoffResult?.shortfall ?? 0))}
+                </span>
+              </div>
+            </div>
+            {Array.isArray(setoffResult?.steps) && setoffResult!.steps!.length > 0 && (
+              <div className="rounded-lg border divide-y text-sm">
+                {setoffResult!.steps!.map((step, i) => (
+                  <div key={i} className="flex items-center justify-between px-3 py-2">
+                    <span className="text-muted-foreground">{step.name ?? step.role ?? `Step ${i + 1}`}</span>
+                    <span className="font-medium">{formatCurrency(Number(step.amount ?? 0))}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {Number(setoffResult?.shortfall ?? 0) > 0 && (
+              <p className="text-sm text-muted-foreground">
+                The shortfall is not written off. It remains owed and needs a separate
+                arrangement with the member.
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setSetoffResult(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
