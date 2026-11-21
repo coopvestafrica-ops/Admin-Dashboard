@@ -27,7 +27,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useToast } from "@/hooks/use-toast";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type LoanAction = "approve" | "reject" | "freeze" | "penalty" | "guarantor" | "restructure" | "requestInfo" | "setoff";
+type LoanAction = "approve" | "reject" | "disburse" | "freeze" | "penalty" | "guarantor" | "restructure" | "requestInfo" | "setoff";
 
 interface BorrowerRisk {
   score: number;
@@ -183,6 +183,9 @@ export default function Loans() {
         onSuccess: () => toast({ title: "Loan Rejected", description: `Loan for ${loan.memberName || loan.loanId} rejected.` }),
         onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
       });
+    } else if (action === "disburse") {
+      disburse(loan);
+      return;
     } else if (action === "requestInfo") {
       if (!actionNote.trim() || actionNote.trim().length < 3) {
         toast({ title: "Message required", description: "Describe the additional information you need from the borrower.", variant: "destructive" });
@@ -241,6 +244,34 @@ export default function Loans() {
         } else {
           toast({ title: "Loan Approved", description: `Loan for ${loan.memberName || loan.loanId} approved.` });
         }
+        qc.invalidateQueries({ queryKey: ["getLoans"] });
+        qc.invalidateQueries({ queryKey: ["getDashboardSummary"] });
+        qc.invalidateQueries({ queryKey: ["getLoanPortfolioSummary"] });
+      })
+      .catch((e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }));
+  }
+
+  /**
+   * Pay out an approved loan. Credits the principal to the member's wallet and
+   * moves the loan to active, which is what makes repayment and arrears
+   * escalation start working. Only valid from `approved`; a 409 means it was
+   * already disbursed (double click), so we refresh rather than retry.
+   */
+  function disburse(loan: ApiLoan) {
+    authedFetch(`/api/admin/loans/${loan.id}/disburse`, {
+      method: "POST",
+      body: JSON.stringify({ confirm: true }),
+    })
+      .then(async (r) => {
+        const body = await r.json().catch(() => ({}));
+        if (r.status === 409) {
+          toast({ title: "Already disbursed", description: body?.error || "This loan is no longer awaiting disbursement." });
+        } else if (!r.ok) {
+          throw new Error(body?.error || "Disbursement failed");
+        } else {
+          toast({ title: "Loan Disbursed", description: `${formatCurrency(Number(loan.amount ?? 0))} credited to ${loan.memberName}'s wallet.` });
+        }
+        setActionDialog({ open: false, loan: null, action: null });
         qc.invalidateQueries({ queryKey: ["getLoans"] });
         qc.invalidateQueries({ queryKey: ["getDashboardSummary"] });
         qc.invalidateQueries({ queryKey: ["getLoanPortfolioSummary"] });
@@ -451,7 +482,12 @@ export default function Loans() {
                                     </DropdownMenuItem>
                                   </>
                                 )}
-                                {(loan.status === "active" || loan.status === "defaulted") && (
+                                {loan.status === "approved" && (
+                                  <DropdownMenuItem className="text-emerald-700" onClick={() => openAction(loan, "disburse")}>
+                                    <Banknote className="mr-2 h-4 w-4" /> Disburse Loan
+                                  </DropdownMenuItem>
+                                )}
+                                {(loan.status === "active" || loan.status === "defaulted" || loan.status === "overdue" || loan.status === "in_recovery") && (
                                   <>
                                     <DropdownMenuItem onClick={() => openAction(loan, "freeze")} className="text-indigo-600">
                                       <Lock className="mr-2 h-4 w-4" /> Freeze Loan
@@ -764,6 +800,7 @@ export default function Loans() {
             <DialogTitle>
               {actionDialog.action === "approve"    && "Approve Loan"}
               {actionDialog.action === "reject"     && "Reject Loan"}
+              {actionDialog.action === "disburse"   && "Disburse Loan"}
               {actionDialog.action === "freeze"     && "Freeze Loan"}
               {actionDialog.action === "penalty"    && "Add Penalty"}
               {actionDialog.action === "guarantor"  && "Trigger Guarantor Recovery"}
@@ -776,6 +813,13 @@ export default function Loans() {
             <p className="text-sm text-muted-foreground">
               Member: <strong>{actionDialog.loan?.memberName}</strong> · {formatCurrency(actionDialog.loan?.amount ?? 0)}
             </p>
+
+            {actionDialog.action === "disburse" && (
+              <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+                This credits <strong>{formatCurrency(actionDialog.loan?.amount ?? 0)}</strong> to the member's wallet
+                and starts their repayment schedule. It can only be done once.
+              </div>
+            )}
 
             {actionDialog.action === "penalty" && (
               <div className="space-y-1.5">
