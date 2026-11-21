@@ -20,14 +20,14 @@ import { authedFetch } from "@/lib/authed-fetch";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import {
   Search, CheckCircle, XCircle, Clock, AlertTriangle, CreditCard,
-  ShieldAlert, Lock, Plus, Download, MoreVertical, Users, TrendingUp,
-  TrendingDown, RefreshCw, Banknote, FileWarning, HandshakeIcon, Phone, Mail, User, Wallet
+  ShieldAlert, Plus, Download, MoreVertical, Users, TrendingUp,
+  TrendingDown, RefreshCw, Banknote, FileWarning, Phone, Mail, User, Wallet
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type LoanAction = "approve" | "reject" | "disburse" | "freeze" | "penalty" | "guarantor" | "restructure" | "requestInfo" | "setoff";
+type LoanAction = "approve" | "reject" | "disburse" | "penalty" | "restructure" | "requestInfo" | "setoff";
 
 interface BorrowerRisk {
   score: number;
@@ -207,14 +207,38 @@ export default function Loans() {
     } else if (action === "setoff") {
       recoverFromSavings(loan, noticeServed);
       return;
-    } else {
-      const msgs: Partial<Record<LoanAction, string>> = {
-        freeze: `Loan for ${loan.memberName} frozen.`,
-        penalty: `Penalty of ${formatCurrency(Number(penaltyAmount))} added to ${loan.memberName}.`,
-        guarantor: `Guarantor recovery triggered for ${loan.memberName}.`,
-        restructure: `Repayment plan restructured for ${loan.memberName}.`,
-      };
-      toast({ title: "Action Noted", description: msgs[action] ?? "Action completed." });
+    } else if (action === "penalty") {
+      if (!(Number(penaltyAmount) > 0)) {
+        toast({ title: "Amount required", description: "Enter the penalty amount to charge.", variant: "destructive" });
+        return;
+      }
+      authedFetch(`/api/admin/loans/${loan.id}/penalty`, {
+        method: "POST",
+        body: JSON.stringify({ amount: Number(penaltyAmount) }),
+      })
+        .then(async (r) => {
+          const body = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(body?.error || "Penalty failed");
+          toast({ title: "Penalty Added", description: `${formatCurrency(Number(penaltyAmount))} charged to ${loan.memberName}.` });
+          qc.invalidateQueries({ queryKey: ["getLoans"] });
+        })
+        .catch((e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }));
+    } else if (action === "restructure") {
+      authedFetch(`/api/admin/loans/${loan.id}/restructure`, {
+        method: "POST",
+        body: JSON.stringify({
+          newTenureMonths: restructurePlan.months ? Number(restructurePlan.months) : undefined,
+          newInterestRate: restructurePlan.rate ? Number(restructurePlan.rate) : undefined,
+          reason: actionNote.trim() || "Repayment plan restructured by administrator",
+        }),
+      })
+        .then(async (r) => {
+          const body = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(body?.error || "Restructure failed");
+          toast({ title: "Plan Restructured", description: `New repayment plan applied to ${loan.memberName}.` });
+          qc.invalidateQueries({ queryKey: ["getLoans"] });
+        })
+        .catch((e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }));
     }
     setActionDialog({ open: false, loan: null, action: null });
   }
@@ -489,9 +513,6 @@ export default function Loans() {
                                 )}
                                 {(loan.status === "active" || loan.status === "defaulted" || loan.status === "overdue" || loan.status === "in_recovery") && (
                                   <>
-                                    <DropdownMenuItem onClick={() => openAction(loan, "freeze")} className="text-indigo-600">
-                                      <Lock className="mr-2 h-4 w-4" /> Freeze Loan
-                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => openAction(loan, "penalty")} className="text-orange-600">
                                       <FileWarning className="mr-2 h-4 w-4" /> Add Penalty
                                     </DropdownMenuItem>
@@ -500,9 +521,6 @@ export default function Loans() {
                                         <Wallet className="mr-2 h-4 w-4" /> Recover from Savings
                                       </DropdownMenuItem>
                                     )}
-                                    <DropdownMenuItem onClick={() => openAction(loan, "guarantor")} className="text-purple-600">
-                                      <HandshakeIcon className="mr-2 h-4 w-4" /> Trigger Guarantor Recovery
-                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => openAction(loan, "restructure")}>
                                       <RefreshCw className="mr-2 h-4 w-4" /> Restructure Repayment
                                     </DropdownMenuItem>
@@ -770,14 +788,8 @@ export default function Loans() {
               )}
               {(selectedLoan.status === "active" || selectedLoan.status === "defaulted") && (
                 <>
-                  <Button size="sm" variant="outline" onClick={() => { setSelectedLoan(null); openAction(selectedLoan, "freeze"); }}>
-                    <Lock className="mr-1 h-3.5 w-3.5" /> Freeze
-                  </Button>
                   <Button size="sm" variant="outline" className="text-orange-600" onClick={() => { setSelectedLoan(null); openAction(selectedLoan, "penalty"); }}>
                     <FileWarning className="mr-1 h-3.5 w-3.5" /> Add Penalty
-                  </Button>
-                  <Button size="sm" variant="outline" className="text-purple-600" onClick={() => { setSelectedLoan(null); openAction(selectedLoan, "guarantor"); }}>
-                    <HandshakeIcon className="mr-1 h-3.5 w-3.5" /> Guarantor Recovery
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => { setSelectedLoan(null); openAction(selectedLoan, "restructure"); }}>
                     <RefreshCw className="mr-1 h-3.5 w-3.5" /> Restructure
@@ -801,9 +813,7 @@ export default function Loans() {
               {actionDialog.action === "approve"    && "Approve Loan"}
               {actionDialog.action === "reject"     && "Reject Loan"}
               {actionDialog.action === "disburse"   && "Disburse Loan"}
-              {actionDialog.action === "freeze"     && "Freeze Loan"}
               {actionDialog.action === "penalty"    && "Add Penalty"}
-              {actionDialog.action === "guarantor"  && "Trigger Guarantor Recovery"}
               {actionDialog.action === "restructure"&& "Restructure Repayment Plan"}
               {actionDialog.action === "requestInfo" && "Request More Information"}
               {actionDialog.action === "setoff"   && "Recover from Savings"}
@@ -841,11 +851,6 @@ export default function Loans() {
               </div>
             )}
 
-            {actionDialog.action === "guarantor" && (
-              <div className="rounded-lg bg-purple-50 border border-purple-200 p-3 text-sm text-purple-800">
-                This will initiate the guarantor recovery process for <strong>{actionDialog.loan?.memberName}</strong>. A formal demand notice will be generated.
-              </div>
-            )}
 
             {actionDialog.action === "requestInfo" && (
               <div className="rounded-lg bg-sky-50 border border-sky-200 p-3 text-sm text-sky-800">
@@ -901,7 +906,7 @@ export default function Loans() {
             <Button
               onClick={executeAction}
               disabled={actionDialog.action === "setoff" && !noticeServed}
-              variant={["reject", "freeze", "setoff"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
+              variant={["reject", "setoff"].includes(actionDialog.action ?? "") ? "destructive" : "default"}
             >
               Confirm
             </Button>
