@@ -92,6 +92,8 @@ export interface AuditLog {
   id: string;
   action: string;
   actor: string;
+  /** False when the row has no recorded actor (rendered as "System"). */
+  actorAttributed?: boolean;
   role?: string;
   target?: string;
   description: string;
@@ -461,8 +463,12 @@ export const getAuditLogs = async (params?: GetAuditLogsParams) => {
     return {
       id: String(l.id ?? ""),
       action: String(l.action ?? ""),
-      actor: String(l.actor_name ?? l.actor_id ?? "Administrator"),
-      role: String(l.role ?? l.actor_role ?? "admin"),
+      // An unattributed row must not impersonate a person. Falling back to the
+      // literal "Administrator" made 174 of 200 unattributed audit rows look
+      // like they had a known actor.
+      actor: l.actor_name ? String(l.actor_name) : l.actor_id ? String(l.actor_id) : "System",
+      actorAttributed: Boolean(l.actor_name || l.actor_id),
+      role: String(l.role ?? l.actor_role ?? "system"),
       target: [l.target_model, l.target_id].filter(Boolean).join(" ") || undefined,
       description,
       timestamp: String(l.created_at ?? l.timestamp ?? ""),
