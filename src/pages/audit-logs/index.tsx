@@ -60,6 +60,7 @@ type ApiLog = {
   id: number | string;
   action: string;
   actor: string;
+  actorAttributed?: boolean;
   role?: string;
   target?: string;
   description?: string;
@@ -195,7 +196,14 @@ export default function AuditLogs() {
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="font-semibold text-sm">{cfg.label}</span>
                             <Badge className={severityColors[log.severity ?? "Info"] ?? ""} variant="outline">{log.severity ?? "Info"}</Badge>
-                            <span className="text-xs text-muted-foreground">by <strong>{log.actor}</strong></span>
+                            <span className="text-xs text-muted-foreground">
+                              by <strong className={log.actorAttributed ? undefined : "italic"}>{log.actor}</strong>
+                            </span>
+                            {log.actorAttributed === false && (
+                              <Badge variant="outline" className="text-xs text-amber-700 border-amber-300">
+                                unattributed
+                              </Badge>
+                            )}
                             <span className="text-xs text-muted-foreground hidden sm:inline">·</span>
                             <Badge variant="outline" className="text-xs">{log.role}</Badge>
                           </div>
